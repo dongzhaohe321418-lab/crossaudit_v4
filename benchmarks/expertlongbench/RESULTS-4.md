@@ -289,16 +289,22 @@ read from the ledger, not reconstructed.
 - Anything about tasks other than T03MaterialSEG, or about `repair.max_document_growth`
   on deliverables that are not expert prose.
 
-## 10. What I would do with this
+## 10. What was done about it
 
-`repair.max_document_growth` is committed with a default of 0.25 and this study
-says that default is not earned. The measured facts are that it prevents the
-worst single revision and makes the median one worse. **The honest next step is
-to default it off** and leave it as a knob, or to attack the mechanism §3.2
-exposes: revisions that change the document at all, at any size, break correct
+**`repair.max_document_growth` now defaults to 0 — off (`c5e3920`).** The study
+says the 0.25 default is not earned, so it was withdrawn rather than shipped
+with a caveat. The knob and `DEFAULT_MAX_DOCUMENT_GROWTH = 0.25` remain, because
+the one effect the study does establish is real: the screen prevented this
+study's single worst revision (§3.3). A project whose failure mode is the
+catastrophic rewrite can switch it on; a default should not be a setting the
+project's own benchmark calls a net loss. The measured artefact `21f37d5` is
+untouched, so this file's numbers still describe code that exists.
+
+The open problem is the mechanism §3.2 exposes: revisions that change the document at all, at any size, break correct
 items more often than they fix wrong ones — in arm T, 3 fixed against 6 broken
 under a bound that worked. That points at *whether to revise*, not at *how much
-to write*, and it is a different change from this one.
+to write*, and it is a different change from this one — one this study does not
+attempt and does not pre-judge.
 
 ## 11. Reproduction
 
