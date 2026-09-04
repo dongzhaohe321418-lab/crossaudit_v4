@@ -112,10 +112,17 @@ def test_a_defensive_repair_is_committed_with_a_caution_the_auditor_sees(
 
 def test_a_docs_only_revision_using_the_word_fallback_has_no_caution(
         science, cfg, transcripts, monkeypatch):
-    """D121. Mutation: classify .md as code -> a caution appears."""
+    """D121. Mutation: classify .md as code -> a caution appears.
+
+    The document growth screen is off here: it is a different screen with its
+    own tests below, and this one is about the pattern screen never reading
+    prose as code.
+    """
     prose = "We skip the retry and fallback to the plan.\n"
+    no_growth = dataclasses.replace(cfg, repair=RepairPolicy(max_document_growth=0))
     code, events, calls = _drive(
-        cfg, science, monkeypatch, [ROUND_ONE, {SUMMARY: prose}, {SUMMARY: "attempt three\n"}])
+        no_growth, science, monkeypatch,
+        [ROUND_ONE, {SUMMARY: prose}, {SUMMARY: "attempt three\n"}])
     assert not {"repair_refused", "repair_caution"} & set(_kinds(events))
     assert _ledger_notes(cfg) == [] and prose.strip() in git("log", "-p", cwd=science)
 
@@ -288,8 +295,11 @@ def test_the_diff_size_cap_reports_unscreened_files_instead_of_hiding_them(
 
     monkeypatch.setattr(build_mod, "_MAX_SCAN_BYTES", 4096)
     long_prose = "".join(f"paragraph {i} of an honest but long report\n" for i in range(300))
+    # The growth screen is off: this test needs an oversized document to push
+    # calc.py past the cap, which is exactly what that screen refuses.
+    no_growth = dataclasses.replace(cfg, repair=RepairPolicy(max_document_growth=0))
     code, events, calls = _drive(
-        cfg, science, monkeypatch,
+        no_growth, science, monkeypatch,
         [ROUND_ONE, {SUMMARY: long_prose, CALC: CALC_DEFENSIVE}, {CALC: CALC_FIXED}])
     caution = next(e for e in events if e.kind == "repair_caution")
     assert caution.detail == ("1 staged file(s) were larger than the review can read and "
@@ -333,6 +343,10 @@ def test_repair_config_defaults_when_absent(cfg):
 
 
 def test_repair_config_reads_all_knobs(science):
+    grown = _load_with(science, "repair:\n  max_document_growth: 0.5\n")
+    assert grown.repair.max_document_growth == 0.5
+    assert _load_with(science, "repair:\n  max_document_growth: 0\n"
+                      ).repair.max_document_growth == 0
     loaded = _load_with(science, "repair:\n  enabled: false\n  mode: refuse\n  max_changed_lines: 50\n")
     assert loaded.repair == RepairPolicy(enabled=False, mode="refuse", max_changed_lines=50)
 
@@ -346,6 +360,12 @@ def test_repair_config_reads_all_knobs(science):
     ("repair:\n  max_changed_lines: 0\n", "repair.max_changed_lines must be an integer from 1 to 10000"),
     ("repair:\n  max_changed_lines: 10001\n", "repair.max_changed_lines must be an integer from 1 to 10000"),
     ("repair:\n  max_changed_lines: true\n", "repair.max_changed_lines must be an integer from 1 to 10000"),
+    ("repair:\n  max_document_growth: -1\n",
+     "repair.max_document_growth must be a number from 0 to 100"),
+    ("repair:\n  max_document_growth: yes\n",
+     "repair.max_document_growth must be a number from 0 to 100"),
+    ("repair:\n  max_document_growth: lots\n",
+     "repair.max_document_growth must be a number from 0 to 100"),
 ])
 def test_repair_config_refuses_bad_values_with_the_config_error(science, block, message):
     """Mutation: accept bool for max_changed_lines -> `true` loads as 1."""
@@ -436,8 +456,9 @@ def test_a_model_written_binary_past_the_diff_cap_is_still_refused(
 
     monkeypatch.setattr(build_mod, "_MAX_SCAN_BYTES", 4096)
     long_prose = "".join(f"paragraph {i} of an honest but long report\n" for i in range(300))
+    no_growth = dataclasses.replace(cfg, repair=RepairPolicy(max_document_growth=0))
     code, events, calls = _drive(
-        cfg, science, monkeypatch,
+        no_growth, science, monkeypatch,
         [ROUND_ONE, {SUMMARY: long_prose, "experiments/demo/fig 1.png": PNG}, {CALC: CALC_FIXED}])
     refused = [e for e in events if e.kind == "repair_refused"]
     assert len(refused) == 1 and refused[0].detail == (
@@ -446,3 +467,91 @@ def test_a_model_written_binary_past_the_diff_cap_is_still_refused(
     assert calls[2]["staged"] == "" and not (science / "experiments/demo/fig 1.png").exists()
     assert "fig 1.png" not in git("log", "--name-only", cwd=science)
     assert "strict=True" in git("log", "-p", cwd=science)
+
+
+# ============================================ the document growth budget
+#
+# Measured, not assumed. Pooling 25 within-instance revisions on
+# ExpertLongBench T03MaterialSEG, every automatic revision that grew the
+# deliverable by more than a quarter fixed 0 rubric items and broke 11, while
+# the three items any revision fixed all came from revisions under that bound
+# (benchmarks/expertlongbench/RESULTS-4.md). The screen and the sentence the
+# writer is shown carry the same number, from the same config field.
+
+#: A round-one document with enough words for a percentage to mean something.
+_DRAFT = " ".join(f"word{i}" for i in range(100)) + "\n"
+_DRAFT_ROUND_ONE = {SUMMARY: _DRAFT, CALC: CALC_OK}
+#: +100% — a rewrite at length, not a repair.
+_BLOATED = _DRAFT + " ".join(f"extra{i}" for i in range(100)) + "\n"
+#: +10% — the shape a repair actually has.
+_REPAIRED = _DRAFT + " ".join(f"extra{i}" for i in range(10)) + "\n"
+
+
+def test_a_revision_that_rewrites_the_document_at_length_is_rolled_back(
+        science, cfg, transcripts, monkeypatch):
+    """Mutation: drop `document_texts=` at the guard call site -> the bloated
+    revision commits and the next audit judges a document the findings never
+    asked for."""
+    code, events, calls = _drive(
+        cfg, science, monkeypatch,
+        [_DRAFT_ROUND_ONE, {SUMMARY: _BLOATED, CALC: CALC_FIXED},
+         {SUMMARY: _REPAIRED, CALC: CALC_FIXED}])
+    refused = [e for e in events if e.kind == "repair_refused"]
+    assert len(refused) == 1
+    assert ("experiments/demo/SUMMARY.md grew by 100% in one automatic revision "
+            "(100 to 200 words), more than the 25% a revision may add"
+            ) in refused[0].detail
+    # Rolled back, and the retry landed inside the bound.
+    assert "extra99" not in git("log", "-p", cwd=science)
+    assert "extra9 " in git("show", "HEAD:" + SUMMARY, cwd=science) + " "
+    # The generator was re-asked with the reason AND still sees the findings.
+    assert "The repair guard refused the last revision" in calls[2]["findings"]
+    assert "grew by 100%" in calls[2]["findings"]
+
+
+def test_a_revision_inside_the_budget_commits_untouched(
+        science, cfg, transcripts, monkeypatch):
+    """The bound is a bound, not a ban: a real repair still lands."""
+    code, events, calls = _drive(
+        cfg, science, monkeypatch,
+        [_DRAFT_ROUND_ONE, {SUMMARY: _REPAIRED, CALC: CALC_FIXED},
+         {CALC: CALC_FIXED}])
+    assert "repair_refused" not in _kinds(events)
+    assert "extra9" in git("show", "HEAD:" + SUMMARY, cwd=science)
+
+
+def test_a_shorter_revision_is_never_refused_for_growth(
+        science, cfg, transcripts, monkeypatch):
+    """Growth, not churn. The measurement found preservation of the earlier
+    text uncorrelated with the outcome (r = +0.08) and growth strongly
+    correlated (r = -0.40), so only growth is bounded: a revision that
+    replaces the document with a shorter one passes this screen."""
+    shorter = " ".join(f"other{i}" for i in range(40)) + "\n"
+    code, events, calls = _drive(
+        cfg, science, monkeypatch,
+        [_DRAFT_ROUND_ONE, {SUMMARY: shorter, CALC: CALC_FIXED}, {CALC: CALC_FIXED}])
+    assert "repair_refused" not in _kinds(events)
+    assert "other39" in git("show", "HEAD:" + SUMMARY, cwd=science)
+
+
+def test_the_budget_is_configurable_and_zero_turns_it_off(
+        science, cfg, transcripts, monkeypatch):
+    """Mutation: hard-code the default in the guard -> the run below is refused."""
+    off = dataclasses.replace(cfg, repair=RepairPolicy(max_document_growth=0))
+    code, events, calls = _drive(
+        off, science, monkeypatch,
+        [_DRAFT_ROUND_ONE, {SUMMARY: _BLOATED, CALC: CALC_FIXED}, {CALC: CALC_FIXED}])
+    assert "repair_refused" not in _kinds(events)
+    assert "extra99" in git("show", "HEAD:" + SUMMARY, cwd=science)
+
+
+def test_a_first_draft_has_no_growth_to_measure(
+        science, cfg, transcripts, monkeypatch):
+    """A document absent from HEAD is a first draft, not a revision of one.
+    Round two writes a brand-new file of any length and is not refused for it."""
+    other = "experiments/demo/NOTES.md"
+    code, events, calls = _drive(
+        cfg, science, monkeypatch,
+        [_DRAFT_ROUND_ONE, {other: _BLOATED, CALC: CALC_FIXED}, {CALC: CALC_FIXED}])
+    assert "repair_refused" not in _kinds(events)
+    assert other in git("log", "--name-only", cwd=science)

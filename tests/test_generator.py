@@ -315,3 +315,46 @@ def test_build_stages_only_files_the_generator_returned(tmp_path: Path):
                             capture_output=True, text=True, check=True).stdout
     assert "A  work/real/results.json" in status
     assert "?? work/TEMPLATE/" in status
+
+
+# ---------------------------------------------- the revision growth bound
+
+def test_a_revision_prompt_states_the_growth_bound_it_will_be_held_to():
+    """`repair_guard` rolls back a revision that grows a document past the
+    budget, and a rolled-back round costs the loop a round. The writer is
+    told the number before it spends one.
+
+    Mutation: drop `document_growth_budget` from `build_prompt` -> the bound
+    is enforced but never stated, and the first revision spends a round
+    learning it.
+    """
+    from crossaudit.generator import build_prompt
+
+    prompt = build_prompt(task="write the report", constitution="# Rules\n",
+                          current={"work/r.md": "a draft"},
+                          findings="[BLOCKER] CA-1 — work/r.md: no atmosphere",
+                          document_growth_budget=0.25)
+    assert "do not grow a document by more than 25%" in prompt
+    assert "keep every part of each file the findings do not concern" in prompt
+    # A finding that genuinely needs more is a human's call, not a silent one.
+    assert "say what is missing in `notes`" in prompt
+
+
+def test_a_first_draft_carries_no_growth_bound():
+    """There is nothing to grow past on a blank page, and the sentence would
+    only bias the length of a first draft."""
+    from crossaudit.generator import build_prompt
+
+    prompt = build_prompt(task="write the report", constitution="# Rules\n",
+                          current={}, document_growth_budget=0.25)
+    assert "grow a document" not in prompt
+
+
+def test_the_stated_bound_is_the_configured_one():
+    """Mutation: hard-code 25% in the sentence -> a project that raised the
+    knob is told a number the screen does not enforce."""
+    from crossaudit.generator import build_prompt
+
+    prompt = build_prompt(task="t", constitution="# Rules\n", current={"a.md": "x"},
+                          findings="[BLOCKER] CA-1", document_growth_budget=0.6)
+    assert "do not grow a document by more than 60%" in prompt

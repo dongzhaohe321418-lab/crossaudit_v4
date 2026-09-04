@@ -40,8 +40,14 @@ Three file classes (`classify`):
   never budgeted: a regenerated ``results.json`` is the deliverable, and
   ``retries: 3`` in a config is a value, not a construct;
 - **document** (everything else: Markdown, text, TeX, ...) — never
-  pattern-screened, never budgeted.  A report that says "skip the
-  introduction" is honest prose (D121).
+  pattern-screened and never *line*-budgeted.  A report that says "skip the
+  introduction" is honest prose (D121).  One line of prose is an unbounded
+  amount of prose, so a document has its own budget instead: how much a
+  single automatic revision may make it **grow** (`document_growth`).  That
+  bound exists because it was measured — on ExpertLongBench T03MaterialSEG
+  every automatic revision that grew the deliverable by more than a quarter
+  fixed nothing and broke ten rubric items
+  (`benchmarks/expertlongbench/RESULTS-4.md`).
 
 Comments, docstrings, doctest lines and string literals are stripped from a
 code line before the construct patterns run; the suppression markers, which
@@ -58,6 +64,12 @@ from typing import Iterable, Sequence
 
 #: The two dial positions for cautions (config ``repair.mode``).
 MODES = ("caution", "refuse")
+
+#: How much of itself an automatic revision may add to a document deliverable,
+#: as a fraction of the words it already had.  A repair answers findings; it is
+#: not an occasion to rewrite the artefact at greater length.  ``None`` (config
+#: ``repair.max_document_growth: 0``) turns the screen off.
+DEFAULT_MAX_DOCUMENT_GROWTH = 0.25
 
 CODE_SUFFIXES = frozenset({
     ".py", ".pyi", ".pyx", ".pxd", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx",
@@ -87,6 +99,21 @@ def classify(path: str) -> str:
 
 def is_code_file(path: str) -> bool:
     return classify(path) == "code"
+
+
+def growth(before: str, after: str) -> float:
+    """How much ``after`` grew over ``before``, as a fraction of ``before``.
+
+    Words, not bytes or lines: a Markdown deliverable is one line per
+    paragraph, so a line diff of prose measures nothing, and bytes move with
+    formatting.  A file that did not exist before, or was empty, has no
+    growth to measure and returns ``0.0`` — the first draft of a document is
+    not a revision of one.
+    """
+    b = len(before.split())
+    if b == 0:
+        return 0.0
+    return (len(after.split()) - b) / b
 
 
 def normalise_path(path: str) -> str:
@@ -349,8 +376,13 @@ class RepairAssessment:
     changed_files: tuple[str, ...]
     #: added+removed lines over CODE files (the budgeted quantity).
     changed_lines: int
-    #: added+removed lines over data and document files (never budgeted).
+    #: added+removed lines over data and document files (never line-budgeted).
     document_lines: int
+    #: the largest fraction by which this revision grew a document deliverable
+    #: (words), over the documents the caller supplied before/after text for.
+    document_growth: float
+    #: documents this revision grew past ``max_document_growth``.
+    overgrown_files: tuple[str, ...]
     unsupported_files: tuple[str, ...]
     binary_files: tuple[str, ...]
     #: pattern names that fired (added, marker and removed screens).
@@ -470,18 +502,23 @@ def screen_code_file(path: str, diff: FileDiff) -> list[tuple[str, str]]:
 class RepairGuard:
     """Sort one automatic repair's staged diff into refusals and cautions."""
 
-    def __init__(self, max_changed_lines: int = 200, mode: str = "caution") -> None:
+    def __init__(self, max_changed_lines: int = 200, mode: str = "caution",
+                 max_document_growth: float | None = DEFAULT_MAX_DOCUMENT_GROWTH) -> None:
         if max_changed_lines < 1:
             raise ValueError("max_changed_lines must be positive")
         if mode not in MODES:
             raise ValueError(f"mode must be one of {MODES}")
+        if max_document_growth is not None and max_document_growth < 0:
+            raise ValueError("max_document_growth must not be negative")
         self.max_changed_lines = max_changed_lines
         self.mode = mode
+        self.max_document_growth = max_document_growth
 
     def assess(self, unified_diff: str, *, scope_dirs: Sequence[str] | None = None,
                staged_files: Iterable[str] | None = None,
                locally_rendered_files: Iterable[str] | None = None,
                binary_files: Iterable[str] | None = None,
+               document_texts: "dict[str, tuple[str, str]] | None" = None,
                truncated: bool = False) -> RepairAssessment:
         """Screen a staged diff.
 
@@ -495,6 +532,12 @@ class RepairGuard:
         the paths git itself reports as binary (``parse_numstat``); they are
         refused whether or not the diff text still shows them, so the cap
         limits only the pattern screen, never the binary screen.
+
+        ``document_texts`` maps a document path to ``(before, after)`` — the
+        committed bytes the audit judged and the bytes this revision staged in
+        their place.  It is what the growth screen reads; a caller that does
+        not supply it gets no growth screen, because a unified diff of prose
+        cannot tell an added sentence from a re-emitted paragraph.
         """
         rendered = {normalise_path(p) for p in (locally_rendered_files or ())}
         staged = list(dict.fromkeys(normalise_path(p) for p in (staged_files or ()) if p))
@@ -533,6 +576,31 @@ class RepairGuard:
                 patterns.append(name)
                 cautions.append(sentence)
 
+        # The document budget.  A repair answers the findings raised against
+        # the artefact; it does not get to replace the artefact with a longer
+        # one.  Measured, not assumed: study 4 found that revisions growing the
+        # deliverable past this bound fixed 0 rubric items and broke 11, while
+        # everything under it carried all 3 of the study's fixes.  A refusal in
+        # both modes, because unlike a catch-all `except` there is nothing here
+        # for the auditor to weigh — the artefact it would judge is gone.
+        overgrown: list[str] = []
+        worst = 0.0
+        for path in sorted(document_texts or {}):
+            before, after = (document_texts or {})[path]
+            if classify(path) != "document":
+                continue
+            ratio = growth(before, after)
+            worst = max(worst, ratio)
+            if self.max_document_growth is not None and ratio > self.max_document_growth:
+                overgrown.append(normalise_path(path))
+                refusals.append(
+                    f"{normalise_path(path)} grew by {ratio:.0%} in one automatic "
+                    f"revision ({len(before.split())} to {len(after.split())} words), "
+                    f"more than the {self.max_document_growth:.0%} a revision may add. "
+                    "Repair what the findings name and leave the rest of the document "
+                    "as it stands; if the finding genuinely needs the document "
+                    "restructured, say so in `notes` so a human can decide.")
+
         unscreened = sorted(set(staged) - set(files) - reported_binary) if truncated else []
         if unscreened:
             cautions.append(
@@ -550,6 +618,8 @@ class RepairGuard:
             changed_files=tuple(known),
             changed_lines=code_lines,
             document_lines=other_lines,
+            document_growth=worst,
+            overgrown_files=tuple(overgrown),
             unsupported_files=tuple(unsupported),
             binary_files=tuple(untrusted_binary),
             patterns=tuple(dict.fromkeys(patterns)),

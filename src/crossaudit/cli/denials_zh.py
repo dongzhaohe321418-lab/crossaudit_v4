@@ -321,6 +321,10 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     ("repair.enabled must be true or false", "repair.enabled 必须是 true 或 false"),
     ("repair.max_changed_lines must be an integer from 1 to 10000",
      "repair.max_changed_lines 必须是 1 到 10000 之间的整数"),
+    ("repair.max_document_growth must be a number from 0 to 100 "
+     "(a fraction of the committed document; 0 turns the screen off)",
+     "repair.max_document_growth 必须是 0 到 100 之间的数字"
+     "（相对已提交文档的比例；填 0 表示关闭该检查）"),
     ("repair.mode must be caution or refuse",
      "repair.mode 必须是 caution（提醒）或 refuse（拒绝）"),
     # ----------------------------------------------------- connections.py
