@@ -1,0 +1,38 @@
+{
+  "fetched_via": "https://datasets-server.huggingface.co/rows",
+  "datasets": {
+    "humaneval_base": {
+      "dataset": "openai/openai_humaneval",
+      "config": "openai_humaneval",
+      "split": "test",
+      "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+      "rows": 164,
+      "bytes": 214315,
+      "sha256": "b19293e42932e70278b8e5ed83f8c82879cf34e0d3a44cc580f060b7cdaba4f8",
+      "licence": "MIT",
+      "homepage": "https://huggingface.co/datasets/openai/openai_humaneval"
+    },
+    "humaneval_plus": {
+      "dataset": "evalplus/humanevalplus",
+      "config": "default",
+      "split": "test",
+      "revision": "d32357cf319e50e9c8d8dab5ea876c72b0fd321b",
+      "rows": 164,
+      "bytes": 10991704,
+      "sha256": "8778f6f31e78d1630709eb36e296fe4705466e6aa2b50dea7db67959ae0ef158",
+      "licence": "Apache-2.0",
+      "homepage": "https://huggingface.co/datasets/evalplus/humanevalplus"
+    },
+    "mbpp_plus": {
+      "dataset": "evalplus/mbppplus",
+      "config": "default",
+      "split": "test",
+      "revision": "b2d74c91837c3f2a20c1299ae98133cbe7cfa077",
+      "rows": 378,
+      "bytes": 4887790,
+      "sha256": "43dd5c25c4f976d6ca98f4475b08fcc2add43b6e480348a22a25d1a020fe5866",
+      "licence": "Apache-2.0",
+      "homepage": "https://huggingface.co/datasets/evalplus/mbppplus"
+    }
+  }
+}

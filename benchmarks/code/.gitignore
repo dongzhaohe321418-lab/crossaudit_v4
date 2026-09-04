@@ -1,0 +1,6 @@
+# The corpus is not redistributed (see manifest_corpus.json for what is pinned).
+data/
+# Run directories hold generated solutions, which reproduce the corpus prompts, and
+# test-failure messages, which quote the corpus's inputs. export.py produces the
+# committed, corpus-free record under records/.
+runs/
