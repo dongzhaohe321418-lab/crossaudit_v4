@@ -54,9 +54,17 @@ it.** Hashes, ids, scores and counts are derived values and are safe; that is
 what the record is made of. A study that cannot record its evidence without
 redistributing the corpus records the hashes and says where the originals live.
 
-Keep the full run directories on disk (they stay gitignored) and record their
-absolute paths and a directory-level sha256 manifest in the report, so the raw
-material can be produced on request even though it is not published.
+Keep the full run directories on disk and record their absolute paths and a
+directory-level sha256 manifest in the report, so the raw material can be
+produced on request even though it is not published.
+
+**Not in a temporary directory.** Session scratchpad lives under `/private/tmp`
+and the system clears it. The run directories for every study to date are
+archived at `~/Documents/Crossaudit/study-data/`, with a per-file manifest
+beside them and the directory-level digests committed here as
+`ARCHIVE_MANIFEST.json`. Several published numbers have already been re-verified
+from that archive, and several planned analyses are replays over it that would
+otherwise cost roughly ten times as much.
 
 ## 4. Analysis stated so it can be checked
 

@@ -1,0 +1,51 @@
+{
+  "archived_utc": "2026-09-05",
+  "bytes": 16525129,
+  "location": "/Users/ericdong/Documents/Crossaudit/study-data",
+  "n_files": 1841,
+  "not_committed": "contains model outputs derived from ExpertLongBench (CC BY-NC-SA 4.0, non-commercial, no redistribution). Only this manifest of derived values is committed.",
+  "per_file_manifest": "MANIFEST.json in the archive directory; 1841 entries",
+  "studies": {
+    "wt-arch-runs": {
+      "bytes": 3203299,
+      "directory_sha256": "2077de7bf784653103af903bca7ba2b7128dbd5fbb80bb7e38d7f70bf900088e",
+      "n_files": 15
+    },
+    "wt-code-runs": {
+      "bytes": 1921187,
+      "directory_sha256": "20ce54afde569ae6435c4947327fb53fd980deb5d7870285764671bbb2a311df",
+      "n_files": 13
+    },
+    "wt-control-runs": {
+      "bytes": 1210830,
+      "directory_sha256": "ca480efcfd0ae53d29e4df71bcbc98242ff705b95e3b9998c3807b15cdb6452d",
+      "n_files": 286
+    },
+    "wt-ctlrev-runs": {
+      "bytes": 1295442,
+      "directory_sha256": "758908b6762bf7e0e417e8b4a82ad7f78c792a870811d4681027fce6596a54dc",
+      "n_files": 217
+    },
+    "wt-premise-runs": {
+      "bytes": 3507857,
+      "directory_sha256": "553c3da0d86cebed339db0be310ffdf6890b7e9e05a3e46fc3ed3bd0735ef509",
+      "n_files": 573
+    },
+    "wt-revision-runs": {
+      "bytes": 893526,
+      "directory_sha256": "f8f6f615681cdb51a8d428f792dc9316661d83cf319a9b994874e43a1ac11ec2",
+      "n_files": 129
+    },
+    "wt-split-runs": {
+      "bytes": 1268447,
+      "directory_sha256": "d5440d09f453963403f858b068c52ee0e5f88bbff66f1c6314c17e15285876c7",
+      "n_files": 165
+    },
+    "wt-study2-runs": {
+      "bytes": 3224541,
+      "directory_sha256": "a3e3cd09ac6fe5b630cd2bfac4353269ce5d1de0228ac39f4c44f16e31576dee",
+      "n_files": 443
+    }
+  },
+  "why": "copied out of session scratchpad under /private/tmp, which the system clears; several planned analyses are replays over these bytes"
+}
