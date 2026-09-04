@@ -127,6 +127,49 @@ different and much weaker claim, and cannot carry a change to a shipped default.
 This is why the proposed report-not-revise default was correctly stopped before
 it shipped. The evidence for it was an artefact of the analysis.
 
+**10. Study 3's "+2.04 F1 — the draft did not fall."**
+Withdrawn against a floor measured on its own estimand. Study 5B ran three
+replicates **including generation**: draft F1 9.72, 10.42, 6.94, **SD 1.84**.
++2.04 does not clear it. This is the reassurance that made splitting the rules
+look free, and it is now unsupported: the recall gain from splitting survives
+easily (2% to 23.5%), but the claim that it cost the first draft nothing does
+not. Whether it costs anything is unmeasured, not shown to be zero.
+
+Study 2's "a stronger auditor model moved recall from 2.0% to 3.8%" falls to the
+same floor, which is the second and better reason to withdraw it (the first,
+item 5, is that the arm varied the model within one vendor).
+
+**11. "The cross-vendor auditor sees more." — the premise itself.**
+Tested at n = 30 and **not supported, in the opposite direction**. The
+cross-vendor auditor recalled **19.8%** of the defects CLEAR found; the generator
+judging its own work recalled **31.7%**. Paired **−11.8 pp, CI [−19.2, −4.1]**,
+exact Wilcoxon p = 0.0115, and −13.6 pp under the deterministic mapping. Worse on
+17 instances, better on 3. The earlier n = 10 result was not a fluke; it was this
+effect underpowered.
+
+Stated against itself, as the study's author does: this is the weakest result in
+that study. −11.8 pp is smaller than 2 SD of the same statistic at n = 8, it
+clears only after scaling to n = 30, and Bonferroni over the study's eleven
+comparisons gives 0.127. What supports it is that all five independent estimates
+of it are negative.
+
+**What replaces it is larger and cleaner.** `cross` gated **80.0%** of increments
+against `self`'s **3.3%**: +76.7 pp, McNemar **p = 2.4 × 10⁻⁷**, 23 discordant
+pairs with none pointing back. `cross` filed **all 48** of its findings as
+BLOCKER. `self` raised **more** findings (64), filed **61 as ADVISORY**, and was
+the **most precise** arm at 82%. Both registered kill criteria cleared, and both
+results clear the noise floor outright.
+
+**The defensible sentence is "a stranger is less tolerant", not "a stranger sees
+more."** The self-audit does not fail to notice; it notices and forgives. That is
+a severity mechanism, and it has been sold as a recall mechanism.
+
+**And "vendor" may be the wrong axis.** `sibling − self` = **−22.2 pp**
+(p ≈ 2 × 10⁻⁵): two models from the *same* vendor differ by nearly twice what the
+two vendors differ by. What the invariant appears to buy is distance from the
+author, not distance from the training corpus. This is a product question, not a
+measurement one, and it is open.
+
 ---
 
 ## The four headline findings, restated
