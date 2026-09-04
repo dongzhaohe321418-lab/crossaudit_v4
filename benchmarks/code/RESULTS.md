@@ -1,5 +1,17 @@
 # EvalPlus, n = 56 — the domain hypothesis is false: in code the auditor names 8.9% of what the visible tests miss, inside the band it managed on prose
 
+> **Corrected 2026-09-05 — see `../CORRECTIONS.md`.** The false-positive result
+> stands and is this study's strongest finding. Two things do not. The recall
+> advantage's interval **[1.8%, 17.9%]** cannot establish a sign: all five
+> discordant pairs point one way, so a percentile bootstrap cannot draw a
+> negative resample and mechanically returns a positive lower bound. Exact
+> McNemar gives **p = 0.0625**. And four of the 56 stratum-P cases
+> (`HumanEval/163`, `Mbpp/267`, `Mbpp/300`, `Mbpp/765`) are harness **timeouts**,
+> not observed assertion failures, which contradicts the ground-truth
+> description; excluding them moves recall from 5/56 to 5/52. The claim that no
+> model ever saw the hidden tests should read "not present in runtime prompts or
+> tool inputs" — these are public datasets that predate the models.
+
 **Of 56 solutions that pass every test the developer can see and fail a hidden test —
 "looks right, is wrong" — CrossAudit's shipped cross-vendor configuration named 5.
 Recall 8.9% (5/56), 95% CI [3.9%, 19.3%].** The prose studies measured 2.0% under the

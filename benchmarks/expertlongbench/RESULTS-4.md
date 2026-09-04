@@ -1,5 +1,14 @@
 # T03MaterialSEG — **the growth budget does not repair the revision defect. It bounded growth exactly as designed and the revision delta got worse: −7.58 F1 against the control's −2.14**
 
+> **Withdrawn 2026-09-05 — see `../CORRECTIONS.md`.** This report's primary
+> outcome conditions on a post-treatment variable: it keeps only instances where
+> the loop revised, while the treatment itself decides whether a revision is
+> committed. The arms therefore hold different subsets (control 9 revised,
+> treatment 11, only 7 in both), and the headline's "16 paired instances" is not
+> true of that statistic. Recomputed over all 16 assigned pairs the effect is
+> **−4.01 F1, 95% CI [−16.54, +8.33], p = 0.68** — not distinguishable from zero,
+> against the **−19.60** below. Read everything here as exploratory.
+
 **The preregistered hypothesis is false, in the direction opposite to the
 prediction.** The 25% document-growth budget was supposed to move the paired
 within-instance revision delta *up*. On 16 paired instances it moved it *down*:

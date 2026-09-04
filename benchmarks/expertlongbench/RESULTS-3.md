@@ -1,5 +1,14 @@
 # T03MaterialSEG, n = 20 paired — splitting the rules took the auditor from 2% to 23.5% and left the first draft where it was; the loop's next defect is revision
 
+> **Corrected 2026-09-05 — see `../CORRECTIONS.md`.** Two numbers in this report
+> do not stand. The pooled **−11.01 F1 (p = 0.0014)** mixes arms S, R and X,
+> whose per-arm means are −13.56, +5.83 and −14.42; its 25 observations contain
+> only 18 unique sample ids, so the sign enumeration assumes an independence the
+> data lack. Its unit is also mislabelled: 25 revised *instances* contain **36
+> transitions**, and per transition the figure is −7.64 with 5 fixed / 19 broken,
+> not 3/17. The **+24.07** is n = 4 with no interval, from differences of +16.67,
+> 0, +22.22 and +57.41. The 2% → 23.5% recall change survives.
+
 **The round-one draft did not fall: 19.8 → 21.8 CLEAR F1, paired difference
 +2.04 on 20 instances (p = 0.54). The auditor's round-one recall against CLEAR
 ground truth went from 2.0% (2 of 100 wrong items) to 23.5% (23 of 98) — about

@@ -1,5 +1,14 @@
 # T03MaterialSEG, 60 arm-B instances, 17 revisions — revision broke more than it fixed, and the auditor named 2% of what was wrong
 
+> **Corrected 2026-09-05 — see `../CORRECTIONS.md`.** The title's "17 revisions"
+> means 17 revised *instances*; those contain **23 transitions**, and per
+> transition the summary is −2.52 F1 with 4 fixed / 8 broken, not the −3.40 and
+> 3/7 reported below. The causal claim that "it is the constitution, not the
+> model" is **not established**: the compared arms' drafts differ byte-for-byte
+> from the shipped arm's, one arm also changed the generator prompt, and no
+> interval or paired test was supplied for the recall contrast. The "100%
+> precision" figures are 4/4, 17/17 and 2/2, superseded at 73%.
+
 **Across 17 measured revisions on ExpertLongBench T03MaterialSEG, the post-revision output
 scored 3.4 CLEAR F1 *below* the pre-revision draft it replaced (SE 3.88; 4 better, 6 worse,
 7 unchanged; two-sided Wilcoxon p = 0.32) — a difference not distinguishable from zero, but
