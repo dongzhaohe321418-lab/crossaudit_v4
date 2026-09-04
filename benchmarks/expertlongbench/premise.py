@@ -80,6 +80,38 @@ from tasks import Task, get_task  # noqa: E402
 #: money runs out mid-run, the primary comparison is complete on every instance recorded.
 ARMS = ("cross", "self", "sibling", "none")
 
+#: Waits between attempts when every configured route came back rate-limited. A second
+#: study is running against the same credentials, so HTTP 429 is the expected weather
+#: here rather than a fault. The product's own resilience layer retries within a call;
+#: this waits out a shared quota window, which is a different timescale.
+BACKOFF_S = (30, 90, 240, 480)
+
+
+def retrying(what: str, call, *args, **kwargs):
+    """Place a provider call, waiting out a shared rate-limit window if one is hit.
+
+    Retries ONLY when every route was exhausted -- the provider said 429, or the
+    equivalent -- and never on a refusal that is about the request itself. A model that
+    answered is never asked again: this wraps calls that could not be placed, so it can
+    change how long a number takes to obtain and not what the number is.
+    """
+    from crossaudit.errors import ProviderDenial
+
+    last: Exception | None = None
+    for wait in (*BACKOFF_S, None):
+        try:
+            return call(*args, **kwargs)
+        except ProviderDenial as exc:
+            reason = str(getattr(exc, "reason", "") or exc)
+            if "429" not in reason and "rate" not in reason.lower():
+                raise
+            last = exc
+            if wait is None:
+                break
+            print(f"    rate-limited on {what}; waiting {wait}s", flush=True)
+            time.sleep(wait)
+    raise last  # type: ignore[misc]
+
 
 @dataclass
 class ArmJudgement:
@@ -161,7 +193,8 @@ def judge_once(cfg, sha: str, arm: str, spec: str, run_id: str,
     started = time.monotonic()
 
     def ask(text: str):
-        reply = resilience.complete(
+        reply = retrying(
+            f"the {arm} audit", resilience.complete,
             cfg, "auditor", role, system=prompt_mod.SYSTEM, prompt=text,
             allow_custom=False,
         )
@@ -258,7 +291,8 @@ def score_judgement(adjudicator: Adjudicator, task: Task, judgement: ArmJudgemen
                 if 0 <= index < len(task.items):
                     record["cited_rule"] = [task.items[index].key]
         try:
-            indices = adjudicator.map_finding(
+            indices = retrying(
+                "the adjudicator", adjudicator.map_finding,
                 task,
                 Finding(severity=finding["severity"], rule=finding["rule"],
                         artifact=finding["artifact"],
@@ -585,7 +619,8 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
         record["draft_sha256"] = sha256_text(draft)
 
         # Ground truth, once. Every arm is scored against this same judgement set.
-        scored = scorer.score(task, sample_id, draft, reference)
+        scored = retrying("CLEAR scoring", scorer.score, task, sample_id, draft,
+                          reference)
         record["draft_score"] = scored.score.to_json()
         record["draft_score_cost_usd"] = scored.cost.cost_usd
         by_key = {j.key: j for j in scored.score.judgements}

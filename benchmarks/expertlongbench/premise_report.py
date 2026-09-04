@@ -97,18 +97,38 @@ def paired_recall(run: dict, arm_a: str, arm_b: str, mapping: str):
 
 
 def cost(run: dict, path: Path) -> dict:
-    """Every dollar this run spent, from the product's own usage ledgers."""
+    """Every dollar this run spent, priced by the product's own usage ledger.
+
+    Two sources, because a scratch project is deleted the moment its instance is
+    recorded: generation and judging spend is read out of that project's ledger *before*
+    the delete and carried on the record, and the host project's surviving ledger holds
+    the CLEAR scoring and adjudication calls. Reading only the surviving ledgers, as a
+    first version of this function did, silently reported about a fifth of the true
+    figure.
+    """
     sys.path.insert(0, str(HERE.parents[1] / "src"))
     from crossaudit import usage  # noqa: PLC0415
 
     run_ids = set(run["plan"].get("run_ids") or [run["plan"]["run_id"]])
     by_phase: dict[str, float] = {}
+    for instance in run["instances"]:
+        generation = instance.get("generation") or {}
+        # `generation.cost_usd` is read off the scratch project's ledger before the
+        # judging turns are placed against that same project, so the two lines do not
+        # overlap.
+        judging = float(instance.get("judging_cost_usd") or 0.0)
+        gen_total = float(generation.get("cost_usd") or 0.0)
+        by_phase["generation+product-audit"] = (
+            by_phase.get("generation+product-audit", 0.0) + gen_total)
+        by_phase["judging (3 arms)"] = by_phase.get("judging (3 arms)", 0.0) + judging
     for ledger in path.rglob(usage.LEDGER_NAME):
         events, _bad = usage.read_events(ledger)
         for event in events:
             if event.get("run_id") not in run_ids:
                 continue
             phase = str(event.get("phase", "?"))
+            if phase.startswith("premise-") or phase in {"generation", "audit"}:
+                continue          # already counted from the record
             by_phase[phase] = by_phase.get(phase, 0.0) + float(
                 event.get("api_value_usd") or 0.0)
     by_phase["TOTAL"] = sum(v for k, v in by_phase.items() if k != "TOTAL")
