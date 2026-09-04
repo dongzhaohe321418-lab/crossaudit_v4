@@ -443,6 +443,45 @@ def product_audit_record(project: Path, cfg) -> dict:
     return {}
 
 
+def probe_models(cfg, specs_wanted: list[str], run_id: str) -> dict:
+    """Ask every model this run needs to answer one trivial question, before spending.
+
+    Study 5's first attempt lost four instances' drafts and both noise-floor replicates
+    to a credit balance that ran out mid-run, and it lost them one at a time, each after
+    paying for a generation. A run that cannot finish should fail on its first second,
+    loudly, for a few tenths of a cent -- not silently over an hour.
+
+    Raises SystemExit naming every spec that did not answer. Returns what each one cost.
+    """
+    from crossaudit.providers import resilience
+
+    results: dict[str, dict] = {}
+    failed: list[str] = []
+    for spec in specs_wanted:
+        if not spec:
+            continue
+        role = role_for(spec)
+        try:
+            reply = resilience.complete(
+                cfg, "probe", role,
+                system="Answer with one word.", prompt="Reply with the single word: ok",
+                allow_custom=False)
+            results[spec] = {"ok": True, "answered": bool((reply.text or "").strip())}
+        except Exception as exc:  # noqa: BLE001 - the whole point is to report it
+            results[spec] = {"ok": False,
+                             "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
+            failed.append(spec)
+    if failed:
+        lines = [f"  {spec}: {results[spec]['error']}" for spec in failed]
+        raise SystemExit(
+            "PREFLIGHT FAILED -- not starting a run that cannot finish.\n"
+            + "\n".join(lines)
+            + "\n\nEvery model this run needs must answer before any instance is "
+              "generated. Fix the credential or the credit balance and run again.")
+    print("preflight: " + ", ".join(f"{spec} ok" for spec in results), flush=True)
+    return results
+
+
 def environment() -> dict:
     """Versions the measurement depends on. Absent packages are recorded as absent."""
     import platform
@@ -773,6 +812,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--subset", type=int, default=0,
                         help="keep only the first SUBSET of the seeded sample, so a "
                              "replicate runs on a strict subset of the main run")
+    parser.add_argument(
+        "--target-complete", type=int, default=0,
+        help="stop once this many instances are COMPLETE -- drafted, scored and judged "
+             "by every arm. The seeded sample is the headroom: instances that fail cost "
+             "attempts, not analysed n. 0 runs the whole sample.")
+    parser.add_argument(
+        "--no-probe", action="store_true",
+        help="skip the preflight that asks every model to answer before spending. "
+             "Only for a rerun whose providers were just verified.")
     parser.add_argument("--generator", default="anthropic:claude-sonnet-4-6")
     parser.add_argument("--cross", default="openai:gpt-5.6-terra",
                         help="the shipped configuration: a different vendor")
@@ -886,6 +934,7 @@ def main(argv: list[str] | None = None) -> int:
                          "then re-sorted by id; --subset keeps the first k of that",
         },
         "environment": environment(),
+        "target_complete": args.target_complete,
         "stopping_rule": "run to completion of the seeded sample, or stop and report "
                          "when the study's share of the US$20 two-study budget is "
                          "spent, whichever comes first",
@@ -926,7 +975,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir: Path,
              run_id: str, arms: list[str], specs_by_arm: dict, *, resume: bool,
-             verify_prompt: bool) -> int:
+             verify_prompt: bool, target_complete: int = 0, probe: bool = True) -> int:
     from crossaudit.config import load
 
     host = out_dir / "_host"
@@ -938,6 +987,15 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
     else:
         host_project = bootstrap_project(host, task, rows[0], options)
     host_cfg = load(host_project / "crossaudit.yml")
+
+    if probe:
+        plan["preflight"] = probe_models(
+            host_cfg,
+            sorted({options.generator, options.mapper, options.judge,
+                    options.adjudicator, *(specs_by_arm[a] for a in arms)}),
+            run_id)
+        (out_dir / "manifest.json").write_text(
+            json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     scorer = ClearScorer(
         CrossAuditClient(cfg=host_cfg, phase="clear-scoring", run_id=run_id),
@@ -1033,11 +1091,19 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
         shutil.rmtree(scratch, ignore_errors=True)
         return record
 
+    def n_complete() -> int:
+        return sum(1 for r in records if r.get("arms") and r.get("draft_score"))
+
     for position, row in enumerate(rows, start=1):
         sample_id = row["id"]
         if sample_id in already:
             continue
-        print(f"[{position}/{len(rows)}] {sample_id}", flush=True)
+        if target_complete and n_complete() >= target_complete:
+            print(f"target of {target_complete} complete instances reached; "
+                  f"{len(rows) - position + 1} seeded instances left unrun", flush=True)
+            break
+        print(f"[{position}/{len(rows)}] {sample_id}  "
+              f"(complete so far: {n_complete()})", flush=True)
         try:
             record = one_instance(row)
         except Exception as exc:  # noqa: BLE001 - printed, not recorded; see one_instance
@@ -1053,7 +1119,8 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
         if record.get("arms"):
             emit_rows(out_dir, record, task)
 
-    print(f"\ndone. {len(records)} instances -> {out_dir}", flush=True)
+    print(f"\ndone. {len(records)} instances recorded, {n_complete()} complete "
+          f"-> {out_dir}", flush=True)
     return 0
 
 

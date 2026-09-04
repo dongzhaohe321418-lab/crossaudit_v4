@@ -22,6 +22,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import math  # noqa: E402
 import random  # noqa: E402
 
 from stats import mean, stdev, wilcoxon_signed_rank, wilson_interval  # noqa: E402
@@ -30,6 +31,33 @@ from stats import mean, stdev, wilcoxon_signed_rank, wilson_interval  # noqa: E4
 #: seeded, so the interval is a deterministic function of the recorded rows.
 BOOTSTRAP_N = 20000
 BOOTSTRAP_SEED = 20261104
+
+
+def mcnemar_exact(b: int, c: int) -> float:
+    """Two-sided exact McNemar: the paired test for a binary outcome seen twice.
+
+    ``b`` and ``c`` are the discordant counts -- instances where one arm gated and the
+    other did not. Concordant instances carry no information about a difference and are
+    correctly ignored. Under the null each discordant instance is a fair coin, so the
+    p value is the two-sided binomial tail at p = 1/2.
+    """
+    n = b + c
+    if n == 0:
+        return 1.0
+    k = min(b, c)
+    tail = sum(math.comb(n, i) for i in range(0, k + 1)) / (2 ** n)
+    return min(1.0, 2 * tail)
+
+
+def paired_binary(run: dict, arm_a: str, arm_b: str, field: str = "gated"):
+    """Per-instance binary outcome for two arms on the same draft."""
+    pairs = []
+    for instance in scored_instances(run):
+        a, b = instance["arms"].get(arm_a), instance["arms"].get(arm_b)
+        if not a or not b or not a["ok"] or not b["ok"]:
+            continue
+        pairs.append((instance["sample_id"], bool(a.get(field)), bool(b.get(field))))
+    return pairs
 
 
 def paired_ci(differences: list[float], confidence: float = 0.95) -> tuple[float, float]:
@@ -232,7 +260,57 @@ def render(paths: list[Path]) -> str:
                 f"{f'{better}/{worse}/{len(diffs) - better - worse}':>9} "
                 f"{w.p_value:8.4f} {w.n_used:>5}")
     add("")
-    add("  exploratory (not preregistered): the same, restricted to BLOCKER findings")
+    add("  S1 -- gate rate (PREREGISTRATION-5B). Proportion of instances on which the")
+    add("  arm raised at least one BLOCKER. An ADVISORY gates nothing and ships the draft.")
+    add(f"  {'comparison':22} {'n':>3} {'A%':>6} {'B%':>6} {'effect':>8} "
+        f"{'95% CI':>18} {'b/c':>7} {'McNemar p':>10}")
+    for arm_a, arm_b in (("cross", "self"), ("cross", "sibling"), ("sibling", "self")):
+        pairs = paired_binary(primary, arm_a, arm_b)
+        if not pairs:
+            continue
+        b = sum(1 for _i, x, y in pairs if x and not y)
+        c = sum(1 for _i, x, y in pairs if y and not x)
+        diffs = [float(x) - float(y) for _i, x, y in pairs]
+        low, high = paired_ci(diffs)
+        add(f"  {arm_a + ' - ' + arm_b:22} {len(pairs):>3} "
+            f"{100 * mean([float(x) for _i, x, _y in pairs]):6.1f} "
+            f"{100 * mean([float(y) for _i, _x, y in pairs]):6.1f} "
+            f"{100 * mean(diffs):+8.1f} "
+            f"{'[' + f'{100 * low:+.1f}, {100 * high:+.1f}' + ']':>18} "
+            f"{f'{b}/{c}':>7} {mcnemar_exact(b, c):10.4f}")
+    add("")
+    add("  S2 -- blocking recall (PREREGISTRATION-5B): recall over BLOCKER findings only")
+    for arm_a, arm_b in (("cross", "self"), ("cross", "sibling")):
+        for mapping in ("blocker_model_mapping", "blocker_rule_mapping"):
+            pairs = paired_recall(primary, arm_a, arm_b, mapping)
+            if not pairs:
+                continue
+            diffs = [a - b for _id, a, b in pairs]
+            w = wilcoxon_signed_rank(diffs)
+            low, high = paired_ci(diffs)
+            better = sum(1 for d in diffs if d > 0)
+            worse = sum(1 for d in diffs if d < 0)
+            add(f"  {arm_a + ' - ' + arm_b:22} {mapping.replace('_mapping',''):14} "
+                f"{len(pairs):>3} "
+                f"{100 * mean([a for _i, a, _b in pairs]):6.1f} "
+                f"{100 * mean([b for _i, _a, b in pairs]):6.1f} "
+                f"{100 * mean(diffs):+8.1f} "
+                f"{'[' + f'{100 * low:+.1f}, {100 * high:+.1f}' + ']':>18} "
+                f"{f'{better}/{worse}/{len(diffs) - better - worse}':>9} "
+                f"{w.p_value:8.4f} {w.n_used:>5}")
+    add("")
+    add("  severity mix per arm (what the arm called the things it found)")
+    for arm in ARM_ORDER:
+        rows_ = [i["arms"][arm] for i in scored_instances(primary)
+                 if i["arms"].get(arm) and i["arms"][arm]["ok"]]
+        if not rows_:
+            continue
+        blockers = sum(r["n_blockers"] for r in rows_)
+        total = sum(r["n_findings"] for r in rows_)
+        add(f"    {arm:8} findings {total:>3}  BLOCKER {blockers:>3}  "
+            f"ADVISORY {total - blockers:>3}  "
+            f"gated {sum(1 for r in rows_ if r.get('gated')):>2}/{len(rows_)}")
+    add("")
     for arm_a, arm_b in (("cross", "self"), ("cross", "sibling")):
         pairs = paired_recall(primary, arm_a, arm_b, "blocker_rule_mapping")
         if not pairs:
@@ -294,6 +372,9 @@ def render(paths: list[Path]) -> str:
                for _p, r in runs]
         rows.append(("draft CLEAR F1 (mean, %)", [mean(v) for v in f1s]))
         for arm in ARM_ORDER:
+            gated = [100 * arm_totals(restrict(r), arm, "rule_mapping")["gated"]
+                     / max(1, len(common)) for _p, r in runs]
+            rows.append((f"{arm} GATE RATE (%)", gated))
             for mapping, label in (("rule_mapping", "recall"),
                                    ("blocker_rule_mapping", "BLOCKER recall")):
                 values = []
