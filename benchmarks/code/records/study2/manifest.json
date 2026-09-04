@@ -1,0 +1,98 @@
+{
+  "arms_run": [
+    "checks",
+    "holistic-cross",
+    "decomposed-cross",
+    "holistic-self",
+    "two-stage-filter",
+    "decomposed-replicate",
+    "decomposed+two-stage(exploratory)"
+  ],
+  "audited": {
+    "C": 150,
+    "F": 30,
+    "P": 110
+  },
+  "auditor_cross": "openai:gpt-5.6-terra",
+  "auditor_self": "anthropic:claude-haiku-4-5-20251001",
+  "batch_1_provenance": "study 1's committed solutions, reused byte-identically",
+  "batches": [
+    "b1",
+    "b2"
+  ],
+  "budget_usd": 20.0,
+  "completed_utc": "2026-09-04T20:08:13.551425+00:00",
+  "corpus": {
+    "datasets": {
+      "humaneval_base": {
+        "bytes": 214315,
+        "config": "openai_humaneval",
+        "dataset": "openai/openai_humaneval",
+        "homepage": "https://huggingface.co/datasets/openai/openai_humaneval",
+        "licence": "MIT",
+        "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+        "rows": 164,
+        "sha256": "b19293e42932e70278b8e5ed83f8c82879cf34e0d3a44cc580f060b7cdaba4f8",
+        "split": "test"
+      },
+      "humaneval_plus": {
+        "bytes": 10991704,
+        "config": "default",
+        "dataset": "evalplus/humanevalplus",
+        "homepage": "https://huggingface.co/datasets/evalplus/humanevalplus",
+        "licence": "Apache-2.0",
+        "revision": "d32357cf319e50e9c8d8dab5ea876c72b0fd321b",
+        "rows": 164,
+        "sha256": "8778f6f31e78d1630709eb36e296fe4705466e6aa2b50dea7db67959ae0ef158",
+        "split": "test"
+      },
+      "mbpp_plus": {
+        "bytes": 4887790,
+        "config": "default",
+        "dataset": "evalplus/mbppplus",
+        "homepage": "https://huggingface.co/datasets/evalplus/mbppplus",
+        "licence": "Apache-2.0",
+        "revision": "b2d74c91837c3f2a20c1299ae98133cbe7cfa077",
+        "rows": 378,
+        "sha256": "43dd5c25c4f976d6ca98f4475b08fcc2add43b6e480348a22a25d1a020fe5866",
+        "split": "test"
+      }
+    },
+    "fetched_via": "https://datasets-server.huggingface.co/rows"
+  },
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.5"
+  },
+  "excluded_problems": [
+    "HumanEval/32",
+    "Mbpp/590"
+  ],
+  "frozen_sha": "9038400941068d5ce4e05eca2591e4f49ec02613",
+  "generator": "anthropic:claude-haiku-4-5-20251001",
+  "git_status_porcelain": "?? benchmarks/code/architectures.py\n?? benchmarks/code/pool.py\n?? benchmarks/code/tests/",
+  "harness_files": {
+    "architectures.py": "bbed9ab512f369ed2edf5d03930c9530f300ce83c8761a6a84258823ab3663c1",
+    "audit.py": "c63916130daaff785b5f5356fe50a354476751d802b124e0be957695d7d7a715",
+    "corpus.py": "646f05dc69e662b2f341582bc296ee60d8d2e908222c15ec9f32faa23f5d4424",
+    "cost.py": "7dbf1d70d0b3343865ce0fd85491d5941df33bfad574cadee60032398b302332",
+    "evaluate.py": "9e6f022ae77360cf6262191c2a971ac0697cf14465902dd2cd468f228fb64299",
+    "execute.py": "171dcb505bc1fd8742f552d3c2e71659920a68b59deb584083df37a7c517574a",
+    "export.py": "200570ed942c2cfaba45627cbbd2319d2d3eaeefb6e50255c2b1b327d014584a",
+    "fetch.py": "287437c72cc282c2340f5d7e48bebf761710b484b7eca2e68b30f5409eaf1374",
+    "generate.py": "6406c11a8f13765260b8a00c16404a8d50b8cbe4eb966ed24d33c97952265354",
+    "plan.py": "1fa26fed4f3da64cf51602a2090e6ead5b3d7e2d3fe34c4b712ef5d6d353ae9b",
+    "pool.py": "48266ac7a9a4266e6f957604a988416f436319c93c39964dc56faf36f564303e",
+    "report.py": "81d9cca06486e33a2efaaa534b442acaec98f052d8e8be7dbea946152fe8b45a"
+  },
+  "planned_utc": "2026-09-04T17:55:58.898031+00:00",
+  "population": {
+    "C": 910,
+    "F": 60,
+    "P": 110
+  },
+  "prereg": "benchmarks/code/PREREGISTRATION-2.md",
+  "seed": 20260905,
+  "study": "study2-architectures",
+  "total_spend_usd": 14.3682
+}
