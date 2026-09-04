@@ -1,0 +1,507 @@
+====================================================================================================
+1. THE ORACLE GATE -- intention-to-treat over every scored instance in the arm
+====================================================================================================
+Unit: the instance. Population: every instance the arm scored (never-revised
+instances contribute a delta of exactly 0, they are not dropped).
+keep-best  = reject every transition with post < pre, keep the best text seen.
+stop-first = halt the loop at the first transition that would lower F1.
+report-only= never revise; ship the round-1 draft.
+
+--- arm S-shipped (PRIMARY) ---
+    assigned 20, scored 20
+    revised 5 of 20 instances; 6 transitions
+      arm F1, report-only (round 1)       19.78  (n=20)
+      arm F1, as shipped                  16.39  (n=20)
+      arm F1, stop-first gate             19.78  (n=20)
+      arm F1, keep-best gate              19.78  (n=20)
+    ITT keep-best gate  vs as-shipped : n=20  mean +3.39 F1  95% CI [+0.42, +6.78]  better/worse/tied 4/0/16  sign p=0.1250  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=20  mean +3.39 F1  95% CI [+0.42, +6.78]  better/worse/tied 4/0/16  sign p=0.1250  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=20  mean +3.39 F1  95% CI [+0.42, +6.78]  better/worse/tied 4/0/16  sign p=0.1250  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT keep-best gate  vs report-only: n=20  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/20  sign p=1.0000
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=5  mean +13.56 F1  95% CI [+6.67, +20.44]  better/worse/tied 4/0/1  sign p=0.1250  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm R-rubric-shipped (PRIMARY) ---
+    assigned 10, scored 4, NOT RUN 6
+    revised 4 of 4 instances; 7 transitions
+      arm F1, report-only (round 1)        4.17  (n=4)
+      arm F1, as shipped                  10.00  (n=4)
+      arm F1, stop-first gate             14.17  (n=4)
+      arm F1, keep-best gate              14.17  (n=4)
+    ITT keep-best gate  vs as-shipped : n=4  mean +4.17 F1  95% CI [+0.00, +12.50]  better/worse/tied 1/0/3  sign p=1.0000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=4  mean +4.17 F1  95% CI [+0.00, +12.50]  better/worse/tied 1/0/3  sign p=1.0000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=4  mean -5.83 F1  95% CI [-17.50, +0.00]  better/worse/tied 0/1/3  sign p=1.0000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT keep-best gate  vs report-only: n=4  mean +10.00 F1  95% CI [+0.00, +20.00]  better/worse/tied 2/0/2  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=4  mean +4.17 F1  95% CI [+0.00, +12.50]  better/worse/tied 1/0/3  sign p=1.0000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm X-split (PRIMARY) ---
+    assigned 20, scored 20
+    revised 16 of 20 instances; 23 transitions
+      arm F1, report-only (round 1)       21.81  (n=20)
+      arm F1, as shipped                  10.28  (n=20)
+      arm F1, stop-first gate             21.81  (n=20)
+      arm F1, keep-best gate              21.81  (n=20)
+    ITT keep-best gate  vs as-shipped : n=20  mean +11.54 F1  95% CI [+6.90, +16.04]  better/worse/tied 12/0/8  sign p=0.0005  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=20  mean +11.54 F1  95% CI [+6.90, +16.04]  better/worse/tied 12/0/8  sign p=0.0005  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=20  mean +11.54 F1  95% CI [+6.90, +16.04]  better/worse/tied 12/0/8  sign p=0.0005  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT keep-best gate  vs report-only: n=20  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/20  sign p=1.0000
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=16  mean +14.42 F1  95% CI [+9.44, +18.99]  better/worse/tied 12/0/4  sign p=0.0005  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm T-scoped (secondary) ---
+    assigned 16, scored 16
+    revised 11 of 16 instances; 13 transitions
+      arm F1, report-only (round 1)       14.68  (n=16)
+      arm F1, as shipped                   9.47  (n=16)
+      arm F1, stop-first gate             17.11  (n=16)
+      arm F1, keep-best gate              17.11  (n=16)
+    ITT keep-best gate  vs as-shipped : n=16  mean +7.64 F1  95% CI [+2.95, +12.85]  better/worse/tied 6/0/10  sign p=0.0312  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=16  mean +7.64 F1  95% CI [+2.95, +12.85]  better/worse/tied 6/0/10  sign p=0.0312  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=16  mean +5.21 F1  95% CI [-1.39, +11.81]  better/worse/tied 6/2/8  sign p=0.2891
+    ITT keep-best gate  vs report-only: n=16  mean +2.43 F1  95% CI [+0.00, +6.25]  better/worse/tied 2/0/14  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=11  mean +11.11 F1  95% CI [+5.05, +17.17]  better/worse/tied 6/0/5  sign p=0.0312  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm C-control (secondary) ---
+    assigned 16, scored 16
+    revised 9 of 16 instances; 14 transitions
+      arm F1, report-only (round 1)       13.49  (n=16)
+      arm F1, as shipped                  12.29  (n=16)
+      arm F1, stop-first gate             17.04  (n=16)
+      arm F1, keep-best gate              17.04  (n=16)
+    ITT keep-best gate  vs as-shipped : n=16  mean +4.74 F1  95% CI [+0.00, +12.67]  better/worse/tied 2/0/14  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=16  mean +4.74 F1  95% CI [+0.00, +12.67]  better/worse/tied 2/0/14  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=16  mean +1.20 F1  95% CI [-7.08, +10.17]  better/worse/tied 2/2/12  sign p=1.0000
+    ITT keep-best gate  vs report-only: n=16  mean +3.54 F1  95% CI [+0.00, +9.58]  better/worse/tied 2/0/14  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=9  mean +8.43 F1  95% CI [+0.00, +19.75]  better/worse/tied 2/0/7  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm G-split-general (secondary) ---
+    assigned 8, scored 8
+    revised 0 of 8 instances; 0 transitions
+      arm F1, report-only (round 1)       24.50  (n=8)
+      arm F1, as shipped                  24.50  (n=8)
+      arm F1, stop-first gate             24.50  (n=8)
+      arm F1, keep-best gate              24.50  (n=8)
+    ITT keep-best gate  vs as-shipped : n=8  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8  sign p=1.0000
+    ITT stop-first gate vs as-shipped : n=8  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8  sign p=1.0000
+    ITT report-only     vs as-shipped : n=8  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8  sign p=1.0000
+    ITT keep-best gate  vs report-only: n=8  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8  sign p=1.0000
+
+--- arm B (secondary) ---
+    assigned 40, scored 40
+    revised 7 of 40 instances; 8 transitions
+      arm F1, report-only (round 1)       18.14  (n=40)
+      arm F1, as shipped                  16.55  (n=40)
+      arm F1, stop-first gate             18.97  (n=40)
+      arm F1, keep-best gate              18.97  (n=40)
+    ITT keep-best gate  vs as-shipped : n=40  mean +2.42 F1  95% CI [+0.58, +4.69]  better/worse/tied 5/0/35  sign p=0.0625  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=40  mean +2.42 F1  95% CI [+0.58, +4.69]  better/worse/tied 5/0/35  sign p=0.0625  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=40  mean +1.59 F1  95% CI [-0.42, +3.93]  better/worse/tied 4/1/35  sign p=0.3750
+    ITT keep-best gate  vs report-only: n=40  mean +0.83 F1  95% CI [+0.00, +2.08]  better/worse/tied 2/0/38  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=7  mean +13.82 F1  95% CI [+6.29, +20.80]  better/worse/tied 5/0/2  sign p=0.0625  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+--- arm B-rubric (secondary) ---
+    assigned 10, scored 10
+    revised 5 of 10 instances; 7 transitions
+      arm F1, report-only (round 1)        3.33  (n=10)
+      arm F1, as shipped                   7.78  (n=10)
+      arm F1, stop-first gate              7.78  (n=10)
+      arm F1, keep-best gate               7.78  (n=10)
+    ITT keep-best gate  vs as-shipped : n=10  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/10  sign p=1.0000
+    ITT stop-first gate vs as-shipped : n=10  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/10  sign p=1.0000
+    ITT report-only     vs as-shipped : n=10  mean -4.44 F1  95% CI [-11.11, +0.00]  better/worse/tied 0/2/8  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT keep-best gate  vs report-only: n=10  mean +4.44 F1  95% CI [+0.00, +11.11]  better/worse/tied 2/0/8  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=5  mean +0.00 F1  95% CI [+0.00, +0.00]  better/worse/tied 0/0/5  sign p=1.0000
+
+--- arm B-auditor-sol (secondary) ---
+    assigned 10, scored 10
+    revised 5 of 10 instances; 8 transitions
+      arm F1, report-only (round 1)       15.83  (n=10)
+      arm F1, as shipped                  11.94  (n=10)
+      arm F1, stop-first gate             16.39  (n=10)
+      arm F1, keep-best gate              16.39  (n=10)
+    ITT keep-best gate  vs as-shipped : n=10  mean +4.44 F1  95% CI [+0.00, +11.11]  better/worse/tied 2/0/8  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT stop-first gate vs as-shipped : n=10  mean +4.44 F1  95% CI [+0.00, +11.11]  better/worse/tied 2/0/8  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+    ITT report-only     vs as-shipped : n=10  mean +3.89 F1  95% CI [-1.11, +11.11]  better/worse/tied 2/1/7  sign p=1.0000
+    ITT keep-best gate  vs report-only: n=10  mean +0.56 F1  95% CI [+0.00, +1.67]  better/worse/tied 1/0/9  sign p=1.0000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+      [EXPLORATORY -- conditioned on revision-occurred, a post-treatment variable]
+      cond. keep-best gate vs as-shipped: n=5  mean +8.89 F1  95% CI [+0.00, +22.22]  better/worse/tied 2/0/3  sign p=0.5000  [CI DEGENERATE: no sign change in the sample -- read the counts, not the bound]
+
+Secondary, pooled with a bootstrap clustered on source sample id:
+    keep-best gate vs as-shipped     n=44 over 20 unique sample ids  mean +7.16  95% CI [+4.41, +10.14]  [CI DEGENERATE]
+    report-only vs as-shipped        n=44 over 20 unique sample ids  mean +6.25  95% CI [+3.41, +9.52]
+    keep-best gate vs report-only    n=44 over 20 unique sample ids  mean +0.91  95% CI [+0.00, +2.15]  [CI DEGENERATE]
+
+====================================================================================================
+2. PRESERVATION -- unit: the TRANSITION (one round-k -> round-k+1 step)
+====================================================================================================
+An item is 'right' when CLEAR scores both precision_hit and recall_hit for it
+(CLEAR's per-item accuracy). recall alone = attribution; precision alone =
+whether what the draft said about that item was correct.
+
+--- arm S-shipped (PRIMARY): 6 transitions over 5 instances ---
+      accuracy  fixed   0  broken   3  untouched  33 (kept-right 4, kept-wrong 29)  of 36 item-transitions
+      recall    fixed   2  broken   4  untouched  30 (kept-right 8, kept-wrong 22)  of 36 item-transitions
+      precision fixed   0  broken   5  untouched  31 (kept-right 4, kept-wrong 27)  of 36 item-transitions
+      per-transition delta F1: mean -11.30  95% CI [-18.43, -4.17]  up/down/tied 0/4/2  sign p=0.1250  [CI DEGENERATE]
+      transitions that fixed AND broke at least one item: 0 of 6
+      transitions that changed no item's correctness:     3 of 6
+
+--- arm R-rubric-shipped (PRIMARY): 7 transitions over 4 instances ---
+      accuracy  fixed   3  broken   1  untouched  38 (kept-right 0, kept-wrong 38)  of 42 item-transitions
+      recall    fixed   2  broken   3  untouched  37 (kept-right 3, kept-wrong 34)  of 42 item-transitions
+      precision fixed   4  broken   2  untouched  36 (kept-right 3, kept-wrong 33)  of 42 item-transitions
+      per-transition delta F1: mean +3.33  95% CI [-4.76, +10.71]  up/down/tied 3/1/3  sign p=0.6250
+      transitions that fixed AND broke at least one item: 0 of 7
+      transitions that changed no item's correctness:     4 of 7
+
+--- arm X-split (PRIMARY): 23 transitions over 16 instances ---
+      accuracy  fixed   2  broken  15  untouched 121 (kept-right 7, kept-wrong 114)  of 138 item-transitions
+      recall    fixed   4  broken  17  untouched 117 (kept-right 21, kept-wrong 96)  of 138 item-transitions
+      precision fixed   4  broken  17  untouched 117 (kept-right 10, kept-wrong 107)  of 138 item-transitions
+      per-transition delta F1: mean -10.03  95% CI [-16.21, -3.99]  up/down/tied 2/12/9  sign p=0.0129
+      transitions that fixed AND broke at least one item: 1 of 23
+      transitions that changed no item's correctness:     10 of 23
+
+--- arm T-scoped (secondary): 13 transitions over 11 instances ---
+      accuracy  fixed   3  broken   6  untouched  69 (kept-right 1, kept-wrong 68)  of 78 item-transitions
+      recall    fixed   4  broken  13  untouched  61 (kept-right 8, kept-wrong 53)  of 78 item-transitions
+      precision fixed   3  broken   8  untouched  67 (kept-right 1, kept-wrong 66)  of 78 item-transitions
+      per-transition delta F1: mean -6.41  95% CI [-14.10, +1.71]  up/down/tied 2/6/5  sign p=0.2891
+      transitions that fixed AND broke at least one item: 1 of 13
+      transitions that changed no item's correctness:     5 of 13
+
+--- arm C-control (secondary): 14 transitions over 9 instances ---
+      accuracy  fixed   4  broken   5  untouched  75 (kept-right 2, kept-wrong 73)  of 84 item-transitions
+      recall    fixed   2  broken   7  untouched  75 (kept-right 14, kept-wrong 61)  of 84 item-transitions
+      precision fixed   4  broken   5  untouched  75 (kept-right 4, kept-wrong 71)  of 84 item-transitions
+      per-transition delta F1: mean -1.37  95% CI [-12.58, +8.69]  up/down/tied 3/2/9  sign p=1.0000
+      transitions that fixed AND broke at least one item: 0 of 14
+      transitions that changed no item's correctness:     9 of 14
+
+--- arm G-split-general: 0 transitions
+
+--- arm B (secondary): 8 transitions over 7 instances ---
+      accuracy  fixed   2  broken   6  untouched  40 (kept-right 7, kept-wrong 33)  of 48 item-transitions
+      recall    fixed   2  broken   5  untouched  41 (kept-right 11, kept-wrong 30)  of 48 item-transitions
+      precision fixed   2  broken   5  untouched  41 (kept-right 8, kept-wrong 33)  of 48 item-transitions
+      per-transition delta F1: mean -7.93  95% CI [-18.48, +3.53]  up/down/tied 2/5/1  sign p=0.4531
+      transitions that fixed AND broke at least one item: 0 of 8
+      transitions that changed no item's correctness:     1 of 8
+
+--- arm B-rubric (secondary): 7 transitions over 5 instances ---
+      accuracy  fixed   2  broken   0  untouched  40 (kept-right 0, kept-wrong 40)  of 42 item-transitions
+      recall    fixed   2  broken   2  untouched  38 (kept-right 3, kept-wrong 35)  of 42 item-transitions
+      precision fixed   2  broken   0  untouched  40 (kept-right 0, kept-wrong 40)  of 42 item-transitions
+      per-transition delta F1: mean +6.35  95% CI [+0.00, +12.70]  up/down/tied 2/0/5  sign p=0.5000  [CI DEGENERATE]
+      transitions that fixed AND broke at least one item: 0 of 7
+      transitions that changed no item's correctness:     5 of 7
+
+--- arm B-auditor-sol (secondary): 8 transitions over 5 instances ---
+      accuracy  fixed   0  broken   2  untouched  46 (kept-right 4, kept-wrong 42)  of 48 item-transitions
+      recall    fixed   0  broken   2  untouched  46 (kept-right 5, kept-wrong 41)  of 48 item-transitions
+      precision fixed   2  broken   4  untouched  42 (kept-right 5, kept-wrong 37)  of 48 item-transitions
+      per-transition delta F1: mean -4.86  95% CI [-10.42, +0.69]  up/down/tied 1/3/4  sign p=0.6250
+      transitions that fixed AND broke at least one item: 0 of 8
+      transitions that changed no item's correctness:     6 of 8
+
+====================================================================================================
+3. IS THE GATE IMPLEMENTABLE? -- what a runtime signal would have to predict
+====================================================================================================
+Label: harmful = post_f1 < pre_f1, one label per TRANSITION.
+AUC 0.5 = the signal orders harmful and non-harmful transitions no better than
+a coin. The interval comes from a bootstrap that resamples whole instances.
+
+--- S-shipped: 6 transitions, 4 harmful / 2 not ---
+      round index of the new draft                         AUC 0.250 95% CI [0.000, 0.500]   mean harmful     2.00 vs     2.50
+      findings in the triggering audit                     AUC 0.875 95% CI [0.625, 1.000]   mean harmful     1.75 vs     1.00
+      distinct rules in that audit                         AUC 0.875 95% CI [0.625, 1.000]   mean harmful     1.75 vs     1.00
+      growth in characters, %                              AUC 0.500 95% CI [0.000, 1.000]   mean harmful     3.64 vs     1.00
+      length of the text being revised                     AUC 0.375 95% CI [0.000, 0.800]   mean harmful  6303.50 vs  6375.00
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 1.000 95% CI [1.000, 1.000]   mean harmful     0.33 vs     0.11
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 3 of 3
+        CA-CONTENT-002 4 of 6
+
+--- R-rubric-shipped: 7 transitions, 1 harmful / 6 not ---
+      round index of the new draft                         AUC 0.833 95% CI [0.786, 1.000]   mean harmful     3.00 vs     2.33
+      findings in the triggering audit                     AUC 0.833 95% CI [0.250, 0.857]   mean harmful     3.00 vs     1.83
+      distinct rules in that audit                         AUC 0.833 95% CI [0.250, 0.857]   mean harmful     3.00 vs     1.83
+      growth in characters, %                              AUC 1.000 95% CI [1.000, 1.000]   mean harmful    38.04 vs     0.00
+      length of the text being revised                     AUC 0.833 95% CI [0.250, 0.857]   mean harmful  9275.00 vs  9008.00
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.750 95% CI [0.500, 1.000]   mean harmful     0.17 vs     0.07
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 0 of 3
+        CA-RUBRIC-001 1 of 2
+        CA-RUBRIC-002 0 of 1
+        CA-RUBRIC-004 1 of 2
+        CA-RUBRIC-005 1 of 3
+        CA-RUBRIC-006 0 of 3
+
+--- X-split: 23 transitions, 12 harmful / 11 not ---
+      round index of the new draft                         AUC 0.269 95% CI [0.100, 0.457]   mean harmful     2.08 vs     2.55
+      findings in the triggering audit                     AUC 0.765 95% CI [0.569, 0.933]   mean harmful     2.50 vs     1.27
+      distinct rules in that audit                         AUC 0.765 95% CI [0.569, 0.933]   mean harmful     2.50 vs     1.27
+      growth in characters, %                              AUC 0.705 95% CI [0.462, 0.917]   mean harmful    35.88 vs    17.13
+      length of the text being revised                     AUC 0.265 95% CI [0.092, 0.525]   mean harmful  5753.42 vs  7036.82
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.898 95% CI [0.735, 1.000]   mean harmful     0.31 vs     0.07
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 4 of 8
+        CA-RUBRIC-001 4 of 7
+        CA-RUBRIC-003 9 of 13
+        CA-RUBRIC-004 4 of 5
+        CA-RUBRIC-005 5 of 6
+        CA-RUBRIC-006 4 of 5
+
+--- T-scoped: 13 transitions, 6 harmful / 7 not ---
+      round index of the new draft                         AUC 0.357 95% CI [0.200, 0.500]   mean harmful     2.00 vs     2.29
+      findings in the triggering audit                     AUC 0.690 95% CI [0.333, 0.952]   mean harmful     2.17 vs     1.71
+      distinct rules in that audit                         AUC 0.690 95% CI [0.333, 0.952]   mean harmful     2.17 vs     1.71
+      growth in characters, %                              AUC 0.667 95% CI [0.333, 0.967]   mean harmful    16.25 vs    13.82
+      length of the text being revised                     AUC 0.548 95% CI [0.200, 0.926]   mean harmful  6835.83 vs  6580.43
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.940 95% CI [0.762, 1.000]   mean harmful     0.23 vs     0.03
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 1 of 3
+        CA-RUBRIC-001 4 of 6
+        CA-RUBRIC-003 4 of 7
+        CA-RUBRIC-004 1 of 4
+        CA-RUBRIC-005 2 of 2
+        CA-RUBRIC-006 1 of 3
+
+--- C-control: 14 transitions, 2 harmful / 12 not ---
+      round index of the new draft                         AUC 0.292 95% CI [0.214, 0.389]   mean harmful     2.00 vs     2.42
+      findings in the triggering audit                     AUC 0.583 95% CI [0.182, 0.958]   mean harmful     2.00 vs     1.67
+      distinct rules in that audit                         AUC 0.583 95% CI [0.182, 0.958]   mean harmful     2.00 vs     1.67
+      growth in characters, %                              AUC 0.958 95% CI [0.800, 1.000]   mean harmful    59.61 vs    15.15
+      length of the text being revised                     AUC 0.000 95% CI [0.000, 0.000]   mean harmful  4164.50 vs  8137.33
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.958 95% CI [0.881, 1.000]   mean harmful     0.58 vs     0.03
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 0 of 4
+        CA-RUBRIC-001 0 of 5
+        CA-RUBRIC-003 2 of 7
+        CA-RUBRIC-004 0 of 1
+        CA-RUBRIC-005 1 of 5
+        CA-RUBRIC-006 1 of 2
+
+--- G-split-general: 0 transitions, too few to correlate ---
+
+--- B: 8 transitions, 5 harmful / 3 not ---
+      round index of the new draft                         AUC 0.600 95% CI [0.500, 0.800]   mean harmful     2.20 vs     2.00
+      findings in the triggering audit                     AUC 0.467 95% CI [0.000, 0.833]   mean harmful     1.40 vs     1.67
+      distinct rules in that audit                         AUC 0.533 95% CI [0.167, 0.857]   mean harmful     1.40 vs     1.33
+      growth in characters, %                              AUC 0.933 95% CI [0.800, 1.000]   mean harmful     3.91 vs     0.08
+      length of the text being revised                     AUC 0.267 95% CI [0.000, 0.667]   mean harmful  5679.80 vs  6662.00
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 1.000 95% CI [1.000, 1.000]   mean harmful     0.42 vs     0.06
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 2 of 3
+        CA-CONTENT-002 5 of 8
+
+--- B-rubric: 7 transitions, 0 harmful / 7 not ---
+      round index of the new draft                         AUC nan 95% CI [nan, nan]   mean harmful      nan vs     2.29
+      findings in the triggering audit                     AUC nan 95% CI [nan, nan]   mean harmful      nan vs     2.57
+      distinct rules in that audit                         AUC nan 95% CI [nan, nan]   mean harmful      nan vs     2.57
+      growth in characters, %                              AUC nan 95% CI [nan, nan]   mean harmful      nan vs     2.30
+      length of the text being revised                     AUC nan 95% CI [nan, nan]   mean harmful      nan vs  9440.29
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] constant or missing -- no signal
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 0 of 5
+        CA-RUBRIC-001 0 of 2
+        CA-RUBRIC-002 0 of 2
+        CA-RUBRIC-003 0 of 1
+        CA-RUBRIC-004 0 of 3
+        CA-RUBRIC-005 0 of 3
+        CA-RUBRIC-006 0 of 2
+
+--- B-auditor-sol: 8 transitions, 3 harmful / 5 not ---
+      round index of the new draft                         AUC 0.467 95% CI [0.250, 0.700]   mean harmful     2.33 vs     2.40
+      findings in the triggering audit                     AUC 0.733 95% CI [0.536, 1.000]   mean harmful     1.67 vs     1.20
+      distinct rules in that audit                         AUC 0.567 95% CI [0.300, 0.750]   mean harmful     1.33 vs     1.20
+      growth in characters, %                              AUC 0.533 95% CI [0.000, 0.875]   mean harmful     2.99 vs     2.57
+      length of the text being revised                     AUC 0.100 95% CI [0.000, 0.321]   mean harmful  6241.67 vs  7965.40
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.900 95% CI [0.679, 1.000]   mean harmful     0.28 vs     0.08
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 3 of 6
+        CA-CONTENT-002 1 of 4
+
+--- ALL PRIMARY ARMS POOLED (clustered): 36 transitions, 17 harmful / 19 not ---
+      round index of the new draft                         AUC 0.322 95% CI [0.180, 0.523]   mean harmful     2.12 vs     2.47
+      findings in the triggering audit                     AUC 0.737 95% CI [0.554, 0.898]   mean harmful     2.35 vs     1.42
+      distinct rules in that audit                         AUC 0.737 95% CI [0.554, 0.898]   mean harmful     2.35 vs     1.42
+      growth in characters, %                              AUC 0.718 95% CI [0.516, 0.879]   mean harmful    28.42 vs    10.02
+      length of the text being revised                     AUC 0.245 95% CI [0.115, 0.404]   mean harmful  6090.00 vs  7589.63
+      checklist size                                       constant or missing -- no signal
+      pre-revision CLEAR F1 [NOT RUNTIME VISIBLE -- reference only] AUC 0.898 95% CI [0.792, 0.990]   mean harmful     0.30 vs     0.07
+      harmful transitions by rule present in the triggering audit:
+        CA-CONTENT-001 7 of 14
+        CA-CONTENT-002 4 of 6
+        CA-RUBRIC-001 5 of 9
+        CA-RUBRIC-002 0 of 1
+        CA-RUBRIC-003 9 of 13
+        CA-RUBRIC-004 5 of 7
+        CA-RUBRIC-005 6 of 9
+        CA-RUBRIC-006 4 of 8
+
+====================================================================================================
+3b. THE SAME QUESTION, RESTRICTED TO TRANSITIONS WHERE HARM WAS POSSIBLE
+====================================================================================================
+A draft already at F1 = 0 cannot be made worse, so it is a guaranteed non-harmful
+transition for arithmetic reasons. Any signal that merely tracks 'the draft was
+bad' will look predictive because of that floor. This repeats section 3 over the
+transitions with pre-revision F1 > 0, where the label carries information.
+
+--- S-shipped: 5 harm-possible transitions, 4 harmful / 1 not ---
+      round index of the new draft                         AUC 0.000 95% CI [0.000, 0.000]
+      findings in the triggering audit                     AUC 0.875 95% CI [0.750, 1.000]
+      distinct rules in that audit                         AUC 0.875 95% CI [0.750, 1.000]
+      growth in characters, %                              AUC 0.000 95% CI [0.000, 0.000]
+      length of the text being revised                     AUC 0.750 95% CI [0.250, 0.750]
+      checklist size                                       constant or missing -- no signal
+
+--- R-rubric-shipped: 3 harm-possible transitions, too few to correlate ---
+
+--- X-split: 15 harm-possible transitions, 12 harmful / 3 not ---
+      round index of the new draft                         AUC 0.208 95% CI [0.000, 0.583]
+      findings in the triggering audit                     AUC 0.750 95% CI [0.458, 0.958]
+      distinct rules in that audit                         AUC 0.750 95% CI [0.458, 0.958]
+      growth in characters, %                              AUC 0.750 95% CI [0.167, 1.000]
+      length of the text being revised                     AUC 0.611 95% CI [0.250, 0.958]
+      checklist size                                       constant or missing -- no signal
+
+--- T-scoped: 7 harm-possible transitions, 6 harmful / 1 not ---
+      round index of the new draft                         constant or missing -- no signal
+      findings in the triggering audit                     AUC 0.000 95% CI [0.000, 0.000]
+      distinct rules in that audit                         AUC 0.000 95% CI [0.000, 0.000]
+      growth in characters, %                              AUC 0.167 95% CI [0.000, 0.500]
+      length of the text being revised                     AUC 1.000 95% CI [1.000, 1.000]
+      checklist size                                       constant or missing -- no signal
+
+--- C-control: 3 harm-possible transitions, too few to correlate ---
+
+--- G-split-general: 0 harm-possible transitions, too few to correlate ---
+
+--- B: 6 harm-possible transitions, 5 harmful / 1 not ---
+      round index of the new draft                         AUC 0.600 95% CI [0.600, 0.800]
+      findings in the triggering audit                     AUC 0.700 95% CI [0.500, 0.900]
+      distinct rules in that audit                         AUC 0.700 95% CI [0.500, 0.900]
+      growth in characters, %                              AUC 1.000 95% CI [1.000, 1.000]
+      length of the text being revised                     AUC 0.000 95% CI [0.000, 0.000]
+      checklist size                                       constant or missing -- no signal
+
+--- B-rubric: 0 harm-possible transitions, too few to correlate ---
+
+--- B-auditor-sol: 5 harm-possible transitions, 3 harmful / 2 not ---
+      round index of the new draft                         AUC 0.417 95% CI [0.250, 0.500]
+      findings in the triggering audit                     AUC 0.833 95% CI [0.750, 1.000]
+      distinct rules in that audit                         AUC 0.667 95% CI [0.500, 0.750]
+      growth in characters, %                              AUC 0.500 95% CI [0.500, 0.500]
+      length of the text being revised                     AUC 0.000 95% CI [0.000, 0.000]
+      checklist size                                       constant or missing -- no signal
+
+--- ALL PRIMARY ARMS POOLED (clustered): 23 harm-possible transitions, 17 harmful / 6 not ---
+      round index of the new draft                         AUC 0.225 95% CI [0.000, 0.554]
+      findings in the triggering audit                     AUC 0.804 95% CI [0.510, 0.969]
+      distinct rules in that audit                         AUC 0.804 95% CI [0.510, 0.969]
+      growth in characters, %                              AUC 0.735 95% CI [0.188, 0.957]
+      length of the text being revised                     AUC 0.500 95% CI [0.241, 1.000]
+      checklist size                                       constant or missing -- no signal
+
+====================================================================================================
+3c. WHAT AN IMPLEMENTABLE PROXY GATE WOULD ACTUALLY BUY -- ITT, per arm
+====================================================================================================
+Every gate below uses only what the product can see at runtime, and halts the
+loop on rejection. Compare against the oracle's ceiling in section 1.
+
+--- arm S-shipped (PRIMARY), n=20 instances ---
+      as shipped                                16.39 F1
+      ORACLE keep-best gate (ceiling)           19.78 F1
+      never revise (report-only)                19.78 F1   ITT  +3.39  95% CI [+0.42, +6.78]  better/worse/tied 4/0/16  [CI DEGENERATE]
+      reject if >=2 findings in the audit       18.94 F1   ITT  +2.56  95% CI [+0.00, +5.83]  better/worse/tied 3/0/17  [CI DEGENERATE]
+      reject if >=3 findings in the audit       16.39 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/20
+      reject if text grew >25%                  16.39 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/20
+      allow one revision only (max_rounds=2)    16.39 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/20
+
+--- arm R-rubric-shipped (PRIMARY), n=4 instances ---
+      as shipped                                10.00 F1
+      ORACLE keep-best gate (ceiling)           14.17 F1
+      never revise (report-only)                 4.17 F1   ITT  -5.83  95% CI [-17.50, +0.00]  better/worse/tied 0/1/3  [CI DEGENERATE]
+      reject if >=2 findings in the audit       10.00 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/4
+      reject if >=3 findings in the audit       10.00 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/4
+      reject if text grew >25%                  14.17 F1   ITT  +4.17  95% CI [+0.00, +12.50]  better/worse/tied 1/0/3  [CI DEGENERATE]
+      allow one revision only (max_rounds=2)    10.42 F1   ITT  +0.42  95% CI [-11.25, +12.50]  better/worse/tied 1/1/2
+
+--- arm X-split (PRIMARY), n=20 instances ---
+      as shipped                                10.28 F1
+      ORACLE keep-best gate (ceiling)           21.81 F1
+      never revise (report-only)                21.81 F1   ITT +11.54  95% CI [+6.90, +16.04]  better/worse/tied 12/0/8  [CI DEGENERATE]
+      reject if >=2 findings in the audit       20.01 F1   ITT  +9.73  95% CI [+5.09, +14.54]  better/worse/tied 9/0/11  [CI DEGENERATE]
+      reject if >=3 findings in the audit       16.95 F1   ITT  +6.68  95% CI [+2.31, +11.40]  better/worse/tied 6/0/14  [CI DEGENERATE]
+      reject if text grew >25%                  20.01 F1   ITT  +9.73  95% CI [+5.09, +14.54]  better/worse/tied 9/0/11  [CI DEGENERATE]
+      allow one revision only (max_rounds=2)     9.72 F1   ITT  -0.56  95% CI [-3.33, +2.50]  better/worse/tied 1/2/17
+
+--- arm T-scoped (secondary), n=16 instances ---
+      as shipped                                 9.47 F1
+      ORACLE keep-best gate (ceiling)           17.11 F1
+      never revise (report-only)                14.68 F1   ITT  +5.21  95% CI [-1.39, +11.81]  better/worse/tied 6/2/8
+      reject if >=2 findings in the audit       14.51 F1   ITT  +5.03  95% CI [+0.00, +10.42]  better/worse/tied 5/1/10
+      reject if >=3 findings in the audit       11.56 F1   ITT  +2.08  95% CI [+0.00, +5.21]  better/worse/tied 2/0/14  [CI DEGENERATE]
+      reject if text grew >25%                   9.47 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/16
+      allow one revision only (max_rounds=2)     9.47 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/16
+
+--- arm C-control (secondary), n=16 instances ---
+      as shipped                                12.29 F1
+      ORACLE keep-best gate (ceiling)           17.04 F1
+      never revise (report-only)                13.49 F1   ITT  +1.20  95% CI [-7.08, +10.17]  better/worse/tied 2/2/12
+      reject if >=2 findings in the audit       15.47 F1   ITT  +3.18  95% CI [+0.00, +9.55]  better/worse/tied 1/0/15  [CI DEGENERATE]
+      reject if >=3 findings in the audit       15.47 F1   ITT  +3.18  95% CI [+0.00, +9.55]  better/worse/tied 1/0/15  [CI DEGENERATE]
+      reject if text grew >25%                  14.54 F1   ITT  +2.24  95% CI [-5.94, +11.11]  better/worse/tied 2/1/13
+      allow one revision only (max_rounds=2)    10.83 F1   ITT  -1.46  95% CI [-3.96, +0.00]  better/worse/tied 0/2/14  [CI DEGENERATE]
+
+--- arm G-split-general (secondary), n=8 instances ---
+      as shipped                                24.50 F1
+      ORACLE keep-best gate (ceiling)           24.50 F1
+      never revise (report-only)                24.50 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8
+      reject if >=2 findings in the audit       24.50 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8
+      reject if >=3 findings in the audit       24.50 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8
+      reject if text grew >25%                  24.50 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8
+      allow one revision only (max_rounds=2)    24.50 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/8
+
+--- arm B (secondary), n=40 instances ---
+      as shipped                                16.55 F1
+      ORACLE keep-best gate (ceiling)           18.97 F1
+      never revise (report-only)                18.14 F1   ITT  +1.59  95% CI [-0.42, +3.93]  better/worse/tied 4/1/35
+      reject if >=2 findings in the audit       17.76 F1   ITT  +1.21  95% CI [+0.00, +3.04]  better/worse/tied 2/0/38  [CI DEGENERATE]
+      reject if >=3 findings in the audit       16.55 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/40
+      reject if text grew >25%                  16.55 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/40
+      allow one revision only (max_rounds=2)    16.97 F1   ITT  +0.42  95% CI [+0.00, +1.25]  better/worse/tied 1/0/39  [CI DEGENERATE]
+
+--- arm B-rubric (secondary), n=10 instances ---
+      as shipped                                 7.78 F1
+      ORACLE keep-best gate (ceiling)            7.78 F1
+      never revise (report-only)                 3.33 F1   ITT  -4.44  95% CI [-11.11, +0.00]  better/worse/tied 0/2/8  [CI DEGENERATE]
+      reject if >=2 findings in the audit        3.33 F1   ITT  -4.44  95% CI [-11.11, +0.00]  better/worse/tied 0/2/8  [CI DEGENERATE]
+      reject if >=3 findings in the audit        5.56 F1   ITT  -2.22  95% CI [-6.67, +0.00]  better/worse/tied 0/1/9  [CI DEGENERATE]
+      reject if text grew >25%                   7.78 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/10
+      allow one revision only (max_rounds=2)     5.56 F1   ITT  -2.22  95% CI [-6.67, +0.00]  better/worse/tied 0/1/9  [CI DEGENERATE]
+
+--- arm B-auditor-sol (secondary), n=10 instances ---
+      as shipped                                11.94 F1
+      ORACLE keep-best gate (ceiling)           16.39 F1
+      never revise (report-only)                15.83 F1   ITT  +3.89  95% CI [-1.11, +11.11]  better/worse/tied 2/1/7
+      reject if >=2 findings in the audit       16.39 F1   ITT  +4.44  95% CI [+0.00, +11.11]  better/worse/tied 2/0/8  [CI DEGENERATE]
+      reject if >=3 findings in the audit       11.94 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/10
+      reject if text grew >25%                  11.94 F1   ITT  +0.00  95% CI [+0.00, +0.00]  better/worse/tied 0/0/10
+      allow one revision only (max_rounds=2)    13.61 F1   ITT  +1.67  95% CI [+0.00, +5.00]  better/worse/tied 1/0/9  [CI DEGENERATE]
+
+records written to benchmarks/expertlongbench/records/gate/transitions.jsonl, instances.jsonl, arms.json
