@@ -1,0 +1,261 @@
+[
+ {
+  "constitution_sha256": "689508ad4384b4b9557d5ff31e188f373356a5f36af9457aa0430f573d372930",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "S-shipped",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 20,
+  "n_scored": 20,
+  "run_dir": "wt-control-runs/armS-shipped",
+  "run_id": "20260904T095129Z",
+  "seed": 20260930,
+  "settings": {
+   "audit_rules": "general",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T09:51:29.598345+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "R-rubric-shipped",
+  "missing": [
+   "T03MaterialSEG-10.1002/anie.201812472",
+   "T03MaterialSEG-10.1002/anie.202410016",
+   "T03MaterialSEG-10.1002/celc.202200984",
+   "T03MaterialSEG-10.1002/chem.201905217",
+   "T03MaterialSEG-10.1002/chem.202302565",
+   "T03MaterialSEG-10.1002/cjce.24030"
+  ],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 10,
+  "n_scored": 4,
+  "run_dir": "wt-control-runs/armR-rubric",
+  "run_id": "20260904T095454Z",
+  "seed": 20260930,
+  "settings": {
+   "audit_rules": "rubric",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T09:54:54.078446+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "X-split",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 20,
+  "n_scored": 20,
+  "run_dir": "wt-split-runs/armX-split",
+  "run_id": "20260904T104827Z",
+  "seed": 20260930,
+  "settings": {
+   "audit_rules": "rubric",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T10:48:27.025449+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "T-scoped",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 16,
+  "n_scored": 16,
+  "run_dir": "wt-revision-runs/armT-scoped",
+  "run_id": "20260904T154431Z",
+  "seed": 20261104,
+  "settings": {
+   "audit_rules": "rubric",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T15:44:31.649825+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "C-control",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 16,
+  "n_scored": 16,
+  "run_dir": "wt-ctlrev-runs/armC-control",
+  "run_id": "20260904T164934Z",
+  "seed": 20261104,
+  "settings": {
+   "audit_rules": "rubric",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T16:49:34.264490+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "53fead8b0b7fdcfff7bacf91ffb70ea6f7ae8d169f32af30d0dcf9686bd155b8",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "G-split-general",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 8,
+  "n_scored": 8,
+  "run_dir": "wt-ctlrev-runs/armG-split-general",
+  "run_id": "20260904T163747Z",
+  "seed": 20260930,
+  "settings": {
+   "audit_rules": "general",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T16:37:47.490678+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "689508ad4384b4b9557d5ff31e188f373356a5f36af9457aa0430f573d372930",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "B",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 40,
+  "n_scored": 40,
+  "run_dir": "wt-study2-runs/main-n40",
+  "run_id": "20260904T064552Z",
+  "seed": 20260912,
+  "settings": {
+   "audit_rules": "general",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": true
+  },
+  "started_utc": "2026-09-04T06:45:52.809325+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "B-rubric",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-terra",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 10,
+  "n_scored": 10,
+  "run_dir": "wt-study2-runs/bprime-rubric",
+  "run_id": "20260904T064746Z",
+  "seed": 20260912,
+  "settings": {
+   "audit_rules": "rubric",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T06:47:46.078878+00:00",
+  "task": "T03MaterialSEG"
+ },
+ {
+  "constitution_sha256": "689508ad4384b4b9557d5ff31e188f373356a5f36af9457aa0430f573d372930",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "label": "B-auditor-sol",
+  "missing": [],
+  "models": {
+   "adjudicator": "openai:gpt-5.6-terra",
+   "auditor": "openai:gpt-5.6-sol",
+   "generator": "anthropic:claude-sonnet-4-6",
+   "judge": "openai:gpt-5.6-terra",
+   "mapper": "openai:gpt-5.6-terra"
+  },
+  "n_assigned": 10,
+  "n_scored": 10,
+  "run_dir": "wt-study2-runs/bsecond-auditor",
+  "run_id": "20260904T064833Z",
+  "seed": 20260912,
+  "settings": {
+   "audit_rules": "general",
+   "checks": "general",
+   "lone_model_blocker": "block",
+   "max_rounds": 3,
+   "na_policy": "literal",
+   "probe_checkability": false
+  },
+  "started_utc": "2026-09-04T06:48:33.218310+00:00",
+  "task": "T03MaterialSEG"
+ }
+]
