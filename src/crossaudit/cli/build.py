@@ -408,6 +408,29 @@ def _staged_binaries(cfg: Config) -> list[str]:
     return [p for p, (_a, _r, binary) in parse_numstat(raw).items() if binary]
 
 
+def _staged_document_texts(cfg: Config, staged: list[str]) -> dict[str, tuple[str, str]]:
+    """For each staged document: the committed bytes, and the staged bytes.
+
+    ``before`` comes from ``HEAD`` and ``after`` from the index, so both sides
+    are git's own view of the artefact — the same bytes the audit judged and
+    the same bytes the next audit would judge — rather than anything the
+    generator said about them.  A path absent from ``HEAD`` is a new file and
+    yields ``("", after)``, which the growth screen reads as no growth: a
+    first draft is not a revision.
+    """
+    from ..repair_guard import classify
+
+    out: dict[str, tuple[str, str]] = {}
+    for path in staged:
+        if classify(path) != "document":
+            continue
+        before = git_bytes("show", f"HEAD:{path}", cwd=cfg.root, check=False)
+        after = git_bytes("show", f":{path}", cwd=cfg.root, check=False)
+        out[path] = (before.decode("utf-8", "replace"),
+                     after.decode("utf-8", "replace"))
+    return out
+
+
 def _stage_generated(cfg: Config, written: list[str] | AppliedFiles) -> list[str]:
     """Stage exactly the files returned by the generator, and nothing else.
 
@@ -795,6 +818,12 @@ def run_loop(cfg, task: str, *, on_event=None, attachments: str = "",
                     builtin_tools=builtin_tools,
                     owner_guidance=_bound_guidance(owner_guidance, context_report),
                     conversation=conversation,
+                    # Only a repair round carries the bound: a first draft has
+                    # nothing to grow past, and the screen agrees (a document
+                    # absent from HEAD has no growth to measure).
+                    document_growth_budget=(
+                        (cfg.repair.max_document_growth or None)
+                        if (repair_round and cfg.repair.enabled) else None),
                     # A malformed reply gets one visible, recorded repair
                     # attempt (§24.1) before anything reaches a human.
                     on_repair=lambda why: emit(
@@ -1049,10 +1078,12 @@ def run_loop(cfg, task: str, *, on_event=None, attachments: str = "",
                            "--binary", "--no-ext-diff",
                            cwd=cfg.root, check=False)[:_MAX_SCAN_BYTES]
                 assessment = RepairGuard(
-                    cfg.repair.max_changed_lines, mode=cfg.repair.mode).assess(
+                    cfg.repair.max_changed_lines, mode=cfg.repair.mode,
+                    max_document_growth=(cfg.repair.max_document_growth or None)).assess(
                     diff, scope_dirs=cfg.scope_dirs, staged_files=staged,
                     locally_rendered_files=locally_rendered,
                     binary_files=_staged_binaries(cfg),
+                    document_texts=_staged_document_texts(cfg, staged),
                     truncated=len(diff) >= _MAX_SCAN_BYTES)
                 if not assessment.allowed:
                     emit("repair_refused", "loop",

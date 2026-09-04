@@ -13,6 +13,7 @@ import yaml
 
 from .errors import ConfigDenial
 from .providers.specs import EFFORT_HINTS
+from .repair_guard import DEFAULT_MAX_DOCUMENT_GROWTH
 
 CONFIG_NAME = "crossaudit.yml"
 
@@ -89,11 +90,30 @@ class RepairPolicy:
 
     ``mode`` says what a likely defensive edit does: ``caution`` (default)
     surfaces it to the auditor; ``refuse`` rolls the round back.
+
+    ``max_document_growth`` bounds how much of itself one automatic revision
+    may add to a document deliverable (words, as a fraction of what was
+    committed).  Over it the round is rolled back and re-asked in both modes:
+    a revision repairs findings, it does not replace the artefact with a
+    longer one.  ``0`` (**the default**) turns the screen off;
+    ``repair_guard.DEFAULT_MAX_DOCUMENT_GROWTH`` is the value to start from if
+    you switch it on.
+
+    **It is off by default because it was measured and it did not help.** On
+    ExpertLongBench T03MaterialSEG it bound growth exactly as intended -- no
+    revision round over the bound, against 4 of 14 without it -- and the paired
+    within-instance revision delta got *worse*, -7.58 F1 against a control's
+    -2.14, six of seven paired instances in the wrong direction
+    (``benchmarks/expertlongbench/RESULTS-4.md``).  It prevents the rare
+    catastrophic rewrite and makes the median revision worse, and on that task
+    the second effect is larger.  The knob stays because the first effect is
+    real; the default follows the measurement.
     """
 
     enabled: bool = True
     mode: str = "caution"
     max_changed_lines: int = 200
+    max_document_growth: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -397,7 +417,7 @@ def load(path: Path | None = None) -> Config:
     repair_raw = raw.get("repair") or {}
     if not isinstance(repair_raw, dict):
         raise ConfigDenial("repair must be a mapping", file=str(p))
-    allowed_repair = {"enabled", "mode", "max_changed_lines"}
+    allowed_repair = {"enabled", "mode", "max_changed_lines", "max_document_growth"}
     if set(repair_raw) - allowed_repair:
         raise ConfigDenial(
             f"repair: unknown keys {sorted(set(repair_raw) - allowed_repair)}", file=str(p))
@@ -412,8 +432,17 @@ def load(path: Path | None = None) -> Config:
             or not 1 <= repair_lines <= 10000):
         raise ConfigDenial(
             "repair.max_changed_lines must be an integer from 1 to 10000", file=str(p))
+    repair_growth = repair_raw.get("max_document_growth", 0.0)
+    if (isinstance(repair_growth, bool)
+            or not isinstance(repair_growth, (int, float))
+            or not 0 <= float(repair_growth) <= 100):
+        raise ConfigDenial(
+            "repair.max_document_growth must be a number from 0 to 100 "
+            "(a fraction of the committed document; 0 turns the screen off)",
+            file=str(p))
     repair = RepairPolicy(enabled=repair_enabled, mode=repair_mode,
-                          max_changed_lines=repair_lines)
+                          max_changed_lines=repair_lines,
+                          max_document_growth=float(repair_growth))
     prices = _prices(raw.get("prices"), p)
 
     return Config(

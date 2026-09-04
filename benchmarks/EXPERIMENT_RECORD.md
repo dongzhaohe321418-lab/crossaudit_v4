@@ -117,10 +117,11 @@ Sections 1–8 govern the study. This one governs every later use of its results
 The reports in this project have generally been careful at the point of
 computation and careless at the point of quotation: a rate of one-in-one was
 published as "100% (1/1), 95% CI [20.7%, 100.0%]" and then travelled into
-planning documents as "100%". One figure, a "2.6-point noise floor", was not
-merely stripped of its interval but had no source at all — it entered as a
-misreading of an effect estimate and was then reasoned from as if it were a
-precision estimate. See `CORRECTIONS.md`.
+planning documents as "100%". A second failure is subtler and cost more: a "2.6-point noise floor"
+was real and measured, but measured on fixed drafts, and was then applied to
+studies in which generation changed. A number carried away from the estimand it
+was computed on is as wrong as one with no source. See `CORRECTIONS.md`, whose
+own first version got this wrong in the other direction.
 
 So, binding on summaries, decision records, plans and prose, not only on reports:
 
@@ -128,10 +129,11 @@ So, binding on summaries, decision records, plans and prose, not only on reports
   without its effect size. `73%` and `73% (CI 45–92%)` are different claims.
 - A count small enough that its interval reaches an absurd bound is quoted **as
   the count**: "2 of 2", never "100%".
-- "Inside the noise floor" may only be written where a replicate arm for that
-  domain exists, and it names the measured spread. Without one, the honest form
-  is "no replicate has been run for this domain, so run-to-run variation is
-  unknown".
+- "Inside the noise floor" may only be written where a replicate arm exists
+  **for the same estimand**, and it names the measured spread. A floor measured
+  on fixed drafts does not bound a study that changes generation. Without a
+  matching replicate the honest form is "run-to-run variation is unmeasured for
+  this contrast".
 - A claim inherits the narrowest scope of its evidence. An arm that varied a
   model within one vendor licenses a within-vendor statement, whatever question
   it was run to answer.

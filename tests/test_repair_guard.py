@@ -656,3 +656,74 @@ def test_a_reported_binary_is_refused_even_when_the_diff_was_cut_before_it():
                   binary_files=["docs/fig 1.png"],
                   locally_rendered_files={"docs/fig 1.png"}, truncated=True)
     assert ok.allowed and ok.binary_files == ()
+
+
+# ------------------------------------------- the document growth budget
+
+def test_growth_is_measured_in_words_against_what_was_committed():
+    from crossaudit.repair_guard import growth
+
+    assert growth("one two three four", "one two three four five") == 0.25
+    assert growth("one two three four", "one two") == -0.5
+    # A file that did not exist is a first draft, not a revision of one.
+    assert growth("", "any number of words at all") == 0.0
+    # Reflow is not growth: the screen counts words, not lines or bytes.
+    assert growth("one two three", "one\ntwo\nthree\n") == 0.0
+
+
+def test_a_document_grown_past_the_budget_is_refused_in_both_modes():
+    from crossaudit.repair_guard import RepairGuard
+
+    texts = {"work/r.md": ("one two three four", "one two three four five six")}
+    for mode in ("caution", "refuse"):
+        r = RepairGuard(mode=mode, max_document_growth=0.25).assess(
+            "", staged_files=["work/r.md"], document_texts=texts)
+        assert not r.allowed
+        assert r.overgrown_files == ("work/r.md",)
+        assert r.document_growth == 0.5
+        assert any("grew by 50%" in x and "25% a revision may add" in x
+                   for x in r.refusals)
+
+
+def test_a_document_inside_the_budget_passes_and_reports_its_growth():
+    from crossaudit.repair_guard import RepairGuard
+
+    r = RepairGuard(max_document_growth=0.25).assess(
+        "", staged_files=["work/r.md"],
+        document_texts={"work/r.md": ("one two three four", "one two three four five")})
+    assert r.allowed and r.overgrown_files == () and r.document_growth == 0.25
+
+
+def test_no_document_texts_means_no_growth_screen():
+    """A unified diff of prose cannot tell an added sentence from a re-emitted
+    paragraph, so a caller that supplies no before/after gets no screen rather
+    than a guess."""
+    from crossaudit.repair_guard import RepairGuard
+
+    r = RepairGuard(max_document_growth=0.25).assess("", staged_files=["work/r.md"])
+    assert r.allowed and r.document_growth == 0.0 and r.overgrown_files == ()
+
+
+def test_the_growth_screen_ignores_code_and_data():
+    """Code has the line budget; data is a regenerated artefact, not prose."""
+    from crossaudit.repair_guard import RepairGuard
+
+    r = RepairGuard(max_document_growth=0.25).assess(
+        "", staged_files=["a.py", "b.json"],
+        document_texts={"a.py": ("x", "x y z w"), "b.json": ("1", "1 2 3 4")})
+    assert r.allowed and r.overgrown_files == ()
+
+
+def test_the_budget_is_a_knob_and_none_turns_the_screen_off():
+    from crossaudit.repair_guard import RepairGuard
+
+    texts = {"work/r.md": ("one two three four", "one two three four five six")}
+    # None is the default: study 4 measured the screen and it did not help.
+    assert RepairGuard().assess(
+        "", staged_files=["work/r.md"], document_texts=texts).allowed
+    assert RepairGuard(max_document_growth=None).assess(
+        "", staged_files=["work/r.md"], document_texts=texts).allowed
+    assert RepairGuard(max_document_growth=1.0).assess(
+        "", staged_files=["work/r.md"], document_texts=texts).allowed
+    assert not RepairGuard(max_document_growth=0.1).assess(
+        "", staged_files=["work/r.md"], document_texts=texts).allowed

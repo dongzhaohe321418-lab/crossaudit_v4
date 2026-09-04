@@ -357,7 +357,8 @@ def build_prompt(*, task: str, constitution: str, current: dict[str, str],
                  attachments: str = "", compute_hosts=None,
                  compute_results=None, mcp_servers=None,
                  tool_results=None, builtin_tools=None,
-                 owner_guidance: str = "", conversation: str = "") -> str:
+                 owner_guidance: str = "", conversation: str = "",
+                 document_growth_budget: float | None = None) -> str:
     parts = [f"THE TASK\n{task.strip()}", ""]
     if conversation:
         # Earlier turns of this same conversation, so a task that refers back to
@@ -451,9 +452,26 @@ def build_prompt(*, task: str, constitution: str, current: dict[str, str],
     else:
         parts.append("\nTHE WORK AS IT STANDS\n(nothing yet; this is the first round)")
     if findings:
+        # The bound is stated, not just enforced. `repair_guard` rolls back a
+        # revision that grows a document past `repair.max_document_growth`, and
+        # a rolled-back round costs the loop a round; a writer told the bound
+        # up front usually stays inside it. The number comes from the caller so
+        # the sentence can never disagree with the screen. Study 4:
+        # `benchmarks/expertlongbench/RESULTS-4.md`.
+        bound = ""
+        if document_growth_budget:
+            bound = (
+                f" This is a revision of work that already exists, not a fresh "
+                f"draft of it: keep every part of each file the findings do not "
+                f"concern exactly as it stands, and do not grow a document by more "
+                f"than {document_growth_budget:.0%}. A revision over that bound is "
+                f"rolled back unread. If a finding genuinely cannot be answered "
+                f"without restructuring the document, make the repair you can and "
+                f"say what is missing in `notes`.")
         parts.append(f"\nWHAT STOPPED THE LAST ROUND\n"
                      f"<<<FINDINGS\n{findings}\nFINDINGS\n\n"
-                     f"Address every BLOCKER. Make the smallest causal repair. Do not "
+                     f"Address every BLOCKER. Make the smallest causal repair.{bound} "
+                     f"Do not "
                      f"make a check disappear by adding broad exception handling, "
                      f"silent fallbacks, retries, suppressions, skipped tests, or "
                      f"relaxed assertions; if the finding rests on a misreading, say "
@@ -504,6 +522,7 @@ def generate(*, task: str, constitution: str, current: dict[str, str],
              tool_results=None, builtin_tools=None,
              on_repair=None, owner_guidance: str = "",
              conversation: str = "", root: Path | None = None,
+             document_growth_budget: float | None = None,
              ) -> Work | ComputeRequest | ToolRequest:
     """One round of work. `complete` is a provider bound to the generator role.
 
@@ -527,7 +546,8 @@ def generate(*, task: str, constitution: str, current: dict[str, str],
                           tool_results=tool_results,
                           builtin_tools=builtin_tools,
                           owner_guidance=owner_guidance,
-                          conversation=conversation)
+                          conversation=conversation,
+                          document_growth_budget=document_growth_budget)
     reply = complete(system=GENERATOR_SYSTEM, prompt=prompt)
     try:
         outcome = _parse_reply(reply.text)
