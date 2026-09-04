@@ -14,9 +14,24 @@ deterministic checks have run, and every task, round, finding, verdict, and
 receipt is recorded in Git. It is for anyone who ships what an agent produces
 (code, reports, research artefacts, data pipelines, contract reviews, financial
 models) and needs to show later what was checked, by whom, and with what
-authority. Two vendors, because a second prompt to the same model shares its
-training, its context, and its blind spots: the separation is enforced by the
-harness, not requested in a prompt.
+authority. Two vendors, and the separation is enforced by the harness
+rather than requested in a prompt.
+
+What that separation buys has been measured, and it is not what we first
+claimed. A model reviewing its own work is not blind to its defects — on a
+30-instance study it named *more* of them than the stranger did (31.7% against
+19.8%). What it does is forgive them: it filed 61 of its 64 findings as
+advisory and blocked 3.3% of increments, where the auditor from another vendor
+filed all 48 of its findings as blockers and blocked 80.0%. **The separation
+buys severity, not sight.** A stranger is the reviewer who will not wave your
+work through. In code, where ground truth is a test rather than a judgement,
+the same separation showed up as flagging fewer correct solutions — the number
+that decides whether a reviewer is worth keeping.
+
+One task, one vendor pair, and a scorer that is our own reimplementation of a
+published one. The measurements, the withdrawals and an independent
+cross-vendor review of the measurement code itself are in
+[`benchmarks/`](benchmarks/CORRECTIONS.md).
 
 **Latest release: CrossAudit 4.17.0.** The source on `main` is authoritative
 until the matching DMG is attached to a GitHub release.
@@ -53,8 +68,12 @@ Both captures are the 4.17.0 console showing the credential-free local demo.
 ## Why CrossAudit
 
 AI-generated work is easy to produce and difficult to trust. A second prompt in
-the same model is useful feedback, but it is not independent supervision. It
-shares the same provider, model family, context, and often the same blind spots.
+the same model is useful feedback, but it is not independent supervision — not
+because the model cannot see its own defects, but because it is lenient about
+them. Measured on a 30-instance study, the self-review named more defects than
+an auditor from another vendor and blocked almost none of them: 3.3% of
+increments against 80.0%. The interest a reviewer has in the work is what a
+prompt cannot change.
 The table compares CrossAudit with a single-agent coding harness of the Codex
 or Claude Code kind, on the questions a reviewer asks afterwards.
 
