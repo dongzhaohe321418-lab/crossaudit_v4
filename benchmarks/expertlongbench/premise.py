@@ -84,7 +84,15 @@ ARMS = ("cross", "self", "sibling", "none")
 #: study is running against the same credentials, so HTTP 429 is the expected weather
 #: here rather than a fault. The product's own resilience layer retries within a call;
 #: this waits out a shared quota window, which is a different timescale.
-BACKOFF_S = (30, 90, 240, 480)
+BACKOFF_S = (45, 120, 300, 600)
+
+#: What a saturated provider looks like from here. Two shapes, and the second is the
+#: product's own breaker rather than the vendor: after enough 429s the resilience layer
+#: opens a circuit and refuses to place the call at all ("cooling down"). Both mean the
+#: same thing to this harness -- the call did not reach a model -- and both are safe to
+#: retry for exactly that reason.
+SATURATED = ("429", "rate limit", "rate_limit", "cooling down", "circuit",
+             "too many requests")
 
 
 def retrying(what: str, call, *args, **kwargs):
@@ -102,8 +110,8 @@ def retrying(what: str, call, *args, **kwargs):
         try:
             return call(*args, **kwargs)
         except ProviderDenial as exc:
-            reason = str(getattr(exc, "reason", "") or exc)
-            if "429" not in reason and "rate" not in reason.lower():
+            reason = str(getattr(exc, "reason", "") or exc).lower()
+            if not any(marker in reason for marker in SATURATED):
                 raise
             last = exc
             if wait is None:
@@ -583,11 +591,15 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
             json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"resuming: {len(already)} of {len(rows)} already recorded", flush=True)
 
-    for position, row in enumerate(rows, start=1):
+    def one_instance(row: dict) -> dict | None:
+        """Everything for one instance, or ``None`` if it could not be completed.
+
+        A ``None`` is deliberately NOT recorded: an instance that died because the
+        provider was saturated has to stay eligible for a resume, and a record would
+        make the resume skip it forever. The generation already paid for is lost, which
+        is the cheaper of the two mistakes.
+        """
         sample_id = row["id"]
-        if sample_id in already:
-            continue
-        print(f"[{position}/{len(rows)}] {sample_id}", flush=True)
         reference = {k: str(v) for k, v in row["human_reference_checklist"].items()}
         record: dict = {"sample_id": sample_id}
 
@@ -606,10 +618,8 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
         }
         if not draft.strip():
             record["error"] = meta.get("error") or "the loop produced no round-one draft"
-            records.append(record)
-            _write_index(out_dir, plan, records)
             shutil.rmtree(scratch, ignore_errors=True)
-            continue
+            return record
 
         # The commit the draft landed in: what every arm audits.
         audit_sha = subprocess.run(
@@ -642,8 +652,6 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
                   f"${summary['cost_usd']:.3f}", flush=True)
 
         record["judging_cost_usd"] = sum(a["cost_usd"] for a in record["arms"].values())
-        records.append(record)
-        _write_index(out_dir, plan, records)
         # Model outputs quote the corpus and are never committed: they live under the
         # gitignored run directory only.
         instance_dir = out_dir / "instances" / sample_id.replace("/", "__")
@@ -652,6 +660,25 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
         (instance_dir / "record.json").write_text(
             json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         shutil.rmtree(scratch, ignore_errors=True)
+        return record
+
+    for position, row in enumerate(rows, start=1):
+        sample_id = row["id"]
+        if sample_id in already:
+            continue
+        print(f"[{position}/{len(rows)}] {sample_id}", flush=True)
+        try:
+            record = one_instance(row)
+        except Exception as exc:  # noqa: BLE001 - printed, not recorded; see one_instance
+            print(f"    instance abandoned: {type(exc).__name__}: "
+                  f"{str(exc)[:200]}", flush=True)
+            shutil.rmtree(out_dir / "_scratch" / sample_id.replace("/", "__"),
+                          ignore_errors=True)
+            continue
+        if record is None:
+            continue
+        records.append(record)
+        _write_index(out_dir, plan, records)
 
     print(f"\ndone. {len(records)} instances -> {out_dir}", flush=True)
     return 0
