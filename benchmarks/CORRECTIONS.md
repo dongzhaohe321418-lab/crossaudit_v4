@@ -5,8 +5,12 @@ exists because these results are intended for publication, and a reader deciding
 whether to trust the record is entitled to see what the record got wrong before
 they find it themselves.
 
-Nothing here was found by an outside reader. Every item was found by re-reading
-this project's own committed reports against the claims being made *from* them.
+Two sources. Some items were found by re-reading this project's own reports
+against the claims being made *from* them. The largest ones, including an error in
+this file's own first version, were found by an independent reviewer running on a
+different vendor's model over the same records. Its full report is kept verbatim
+at `reviews/2026-09-05-cross-vendor.md`; every finding taken from it was
+reproduced here from the archived run data before being accepted.
 
 ---
 
@@ -32,23 +36,35 @@ number is *quoted*, not only where it is first computed.
 
 ## Withdrawn
 
-**1. The 2.6-point prose noise floor — fabricated.**
-No such figure appears in any committed result. A search of `benchmarks/` and
-`docs/` returns nothing. It appears to be a misreading of `+2.69 F1`, which is the
-**arm B − arm A paired difference** from `RESULTS.md` — an effect estimate, not a
-precision estimate. The two are not interchangeable, and using one as the other
-inverts the reasoning it was used for.
+**1. The 2.6-point prose noise floor — real, but the wrong estimand.**
+*This item was itself wrong when first written here, and is corrected below.*
 
-The deeper problem it concealed: **no prose study has ever run a replicate arm.**
-The string `replicate` occurs zero times in `RESULTS.md`, `RESULTS-2.md` and
-`RESULTS-3.md`. Every statement of the form "X made no difference, it is inside
-the noise floor" made about the prose line is therefore **currently
-unfalsifiable**. A dedicated measurement is now running to replace this with a
-real number.
+The figure is not fabricated. Study 5 measured it: three runs of the identical
+cross-vendor configuration over the identical 11 fixed drafts gave recalls of
+20.3%, 15.3% and 18.6%, SD 2.59 pp, range 5.1 pp. `RESULTS-5.md` reports it
+plainly and already warns that "several cannot be judged at all because the floor
+measured here covers the auditor and not the generator".
 
-The only replicate arm this project has ever run is the code study's
-(`feat/study-code`), which measures **1.8 points on stratum P and 0.7 on stratum
-C**. Those figures are real, and they license claims about the *code* line only.
+The defect is what it can be used for. It is the standard deviation of a **pooled
+micro recall over fixed drafts**. It therefore bounds auditor-side run-to-run
+variation and nothing else. It is not the variability of the primary paired
+contrast, and it is not the variability of any study in which generation changes.
+Every use of it to accept or withdraw a finding from a generation-changing study
+is invalid, including its use against study 2's "2.0% to 3.8%".
+
+Two of this project's numbers are read against it correctly, and both concern the
+auditor over fixed drafts. Every other use of it should be struck. What is still
+missing, and is now being measured, is the run-to-run spread of the **primary
+paired contrast** itself.
+
+**How this entry came to be wrong.** It was first written here as "fabricated —
+appears in no committed result", on the strength of a search of the committed
+tree of one branch. Study 5 is not committed to that branch; it lives in a
+scratchpad worktree. The claim was false, it was published in this file, and it
+was caught by the same cross-vendor review that produced item 9. That is finding 5
+below biting the person writing the corrections: **evidence scattered across
+uncommitted worktrees produced a false claim about this project's own record.**
+The entry is left in place, corrected, rather than quietly rewritten.
 
 **2. The arm-A-versus-arm-B comparison, in both directions.**
 `+2.69 F1` (p = 0.67, 7 non-tied pairs) then `−1.19 F1` (p = 0.447, 18 usable
@@ -112,6 +128,73 @@ This is why the proposed report-not-revise default was correctly stopped before
 it shipped. The evidence for it was an artefact of the analysis.
 
 ---
+
+## The four headline findings, restated
+
+Four findings were carried out of this measurement programme as its results. The
+cross-vendor review reached all four. None survives in the form it was stated.
+
+**1. "Revision is net negative."** Withdrawn (item 9). The unconditional effect
+is −4.01 F1, CI [−16.54, +8.33]. A second defect compounds it: `report2.py`
+records one first-to-final delta per *revised instance* while calling it a
+revision, so multi-round changes collapse. Study 3 has 25 revised instances but
+**36 transitions**; per transition the figure is −7.64, not −11.01, and the
+fixed/broken split is 5/19, not 3/17. And the pooled `p = 0.0014` is not valid
+evidence: arms S, R and X change the constitution, the auditor's context and the
+revision prompt, and their per-arm means are **−13.56, +5.83 and −14.42**. Pooling
+them yields a configuration-weighted mixture, and the 25 observations contain only
+18 unique sample ids, so the sign enumeration assumes an independence the data do
+not have. **Surviving claim: none.** The direction is suggestive; the number, the
+unit and the inference are all withdrawn.
+
+**2. "The constitution, not the model, is the recall bottleneck."** Not
+established as causal. The comparison sets shipped B's 4/201 over 40 instances
+against 10-instance arms, and **every draft in those arms differs byte-for-byte
+from shipped B's**. Arm B′ also changes the generator prompt. No confidence
+interval or paired test was supplied for the recall contrast. The micro rates
+reproduce; the attribution does not. **Surviving claim: on ten matched instances,
+recall differed markedly across rules conditions, on drafts that also differed.**
+The clean version of this experiment — re-auditing identical frozen drafts under
+each condition — has not been run and is cheap.
+
+**3. "The constitution poisons the generator" (+24.07 F1).** n = 4, no confidence
+interval. The four differences are **+16.67, 0, +22.22, +57.41**. One instance
+supplies most of the effect. The point estimate reproduces; the uncertainty was
+never stated and is extreme. **Surviving claim: a hypothesis worth a real n.**
+
+**4. "Cross-vendor's value is low false positives, not higher recall."** The
+false-positive half is the strongest thing here and is not withdrawn. The recall
+half is: the +8.9-point advantage rests on **five discordant pairs that all point
+one way**, so a percentile bootstrap cannot generate a negative resample and
+mechanically returns a positive lower bound. Exact McNemar gives **p = 0.0625**.
+The interval [1.8%, 17.9%] does not establish exclusion of zero, and "real in
+sign" is not supported. Four of the 56 stratum-P cases are also **timeouts rather
+than observed assertion failures**, which contradicts the stated ground truth and
+moves recall from 5/56 to 5/52. **Surviving claim: cross-vendor audit flags fewer
+correct solutions, which is the number that decides adoption; its recall advantage
+is not established.**
+
+## What the review did not find
+
+Stated because negative findings are results, and these were the two that most
+threatened the programme:
+
+- **CLEAR's core algorithm is correct.** The full-checklist denominator, the
+  precision and recall directions, the per-sample harmonic F1 and the sample-level
+  aggregation all match the paper's procedure. No chain-of-thought reaches the
+  extractor or comparator. The reimplementation risk that `EXPERIMENT_RECORD.md`
+  §6 names as permanent is smaller than feared, though it remains real: the
+  scorer does silently coerce malformed mapper replies to `"N/A"` instead of
+  rejecting them, and the raw replies were not retained, so the realised impact
+  cannot now be measured. Retain them from here on.
+- **No hidden-test leakage in the code study.** Not through prompts, imports,
+  fixtures, caches, or the generated solutions' filesystem behaviour. The
+  population reproduces exactly: C = 455, P = 56, F = 29. Every arm count and
+  McNemar p regenerates from the committed records. The weaker claim that
+  should replace the report's wording is "not present in runtime prompts or tool
+  inputs", since HumanEval+ and MBPP+ predate the models and pretraining
+  contamination cannot be excluded by runtime isolation.
+- **No p-value was copied from an unrelated comparison.**
 
 ## Withdrawn framing
 
