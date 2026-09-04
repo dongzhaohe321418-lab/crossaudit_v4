@@ -83,6 +83,34 @@ summary.
 **8. Any CLEAR absolute placed beside the ExpertLongBench leaderboard.**
 The scorer is a reimplementation; the comparison is not licensed.
 
+**9. Study 4's primary outcome is conditioned on a post-treatment variable.**
+This is the most serious item here, and unlike the others it was **not** found by
+this project. An independent reviewer from a different vendor found it; the
+recomputation below was then reproduced independently before it was accepted.
+
+The preregistration names the primary outcome as the revision delta "for each
+instance **where the loop revised at least once**". But the treatment is a change
+to the revision scope rules, and it therefore helps decide whether a revision
+happens at all. Conditioning the analysis on that event selects on a consequence
+of the treatment, which opens a path between the arms that has nothing to do with
+the effect being estimated. Selecting on a post-treatment variable is a
+recognised way to manufacture an effect where none exists.
+
+The size of the difference it makes:
+
+| analysis | n | effect |
+|---|---|---|
+| as published, conditioned on both arms revising | 7 | **−19.60 F1** |
+| unconditional, all paired instances | 16 | **−4.01 F1**, 95% bootstrap CI [−16.54, +8.33] |
+
+The unconditional estimate is not distinguishable from zero. **"Revision is net
+negative" is withdrawn as a finding.** What survives is the descriptive
+observation that where a revision did occur it was often harmful, which is a
+different and much weaker claim, and cannot carry a change to a shipped default.
+
+This is why the proposed report-not-revise default was correctly stopped before
+it shipped. The evidence for it was an artefact of the analysis.
+
 ---
 
 ## Withdrawn framing
@@ -108,6 +136,21 @@ defaults on the numbers now being withdrawn.
 pass or fail), a measured noise floor, and a false-positive population. Its
 finding — that cross-vendor audit's value is low false-positive rate rather than
 higher recall — is not affected by anything above.
+
+
+## On how item 9 was found
+
+Every other item on this list was found by this project re-reading its own
+reports. Item 9, the largest, was not: it came from a reviewer at a different
+vendor, reading the same committed records, after several same-vendor review
+passes over the same study had missed it. The recomputation was then reproduced
+here from the archived run directories before the finding was accepted, which is
+the only reason it appears as fact rather than as a claim.
+
+That is this project's own thesis, tested on the project itself, with the project
+as the thing found wanting. It belongs in the record as evidence, not as an
+embarrassment: a same-vendor reviewer sharing the authors' assumptions did not
+see the assumption. A reviewer that did not share it did.
 
 ## Standing
 
