@@ -12,9 +12,13 @@ Three boundaries this module exists to hold:
 * **Its narrative never reaches the auditor** (P2). The auditor receives the
   committed tree; the reasoning that produced it stays here. That asymmetry is
   the anchoring defence, and it is why the two prompts are built in two places.
-* **It is told the rules, and told they are not negotiable.** The generator sees
-  the Constitution so it can satisfy it, not so it can argue with it: disputes
-  are a human's lane, routed there deliberately.
+* **It is told the brief, and told it is not negotiable.** The generator sees a
+  *projection* of the Constitution — the requirements that describe the
+  deliverable — so it can satisfy them, not so it can argue with them: disputes
+  are a human's lane, routed there deliberately. It is not shown the acceptance
+  criteria the auditor applies, because a writer handed a grading checklist
+  writes to the checklist (`constitution.brief_projection`, and the measurement
+  that forced it in `benchmarks/expertlongbench/RESULTS-3.md`).
 """
 from __future__ import annotations
 
@@ -23,7 +27,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .constitution import parse_json_reply
+from .constitution import brief_projection, parse_json_reply
 from .errors import ConfigDenial, Denial, ProviderDenial
 from .file_identity import (AppliedFiles, FileTarget, apply_bound_files,
                             resolve_file_targets)
@@ -372,8 +376,16 @@ def build_prompt(*, task: str, constitution: str, current: dict[str, str],
         # The Console's explicit Send action authorizes the selected files;
         # the server verifies that authorization before this prompt is built.
         parts.append("\n" + attachments)
-    parts.append("THE RULES YOUR WORK IS JUDGED BY (not negotiable here)\n"
-                 f"<<<RULES\n{constitution}\nRULES")
+    # The writer's projection of the committed rulebook, never the rulebook.
+    # Derived HERE rather than at the call site, so no caller — build loop,
+    # console, app — can hand a writer the acceptance criteria by accident.
+    # Study 2 measured what happens when it does: rules written to say what the
+    # work is graded on dropped the first draft from 14.7 to 3.3 CLEAR F1,
+    # because the generator read them as an outline. The auditor's copy is
+    # untouched and still carries every committed byte.
+    parts.append("THE BRIEF YOUR WORK MUST SATISFY (derived from the rules your "
+                 "work is judged by; not negotiable here)\n"
+                 f"<<<RULES\n{brief_projection(constitution)}\nRULES")
     if deterministic_contract:
         parts.append(
             "\nTHE MACHINE-ENFORCED FILE CONTRACT (also non-negotiable in this "

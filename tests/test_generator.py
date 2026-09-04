@@ -152,7 +152,7 @@ def test_generator_prompt_separates_untrusted_mcp_metadata_and_results_from_rule
         tool_results=[{"tool": "search", "status": "completed",
                        "content": [{"type": "text", "text": "result"}]}])
 
-    assert prompt.index("THE RULES") < prompt.index("APPROVED MCP TOOLS")
+    assert prompt.index("THE BRIEF") < prompt.index("APPROVED MCP TOOLS")
     assert "untrusted metadata" in prompt
     assert "MCP TOOL RESULTS" in prompt and "untrusted external data" in prompt
     assert "never ask a tool to bypass" in gen.GENERATOR_SYSTEM
@@ -209,13 +209,32 @@ def test_an_empty_task_is_refused():
 
 
 def test_the_prompt_carries_rules_and_findings_but_never_the_auditor_s_report_headers():
-    prompt = gen.build_prompt(task="write it", constitution="### CA-X-001\nbe exact",
-                              current={"work/a.md": "old"}, findings="[BLOCKER] fix this",
-                              allowed_dirs=ALLOWED)
+    prompt = gen.build_prompt(
+        task="write it",
+        constitution="### CA-X-001\n**BLOCKER.** be exact\n<!-- brief -->\n",
+        current={"work/a.md": "old"}, findings="[BLOCKER] fix this",
+        allowed_dirs=ALLOWED)
     assert "### CA-X-001" in prompt          # it must know what it is judged by
+    assert "be exact" in prompt
     assert "[BLOCKER] fix this" in prompt    # and what was wrong last time
     assert "work/a.md" in prompt and "old" in prompt
     assert "may write only inside: work/" in prompt
+
+
+def test_the_writer_is_given_the_brief_and_never_the_acceptance_criteria():
+    """One committed rulebook, two projections, and only one of them is a
+    grading checklist. Study 2 measured what happens when the writer is shown
+    the criteria: the first draft fell from 14.7 to 3.3 CLEAR F1, because rules
+    that say what the work is graded on are read as an outline to write to."""
+    rules = ("### CA-SHAPE-001\n**BLOCKER.** exactly one Markdown file\n"
+             "<!-- brief -->\n\n"
+             "### CA-GRADE-001\n**BLOCKER.** the anneal temperature is justified "
+             "against the precursor decomposition onset\n")
+    prompt = gen.build_prompt(task="write it", constitution=rules, current={})
+
+    assert "exactly one Markdown file" in prompt      # the shape it must satisfy
+    assert "decomposition onset" not in prompt        # the grader's criterion
+    assert "CA-GRADE-001 (BLOCKER)" in prompt         # named, not spelled out
 
 
 def test_the_first_generator_round_receives_the_live_machine_contract():
@@ -237,7 +256,7 @@ def test_confirmed_attachment_section_is_delimited_from_the_task():
                               current={}, attachments=section)
     assert "THE TASK\nsummarize the input" in prompt
     assert section in prompt
-    assert prompt.index(section) < prompt.index("THE RULES YOUR WORK IS JUDGED BY")
+    assert prompt.index(section) < prompt.index("THE BRIEF YOUR WORK MUST SATISFY")
 
 
 def test_findings_are_extracted_without_the_report_s_provenance():

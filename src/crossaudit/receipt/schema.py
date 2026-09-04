@@ -141,6 +141,29 @@ def validate(raw: Any) -> dict:
         if raw.get("tool_evidence") is None:
             raise IntegrityDenial("sources present without tool_evidence to bind it")
 
+    # Which projection of the constitution each role received. Validated when
+    # present; absent on every receipt written before the rulebook had two
+    # readers, and those must keep verifying — so this is not in REQUIRED_INPUTS
+    # and no schema bump is needed. `verify` re-derives both digests from the
+    # committed blob and refuses a mismatch.
+    proj = raw.get("projections")
+    if proj is not None:
+        if not isinstance(proj, dict):
+            raise IntegrityDenial("projections must be a mapping")
+        _require(proj, ("auditor", "generator"), "projections")
+        for role in ("auditor", "generator"):
+            view = proj[role]
+            if not isinstance(view, dict):
+                raise IntegrityDenial(f"projections.{role} must be a mapping")
+            _require(view, ("name", "sha256"), f"projections.{role}")
+            if not isinstance(view["name"], str) or not view["name"]:
+                raise IntegrityDenial(
+                    f"projections.{role}.name must be a non-empty string")
+            if (not isinstance(view["sha256"], str)
+                    or len(view["sha256"]) != 64):
+                raise IntegrityDenial(
+                    f"projections.{role}.sha256 must be a sha256 hex digest")
+
     # Optional evidence-authority record (D148): present only on receipts whose
     # audit derived one. Validated when present — structure, known policy
     # version, digest over its evidence, ids within the evidence, route

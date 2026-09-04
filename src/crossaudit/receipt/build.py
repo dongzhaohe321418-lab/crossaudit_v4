@@ -13,6 +13,7 @@ from pathlib import Path
 
 from .. import RECEIPT_SCHEMA, _selfid
 from ..config import Config, heterogeneity
+from ..constitution import projection_digests
 from ..errors import IntegrityDenial
 from ..providers.specs import source_independent
 
@@ -228,6 +229,15 @@ def build(*, cfg: Config, subject: dict, cycle: dict, manifest: dict,
         "isolation": isolation_evidence(cfg, mode=mode, provisioner=provisioner,
                                         admission=admission, exchange=exchange),
     }
+    # Which projection of the constitution each role received. The rulebook is
+    # one committed artefact and the receipt still binds its bytes and its
+    # commit above; this says that the auditor read all of them (the `criteria`
+    # projection is the identity) and the generator read a `brief` derived from
+    # them. Both digests are re-derived by `verify` from the blob it reads at
+    # the pinned commit, so this block is checked, never trusted. Additive:
+    # every receipt written before it stays valid, because absence is legal.
+    receipt["projections"] = projection_digests(
+        constitution_bytes.decode("utf-8", errors="replace"))
     # Optional, back-compatible: bind the evidence-ledger head only when this
     # cycle actually ran governed tools. A tool-free cycle omits the block, so
     # its receipt bytes and digest are identical to a plain v2 receipt.
