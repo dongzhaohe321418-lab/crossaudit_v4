@@ -42,7 +42,7 @@ post-revision output, over all 25 revisions in arms S, R and X:
 | | |
 |---|---:|
 | pre-revision paragraph blocks | 422 |
-| present byte-identical after revision | 299 (**71%**) |
+| present byte-identical after revision | 335 (**79.4%**) |
 | modified in place | 72 (17%) |
 | **outright deleted** | **15 (3.6%)** |
 | newly added | 35 |
@@ -173,7 +173,7 @@ the arms would have been its out-of-sample test and they did not run.
 
 **It licenses:**
 
-1. The revision defect is **expansion, not deletion**. 71% of paragraphs survive
+1. The revision defect is **expansion, not deletion**. 79.4% of paragraphs survive
    byte-identical, 3.6% are deleted, and preservation is uncorrelated with the
    outcome (r = +0.08).
 2. **Growth predicts the damage** (r = −0.40). Above 25% growth: 0 items fixed,
