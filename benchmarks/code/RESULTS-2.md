@@ -515,3 +515,34 @@ hashes, tokens, cost and time, plus `properties_shape.json` giving each problem'
 count, categories and hashes. **No corpus text, no generated solutions, no finding prose,
 and no prompt that embeds any of them.** The full run directory, which does contain those,
 stays on disk at `benchmarks/code/runs/study2/` and is gitignored.
+
+## On not running a third batch
+
+The study left $5.60 of its budget unspent and raised the option of a third
+batch, taking n from 110 to roughly 165, to settle a primary outcome whose
+interval touches zero. **Declined, and the reason is recorded so it is not
+revisited quietly.**
+
+The preregistration fixed a pooling rule — batches until P ≥ 100 — and that rule
+was met. Extending n *after seeing the result*, in order to move an interval off
+zero, is the practice that fills a literature with effects that do not replicate.
+It could be done honestly, as a declared sequential extension with the
+multiplicity stated, but it should be done for a reason, and there is not one
+here:
+
+- **The decision it would inform is already made.** Decomposition raises false
+  positives 8.0 points on correct code, established at p = 0.0042, with its added
+  flags only 19.1% correct. In code that is the number that ends a tool's life.
+  A firmer recall estimate does not change the answer.
+- **The claim being published is the asymmetry, not either number alone.** "A
+  9.1-point recall gain that a study this size cannot separate from zero, beside
+  an 8.0-point false-positive cost that it can" is an honest and complete
+  finding. Making the first interval exclude zero would not strengthen it; it
+  would replace a stated uncertainty with a post-hoc one a reader is right to
+  discount.
+- **The interesting result is elsewhere and a third batch would not address it.**
+  18 defects were decomposition-only and 8 holistic-only. That the two
+  architectures see different things is the result worth pursuing, and pursuing
+  it means a different design, not more of this one.
+
+The unspent budget stays unspent.
