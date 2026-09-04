@@ -1,254 +1,329 @@
-# T03MaterialSEG — **the treatment arm did not produce a single scored instance: the generator's Anthropic credit ran out mid-study.** The primary outcome is unmeasured
+# T03MaterialSEG — **the growth budget does not repair the revision defect. It bounded growth exactly as designed and the revision delta got worse: −7.58 F1 against the control's −2.14**
 
-**The change this study exists to test has no number.** Arm T (the 25% document
-growth budget) attempted all 16 instances and scored **0**, because the
-generator account returned
+**The preregistered hypothesis is false, in the direction opposite to the
+prediction.** The 25% document-growth budget was supposed to move the paired
+within-instance revision delta *up*. On 16 paired instances it moved it *down*:
 
-```
-HTTP 400  invalid_request_error
-"Your credit balance is too low to access the Anthropic API."
-```
+| | paired revision delta | 95% CI | exact p | n |
+|---|---:|---|---:|---:|
+| **C — control**, tip behaviour | **−2.14 F1** | [−19.75, +10.74] | 0.8750 | 9 revisions (4 usable) |
+| **T — treatment**, +25% budget | **−7.58 F1** | [−15.91, +2.78] | 0.2109 | 11 revisions (8 usable) |
+| between arms (unpaired means) | **−5.44 F1** | | | |
+| **paired on the 7 instances revised in BOTH arms** | **−19.60 F1** | **[−39.37, −1.19]** | 0.1562 | 7 (1 better, 6 worse) |
 
-on every call. Arm G (the split-code/general-rules control the owner is owed)
-scored 0 for the same reason. The control arm, which ran first, spent the last
-of the balance and itself completed only **9 of 16** instances.
+The mechanism did what it was built to do, and that is what makes the result
+informative rather than a bug report. **The screen bound growth perfectly**: 0 of
+13 committed revision rounds in arm T exceeded 25% (max **+22.4%**), against 4
+of 14 in the control (max **+86.5%**); mean word churn fell from 42.3% to 19.1%.
+**The bound held and the work got worse.**
 
-So the one preregistered number this study can report is the **control's own**
-paired within-instance revision delta, on **n = 4 revisions**:
-**−14.81 F1, 95% CI [−44.43, +6.25], exact Wilcoxon p = 0.5000** (3 usable pairs
-after 1 tie). It reproduces the *direction and size* of study 3's arm X
-(−14.42) on a fresh seed and fresh samples, on an interval so wide it excludes
-almost nothing. **It is a replication of the defect, not a test of the fix.**
+**It does not beat the −6.20 floor my own exploratory replay predicted — it lands
+just below it, at −7.58.** The replay said the revisions the screen leaves alone
+average −6.20; the treatment reproduced that number rather than improving on it,
+which is the outcome the replay's most pessimistic reading allowed and the one I
+did not expect.
 
-One preregistered secondary outcome did land cleanly and is worth the run:
-**the control grew its deliverable by a mean of +28.8% per committed revision
-round, with 3 of 7 transitions above 25% and a maximum of +86.5%** — the
-mechanism the change was built to bound, reproduced prospectively on data
-gathered after the diagnosis was written down.
+**The gain is not hidden audit silence — there is no gain to hide.** Auditor
+round-one recall went *up*, 19.0% → 21.2%; adjudicated precision went *down*,
+84.6% → 69.0%. Final output F1 fell 12.29 → 9.47 (paired −2.82, CI [−12.05,
++3.85], p = 0.703). Round-one drafts are indistinguishable, as they must be
+(+1.19, p = 0.939): neither arm changes what the writer sees on a blank page.
 
-**Study spend $2.41** of a US$12 budget: $1.72 on the analysed run, plus $0.69
-on two launches discarded before any score was read (Deviations 1 and 2).
+**The honest caveat is larger than the effect.** Arm C's own primary number
+moved from **−14.81** (at n = 9, before the arm was completed) to **−2.14** (at
+n = 16), and study 3's comparable arm read **−14.42**. The control estimate
+wanders across a 13-point range depending on which instances are in it. The
+between-arm difference is of the same order as that instability, and this study
+ran each arm once, so it cannot separate them. **Read the direction, not the
+magnitude.**
 
-This study conforms to `benchmarks/EXPERIMENT_RECORD.md`. Its claim was
-registered in advance at `study4/PREREGISTRATION.md`; its provenance is
-`study4/manifest.json`; its per-instance evidence is `study4/records.jsonl`,
-40 rows, one per instance per arm, **including every failed instance**.
+**Study spend $8.18** of US$12: $7.49 on the analysed arms, $0.69 on two
+launches discarded before any score was read.
+
+Preregistered at `study4/PREREGISTRATION.md` (`f8623b2`), before the analysed
+run's first model call. Provenance `study4/manifest.json`; evidence
+`study4/records.jsonl`, 40 rows, one per instance per arm. Conforms to
+`benchmarks/EXPERIMENT_RECORD.md`.
 
 ---
 
-## 1. What was claimed in advance
-
-Registered in `study4/PREREGISTRATION.md`, committed at `f8623b2` before the
-first model call of the analysed run:
+## 1. The claim, as registered
 
 > The 25% document-growth budget added in `21f37d5` moves the paired
 > within-instance revision delta on T03MaterialSEG **up** relative to tip
 > behaviour, **without** reducing the auditor's round-one recall or its
 > adjudicated precision.
 
-**Primary outcome**: the paired within-instance revision delta in CLEAR F1
-(final committed output minus round-one draft, averaged over revised instances).
-**Verdict: not measured.** The arm that would answer it produced no data.
+**Primary outcome**: the paired within-instance revision delta in CLEAR F1.
+**Verdict: falsified on the first clause.** The delta moved down, by 5.44 F1
+between arm means and by 19.60 F1 paired on the instances both arms revised.
+The second clause held for recall (up) and failed for precision (down).
 
-## 2. Provenance
+## 2. What ran
 
-`study4/manifest.json` carries: the frozen shas with `git status --porcelain`
-empty at freeze (control `63ab94c`, treatment `21f37d5`, report tree
-`f8623b2`+); the five product files the change touched; sha256 of the six
-harness files, **identical across both worktrees**, so the arms could differ
-only in the product; the dataset digest, row count and licence; every model id
-and role; the seed and how sampling derives from it; each arm's attempt history
-and UTC start/end; Python 3.13.5 on macOS-26.6.2-arm64.
+| arm | product code | constitution | n attempted | **n scored** | model calls |
+|---|---|---|---:|---:|---:|
+| **C** control | `63ab94c` | rubric-derived | 16 | **16** | 62 |
+| **T** treatment | `21f37d5` | rubric-derived, byte-identical | 16 | **16** | 66 |
+| **G** split + general | `63ab94c` | shipped `GENERAL_AUDIT_RULES.md` | 8 | **8** | 16 |
 
-Raw run directories stay gitignored. Their absolute paths and a directory-level
-sha256 are in `study4/rundirs.sha256`, so the raw material can be produced on
-request without publishing corpus text.
+Zero failed instances in the analysed run. The benchmark harness (`run.py`,
+`clear.py`, `adjudicate.py`, `provider.py`, `tasks.py`, `stats.py`) is
+sha256-identical across the two worktrees, recorded in `manifest.json`, so C and
+T differ only in the five product files `21f37d5` touched.
 
-## 3. What ran, and what it produced
+## 3. Results
 
-| arm | code | attempted | **scored** | model calls | why the gap |
-|---|---|---:|---:|---:|---|
-| **C** control, rubric rules | `63ab94c` | 16 | **9** | 32 | generator credit exhausted part-way |
-| **T** treatment, +25% budget | `21f37d5` | 16 | **0** | 0 | generator credit exhausted before round 1 |
-| **G** split code, general rules | `63ab94c` | 8 | **0** | 0 | same |
+### 3.1 Per arm
 
-Every attempted instance is a row in `records.jsonl`, failures included, with
-its error string and `calls: 0`. No instance was dropped silently.
+| | arm C | arm T | arm G |
+|---|---:|---:|---:|
+| n scored | 16 | 16 | 8 |
+| round-one draft F1 | 13.49 | 14.68 | 24.50 |
+| final output F1 | **12.29** | **9.47** | 24.50 |
+| instances revised | 9 / 16 | 11 / 16 | **0 / 8** |
+| rubric items fixed / broken | 3 / 4 | 3 / **6** | 0 / 0 |
+| **paired revision delta** | **−2.14** [−19.75, +10.74] | **−7.58** [−15.91, +2.78] | — |
+| auditor round-one recall | 19.0% (16/84) | 21.2% (18/85) | **0.0%** (0/37) |
+| auditor precision (adjudicated) | 84.6% (22/26) | 69.0% (20/29) | — (0 findings) |
+| committed revision rounds | 14 | 13 | 0 |
+| — mean per-round growth | +21.6% | **+14.6%** | — |
+| — max per-round growth | **+86.5%** | **+22.4%** | — |
+| — rounds over the 25% bound | **4** | **0** | — |
+| mean word churn per revision | 42.3% | **19.1%** | — |
+| exit codes | 14×`0`, 2×`11` | 13×`0`, 3×`11` | 8×`0` |
+| cost | $3.35 ($0.209/inst) | $3.46 ($0.217/inst) | $0.68 ($0.085/inst) |
 
-### Arm C — the only arm with data
+The bound is **per repair round**, not cumulative. Arm T's largest round-one-to-
+final growth is +30.8% across two bounded rounds, which is correct behaviour and
+worth stating so the "0 over 25%" row is not misread.
 
-| | value | n |
-|---|---:|---:|
-| round-one draft CLEAR F1 | 20.29 | 9 |
-| final output CLEAR F1 | 13.70 | 9 |
-| instances revised | 4 of 9 | 9 |
-| rubric items fixed / broken by revision | **1 / 4** | 4 |
-| **paired revision delta (PRIMARY instrument)** | **−14.81 F1**, 95% CI **[−44.43, +6.25]**, exact Wilcoxon **p = 0.5000** | 4 (3 usable, 1 tie) |
-| auditor round-one recall vs CLEAR | 11.4% (5/44) | 9 |
-| auditor precision (adjudicated) | 66.7% (8/12) — 8 confirmed, 4 false positive | 12 |
-| **committed growth per revision round** | mean **+28.8%**, max **+86.5%**, **3 of 7** transitions over 25% | 7 |
-| exit codes | 8× `0`, 1× `11` | 9 |
-| cost | $0.98 generation+audit + $0.74 CLEAR = **$1.72** ($0.191/instance) | 9 |
-| tokens | 109 847 in, 44 975 out; mean wall 103 s | 9 |
+### 3.2 The instances revised in both arms — the sharpest comparison
 
-**The interval is the honest headline here.** A 95% CI of [−44, +6] on four
-revisions is compatible with a large harm, no effect, and a modest benefit at
-once. What it does do is fail to contradict study 3, whose pooled estimate on 25
-revisions was −11.01, 95% CI [−15.22, −5.67] (that interval computed here; study
-3 reported the point estimate and SE only).
+| instance | arm C Δ | arm T Δ | T − C |
+|---|---:|---:|---:|
+| `adfm.201000591` | −25.0 | **0.0** | **+25.0** |
+| `adfm.202002249` | 0.0 | −16.7 | −16.7 |
+| `cnma.202200403` | **+40.0** | −25.0 | **−65.0** |
+| `jbm.a.36681` | 0.0 | −25.0 | −25.0 |
+| `smll.201800441` | 0.0 | −16.7 | −16.7 |
+| `zaac.202200095` | 0.0 | −22.2 | −22.2 |
+| `sciadv.adj5431` | 0.0 | −16.7 | −16.7 |
 
-The **growth** row is the result that survives the small n, because it is a
-property of every committed round rather than of four paired scores: under tip
-behaviour, on samples drawn after the diagnosis was fixed in writing, revisions
-grew the deliverable by a mean of 28.8% and nearly half the transitions exceeded
-the bound the treatment would have enforced. The mechanism replicated; the
-remedy went untested.
+Six of seven worse. **Five of the six are instances where the control's revision
+was a harmless no-op (Δ = 0.0) and the treatment's bounded revision destroyed an
+item.** That is the mechanism of the negative result: the budget did not turn bad
+revisions into good ones, it turned *inert* ones into small damaging ones.
+
+### 3.3 Where the change did work, exactly as designed
+
+`ange.202112688` is the case the whole change was built for. Under the control
+the revision grew the document **+110.1%** and the score fell **90.9 → 40.0**, a
+−50.9 F1 loss — the single worst revision in the study. Under the treatment the
+screen refused it, the loop stopped at round one, and the draft's **57.1 F1 was
+kept intact**. Two more arm-T instances ended the same way (`adfm.202002249`,
+`smll.202408072`; 3 × exit `11` against the control's 2).
+
+So the change prevents the catastrophic case and creates a diffuse one. On this
+task and this n, the diffuse cost is larger than the catastrophic benefit.
+
+### 3.4 Arm G — the control the owner was owed
+
+**Merging the rules split did not measurably hurt projects that have not written
+rubric-grade rules, and did not help them either.** Paired on the same 8
+instances against study 3's arm S (shipped code, same general rules):
+
+| | arm S (study 3, `dc446ae`) | arm G (study 4, `63ab94c`) | paired Δ |
+|---|---:|---:|---|
+| round-one draft F1 | 26.74 | 24.50 | −2.23, CI [−11.11, +7.14], p = 0.6875 |
+| final output F1 | 26.74 | 24.50 | −2.23, CI [−11.11, +7.14], p = 0.6875 |
+| audit fired on | 1 / 8 | **0 / 8** | |
+| round-one recall | 0.0% (0/36) | **0.0%** (0/37) | |
+
+Draft and final are identical within each arm because **neither arm revised
+anything**: under general rules the audit is silent, before the split and after
+it. The −2.23 F1 difference has a CI spanning zero on n = 8 and cannot exclude a
+moderate harm in either direction. The plain answer to the question: **no
+evidence of harm; the audit was already near-silent and remains so.**
 
 ## 4. Analysis, as registered
 
 - **Test**: exact two-sided Wilcoxon signed-rank on within-instance paired
-  differences, ties dropped and counted. Paired because both numbers come from
-  the same instance, generator and scorer.
-- **Effect size and interval**: mean paired difference in F1 points with a BCa
-  bootstrap 95% CI, 20 000 resamples, seed `20261104`.
+  differences, ties dropped and counted.
+- **Effect size**: mean paired difference in F1 with a BCa bootstrap 95% CI,
+  20 000 resamples, seed `20261104`.
 - **Implementation validated against a published number**: on study 3's 25
-  pooled revisions this code reproduces mean −11.01, SE 2.47, exact p = 0.0014,
-  17 usable pairs — exactly `RESULTS-3.md`.
-- **Comparisons this study made: 4**, listed by `study4/analyse.py`. Three of
-  them (`round-1 draft`, `final output`, `revision delta in both arms`) returned
-  n = 0 because arm T has no data. The primary outcome was named in advance, not
-  selected after looking.
-- **This is the fourth study over one task.** That history is part of the
-  multiple-comparison picture and is stated here rather than left to a reader to
-  reconstruct.
-- **Noise floor: unknown.** Each arm ran once. This study cannot say what the
-  same configuration does twice, so it cannot say whether −14.81 is
-  distinguishable from run-to-run spread. Registered as a limitation in advance.
+  pooled revisions it reproduces mean −11.01, SE 2.47, exact p = 0.0014, 17
+  usable pairs — exactly `RESULTS-3.md`.
+- **Comparisons this study made: 6**, enumerated by `study4/analyse.py`. The
+  primary outcome was named in advance. §3.2 and §3.3 are readings of the
+  primary outcome's own rows, not new tests.
+- **This is the fourth study over one task.** Four studies, one dataset, one
+  domain; that is part of the multiple-comparison picture.
+- **Noise floor — measured this time, and it is the dominant term.** The same
+  control configuration read **−14.42** (study 3, n = 20), **−14.81** (this
+  study at n = 9) and **−2.14** (this study at n = 16). A between-arm difference
+  of 5.44 F1 sits well inside that spread. **No causal claim about the
+  magnitude is licensed. The direction — the treatment is not better — is what
+  this study supports, and it is supported by 6 of 7 paired instances moving the
+  same way.**
 
 ## 5. Exploratory — the Phase-1 diagnosis (NOT preregistered)
 
 Computed on **study 3's** run directories, data gathered for a different
-question, and chosen after looking at it. `study4/exploratory.py` regenerates
-all of it. It generated the hypothesis above; it does not test it.
+question and chosen after looking at it. `study4/exploratory.py` regenerates it.
+It generated the hypothesis; this study tested it, and the test came out
+negative.
 
 | | n = 25 revisions |
 |---|---|
-| paragraph blocks surviving byte-identical | 335 of 422 (**79.4%**); 72 modified, **15 deleted** |
-| mean characters of the round-one draft preserved | 0.957 |
-| r(characters preserved, revision ΔF1) | **+0.077**, 95% CI [−0.285, +0.490] |
-| r(largest per-round net word growth, ΔF1) | **−0.395**, 95% CI [−0.680, −0.044] |
+| paragraph blocks surviving byte-identical | 335 of 422 (79.4%); 72 modified, 15 deleted |
+| r(characters preserved, ΔF1) | +0.077, 95% CI [−0.285, +0.490] |
+| r(largest per-round net word growth, ΔF1) | −0.395, 95% CI [−0.680, −0.044] |
 | r(number of findings, ΔF1) | −0.013, 95% CI [−0.599, +0.337] |
-| revisions that grew the deliverable | 24 of 25 |
-| broken items losing CLEAR's *precision* half | 16 of 17 |
-| broken items **named by the finding being answered** | 10 of 17 |
+| broken items losing CLEAR's precision half | 16 of 17 |
+| broken items named by the finding being answered | 10 of 17 |
 
-Split at 25% growth (**a threshold fitted on this same data**): ≤ 25% → n = 13,
-mean −6.20, 3 fixed, 6 broken; > 25% → n = 12, mean −16.22, **0 fixed, 11
-broken**.
+Split at 25% growth, **fitted on that same data**: ≤ 25% → n = 13, mean −6.20,
+3 fixed, 6 broken; > 25% → n = 12, mean −16.22, 0 fixed, 11 broken.
 
-**Counterfactual replay** (exploratory, and not a result): the screen would have
-refused 12 of study 3's 25 revisions, carrying 0 fixes and 11 breaks, and left
-the 13 that carried all 3 fixes — whose mean is **−6.20 F1**. That is the floor
-the treatment must beat, and **this study cannot say whether it does.** What the
-12 re-asks would have written is unknown.
-
-Only the growth correlation excludes zero, and only just. The preservation
-correlation's interval spans from a moderate negative to a moderate positive: the
-claim "how much of the old text survives does not predict the outcome" rests on
-an interval that does not exclude a real relationship in either direction. The
-qualitative facts underneath it — 15 blocks deleted out of 422, 24 of 25
-revisions growing — carry more than the coefficient does.
+**What the held-out test says about it.** The correlation was real and the
+threshold separated study 3's revisions cleanly, and *neither fact transferred*.
+Arm T is the counterfactual replay's optimistic reading made real — every
+revision under the bound — and it scored −7.58, marginally worse than the −6.20
+the replay predicted for exactly that population. The correlation was between
+growth and damage in observational data; the intervention shows growth was not
+the thing to cut. **A screen fitted on 25 observations, with an interval that
+barely excluded zero, did not survive contact with a fresh 16.** That is the
+most transferable finding here and it is about method, not about revision.
 
 ## 6. Deviations, numbered, with the direction each could bias
 
-1. **A first launch (parallel arms) hit `insufficient_quota` on the OpenAI side
-   and was abandoned.** ~$0.03, zero instances recorded, run directory deleted.
-   No bias: no data entered anything.
-2. **A second launch of arm C ran 3 of 16 instances and was killed** when
-   `EXPERIMENT_RECORD.md` landed, so the preregistration could be committed
-   before any model call of the analysed run. $0.66, written off, run directory
-   deleted rather than merged. **No score from it was read** — only dollar
-   costs. No bias, but it is why the analysed run's first call is later than the
-   study's first call.
-3. **The generator account exhausted its credit mid-study**, after arm C's 9th
-   scored instance. This is the reason arms T and G have no data and arm C is
-   n = 9 of 16. **Direction of bias: unknown and possibly non-random.** The 7
-   lost arm-C instances are the *last 7 by id* of the seeded draw, not a random
-   subset, so arm C's numbers are a sample of the first 9 by id and not an
-   unbiased sample of 16.
-4. **Arm C was retried twice with `--resume`.** Both retries failed for reason 3.
-   `--resume` rewrites `plan.json`, so that file's `started_utc` is the last
-   attempt's; the true attempt history is in `manifest.json.arms.C.attempts`
-   (first call `20260904T142912Z`). No bias — a retry only decides which seeded
-   samples still need running.
-5. **The primary outcome is reported at n = 4 revisions**, far below the ~13 the
-   preregistration expected from n = 16. The stopping rule was budget; what
-   stopped it was a credential. Reported as registered rather than pooled with
-   study 3 to reach a nicer n, which would be a different claim.
-6. **The 25% bound is fitted on study 3's data** (§5). Arms C and T were its
-   held-out test; the test did not run.
-7. **A concurrent unrelated benchmark (`premise.py`) was running on the same two
-   credentials** during this study. It did not touch these run directories or
-   ledgers, but it competed for the same balance and plausibly accelerated
-   deviation 3.
-8. **An arithmetic error of mine was corrected mid-study**, before any study-4
-   score was read: the block-preservation figure was published as 299/422 (71%)
-   and is 335/422 (79.4%). Direction: the correction *strengthens* the claim it
-   supports, which is why it is flagged here rather than quietly amended.
+Deviations 1–8 are as filed in the previous revision of this file and stand.
+New:
+
+9. **The generator account exhausted its credit mid-study**, after arm C's 9th
+   scored instance, voiding arms T and G entirely. Credit was restored and the
+   arms re-run from empty run directories. **No score from the voided attempts
+   entered anything** — arms T and G had produced none. Bias: none from the
+   voided data; see 10 for the consequence to arm C.
+10. **Arm C was completed to its preregistered n = 16 after its n = 9 numbers
+    were known** (−14.81). The 7 added instances are the ones the credit failure
+    killed; which instances they are is fixed by the seed and could not be
+    chosen, and their scores could not be seen in advance. `--resume` skips any
+    *recorded* instance including failures, so the 7 unscored rows were removed
+    from `results.json` and their directories moved to
+    `_failed_before_completion/` before resuming; `results.before-completion.json.bak`
+    preserves the prior state. **Direction of bias: this is the deviation most
+    open to challenge.** Completing a registered n after seeing a partial result
+    is defensible — leaving it at n = 9 would have kept a non-random gap (the
+    last 7 by id) — but a reader is entitled to both numbers, so both are given:
+    arm C reads **−14.81 at n = 9** and **−2.14 at n = 16**. The treatment is
+    worse than the control on *either*, so the conclusion does not turn on this
+    choice.
+11. **Arm T ran before arm C's completion**, so the two arms' calls are not
+    interleaved in time (T 15:44–16:37 UTC, C's completion 16:49–17:14). A
+    provider-side drift between those windows would confound the comparison and
+    cannot be ruled out.
+12. **Arm G is n = 8 and compared against a study-3 arm**, so it is a
+    cross-study comparison with different code for the *harness's* surrounding
+    months, not a within-study arm. Its paired instances are identical, but its
+    control was measured under study 3's conditions.
+13. **The 25% bound remains fitted on study 3's data** (§5). This study is its
+    held-out test and it failed.
 
 ## 7. Limitations
 
-- **The CLEAR scorer is a reimplementation from the paper.** The authors
-  released no evaluation code, so it has never been diffed against theirs. Every
-  F1 in this file, including the primary outcome's instrument, inherits that.
-- **The outcome is model-judged.** The mapper, judge and adjudicator are
-  `openai:gpt-5.6-terra`, the same model as the auditor. −14.81 F1 is a
-  *model-judged* difference, said in the same sentence as the number.
-- **Vendor independence is not statistical independence.** The generator and
-  auditor come from different vendors, which reduces correlated error; it does
-  not make either an independent oracle.
-- **One task is one task.** Everything here is about T03MaterialSEG.
-- **n = 9 scored instances, 4 revisions.** No conclusion about the treatment is
-  available at any n, because the treatment produced nothing.
+- **The CLEAR scorer is a reimplementation from the paper.** No evaluation code
+  was released, so it has never been diffed against the authors'. Every F1 here
+  inherits that, including the primary outcome's instrument.
+- **The outcome is model-judged.** Mapper, judge and adjudicator are
+  `openai:gpt-5.6-terra`, the same model as the auditor. "−7.58 F1" is a
+  *model-judged* difference.
+- **Run-to-run spread exceeds the effect** (§4). This is the limitation that
+  most constrains what may be said.
+- **Vendor independence is not statistical independence.** Different vendors
+  reduce correlated error; neither model is an independent oracle.
+- **One task is one task.** Everything here is T03MaterialSEG.
+- **n = 16 per arm, 9–11 revisions per arm.** The preregistration noted this
+  detects roughly a 10 F1 shift; smaller true effects are invisible here.
 
 ## 8. Cost, from the usage ledger
 
 | | generation + audit | CLEAR scoring | total | per instance |
 |---|---:|---:|---:|---:|
-| arm C (9 scored) | $0.98 | $0.74 | **$1.72** | $0.191 |
-| arm T (0 scored) | $0.00 | $0.00 | $0.00 | — |
-| arm G (0 scored) | $0.00 | $0.00 | $0.00 | — |
-| discarded launches 1–2 | | | **$0.69** | — |
-| **study total** | | | **$2.41** of $12.00 | |
+| arm C (16) | $1.93 | $1.41 | **$3.35** | $0.209 |
+| arm T (16) | $2.20 | $1.26 | **$3.46** | $0.217 |
+| arm G (8) | $0.36 | $0.32 | **$0.68** | $0.085 |
+| discarded launches (deviations 1, 2) | | | **$0.69** | — |
+| **study total** | | | **$8.18** of $12.00 | |
 
-Tokens for arm C: 109 847 in, 44 975 out, 32 model calls plus CLEAR scoring.
-All figures are read from the ledger, not reconstructed.
+Tokens: arm C 215 093 in / 89 236 out; arm T 240 189 in / 101 729 out; arm G
+45 142 in / 15 851 out. Mean wall per instance: C 113 s, T 129 s, G 43 s. All
+read from the ledger, not reconstructed.
 
-## 9. Reproduction
+## 9. What this licenses
 
-Needs credit on **both** accounts — that is the whole lesson of this run.
+**It licenses:**
+
+1. **The growth budget does not repair the revision defect on this task.** Six
+   of seven paired instances moved the wrong way; the arm mean moved 5.44 F1 the
+   wrong way; it does not beat the −6.20 floor.
+2. **The screen itself works.** 0 of 13 revision rounds over the bound against
+   the control's 4 of 14; churn halved. The negative result is about the idea,
+   not the implementation.
+3. **Bounding growth converts inert revisions into damaging ones** (§3.2) while
+   preventing the rare catastrophe (§3.3).
+4. **The audit was not silenced**: recall 19.0% → 21.2%.
+5. **The rules split did not measurably harm general-rules projects** (§3.4),
+   on n = 8 with a CI that cannot exclude a moderate effect.
+6. **The instrument's run-to-run spread is large** — the same control reads
+   −14.42, −14.81 and −2.14 — and any future study on it needs replicate arms.
+
+**It does not license:**
+
+- Any claim about the *size* of the treatment's harm. The CI on the paired
+  sub-analysis is [−39.37, −1.19] on n = 7, and the noise floor is comparable.
+- Any claim that revision is now understood. Study 3's diagnosis said growth
+  predicts damage; cutting growth did not cut damage. **The cause is still open.**
+- Anything about tasks other than T03MaterialSEG, or about `repair.max_document_growth`
+  on deliverables that are not expert prose.
+
+## 10. What I would do with this
+
+`repair.max_document_growth` is committed with a default of 0.25 and this study
+says that default is not earned. The measured facts are that it prevents the
+worst single revision and makes the median one worse. **The honest next step is
+to default it off** and leave it as a knob, or to attack the mechanism §3.2
+exposes: revisions that change the document at all, at any size, break correct
+items more often than they fix wrong ones — in arm T, 3 fixed against 6 broken
+under a bound that worked. That points at *whether to revise*, not at *how much
+to write*, and it is a different change from this one.
+
+## 11. Reproduction
 
 ```sh
-git checkout 21f37d5                       # treatment product code
 export PYTHONPATH="$(git rev-parse --show-toplevel)/src"
 set -a && . ~/.crossaudit-keys.env && set +a
 export CROSSAUDIT_OPENAI_KEY="$CROSSAUDIT_AUDITOR_KEY"
 export CROSSAUDIT_ANTHROPIC_KEY="$CROSSAUDIT_GENERATOR_KEY"
 export https_proxy=http://127.0.0.1:7897
-python benchmarks/expertlongbench/fetch.py     # corpus, not redistributed here
+python benchmarks/expertlongbench/fetch.py         # corpus, not redistributed here
 R=benchmarks/expertlongbench/runs
-# control at 63ab94c, treatment at 21f37d5, the identical 16 samples
+git checkout 63ab94c   # control product code
 python benchmarks/expertlongbench/run.py --task T03MaterialSEG --n 16 --seed 20261104 \
     --arms B --audit-rules rubric --label C-control --out "$PWD/$R/armC-control"
-python benchmarks/expertlongbench/run.py --task T03MaterialSEG --n 16 --seed 20261104 \
-    --arms B --audit-rules rubric --label T-scoped  --out "$PWD/$R/armT-scoped"
 python benchmarks/expertlongbench/run.py --task T03MaterialSEG --n 20 --seed 20260930 \
     --subset 8 --arms B --audit-rules general --label G-split-general \
     --out "$PWD/$R/armG-split-general"
-python benchmarks/expertlongbench/study4/emit_record.py C=... T=... G=...
+git checkout 21f37d5   # treatment product code
+python benchmarks/expertlongbench/run.py --task T03MaterialSEG --n 16 --seed 20261104 \
+    --arms B --audit-rules rubric --label T-scoped --out "$PWD/$R/armT-scoped"
+python benchmarks/expertlongbench/study4/emit_record.py C=... log:C=... T=... G=...
 python benchmarks/expertlongbench/study4/analyse.py
+python benchmarks/expertlongbench/study4/exploratory.py
 ```
 
-Budget the credit first: at $0.191/instance measured here, the three arms cost
-about $7.60, and the run is worthless if either account empties part-way — as it
-did.
+Budget about $7.50 of *generator* balance for the three arms at the measured
+per-instance cost, and check it before starting: this study lost two launches to
+an account emptying mid-run.

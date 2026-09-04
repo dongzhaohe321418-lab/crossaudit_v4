@@ -6,11 +6,13 @@
         "attempt 1 failed, sleeping 180s",
         "20260904T145942Z",
         "attempt 2 failed, sleeping 180s",
-        "20260904T150916Z"
+        "20260904T150916Z",
+        "20260904T164818Z",
+        "20260904T164934Z"
       ],
       "code_sha": "63ab94c831f0d05a801e3eb258395f0141f156d8",
       "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
-      "ended_utc": "2026-09-04T15:09:23.986643+00:00",
+      "ended_utc": "2026-09-04T17:14:05.809860+00:00",
       "label": "C-control",
       "models": {
         "adjudicator": "openai:gpt-5.6-terra",
@@ -30,10 +32,10 @@
       },
       "run_dir": {
         "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-ctlrev/benchmarks/expertlongbench/runs/armC-control",
-        "files": 103,
-        "sha256": "01b2c050b1866afead1d4b5916c6293ca3c37612a01b980a6d071698274986c0"
+        "files": 146,
+        "sha256": "f2e9af0f942824a25136d64346ab7fadf18b5dcb69f29aa25ef7c15da78ece5f"
       },
-      "run_id": "20260904T150916Z",
+      "run_id": "20260904T164934Z",
       "sample_ids": [
         "T03MaterialSEG-10.1002/adfm.201000591",
         "T03MaterialSEG-10.1002/adfm.202002249",
@@ -61,16 +63,16 @@
         "na_policy": "literal",
         "probe_checkability": false
       },
-      "started_utc": "2026-09-04T15:09:16.910011+00:00",
+      "started_utc": "2026-09-04T16:49:34.264490+00:00",
       "what_differs": "tip behaviour; no document growth budget exists"
     },
     "G": {
       "attempts": [
-        "20260904T150943Z"
+        "20260904T163747Z"
       ],
       "code_sha": "63ab94c831f0d05a801e3eb258395f0141f156d8",
       "constitution_sha256": "53fead8b0b7fdcfff7bacf91ffb70ea6f7ae8d169f32af30d0dcf9686bd155b8",
-      "ended_utc": "2026-09-04T15:09:55.836701+00:00",
+      "ended_utc": "2026-09-04T16:48:13.617874+00:00",
       "label": "G-split-general",
       "models": {
         "adjudicator": "openai:gpt-5.6-terra",
@@ -90,10 +92,10 @@
       },
       "run_dir": {
         "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-ctlrev/benchmarks/expertlongbench/runs/armG-split-general",
-        "files": 53,
-        "sha256": "25b09bd03980ef4ac8563d2961b86d393d7e8b7b1fd34a81d4542db9e6cad110"
+        "files": 71,
+        "sha256": "a409c61b63350f40fdfc578e551276d3ace1e791acff254c9d3103bc6384dc6d"
       },
-      "run_id": "20260904T150943Z",
+      "run_id": "20260904T163747Z",
       "sample_ids": [
         "T03MaterialSEG-10.1002/adfm.202002249",
         "T03MaterialSEG-10.1002/adfm.202209924",
@@ -113,16 +115,16 @@
         "na_policy": "literal",
         "probe_checkability": false
       },
-      "started_utc": "2026-09-04T15:09:43.072336+00:00",
+      "started_utc": "2026-09-04T16:37:47.490678+00:00",
       "what_differs": "tip behaviour, shipped general constitution"
     },
     "T": {
       "attempts": [
-        "20260904T150924Z"
+        "20260904T154431Z"
       ],
       "code_sha": "21f37d5a23dfbc5633908f4a8a00d81d7b868f89",
       "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
-      "ended_utc": "2026-09-04T15:09:42.723619+00:00",
+      "ended_utc": "2026-09-04T16:37:43.171412+00:00",
       "label": "T-scoped",
       "models": {
         "adjudicator": "openai:gpt-5.6-terra",
@@ -142,10 +144,10 @@
       },
       "run_dir": {
         "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-revision/benchmarks/expertlongbench/runs/armT-scoped",
-        "files": 69,
-        "sha256": "ef79cbc74bb23bbc0b131297a8a5c54fa288ec08040c576c4e9f06953bbca642"
+        "files": 129,
+        "sha256": "b854a329181ba3a320f4fd1f0ee6cc981605792571f93dcbdf56cf20d4af5490"
       },
-      "run_id": "20260904T150924Z",
+      "run_id": "20260904T154431Z",
       "sample_ids": [
         "T03MaterialSEG-10.1002/adfm.201000591",
         "T03MaterialSEG-10.1002/adfm.202002249",
@@ -173,7 +175,7 @@
         "na_policy": "literal",
         "probe_checkability": false
       },
-      "started_utc": "2026-09-04T15:09:24.309474+00:00",
+      "started_utc": "2026-09-04T15:44:31.649825+00:00",
       "what_differs": "repair.max_document_growth = 0.25 (default) + the bound stated in the revision prompt"
     }
   },
@@ -199,7 +201,7 @@
       "stats.py": "c9d0a6cd78b8087d2d8bda4fd4d9f0553ebcbada7f8f411fa8c2cd461e50acbe",
       "tasks.py": "dc020d689dce222e7e8b8dd95032d1b62359550e33c9af9df5d364b15184590d"
     },
-    "report_tree_sha": "3abc8ce2eb641add4b6a800e1dc368455ce01283",
+    "report_tree_sha": "5b4de1188c69f247773a62a6c6103fb9cd8cee0d",
     "treatment_product_sha": "21f37d5a23dfbc5633908f4a8a00d81d7b868f89",
     "worktree_clean": false
   },
@@ -369,13 +371,13 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "generated_utc": "2026-09-04T15:13:45.741828+00:00",
+  "generated_utc": "2026-09-04T17:14:15.932810+00:00",
   "preregistration": "benchmarks/expertlongbench/study4/PREREGISTRATION.md",
   "records": {
     "contains": "derived values and digests only; no corpus text, no model output",
     "path": "benchmarks/expertlongbench/study4/records.jsonl",
     "rows": 40,
-    "sha256": "b75b2e4f1f059af56144c482a70811f9101ef35d785cef82907338dd4cec439b"
+    "sha256": "d474292be4b7c09b6214b9f4d92514f391830b5bc4c9c5d7545e4b2549a1b4c3"
   },
   "sampling": {
     "method": "rows sorted by id, then random.Random(seed).sample(rows, n), then re-sorted by id; --subset keeps the first k of that draw",
