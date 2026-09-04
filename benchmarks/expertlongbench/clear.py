@@ -169,6 +169,15 @@ class ItemJudgement:
     recall_hit: bool
     response_content: str = ""
     reference_content: str = ""
+    ambiguous: tuple[str, ...] = ()
+    """Directions whose judge reply contained both verdicts, and so were not scorable.
+
+    Empty for a clean judgement. A non-empty value means the hit recorded for that
+    direction is a fallback, not a measurement: see ``_contains``. A run with any
+    non-empty entry reports the count beside its F1, because a scorer that silently
+    resolves contradictory replies was named as a live risk to every CLEAR-derived
+    number by a cross-vendor review on 2026-09-05.
+    """
 
     @property
     def accuracy_hit(self) -> bool:
@@ -272,17 +281,31 @@ def aggregate(task_id: str, scores: Sequence[SampleScore]) -> TaskScore:
 # --------------------------------------------------------------------------------------
 
 
+class AmbiguousVerdict(ValueError):
+    """The judge answered both Yes and No. Not scorable, and not a coin toss."""
+
+
 def parse_yes_no(text: str) -> bool:
     """Parse the judge's verdict. 'Yes' -> 1, 'No' -> 0 (Table 44 caption).
 
-    The prompt asks for a bare word, but models garnish. We take the first standalone
-    yes/no token and raise if there is none, rather than defaulting -- a silently
-    defaulted judgement would bias the study in whichever direction the default points.
+    The prompt asks for a bare word, but models garnish. We raise rather than default
+    when there is no verdict at all -- a silently defaulted judgement would bias the
+    study in whichever direction the default points.
+
+    We also raise when the reply contains BOTH verdicts. Taking the first token from
+    "No -- wait, yes" is a coin toss recorded as a measurement; a cross-vendor review
+    on 2026-09-05 named this as a live risk to every CLEAR-derived F1, and the raw
+    replies of past runs were not retained, so its realised impact can never be
+    recovered. Callers catch ``AmbiguousVerdict`` and record the item as unscorable,
+    so a malformed reply is counted and reported rather than silently resolved.
     """
-    match = re.search(r"\b(yes|no)\b", text.strip(), flags=re.IGNORECASE)
-    if not match:
-        raise ValueError(f"judge did not answer Yes or No: {text[:200]!r}")
-    return match.group(1).lower() == "yes"
+    stripped = text.strip()
+    tokens = [m.group(1).lower() for m in re.finditer(r"\b(yes|no)\b", stripped, flags=re.IGNORECASE)]
+    if not tokens:
+        raise ValueError(f"judge did not answer Yes or No: {stripped[:200]!r}")
+    if len(set(tokens)) > 1:
+        raise AmbiguousVerdict(f"judge answered both Yes and No: {stripped[:200]!r}")
+    return tokens[0] == "yes"
 
 
 def parse_mapper_json(text: str, items: Sequence[RubricItem]) -> dict[str, str]:
@@ -291,6 +314,24 @@ def parse_mapper_json(text: str, items: Sequence[RubricItem]) -> dict[str, str]:
     Accepts a fenced code block. Missing keys become ``"N/A"`` -- an item the mapper
     declined to emit is an item the output said nothing about, which is what ``"N/A"``
     means.
+
+    The procedure asks the mapper to emit every key and to select N/A explicitly, so a
+    key it simply omitted is not the same event as one it answered N/A on, even though
+    both score alike. ``missing_keys`` reports the difference to the caller, which
+    records it: a run where the mapper omitted half the schema scores the same as one
+    where the output genuinely covered nothing, and those must be distinguishable
+    after the fact. Flagged by a cross-vendor review on 2026-09-05.
+    """
+    return parse_mapper_json_detailed(text, items)[0]
+
+
+def parse_mapper_json_detailed(
+    text: str, items: Sequence[RubricItem]
+) -> tuple[dict[str, str], list[str]]:
+    """``parse_mapper_json``, plus the keys the mapper never emitted.
+
+    Both callers of the plain form score the same either way; this form exists so a
+    run can record how much of the schema the mapper actually answered.
     """
     blob = text.strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", blob, flags=re.DOTALL)
@@ -302,14 +343,17 @@ def parse_mapper_json(text: str, items: Sequence[RubricItem]) -> dict[str, str]:
     payload = json.loads(blob[start : end + 1])
 
     out: dict[str, str] = {}
+    missing: list[str] = []
     for index, item in enumerate(items, start=1):
         value = payload.get(f"item_{index}")
         if value is None:
             value = payload.get(item.key, payload.get(item.name))
+        if value is None:
+            missing.append(item.key)
         if isinstance(value, (list, dict)):
             value = json.dumps(value, ensure_ascii=False)
         out[item.key] = NA if value is None else str(value).strip() or NA
-    return out
+    return out, missing
 
 
 # --------------------------------------------------------------------------------------
@@ -386,7 +430,9 @@ class ClearScorer:
 
     # -- stage 2 -----------------------------------------------------------------------
 
-    def _contains(self, container: str, contained: str, item: RubricItem, cost: ScoreCost) -> bool:
+    def _contains(
+        self, container: str, contained: str, item: RubricItem, cost: ScoreCost
+    ) -> tuple[bool, bool]:
         """Ask the judge whether ``container`` semantically contains ``contained``.
 
         Both sides are prefixed with the item name, matching the two exemplars printed in
@@ -403,7 +449,13 @@ class ClearScorer:
             temperature=0.0,
         )
         cost.add(completion)
-        return parse_yes_no(completion.text)
+        try:
+            return parse_yes_no(completion.text), False
+        except AmbiguousVerdict:
+            # Not scorable. Fall back to "not contained" -- the direction that cannot
+            # manufacture a hit -- and tell the caller, which counts it. Silently
+            # taking the reply's first token would record a coin toss as a measurement.
+            return False, True
 
     def judge_item(
         self, item: RubricItem, response: str, reference: str, cost: ScoreCost
@@ -413,10 +465,17 @@ class ClearScorer:
             return ItemJudgement(item.key, True, True, response, reference)
 
         # recall: does the model response contain the reference's content?
-        recall_hit = self._contains(response, reference, item, cost)
+        recall_hit, recall_ambiguous = self._contains(response, reference, item, cost)
         # precision: reversed roles -- does the reference contain the model's content?
-        precision_hit = self._contains(reference, response, item, cost)
-        return ItemJudgement(item.key, precision_hit, recall_hit, response, reference)
+        precision_hit, precision_ambiguous = self._contains(reference, response, item, cost)
+        ambiguous = tuple(
+            name
+            for name, flag in (("recall", recall_ambiguous), ("precision", precision_ambiguous))
+            if flag
+        )
+        return ItemJudgement(
+            item.key, precision_hit, recall_hit, response, reference, ambiguous
+        )
 
     # -- end to end --------------------------------------------------------------------
 

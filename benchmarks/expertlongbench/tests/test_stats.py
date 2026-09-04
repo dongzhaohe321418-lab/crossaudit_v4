@@ -175,3 +175,23 @@ def test_a_single_observation_has_no_spread_rather_than_an_error():
     assert stdev([4.0]) == 0.0
     assert stderr([4.0]) == 0.0
     assert mean([]) == 0.0
+
+
+def test_mathematically_equal_differences_share_a_rank():
+    """CLEAR differences are sums of k/n item scores, so equal values arrive unequal.
+
+    Five 1/6-scale differences reached the ranker as four 16.666666666666664 and one
+    16.666666666666668; exact equality gave the odd one out its own rank. Found by a
+    cross-vendor review on 2026-09-05. It moved a published p from 0.001434 to
+    0.001389 -- both print as 0.0014, so nothing was reported wrongly, but the same
+    defect on a borderline result would not have been visible in the report.
+    """
+    values = [16.666666666666664] * 4 + [16.666666666666668]
+    assert len(set(rank_with_ties(values))) == 1
+
+
+def test_a_difference_that_is_only_rounding_noise_is_a_tie():
+    """1e-17 is zero. Admitting it as a pair gives the test a sign from rounding."""
+    result = wilcoxon_signed_rank([1e-17, -1e-17, 5.0, 7.0, 9.0])
+    assert result.n_pairs == 5
+    assert result.n_used == 3

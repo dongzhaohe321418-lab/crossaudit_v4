@@ -21,7 +21,9 @@ from clear import (
     ScoreCost,
     aggregate,
     is_na,
+    AmbiguousVerdict,
     parse_mapper_json,
+    parse_mapper_json_detailed,
     parse_yes_no,
     score_sample,
 )
@@ -181,6 +183,47 @@ def test_parse_yes_no_refuses_to_guess():
     """
     with pytest.raises(ValueError, match="did not answer"):
         parse_yes_no("I would rather not say.")
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "No -- wait, yes",
+        "Yes. No.",
+        "no, actually YES",
+    ],
+)
+def test_parse_yes_no_refuses_a_contradictory_reply(text):
+    """A reply carrying both verdicts is not scorable, and must not be resolved.
+
+    The scorer used to take the first standalone token, which turns a coin toss into
+    a recorded measurement and moves every CLEAR-derived F1 by an amount nobody can
+    reconstruct afterwards. A cross-vendor review named this on 2026-09-05; the raw
+    replies of the runs already published were not retained, so its realised impact
+    on them can never be recovered. It is counted from here on, not guessed.
+    """
+    with pytest.raises(AmbiguousVerdict, match="both Yes and No"):
+        parse_yes_no(text)
+
+
+def test_ambiguous_verdict_is_a_value_error():
+    """Existing callers catch ValueError; the new type must not slip past them."""
+    assert issubclass(AmbiguousVerdict, ValueError)
+
+
+def test_parse_mapper_json_separates_an_omitted_key_from_an_explicit_na():
+    """Both score as N/A. They are not the same event, and the run records which.
+
+    The procedure asks the mapper to emit every key and to select N/A explicitly, so
+    a run where the mapper omitted half the schema and one where the output genuinely
+    covered nothing produce identical F1 and must stay distinguishable afterwards.
+    """
+    text = '{"item_1": "alpha", "item_2": "N/A"}'
+    mapped, missing = parse_mapper_json_detailed(text, TOY.items)
+    assert mapped["k2"] == NA and mapped["k3"] == NA and mapped["k4"] == NA
+    assert "k2" not in missing          # answered N/A on purpose
+    assert missing == ["k3", "k4"]      # never emitted at all
+    assert mapped == parse_mapper_json(text, TOY.items)
 
 
 def test_parse_mapper_json_handles_fences_and_missing_keys():

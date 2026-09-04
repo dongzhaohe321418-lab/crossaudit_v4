@@ -28,14 +28,26 @@ class WilcoxonResult:
     note: str = ""
 
 
+#: Values within this distance are one rank. CLEAR differences are sums of k/n item
+#: scores, so mathematically identical values arrive as distinct floats: five 1/6-scale
+#: differences reached this function as four 16.666666666666664 and one
+#: 16.666666666666668, and exact ``==`` gave them different ranks. Named by a
+#: cross-vendor review on 2026-09-05. It moved a published p from 0.001434 to 0.001389
+#: -- both print as 0.0014, so nothing was reported wrongly, but the same defect on a
+#: borderline result would not be caught by reading the report.
+TIE_ATOL = 1e-9
+
+
 def rank_with_ties(values: Sequence[float]) -> list[float]:
-    """Average ranks, 1-based."""
+    """Average ranks, 1-based. Values within ``TIE_ATOL`` are one rank."""
     order = sorted(range(len(values)), key=lambda i: values[i])
     ranks = [0.0] * len(values)
     position = 0
     while position < len(order):
         end = position
-        while end + 1 < len(order) and values[order[end + 1]] == values[order[position]]:
+        while end + 1 < len(order) and math.isclose(
+            values[order[end + 1]], values[order[position]], rel_tol=0.0, abs_tol=TIE_ATOL
+        ):
             end += 1
         average = (position + end) / 2 + 1
         for index in range(position, end + 1):
@@ -56,7 +68,10 @@ def wilcoxon_signed_rank(differences: Sequence[float]) -> WilcoxonResult:
     treatment; the count of dropped pairs is reported, because dropping many of them makes
     the surviving p-value describe a smaller study than the one that was run.
     """
-    non_zero = [d for d in differences if d != 0]
+    # Same float hazard as rank_with_ties: a difference that is mathematically zero can
+    # arrive as 1e-17 and survive an exact ``!= 0``, entering the test as a real pair
+    # whose sign is arbitrary rounding noise.
+    non_zero = [d for d in differences if abs(d) > TIE_ATOL]
     n_used = len(non_zero)
     if n_used == 0:
         return WilcoxonResult(
