@@ -65,10 +65,15 @@ from typing import Iterable, Sequence
 #: The two dial positions for cautions (config ``repair.mode``).
 MODES = ("caution", "refuse")
 
-#: How much of itself an automatic revision may add to a document deliverable,
-#: as a fraction of the words it already had.  A repair answers findings; it is
-#: not an occasion to rewrite the artefact at greater length.  ``None`` (config
-#: ``repair.max_document_growth: 0``) turns the screen off.
+#: The bound to start from *if* the document growth screen is switched on:
+#: how much of itself an automatic revision may add to a document deliverable,
+#: as a fraction of the words it already had.
+#:
+#: The screen is **off by default** (``repair.max_document_growth: 0``), because
+#: study 4 measured it and it did not help -- it bound growth exactly as designed
+#: and the revision delta got worse (``benchmarks/expertlongbench/RESULTS-4.md``).
+#: This constant is what a project that wants the screen should start from, not
+#: what it gets for free.
 DEFAULT_MAX_DOCUMENT_GROWTH = 0.25
 
 CODE_SUFFIXES = frozenset({
@@ -503,7 +508,7 @@ class RepairGuard:
     """Sort one automatic repair's staged diff into refusals and cautions."""
 
     def __init__(self, max_changed_lines: int = 200, mode: str = "caution",
-                 max_document_growth: float | None = DEFAULT_MAX_DOCUMENT_GROWTH) -> None:
+                 max_document_growth: float | None = None) -> None:
         if max_changed_lines < 1:
             raise ValueError("max_changed_lines must be positive")
         if mode not in MODES:

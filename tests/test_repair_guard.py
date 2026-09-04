@@ -676,7 +676,7 @@ def test_a_document_grown_past_the_budget_is_refused_in_both_modes():
 
     texts = {"work/r.md": ("one two three four", "one two three four five six")}
     for mode in ("caution", "refuse"):
-        r = RepairGuard(mode=mode).assess(
+        r = RepairGuard(mode=mode, max_document_growth=0.25).assess(
             "", staged_files=["work/r.md"], document_texts=texts)
         assert not r.allowed
         assert r.overgrown_files == ("work/r.md",)
@@ -688,7 +688,7 @@ def test_a_document_grown_past_the_budget_is_refused_in_both_modes():
 def test_a_document_inside_the_budget_passes_and_reports_its_growth():
     from crossaudit.repair_guard import RepairGuard
 
-    r = RepairGuard().assess(
+    r = RepairGuard(max_document_growth=0.25).assess(
         "", staged_files=["work/r.md"],
         document_texts={"work/r.md": ("one two three four", "one two three four five")})
     assert r.allowed and r.overgrown_files == () and r.document_growth == 0.25
@@ -700,7 +700,7 @@ def test_no_document_texts_means_no_growth_screen():
     than a guess."""
     from crossaudit.repair_guard import RepairGuard
 
-    r = RepairGuard().assess("", staged_files=["work/r.md"])
+    r = RepairGuard(max_document_growth=0.25).assess("", staged_files=["work/r.md"])
     assert r.allowed and r.document_growth == 0.0 and r.overgrown_files == ()
 
 
@@ -708,7 +708,7 @@ def test_the_growth_screen_ignores_code_and_data():
     """Code has the line budget; data is a regenerated artefact, not prose."""
     from crossaudit.repair_guard import RepairGuard
 
-    r = RepairGuard().assess(
+    r = RepairGuard(max_document_growth=0.25).assess(
         "", staged_files=["a.py", "b.json"],
         document_texts={"a.py": ("x", "x y z w"), "b.json": ("1", "1 2 3 4")})
     assert r.allowed and r.overgrown_files == ()
@@ -718,6 +718,9 @@ def test_the_budget_is_a_knob_and_none_turns_the_screen_off():
     from crossaudit.repair_guard import RepairGuard
 
     texts = {"work/r.md": ("one two three four", "one two three four five six")}
+    # None is the default: study 4 measured the screen and it did not help.
+    assert RepairGuard().assess(
+        "", staged_files=["work/r.md"], document_texts=texts).allowed
     assert RepairGuard(max_document_growth=None).assess(
         "", staged_files=["work/r.md"], document_texts=texts).allowed
     assert RepairGuard(max_document_growth=1.0).assess(
