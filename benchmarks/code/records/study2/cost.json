@@ -1,0 +1,139 @@
+{
+  "budget_usd": 20.0,
+  "run_ids": {
+    "arch-decomp-twostage": {
+      "cache_read": 0,
+      "calls": 75,
+      "first_utc": "2026-09-04T19:57:27.447000+00:00",
+      "input_tokens": 67814,
+      "last_utc": "2026-09-04T20:03:32.887000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 16978,
+      "usd": 0.42420500000000005
+    },
+    "arch-decomposed-cross": {
+      "cache_read": 0,
+      "calls": 1641,
+      "first_utc": "2026-09-04T18:27:36.230000+00:00",
+      "input_tokens": 1143022,
+      "last_utc": "2026-09-04T19:09:46.083000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 172365,
+      "usd": 5.44303
+    },
+    "arch-decomposed-replicate": {
+      "cache_read": 0,
+      "calls": 1412,
+      "first_utc": "2026-09-04T19:30:47.598000+00:00",
+      "input_tokens": 1039000,
+      "last_utc": "2026-09-04T19:57:05.483000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 119457,
+      "usd": 4.389355000000003
+    },
+    "arch-gen-b2": {
+      "cache_read": 0,
+      "calls": 540,
+      "first_utc": "2026-09-04T17:46:33.432000+00:00",
+      "input_tokens": 111606,
+      "last_utc": "2026-09-04T17:54:35.302000+00:00",
+      "models": [
+        "claude-haiku-4-5-20251001"
+      ],
+      "output_tokens": 120341,
+      "usd": 0.7133110000000009
+    },
+    "arch-holistic-cross": {
+      "cache_read": 89629,
+      "calls": 290,
+      "first_utc": "2026-09-04T18:03:08.189000+00:00",
+      "input_tokens": 395506,
+      "last_utc": "2026-09-04T18:27:08.715000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 66109,
+      "usd": 2.0028072500000014
+    },
+    "arch-holistic-self": {
+      "cache_read": 0,
+      "calls": 302,
+      "first_utc": "2026-09-04T19:10:12.008000+00:00",
+      "input_tokens": 562634,
+      "last_utc": "2026-09-04T19:25:17.934000+00:00",
+      "models": [
+        "claude-haiku-4-5-20251001"
+      ],
+      "output_tokens": 52296,
+      "usd": 0.8241139999999998
+    },
+    "arch-two-stage": {
+      "cache_read": 1046,
+      "calls": 65,
+      "first_utc": "2026-09-04T19:25:34.166000+00:00",
+      "input_tokens": 64347,
+      "last_utc": "2026-09-04T19:29:52.022000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 10551,
+      "usd": 0.31939400000000007
+    },
+    "probe-1": {
+      "cache_read": 0,
+      "calls": 2,
+      "first_utc": "2026-09-04T17:39:48.699000+00:00",
+      "input_tokens": 36,
+      "last_utc": "2026-09-04T17:39:50.027000+00:00",
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 9,
+      "usd": 0.0001495
+    },
+    "smoke-dc2": {
+      "cache_read": 0,
+      "calls": 18,
+      "first_utc": "2026-09-04T18:01:43.364000+00:00",
+      "input_tokens": 16221,
+      "last_utc": "2026-09-04T18:02:23.503000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 3623,
+      "usd": 0.09489749999999998
+    },
+    "smoke-decomposed-cross": {
+      "cache_read": 0,
+      "calls": 21,
+      "first_utc": "2026-09-04T17:58:33.993000+00:00",
+      "input_tokens": 17607,
+      "last_utc": "2026-09-04T18:00:27.083000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 5345,
+      "usd": 0.1241925
+    },
+    "smoke-holistic-cross": {
+      "cache_read": 0,
+      "calls": 3,
+      "first_utc": "2026-09-04T17:58:10.799000+00:00",
+      "input_tokens": 5547,
+      "last_utc": "2026-09-04T17:58:27.139000+00:00",
+      "models": [
+        "gpt-5.6-terra"
+      ],
+      "output_tokens": 1261,
+      "usd": 0.0327825
+    }
+  },
+  "total_usd": 14.3682
+}
