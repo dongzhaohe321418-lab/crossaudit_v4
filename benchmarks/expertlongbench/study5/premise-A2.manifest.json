@@ -1,0 +1,277 @@
+{
+  "study": "5-premise",
+  "run_id": "20260904T170601Z",
+  "started_utc": "2026-09-04T17:06:01.174188+00:00",
+  "task": "T03MaterialSEG",
+  "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+  "n": 40,
+  "seed": 20261104,
+  "subset": 0,
+  "sample_ids": [
+    "T03MaterialSEG-10.1002/adfm.201000591",
+    "T03MaterialSEG-10.1002/adfm.202002249",
+    "T03MaterialSEG-10.1002/adfm.202309656",
+    "T03MaterialSEG-10.1002/adfm.202402444",
+    "T03MaterialSEG-10.1002/adma.202100312",
+    "T03MaterialSEG-10.1002/adma.202208974",
+    "T03MaterialSEG-10.1002/adma.202416342",
+    "T03MaterialSEG-10.1002/advs.202200998",
+    "T03MaterialSEG-10.1002/advs.202406453",
+    "T03MaterialSEG-10.1002/aesr.202200017",
+    "T03MaterialSEG-10.1002/aic.18378",
+    "T03MaterialSEG-10.1002/ange.202112688",
+    "T03MaterialSEG-10.1002/ange.202300209",
+    "T03MaterialSEG-10.1002/anie.201809897",
+    "T03MaterialSEG-10.1002/anie.201812472",
+    "T03MaterialSEG-10.1002/asia.202100022",
+    "T03MaterialSEG-10.1002/batt.202100179",
+    "T03MaterialSEG-10.1002/batt.202200056",
+    "T03MaterialSEG-10.1002/celc.202200772",
+    "T03MaterialSEG-10.1002/celc.202200984",
+    "T03MaterialSEG-10.1002/chem.201905217",
+    "T03MaterialSEG-10.1002/chem.202302565",
+    "T03MaterialSEG-10.1002/cjce.23950",
+    "T03MaterialSEG-10.1002/cjce.24030",
+    "T03MaterialSEG-10.1002/cnma.201600033",
+    "T03MaterialSEG-10.1002/cnma.202200403",
+    "T03MaterialSEG-10.1002/cssc.201000245",
+    "T03MaterialSEG-10.1002/cssc.202300809",
+    "T03MaterialSEG-10.1002/ejic.202100901",
+    "T03MaterialSEG-10.1002/jbm.a.36681",
+    "T03MaterialSEG-10.1002/pssa.201800896",
+    "T03MaterialSEG-10.1002/smll.201800441",
+    "T03MaterialSEG-10.1002/smll.202406074",
+    "T03MaterialSEG-10.1002/smll.202408072",
+    "T03MaterialSEG-10.1002/smtd.202400640",
+    "T03MaterialSEG-10.1002/solr.202201078",
+    "T03MaterialSEG-10.1002/zaac.201800357",
+    "T03MaterialSEG-10.1002/zaac.202200095",
+    "T03MaterialSEG-10.1126/sciadv.adj5431",
+    "T03MaterialSEG-10.1126/sciadv.adp3309"
+  ],
+  "full_sample_ids": [
+    "T03MaterialSEG-10.1002/adfm.201000591",
+    "T03MaterialSEG-10.1002/adfm.202002249",
+    "T03MaterialSEG-10.1002/adfm.202309656",
+    "T03MaterialSEG-10.1002/adfm.202402444",
+    "T03MaterialSEG-10.1002/adma.202100312",
+    "T03MaterialSEG-10.1002/adma.202208974",
+    "T03MaterialSEG-10.1002/adma.202416342",
+    "T03MaterialSEG-10.1002/advs.202200998",
+    "T03MaterialSEG-10.1002/advs.202406453",
+    "T03MaterialSEG-10.1002/aesr.202200017",
+    "T03MaterialSEG-10.1002/aic.18378",
+    "T03MaterialSEG-10.1002/ange.202112688",
+    "T03MaterialSEG-10.1002/ange.202300209",
+    "T03MaterialSEG-10.1002/anie.201809897",
+    "T03MaterialSEG-10.1002/anie.201812472",
+    "T03MaterialSEG-10.1002/asia.202100022",
+    "T03MaterialSEG-10.1002/batt.202100179",
+    "T03MaterialSEG-10.1002/batt.202200056",
+    "T03MaterialSEG-10.1002/celc.202200772",
+    "T03MaterialSEG-10.1002/celc.202200984",
+    "T03MaterialSEG-10.1002/chem.201905217",
+    "T03MaterialSEG-10.1002/chem.202302565",
+    "T03MaterialSEG-10.1002/cjce.23950",
+    "T03MaterialSEG-10.1002/cjce.24030",
+    "T03MaterialSEG-10.1002/cnma.201600033",
+    "T03MaterialSEG-10.1002/cnma.202200403",
+    "T03MaterialSEG-10.1002/cssc.201000245",
+    "T03MaterialSEG-10.1002/cssc.202300809",
+    "T03MaterialSEG-10.1002/ejic.202100901",
+    "T03MaterialSEG-10.1002/jbm.a.36681",
+    "T03MaterialSEG-10.1002/pssa.201800896",
+    "T03MaterialSEG-10.1002/smll.201800441",
+    "T03MaterialSEG-10.1002/smll.202406074",
+    "T03MaterialSEG-10.1002/smll.202408072",
+    "T03MaterialSEG-10.1002/smtd.202400640",
+    "T03MaterialSEG-10.1002/solr.202201078",
+    "T03MaterialSEG-10.1002/zaac.201800357",
+    "T03MaterialSEG-10.1002/zaac.202200095",
+    "T03MaterialSEG-10.1126/sciadv.adj5431",
+    "T03MaterialSEG-10.1126/sciadv.adp3309"
+  ],
+  "label": "premise-A2",
+  "arms": [
+    "cross",
+    "self",
+    "sibling",
+    "none"
+  ],
+  "arm_models": {
+    "cross": "openai:gpt-5.6-terra",
+    "self": "anthropic:claude-sonnet-4-6",
+    "sibling": "anthropic:claude-opus-4-8",
+    "none": ""
+  },
+  "models": {
+    "generator": "anthropic:claude-sonnet-4-6",
+    "judge": "openai:gpt-5.6-terra",
+    "mapper": "openai:gpt-5.6-terra",
+    "adjudicator": "openai:gpt-5.6-terra"
+  },
+  "settings": {
+    "max_rounds": 1,
+    "checks": "general",
+    "na_policy": "literal",
+    "audit_rules": "rubric"
+  },
+  "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+  "code_sha": "c2b9cd68051ebbf8598da62c07742322f6b1bea4",
+  "missing_credentials": [],
+  "prereg": "benchmarks/expertlongbench/PREREGISTRATION-5.md",
+  "code": {
+    "frozen_sha": "c2b9cd68051ebbf8598da62c07742322f6b1bea4",
+    "git_status_porcelain": "",
+    "tree_clean": true,
+    "study_file_sha256": {
+      "benchmarks/expertlongbench/premise.py": "c008b34feda6e5212b917375e1557b5b168f53b716ac43b5368708b6516cbfb9",
+      "benchmarks/expertlongbench/premise_report.py": "85d83b016f5e020e1ae8a06959613e7e94b68441378c33e3a40d5e56b8455de6",
+      "benchmarks/expertlongbench/run.py": "7475620db95d3264a3b861e450610e1cf182eeded1bc5ebed16e08262aff4e2b",
+      "benchmarks/expertlongbench/clear.py": "b71c0dc90502bd625ec018ee6b939940ee51d78907cbd39804d623c5cde4ff91",
+      "benchmarks/expertlongbench/adjudicate.py": "85e76698dfdec663c7a9e3203c48596ae1060898d39e9b67b322c12ea4bb28e5",
+      "benchmarks/expertlongbench/tasks.py": "dc020d689dce222e7e8b8dd95032d1b62359550e33c9af9df5d364b15184590d",
+      "benchmarks/expertlongbench/provider.py": "09673ef62acfea87ba06a5ac3ebb53bc250ed22ce4b3f6f705241c31af84303f",
+      "benchmarks/expertlongbench/stats.py": "c9d0a6cd78b8087d2d8bda4fd4d9f0553ebcbada7f8f411fa8c2cd461e50acbe"
+    }
+  },
+  "dataset": {
+    "filename": "T03MaterialSEG.jsonl",
+    "sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+    "bytes": 81740,
+    "rows": 50,
+    "checklist_items": [
+      "Selection of Precursors [level] Handling Precursor Reactivity",
+      "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+      "Selection of Precursors [level] Structural Considerations",
+      "Synthesis Conditions [level] Atmosphere",
+      "Synthesis Conditions [level] Duration",
+      "Synthesis Conditions [level] Temperature and Heating Method"
+    ],
+    "task_id": "T03MaterialSEG",
+    "rows_on_disk": 50,
+    "licence": "CC BY-NC-SA 4.0",
+    "source": "https://huggingface.co/datasets/launch/ExpertLongBench"
+  },
+  "models_detailed": {
+    "generator": {
+      "spec": "anthropic:claude-sonnet-4-6",
+      "vendor": "anthropic",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-6",
+      "base_url": "provider default",
+      "key_env": "CROSSAUDIT_ANTHROPIC_KEY",
+      "reasoning_effort": "provider default",
+      "temperature": "capability-card default; not settable through this seam",
+      "seed": "not exposed by the provider layer"
+    },
+    "auditor_by_arm": {
+      "cross": {
+        "spec": "openai:gpt-5.6-terra",
+        "vendor": "openai",
+        "provider": "openai_compat",
+        "model": "gpt-5.6-terra",
+        "base_url": "provider default",
+        "key_env": "CROSSAUDIT_OPENAI_KEY",
+        "reasoning_effort": "provider default",
+        "temperature": "capability-card default; not settable through this seam",
+        "seed": "not exposed by the provider layer"
+      },
+      "self": {
+        "spec": "anthropic:claude-sonnet-4-6",
+        "vendor": "anthropic",
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-6",
+        "base_url": "provider default",
+        "key_env": "CROSSAUDIT_ANTHROPIC_KEY",
+        "reasoning_effort": "provider default",
+        "temperature": "capability-card default; not settable through this seam",
+        "seed": "not exposed by the provider layer"
+      },
+      "sibling": {
+        "spec": "anthropic:claude-opus-4-8",
+        "vendor": "anthropic",
+        "provider": "anthropic",
+        "model": "claude-opus-4-8",
+        "base_url": "provider default",
+        "key_env": "CROSSAUDIT_ANTHROPIC_KEY",
+        "reasoning_effort": "provider default",
+        "temperature": "capability-card default; not settable through this seam",
+        "seed": "not exposed by the provider layer"
+      },
+      "none": {
+        "spec": "",
+        "note": "no model: this arm places no call"
+      }
+    },
+    "clear_mapper": {
+      "spec": "openai:gpt-5.6-terra",
+      "vendor": "openai",
+      "provider": "openai_compat",
+      "model": "gpt-5.6-terra",
+      "base_url": "provider default",
+      "key_env": "CROSSAUDIT_OPENAI_KEY",
+      "reasoning_effort": "provider default",
+      "temperature": "capability-card default; not settable through this seam",
+      "seed": "not exposed by the provider layer"
+    },
+    "clear_judge": {
+      "spec": "openai:gpt-5.6-terra",
+      "vendor": "openai",
+      "provider": "openai_compat",
+      "model": "gpt-5.6-terra",
+      "base_url": "provider default",
+      "key_env": "CROSSAUDIT_OPENAI_KEY",
+      "reasoning_effort": "provider default",
+      "temperature": "capability-card default; not settable through this seam",
+      "seed": "not exposed by the provider layer"
+    },
+    "adjudicator": {
+      "spec": "openai:gpt-5.6-terra",
+      "vendor": "openai",
+      "provider": "openai_compat",
+      "model": "gpt-5.6-terra",
+      "base_url": "provider default",
+      "key_env": "CROSSAUDIT_OPENAI_KEY",
+      "reasoning_effort": "provider default",
+      "temperature": "capability-card default; not settable through this seam",
+      "seed": "not exposed by the provider layer"
+    }
+  },
+  "sampling": {
+    "seed": 20261104,
+    "n_seeded": 40,
+    "subset": 0,
+    "selection": "rows sorted by id, then random.Random(seed).sample(rows, n), then re-sorted by id; --subset keeps the first k of that"
+  },
+  "environment": {
+    "python": "3.13.5",
+    "implementation": "CPython",
+    "os": "Darwin 25.6.0",
+    "machine": "arm64",
+    "packages": {
+      "anthropic": "absent",
+      "openai": "absent",
+      "httpx": "absent",
+      "requests": "2.34.2",
+      "urllib3": "2.7.0",
+      "certifi": "2026.7.22"
+    }
+  },
+  "target_complete": 30,
+  "stopping_rule": "run to completion of the seeded sample, or stop and report when the study's share of the US$20 two-study budget is spent, whichever comes first",
+  "preflight": {
+    "anthropic:claude-opus-4-8": {
+      "ok": true,
+      "answered": true
+    },
+    "anthropic:claude-sonnet-4-6": {
+      "ok": true,
+      "answered": true
+    },
+    "openai:gpt-5.6-terra": {
+      "ok": true,
+      "answered": true
+    }
+  }
+}
