@@ -966,7 +966,8 @@ def main(argv: list[str] | None = None) -> int:
                            {row["id"]: row for row in rows}, options, plan, out_dir,
                            run_id, arms, specs_by_arm)
     code = _execute(task, rows, options, plan, out_dir, run_id, arms, specs_by_arm,
-                    resume=args.resume, verify_prompt=args.verify_prompt)
+                    resume=args.resume, verify_prompt=args.verify_prompt,
+                    target_complete=args.target_complete, probe=not args.no_probe)
     plan["finished_utc"] = datetime.now(timezone.utc).isoformat()
     (out_dir / "manifest.json").write_text(
         json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
