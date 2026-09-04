@@ -16,6 +16,7 @@ the increment. **ADVISORY** is judgement, is recorded, and never gates.
 ### CA-META-001
 **BLOCKER.** Every increment declares `metadata.yml` (with `code_version` and
 `inputs`) and `results.json` (with a `quantities` list). Both must parse.
+<!-- brief -->
 
 ### CA-META-002
 **BLOCKER.** An audit report cites the rule IDs it applied. A report that cites
@@ -53,6 +54,7 @@ threshold, cannot be reported as final.
 ### CA-REPRO-001
 **ADVISORY.** Each increment should carry enough to re-run it: the command, the
 environment, and the random seed where one applies.
+<!-- brief -->
 
 ---
 
@@ -60,4 +62,11 @@ environment, and the random seed where one applies.
      heading per rule, severity in the first line, criterion after it. The
      check layer and the model auditor both read this file; the deterministic
      checks implement the mechanisable subset, and the model is asked for the
-     rest. -->
+     rest.
+
+     A rule is read by the auditor. It is ALSO shown to the writer only if it
+     carries a `<!-- brief -->` line, which marks it as describing the SHAPE of
+     the increment — what files exist, what they declare, what format they take.
+     Leave the marker off a rule that GRADES finished work: a writer shown a
+     grading checklist writes to the checklist instead of to the task.
+     CA-TASK-001 is in the brief without a marker. -->

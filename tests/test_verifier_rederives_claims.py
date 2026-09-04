@@ -8,6 +8,7 @@ import importlib
 import pytest
 
 from crossaudit.broker import routing
+from crossaudit.constitution import projection_digests
 from crossaudit.errors import IntegrityDenial
 from crossaudit.ledger.chain import VerifyReport
 from crossaudit.receipt.schema import digest
@@ -29,6 +30,12 @@ def test_constitution_is_checked_against_the_cited_object_not_disk(
     const.write_bytes(b"forged working-tree rules")
     receipt["inputs"]["constitution_sha256"] = hashlib.sha256(
         const.read_bytes()).hexdigest()
+    # Forge the OTHER content binding too, so this isolates the hash guard.
+    # `projections` re-derives the auditor's and the writer's views from the same
+    # bytes and would otherwise catch the swap on its own — a second guard is
+    # welcome, but it would make this counterfactual measure the wrong one.
+    receipt["projections"] = projection_digests(
+        const.read_bytes().decode("utf-8", errors="replace"))
 
     with pytest.raises(IntegrityDenial, match="constitution content differs"):
         _verify(cfg, science, sha, receipt)

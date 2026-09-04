@@ -32,8 +32,16 @@ material or other files in the audited increment.
 ### CA-USABILITY-001
 **ADVISORY.** The deliverable should be easy for its intended reader to locate,
 open, and use without needing unrelated supporting files.
+<!-- brief -->
 
 ---
 
 <!-- Add project-specific rules below. Keep the ID scheme CA-<AREA>-<NNN>, one
-     heading per rule, severity in the first line, and a decidable criterion. -->
+     heading per rule, severity in the first line, and a decidable criterion.
+
+     A rule is read by the auditor. It is ALSO shown to the writer only if it
+     carries a `<!-- brief -->` line, which marks it as describing the SHAPE of
+     the deliverable — format, structure, length, which files exist. Leave the
+     marker off a rule that GRADES finished work: a writer shown a grading
+     checklist writes to the checklist instead of to the task. CA-TASK-001 is in
+     the brief without a marker, because it is what the deliverable must be. -->

@@ -555,8 +555,11 @@ def test_a_receipt_without_the_block_is_byte_identical_and_verifies(
     legacy, _l = _receipt_for(cfg, sha, cycle, outcome)
     assert canonical(without) == canonical(legacy)
     assert "authority" not in without
+    # `projections` is unconditional: every cycle has two readers of one
+    # rulebook, so which text each of them received is always meaningful and is
+    # always recorded. It is not the block under test here.
     assert set(without) == {"receipt_schema", "subject", "cycle", "inputs", "audit",
-                            "ledger", "verifier", "isolation"}
+                            "ledger", "verifier", "isolation", "projections"}
     evidence = _verify(without, science, cfg, sha)
     assert evidence["verified"] and evidence["admission_ready"]
 

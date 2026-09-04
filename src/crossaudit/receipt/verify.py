@@ -20,6 +20,7 @@ import yaml
 
 from .. import _selfid
 from ..config import Config
+from ..constitution import projection_digests
 from ..controller import StateStore
 from ..errors import ConfigDenial, Denial, IntegrityDenial
 from ..gitio import (blob_limit, commit_exists, entries, is_ancestor,
@@ -424,6 +425,20 @@ def verify(receipt: dict, *, science_root: Path, audit_root: Path,
     const_bytes = read_committed_bytes(audit_root, const_commit, const_rel)
     if _sha256(const_bytes) != inputs["constitution_sha256"]:
         raise IntegrityDenial("constitution content differs from the receipt's hash")
+
+    # What each role was given, re-derived from the blob just re-read at the
+    # pinned commit — never read back from the receipt. One rulebook, two
+    # projections: a receipt that claims the writer saw a brief which this
+    # rulebook does not produce is refused, so "the writer was told something
+    # else" cannot hide behind a matching constitution hash.
+    if (declared := receipt.get("projections")) is not None:
+        derived = projection_digests(const_bytes.decode("utf-8", errors="replace"))
+        for role in ("auditor", "generator"):
+            if (declared[role]["name"] != derived[role]["name"]
+                    or declared[role]["sha256"] != derived[role]["sha256"]):
+                raise IntegrityDenial(
+                    f"the {role}'s constitution projection does not re-derive "
+                    f"from the pinned rulebook")
 
     # D36: when present, re-derive the controller record and immutable verdict.
     _verify_cycle_record(receipt, cfg)
