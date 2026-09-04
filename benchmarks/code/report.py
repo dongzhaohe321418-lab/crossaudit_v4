@@ -287,7 +287,11 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print("cost by arm (from the product's usage ledger):")
         for key, value in sorted(study.cost.items()):
-            print(f"  {key:<20} ${value:.4f}")
+            # Display only. cost.json rows are {usd, calls, input, output}; this line
+            # was written expecting a bare float and crashed after every statistic above
+            # was already computed. Fixed post-run; it changes no number (deviation 13).
+            usd = value["usd"] if isinstance(value, dict) else value
+            print(f"  {key:<20} ${usd:.4f}")
 
     if args.json:
         Path(args.json).write_text(json.dumps(out, indent=2, default=list) + "\n",
