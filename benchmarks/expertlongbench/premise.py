@@ -632,6 +632,138 @@ def ledger_cost(cfg, run_id: str, phases: set[str] | None = None) -> float:
     return total
 
 
+@dataclass(frozen=True)
+class StoredJudgement:
+    """One rubric item's CLEAR verdict, read back from a completed run.
+
+    A re-judge does not re-score the draft: the draft is byte-identical, so its ground
+    truth is too. Re-running CLEAR would spend money to reproduce a number already on
+    disk and would add the scorer's own nondeterminism to a measurement that is trying
+    to isolate the auditor's.
+    """
+
+    key: str
+    precision_hit: bool
+    recall_hit: bool
+
+    @property
+    def accuracy_hit(self) -> bool:
+        return self.precision_hit and self.recall_hit
+
+
+def rebuild_project(scratch: Path, task: Task, row: dict, options: Options,
+                    draft: str) -> tuple[Path, object, str]:
+    """Reconstruct the tree a completed instance was judged against, from its draft.
+
+    Same bootstrap, same constitution, same recipe, same path for the deliverable, then
+    one commit. The audit prompt is a pure function of that tree, so the digest must come
+    out equal to the one the original run recorded -- and the caller checks that it does
+    rather than assuming it.
+    """
+    project = bootstrap_project(scratch, task, row, options)
+    (project / OUTPUT_PATH).write_text(draft, encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=str(project), check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "draft"], cwd=str(project), check=True)
+    sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(project),
+                         capture_output=True, text=True).stdout.strip()
+    from crossaudit.config import load
+
+    return project, load(project / "crossaudit.yml"), sha
+
+
+def run_rejudge(source: Path, task: Task, rows_by_id: dict, options: Options,
+                plan: dict, out_dir: Path, run_id: str, arms: list[str],
+                specs_by_arm: dict) -> int:
+    """Judge an already-completed run's drafts again, changing nothing but the attempt.
+
+    This is the auditor's own run-to-run variance with the draft and the ground truth
+    both held fixed. It is NOT the preregistered noise floor, which also varies the
+    generation; it is the part of that floor still obtainable when the generator's
+    vendor has no credit left.
+    """
+    from crossaudit.config import load
+
+    host = out_dir / "_host"
+    shutil.rmtree(host, ignore_errors=True)
+    host.mkdir(parents=True, exist_ok=True)
+    source_results = json.loads((source / "results.json").read_text(encoding="utf-8"))
+    completed = [i for i in source_results["instances"]
+                 if i.get("draft_score") and i.get("arms")]
+    host_project = bootstrap_project(host, task, rows_by_id[completed[0]["sample_id"]],
+                                     options)
+    host_cfg = load(host_project / "crossaudit.yml")
+    adjudicator = Adjudicator(
+        CrossAuditClient(cfg=host_cfg, phase="adjudication", run_id=run_id),
+        model=options.adjudicator)
+
+    records: list[dict] = []
+    mismatches = 0
+    for position, source_record in enumerate(completed, start=1):
+        sample_id = source_record["sample_id"]
+        print(f"[{position}/{len(completed)}] {sample_id}", flush=True)
+        draft = (source / "instances" / sample_id.replace("/", "__")
+                 / "draft.md").read_text(encoding="utf-8")
+        if sha256_text(draft) != source_record.get("draft_sha256"):
+            print("    draft digest does not match the record; skipped", flush=True)
+            continue
+        by_key = {
+            key: StoredJudgement(key, value["precision_hit"], value["recall_hit"])
+            for key, value in source_record["draft_score"]["per_item"].items()
+        }
+        scratch = out_dir / "_scratch" / sample_id.replace("/", "__")
+        shutil.rmtree(scratch, ignore_errors=True)
+        scratch.mkdir(parents=True)
+        try:
+            project, cfg, sha = rebuild_project(
+                scratch, task, rows_by_id[sample_id], options, draft)
+            prepared = audit_inputs(cfg, sha)
+            original = ((source_record.get("arms") or {}).get(arms[0]) or {}).get(
+                "prompt_sha256", "")
+            same_prompt = prepared[2] == original
+            if not same_prompt:
+                mismatches += 1
+            record: dict = {
+                "sample_id": sample_id,
+                "draft_sha256": source_record["draft_sha256"],
+                "audit_sha": sha,
+                "draft_score": source_record["draft_score"],
+                "draft_score_cost_usd": 0.0,
+                "generation": {"cost_usd": 0.0, "wall_s": 0.0, "exit_code": None,
+                               "reused_from": str(source)},
+                "prompt_digest_matches_source": same_prompt,
+                "arms": {},
+            }
+            for arm in arms:
+                judgement = judge_once(cfg, sha, arm, specs_by_arm[arm], run_id,
+                                       prepared=prepared)
+                record["arms"][arm] = score_judgement(adjudicator, task, judgement,
+                                                      by_key)
+                summary = record["arms"][arm]
+                print(f"    {arm:8} prompt_same={same_prompt} "
+                      f"findings={summary['n_findings']:2} "
+                      f"recall={summary['rule_mapping']['recall']} "
+                      f"${summary['cost_usd']:.3f}", flush=True)
+            record["judging_cost_usd"] = sum(
+                a["cost_usd"] for a in record["arms"].values())
+        except Exception as exc:  # noqa: BLE001
+            print(f"    instance abandoned: {type(exc).__name__}: {str(exc)[:180]}",
+                  flush=True)
+            shutil.rmtree(scratch, ignore_errors=True)
+            continue
+        shutil.rmtree(scratch, ignore_errors=True)
+        records.append(record)
+        _write_index(out_dir, plan, records)
+        emit_rows(out_dir, record, task)
+
+    plan["rejudge_prompt_digest_mismatches"] = mismatches
+    plan["finished_utc"] = datetime.now(timezone.utc).isoformat()
+    (out_dir / "manifest.json").write_text(
+        json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"\ndone. {len(records)} instances re-judged, {mismatches} prompt-digest "
+          f"mismatches -> {out_dir}", flush=True)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -659,6 +791,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--label", default="premise")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--rejudge", default="",
+        help="a completed run directory. Judge ITS drafts again with --arms, reusing "
+             "its CLEAR ground truth. Generates nothing and re-scores nothing: the "
+             "auditor's own run-to-run variance with everything else held fixed.")
     parser.add_argument("--verify-prompt", action="store_true",
                         help="print the harness prompt digest beside the digest the "
                              "product's own audit recorded for the same commit")
@@ -772,6 +909,13 @@ def main(argv: list[str] | None = None) -> int:
         print("WARNING: the tree was NOT clean at freeze; manifest records what "
               "was uncommitted", file=sys.stderr, flush=True)
 
+    if args.rejudge:
+        plan["rejudge_source"] = str(Path(args.rejudge).resolve())
+        (out_dir / "manifest.json").write_text(
+            json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        return run_rejudge(Path(args.rejudge).resolve(), task,
+                           {row["id"]: row for row in rows}, options, plan, out_dir,
+                           run_id, arms, specs_by_arm)
     code = _execute(task, rows, options, plan, out_dir, run_id, arms, specs_by_arm,
                     resume=args.resume, verify_prompt=args.verify_prompt)
     plan["finished_utc"] = datetime.now(timezone.utc).isoformat()
