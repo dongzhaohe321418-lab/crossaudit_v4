@@ -136,8 +136,20 @@ class ArmJudgement:
     prompt_sha256: str = ""
     cost_usd: float = 0.0
     calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    #: sha256 of the auditor's reply text. The reply itself is never recorded: it
+    #: quotes the increment, which quotes the corpus.
+    response_sha256: str = ""
+    #: The model id the PROVIDER echoed back, which is not always the one asked for:
+    #: a vendor may silently resolve an alias to a dated build. In this study the
+    #: model identity is the independent variable, so the echoed string is recorded.
+    provider_model: str = ""
+    provider_request_id: str = ""
     wall_s: float = 0.0
     repair_attempts: int = 0
+    started_utc: str = ""
+    finished_utc: str = ""
 
 
 # --------------------------------------------------------------------------------------
@@ -198,6 +210,7 @@ def judge_once(cfg, sha: str, arm: str, spec: str, run_id: str,
     prompt, constitution, prompt_sha, _dcl = prepared or audit_inputs(cfg, sha)
     result.prompt_sha256 = prompt_sha
     role = role_for(spec)
+    result.started_utc = datetime.now(timezone.utc).isoformat()
     started = time.monotonic()
 
     def ask(text: str):
@@ -215,6 +228,13 @@ def judge_once(cfg, sha: str, arm: str, spec: str, run_id: str,
         )
         result.cost_usd += float(event.get("api_value_usd") or 0.0)
         result.calls += 1
+        result.input_tokens += int(event.get("input", 0) or 0)
+        result.output_tokens += int(event.get("output", 0) or 0)
+        result.response_sha256 = getattr(reply, "response_sha256", "") or sha256_text(
+            reply.text or "")
+        raw = getattr(reply, "raw", None) or {}
+        result.provider_model = str(raw.get("model") or "") or result.provider_model
+        result.provider_request_id = str(getattr(reply, "request_id", "") or "")
         return reply
 
     def read(answer):
@@ -254,6 +274,7 @@ def judge_once(cfg, sha: str, arm: str, spec: str, run_id: str,
     except Exception as exc:  # noqa: BLE001 - recorded, never silently scored
         result.error = f"{type(exc).__name__}: {exc}"
     result.wall_s = time.monotonic() - started
+    result.finished_utc = datetime.now(timezone.utc).isoformat()
     return result
 
 
@@ -348,9 +369,16 @@ def score_judgement(adjudicator: Adjudicator, task: Task, judgement: ArmJudgemen
         "per_finding": per_finding,
         "cost_usd": judgement.cost_usd,
         "calls": judgement.calls,
+        "input_tokens": judgement.input_tokens,
+        "output_tokens": judgement.output_tokens,
         "wall_s": judgement.wall_s,
         "prompt_sha256": judgement.prompt_sha256,
+        "response_sha256": judgement.response_sha256,
+        "provider_model": judgement.provider_model,
+        "provider_request_id": judgement.provider_request_id,
         "repair_attempts": judgement.repair_attempts,
+        "started_utc": judgement.started_utc,
+        "finished_utc": judgement.finished_utc,
     }
 
 
@@ -413,6 +441,181 @@ def product_audit_record(project: Path, cfg) -> dict:
                 "vendor": audit.get("vendor", ""),
             }
     return {}
+
+
+def environment() -> dict:
+    """Versions the measurement depends on. Absent packages are recorded as absent."""
+    import platform
+    from importlib import metadata
+
+    versions: dict[str, str] = {}
+    for name in ("anthropic", "openai", "httpx", "requests", "urllib3", "certifi"):
+        try:
+            versions[name] = metadata.version(name)
+        except Exception:  # noqa: BLE001 - "not installed" is itself the record
+            versions[name] = "absent"
+    return {
+        "python": sys.version.split()[0],
+        "implementation": platform.python_implementation(),
+        "os": f"{platform.system()} {platform.release()}",
+        "machine": platform.machine(),
+        "packages": versions,
+    }
+
+
+def code_provenance() -> dict:
+    """The frozen sha, and proof the tree was clean when it was frozen."""
+    def git_out(*args: str) -> str:
+        return subprocess.run(["git", *args], cwd=str(HERE), capture_output=True,
+                              text=True).stdout
+
+    porcelain = git_out("status", "--porcelain").strip()
+    files = {}
+    for name in ("premise.py", "premise_report.py", "run.py", "clear.py",
+                 "adjudicate.py", "tasks.py", "provider.py", "stats.py"):
+        path = HERE / name
+        if path.exists():
+            files[f"benchmarks/expertlongbench/{name}"] = sha256_text(
+                path.read_text(encoding="utf-8"))
+    return {
+        "frozen_sha": git_out("rev-parse", "HEAD").strip(),
+        "git_status_porcelain": porcelain,
+        "tree_clean": porcelain == "",
+        "study_file_sha256": files,
+    }
+
+
+def dataset_provenance(task_id: str) -> dict:
+    """What the corpus is, where it came from, and that it has not moved."""
+    manifest = json.loads((HERE / "manifest.json").read_text(encoding="utf-8"))
+    entry = dict(manifest.get("tasks", {}).get(task_id, {}))
+    entry["task_id"] = task_id
+    entry["rows_on_disk"] = len(load_task_rows(task_id))
+    entry["licence"] = manifest.get("licence") or manifest.get("license") or (
+        "CC BY-NC-SA 4.0 (ExpertLongBench); not redistributed by this repository")
+    entry["source"] = manifest.get("source", "")
+    return entry
+
+
+def model_roles(options: Options, specs_by_arm: dict, arms: list[str]) -> dict:
+    """Every model id and the role it played. In this study the ids ARE the variable."""
+    def described(spec: str) -> dict:
+        if not spec:
+            return {"spec": "", "note": "no model: this arm places no call"}
+        role = role_for(spec)
+        return {
+            "spec": spec, "vendor": role.vendor, "provider": role.provider,
+            "model": role.model, "base_url": role.base_url or "provider default",
+            "key_env": role.key_env,
+            "reasoning_effort": role.reasoning_effort or "provider default",
+            # The adapters take temperature from the model's capability card and
+            # `resilience.complete` exposes no seed, so neither is settable here.
+            "temperature": "capability-card default; not settable through this seam",
+            "seed": "not exposed by the provider layer",
+        }
+
+    return {
+        "generator": described(options.generator),
+        "auditor_by_arm": {arm: described(specs_by_arm[arm]) for arm in arms},
+        "clear_mapper": described(options.mapper),
+        "clear_judge": described(options.judge),
+        "adjudicator": described(options.adjudicator),
+    }
+
+
+#: One JSONL row per instance per arm. Derived values only: ids, hashes, counts and
+#: scores. No corpus text, no model output, no prompt.
+ROWS_NAME = "rows.jsonl"
+
+
+def emit_rows(out_dir: Path, record: dict, task: Task) -> None:
+    """Append this instance's per-arm raw rows. Called once per completed instance."""
+    score = record.get("draft_score") or {}
+    per_item = score.get("per_item") or {}
+    ground_truth = {
+        key: {
+            "precision_hit": value["precision_hit"],
+            "recall_hit": value["recall_hit"],
+            # CLEAR's accuracy criterion: mutual containment. This is the vector the
+            # auditor is scored against, and it is what "wrong" means everywhere below.
+            "correct": bool(value["precision_hit"] and value["recall_hit"]),
+        }
+        for key, value in per_item.items()
+    }
+    generation = record.get("generation") or {}
+    with (out_dir / ROWS_NAME).open("a", encoding="utf-8") as handle:
+        for arm, entry in (record.get("arms") or {}).items():
+            row = {
+                "study": "5-premise",
+                "instance_id": record["sample_id"],
+                "arm": arm,
+                "auditor_spec": entry.get("spec", ""),
+                # One round by construction: this study judges a draft, it does not
+                # revise it, so there is no round two to record.
+                "round": 1,
+                "draft_sha256": record.get("draft_sha256", ""),
+                "audit_sha": record.get("audit_sha", ""),
+                "clear": {
+                    "f1": score.get("f1"), "accuracy": score.get("accuracy"),
+                    "precision": score.get("precision"), "recall": score.get("recall"),
+                    "n_items": score.get("n_items"),
+                    "per_item": ground_truth,
+                    "n_items_wrong": entry.get("n_items_wrong"),
+                },
+                "audit": {
+                    "ok": entry.get("ok"), "error": entry.get("error", ""),
+                    "verdict": entry.get("verdict", ""),
+                    "invalid_reason": entry.get("invalid_reason", ""),
+                    "fired": entry.get("fired"), "gated": entry.get("gated"),
+                    "n_findings": entry.get("n_findings"),
+                    "n_blockers": entry.get("n_blockers"),
+                    "repair_attempts": entry.get("repair_attempts", 0),
+                },
+                "findings": [
+                    {
+                        "rule": f["rule"], "severity": f["severity"],
+                        "artifact": f["artifact"],
+                        # Two mappings from finding to rubric item, and for each the
+                        # ground-truth verdict on every item it named.
+                        "items_model_mapping": f["cited_model"],
+                        "items_rule_mapping": f["cited_rule"],
+                        "item_was_wrong": {
+                            key: (not ground_truth[key]["correct"])
+                            for key in set(f["cited_model"]) | set(f["cited_rule"])
+                            if key in ground_truth
+                        },
+                        "note": f.get("note", ""),
+                    }
+                    for f in (entry.get("per_finding") or [])
+                ],
+                "scored": {
+                    "model_mapping": entry.get("model_mapping"),
+                    "rule_mapping": entry.get("rule_mapping"),
+                    "blocker_model_mapping": entry.get("blocker_model_mapping"),
+                    "blocker_rule_mapping": entry.get("blocker_rule_mapping"),
+                },
+                "cost": {
+                    "usd": entry.get("cost_usd"), "calls": entry.get("calls"),
+                    "input_tokens": entry.get("input_tokens"),
+                    "output_tokens": entry.get("output_tokens"),
+                },
+                "wall_s": entry.get("wall_s"),
+                "started_utc": entry.get("started_utc", ""),
+                "finished_utc": entry.get("finished_utc", ""),
+                "prompt_sha256": entry.get("prompt_sha256", ""),
+                "response_sha256": entry.get("response_sha256", ""),
+                "provider_model_echoed": entry.get("provider_model", ""),
+                "provider_request_id": entry.get("provider_request_id", ""),
+                # Shared by every arm on this instance: one draft, judged four ways.
+                "generation": {
+                    "cost_usd": generation.get("cost_usd"),
+                    "wall_s": generation.get("wall_s"),
+                    "exit_code": generation.get("exit_code"),
+                    "product_audit": generation.get("product_audit"),
+                },
+                "n_rubric_items": len(task.items),
+            }
+            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def ledger_cost(cfg, run_id: str, phases: set[str] | None = None) -> float:
@@ -531,9 +734,24 @@ def main(argv: list[str] | None = None) -> int:
         "settings": {"max_rounds": 1, "checks": args.checks,
                      "na_policy": args.na_policy, "audit_rules": "rubric"},
         "constitution_sha256": sha256_text(constitution_text(task, options)),
-        "code_sha": subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(HERE),
-                                   capture_output=True, text=True).stdout.strip(),
+        "code_sha": code_provenance()["frozen_sha"],
         "missing_credentials": missing,
+        # EXPERIMENT_RECORD s2: enough to reconstruct the run without this machine.
+        "prereg": "benchmarks/expertlongbench/PREREGISTRATION-5.md",
+        "code": code_provenance(),
+        "dataset": dataset_provenance(args.task),
+        "models_detailed": model_roles(options, specs_by_arm, arms),
+        "sampling": {
+            "seed": args.seed,
+            "n_seeded": args.n,
+            "subset": args.subset,
+            "selection": "rows sorted by id, then random.Random(seed).sample(rows, n), "
+                         "then re-sorted by id; --subset keeps the first k of that",
+        },
+        "environment": environment(),
+        "stopping_rule": "run to completion of the seeded sample, or stop and report "
+                         "when the study's share of the US$20 two-study budget is "
+                         "spent, whichever comes first",
     }
 
     if args.dry_run or missing:
@@ -546,11 +764,20 @@ def main(argv: list[str] | None = None) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "plan.json").write_text(
         json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (out_dir / "manifest.json").write_text(
+        json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"run {run_id}: {args.task}, n={len(rows)}, seed={args.seed} -> {out_dir}",
           flush=True)
+    if not plan["code"]["tree_clean"]:
+        print("WARNING: the tree was NOT clean at freeze; manifest records what "
+              "was uncommitted", file=sys.stderr, flush=True)
 
-    return _execute(task, rows, options, plan, out_dir, run_id, arms, specs_by_arm,
+    code = _execute(task, rows, options, plan, out_dir, run_id, arms, specs_by_arm,
                     resume=args.resume, verify_prompt=args.verify_prompt)
+    plan["finished_utc"] = datetime.now(timezone.utc).isoformat()
+    (out_dir / "manifest.json").write_text(
+        json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return code
 
 
 def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir: Path,
@@ -679,6 +906,8 @@ def _execute(task: Task, rows: list[dict], options: Options, plan: dict, out_dir
             continue
         records.append(record)
         _write_index(out_dir, plan, records)
+        if record.get("arms"):
+            emit_rows(out_dir, record, task)
 
     print(f"\ndone. {len(records)} instances -> {out_dir}", flush=True)
     return 0

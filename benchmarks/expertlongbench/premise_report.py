@@ -22,7 +22,35 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+import random  # noqa: E402
+
 from stats import mean, stdev, wilcoxon_signed_rank, wilson_interval  # noqa: E402
+
+#: Resamples for the paired-difference confidence interval. Fixed, and the RNG is
+#: seeded, so the interval is a deterministic function of the recorded rows.
+BOOTSTRAP_N = 20000
+BOOTSTRAP_SEED = 20261104
+
+
+def paired_ci(differences: list[float], confidence: float = 0.95) -> tuple[float, float]:
+    """Percentile bootstrap CI for the mean paired difference.
+
+    A bootstrap rather than a t interval because these differences are recall
+    differences on 6-item rubrics: they are discrete, bounded, and pile up on zero, so
+    the normality the t interval assumes is not available. Resampling is over
+    INSTANCES, which is the unit of independence here -- one draft, judged by every arm.
+    """
+    if not differences:
+        return (float("nan"), float("nan"))
+    rng = random.Random(BOOTSTRAP_SEED)
+    n = len(differences)
+    means = []
+    for _ in range(BOOTSTRAP_N):
+        means.append(sum(differences[rng.randrange(n)] for _ in range(n)) / n)
+    means.sort()
+    tail = (1 - confidence) / 2
+    return (means[int(tail * BOOTSTRAP_N)], means[min(BOOTSTRAP_N - 1,
+                                                      int((1 - tail) * BOOTSTRAP_N))])
 
 ARM_ORDER = ("cross", "self", "sibling", "none")
 MAPPINGS = ("model_mapping", "rule_mapping",
@@ -179,40 +207,71 @@ def render(paths: list[Path]) -> str:
         add("")
 
     # ---------------------------------------------------------------- study A
-    add("=== the comparison the study exists for: cross vs self ===")
-    for mapping in ("model_mapping", "rule_mapping", "blocker_rule_mapping"):
-        pairs = paired_recall(primary, "cross", "self", mapping)
+    add("=== preregistered comparisons (PREREGISTRATION-5.md) ===")
+    add("  effect = mean paired difference in recall, percentage points, first arm minus")
+    add("  second; CI = 20000-resample percentile bootstrap over instances; p = exact")
+    add("  two-sided Wilcoxon signed-rank, ties dropped as the test requires.")
+    add("")
+    add(f"  {'comparison':22} {'mapping':14} {'n':>3} {'A%':>6} {'B%':>6} "
+        f"{'effect':>8} {'95% CI':>18} {'b/w/t':>9} {'p':>8} {'used':>5}")
+    for arm_a, arm_b in (("cross", "self"), ("cross", "sibling"), ("sibling", "self")):
+        for mapping in ("model_mapping", "rule_mapping"):
+            pairs = paired_recall(primary, arm_a, arm_b, mapping)
+            if not pairs:
+                continue
+            diffs = [a - b for _id, a, b in pairs]
+            w = wilcoxon_signed_rank(diffs)
+            low, high = paired_ci(diffs)
+            better = sum(1 for d in diffs if d > 0)
+            worse = sum(1 for d in diffs if d < 0)
+            add(f"  {arm_a + ' - ' + arm_b:22} {mapping:14} {len(pairs):>3} "
+                f"{100 * mean([a for _i, a, _b in pairs]):6.1f} "
+                f"{100 * mean([b for _i, _a, b in pairs]):6.1f} "
+                f"{100 * mean(diffs):+8.1f} "
+                f"{'[' + f'{100 * low:+.1f}, {100 * high:+.1f}' + ']':>18} "
+                f"{f'{better}/{worse}/{len(diffs) - better - worse}':>9} "
+                f"{w.p_value:8.4f} {w.n_used:>5}")
+    add("")
+    add("  exploratory (not preregistered): the same, restricted to BLOCKER findings")
+    for arm_a, arm_b in (("cross", "self"), ("cross", "sibling")):
+        pairs = paired_recall(primary, arm_a, arm_b, "blocker_rule_mapping")
         if not pairs:
             continue
-        diffs = [c - s for _id, c, s in pairs]
+        diffs = [a - b for _id, a, b in pairs]
         w = wilcoxon_signed_rank(diffs)
-        better = sum(1 for d in diffs if d > 0)
-        worse = sum(1 for d in diffs if d < 0)
-        add(f"  [{mapping}] n={len(pairs)}  cross {100 * mean([c for _i, c, _s in pairs]):.1f}%  "
-            f"self {100 * mean([s for _i, _c, s in pairs]):.1f}%  "
-            f"paired delta {100 * mean(diffs):+.1f} pp  "
-            f"cross better/worse/tied {better}/{worse}/{len(diffs) - better - worse}  "
-            f"Wilcoxon p={w.p_value:.3f}")
-    for mapping in ("model_mapping", "rule_mapping"):
-        pairs = paired_recall(primary, "cross", "sibling", mapping)
-        if not pairs:
-            continue
-        diffs = [c - s for _id, c, s in pairs]
-        w = wilcoxon_signed_rank(diffs)
-        add(f"  [{mapping}] cross vs SIBLING: n={len(pairs)}  "
-            f"delta {100 * mean(diffs):+.1f} pp  p={w.p_value:.3f}")
+        low, high = paired_ci(diffs)
+        add(f"  {arm_a + ' - ' + arm_b:22} {'blocker_rule':14} {len(pairs):>3} "
+            f"{100 * mean([a for _i, a, _b in pairs]):6.1f} "
+            f"{100 * mean([b for _i, _a, b in pairs]):6.1f} "
+            f"{100 * mean(diffs):+8.1f} "
+            f"{'[' + f'{100 * low:+.1f}, {100 * high:+.1f}' + ']':>18} "
+            f"{'':>9} {w.p_value:8.4f} {w.n_used:>5}")
     add("")
 
     # precision intervals, because a collapse there would matter
-    add("=== precision, with intervals (rule mapping, all findings) ===")
+    add("=== rates with Wilson intervals (rule mapping, all findings) ===")
+    add(f"  {'arm':8} {'item precision':>26} {'recall':>26} {'fired':>22} {'gated':>22}")
     for arm in ARM_ORDER:
         t = arm_totals(primary, arm, "rule_mapping")
-        if not t["items_named"]:
+        if not t["judged"]:
             continue
-        interval = wilson_interval(t["wrong_and_named"], t["items_named"])
-        add(f"  {arm:8} {100 * interval.point:5.1f}%  "
-            f"({t['wrong_and_named']}/{t['items_named']})  "
-            f"95% CI {100 * interval.low:.0f}-{100 * interval.high:.0f}%")
+        def show(hit: int, total: int) -> str:
+            if not total:
+                return "n/a"
+            i = wilson_interval(hit, total)
+            return (f"{100 * i.point:.1f}% ({hit}/{total}) "
+                    f"[{100 * i.low:.0f},{100 * i.high:.0f}]")
+        add(f"  {arm:8} {show(t['wrong_and_named'], t['items_named']):>26} "
+            f"{show(t['wrong_and_named'], t['items_wrong']):>26} "
+            f"{show(t['fired'], t['judged']):>22} "
+            f"{show(t['gated'], t['judged']):>22}")
+    add("")
+    add("  reply validator rejections per arm (a rejected reply raises no findings):")
+    for arm in ARM_ORDER:
+        t = arm_totals(primary, arm, "rule_mapping")
+        if t["judged"]:
+            add(f"    {arm:8} invalid {t['invalid']:>2}  errored {t['errors']:>2}  "
+                f"of {t['judged']}")
     add("")
 
     # ---------------------------------------------------------------- study B
