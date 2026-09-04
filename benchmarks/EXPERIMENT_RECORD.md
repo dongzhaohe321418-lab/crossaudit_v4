@@ -109,3 +109,32 @@ reconstructed. Where a figure is reconstructed, say so at the figure.
 The exact command, with the environment it needs, that regenerates the study
 from a clean checkout at the frozen sha — including how to obtain the dataset,
 which this repository does not redistribute.
+
+## 9. A number keeps its interval wherever it travels
+
+Sections 1–8 govern the study. This one governs every later use of its results.
+
+The reports in this project have generally been careful at the point of
+computation and careless at the point of quotation: a rate of one-in-one was
+published as "100% (1/1), 95% CI [20.7%, 100.0%]" and then travelled into
+planning documents as "100%". One figure, a "2.6-point noise floor", was not
+merely stripped of its interval but had no source at all — it entered as a
+misreading of an effect estimate and was then reasoned from as if it were a
+precision estimate. See `CORRECTIONS.md`.
+
+So, binding on summaries, decision records, plans and prose, not only on reports:
+
+- A rate quoted without its interval is a defect, the same as a p value quoted
+  without its effect size. `73%` and `73% (CI 45–92%)` are different claims.
+- A count small enough that its interval reaches an absurd bound is quoted **as
+  the count**: "2 of 2", never "100%".
+- "Inside the noise floor" may only be written where a replicate arm for that
+  domain exists, and it names the measured spread. Without one, the honest form
+  is "no replicate has been run for this domain, so run-to-run variation is
+  unknown".
+- A claim inherits the narrowest scope of its evidence. An arm that varied a
+  model within one vendor licenses a within-vendor statement, whatever question
+  it was run to answer.
+- When a later study supersedes an earlier number, the earlier number is
+  withdrawn in writing, in `CORRECTIONS.md`. A superseded figure that is merely
+  not repeated will be repeated.
