@@ -6755,3 +6755,67 @@ Three rules now, all mechanical:
    `disabled`. And drive a **visible** browser — the extension's window reports
    `visibilityState: "hidden"`, so Chrome does not paint it and its screenshots
    are stale frames, which once faked a blank-first-paint bug that did not exist.
+
+## D153 — A different vendor reviews our measurements before we publish them, because ours reviewed themselves and missed a study-invalidating defect
+
+Four findings were carried out of the measurement programme as its results.
+Every review that had checked them was Claude reviewing Claude. On 2026-09-05 an
+independent reviewer running on a different vendor's model read the same
+committed records and found five high-severity defects. **None of the four
+findings survives in the form it was stated.** The full report is at
+`benchmarks/reviews/2026-09-05-cross-vendor.md`; the withdrawals and what
+replaces them are in `benchmarks/CORRECTIONS.md`.
+
+The largest was invisible from inside. Study 4's preregistered primary outcome
+kept only instances "where the loop revised at least once" — but the treatment is
+a change to the revision rules, so it helps decide whether a revision happens.
+Conditioning on that selects on a consequence of the treatment. On the seven
+instances revised in both arms the effect is −19.60 F1. On all sixteen assigned
+pairs it is **−4.01, CI [−16.54, +8.33]** — not distinguishable from zero. The
+defect was written into the preregistration, which is why every later review
+inherited it: each reviewer checked the analysis against the plan, and the plan
+was where the error lived.
+
+RULING: **no measurement is published, quoted in a paper, or used to move a
+default until a model from a different vendor has reviewed the harness, the
+scorer and the statistics.** The review is dispatched read-only; anything it
+reports is reproduced from the archived run data before it is accepted as fact,
+because a cross-vendor reviewer is a reducer of correlated error and not an
+oracle. This is the same rung structure the product itself uses: the reviewer
+proposes, a deterministic recomputation decides.
+
+**This is the strongest result the programme has produced, and it is about the
+programme.** The product's thesis is that a reviewer who does not share the
+author's assumptions catches what a reviewer who shares them cannot. The thesis
+was tested here on the harshest available subject — our own measurement code,
+after several same-vendor passes — and it held, with us as the thing found
+wanting. It goes in the paper as evidence, not in a drawer as an embarrassment.
+`CORRECTIONS.md` records its own first version being wrong for the same reason,
+which is the cleanest single illustration available.
+
+Three practices follow, and are now binding:
+
+1. **A number keeps its interval, and its estimand, wherever it travels.**
+   `EXPERIMENT_RECORD.md` §9. The reports were careful where numbers were
+   computed and careless where they were quoted: "100% (1/1), 95% CI [20.7%,
+   100.0%]" became "100%" one document later. A measured noise floor was carried
+   away from the fixed drafts it was measured on and applied to studies where
+   generation changed, which is as wrong as having no source.
+2. **The publication branch carries the evidence.** A clean checkout could not
+   reproduce most results: reports and records sat in ignored run directories in
+   other worktrees. That defect produced a false claim in `CORRECTIONS.md` about
+   this project's own record, made after searching one branch's committed tree.
+   The finished studies are now merged, and the raw run directories are archived
+   outside the repository, where the corpus licence requires them to stay.
+3. **Withdrawal is written down.** A superseded number that is merely not
+   repeated will be repeated. Each affected report now carries its correction
+   above its own headline, so a reader who opens only that file is not misled.
+
+What survives is worth stating, because negative findings are results. CLEAR's
+denominator, directions, per-sample F1 and aggregation are correct against the
+paper, with no chain-of-thought reaching the extractor or comparator. The code
+study has no hidden-test leakage by any path, and its population reproduces
+exactly. No p-value was copied from an unrelated comparison. And the
+false-positive half of the cross-vendor finding — that a stranger flags fewer
+correct outputs — stands, which is the half that decides whether anyone adopts
+the tool.
