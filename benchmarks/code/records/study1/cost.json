@@ -1,0 +1,50 @@
+{
+  "cross": {
+    "usd": 1.7758775000000009,
+    "calls": 235,
+    "input": 392657,
+    "output": 52949
+  },
+  "cross+checks": {
+    "usd": 1.6409500000000001,
+    "calls": 235,
+    "input": 398739,
+    "output": 42913
+  },
+  "self": {
+    "usd": 1.1855529999999983,
+    "calls": 443,
+    "input": 826598,
+    "output": 71791
+  },
+  "cross-replicate": {
+    "usd": 1.7119722499999999,
+    "calls": 235,
+    "input": 391228,
+    "output": 48903
+  },
+  "generation": {
+    "usd": 0.7106510000000011,
+    "calls": 540,
+    "input": 111606,
+    "output": 119809
+  },
+  "checks": {
+    "usd": 0.0,
+    "calls": 0,
+    "input": 0,
+    "output": 0
+  },
+  "none": {
+    "usd": 0.0,
+    "calls": 0,
+    "input": 0,
+    "output": 0
+  },
+  "TOTAL": {
+    "usd": 7.025003750000001,
+    "calls": 1688,
+    "input": 2120828,
+    "output": 336365
+  }
+}
