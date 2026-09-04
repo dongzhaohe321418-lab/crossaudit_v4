@@ -115,8 +115,14 @@ def main(path=None):
     print(f"records: {len(rows)} rows, arms {sorted(arms)}\n")
 
     for arm in sorted(arms):
-        rs = list(arms[arm].values())
-        print(f"=== arm {arm} (n={len(rs)}) ===")
+        allr = list(arms[arm].values())
+        rs = [r for r in allr if r["final"] is not None]
+        failed = len(allr) - len(rs)
+        print(f"=== arm {arm} (n={len(rs)} scored of {len(allr)} attempted; {failed} failed) ===")
+        if not rs:
+            errs = sorted({(r["error"] or "")[:70] for r in allr})
+            print(f"  no scored instance. errors: {errs}\n")
+            continue
         r1 = [r["per_round"]["1"]["f1"] for r in rs if "1" in r["per_round"]]
         fin = [r["final"]["f1"] for r in rs]
         print(f"  round-1 draft F1 {100*st.mean(r1):.2f} (n={len(r1)})   "
@@ -151,8 +157,8 @@ def main(path=None):
         print("=== C -> T, paired on the same instances ===")
         common = sorted(set(arms["C"]) & set(arms["T"]))
         print(f"  instances in both arms: {len(common)}")
-        for label, key in (("round-1 draft", lambda r: r["per_round"].get("1", {}).get("f1")),
-                           ("final output ", lambda r: r["final"]["f1"])):
+        for label, key in (("round-1 draft", lambda r: r["per_round"].get("1", {}).get("f1") if r["final"] else None),
+                           ("final output ", lambda r: (r["final"] or {}).get("f1"))):
             xs = [key(arms["T"][s]) - key(arms["C"][s]) for s in common
                   if key(arms["C"][s]) is not None and key(arms["T"][s]) is not None]
             report_paired(label, xs)

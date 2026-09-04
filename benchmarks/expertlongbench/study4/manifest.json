@@ -1,0 +1,388 @@
+{
+  "arms": {
+    "C": {
+      "attempts": [
+        "20260904T142912Z",
+        "attempt 1 failed, sleeping 180s",
+        "20260904T145942Z",
+        "attempt 2 failed, sleeping 180s",
+        "20260904T150916Z"
+      ],
+      "code_sha": "63ab94c831f0d05a801e3eb258395f0141f156d8",
+      "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+      "ended_utc": "2026-09-04T15:09:23.986643+00:00",
+      "label": "C-control",
+      "models": {
+        "adjudicator": "openai:gpt-5.6-terra",
+        "auditor": "openai:gpt-5.6-terra",
+        "generator": "anthropic:claude-sonnet-4-6",
+        "judge": "openai:gpt-5.6-terra",
+        "mapper": "openai:gpt-5.6-terra"
+      },
+      "n_planned": 16,
+      "n_recorded": 16,
+      "prompt_digests": {
+        "adjudicator_system_sha256": "a2770e6078f15ff4201f84a820690833f5b7e97714efb223f3fd1239c7a394db",
+        "arm_b_instruction_sha256": "1c3d36b24e8a4e93f01d30e90fae13d6bb477e4a7193e867c924b1b2bc23ee60",
+        "judge_system_sha256": "253bb930141849728d98e0d853c48d0e1b2e01e9e96883ff1a6e39029feca0e4",
+        "mapper_system_sha256": "4fc331b034ee32dce16ae75d8842e917324129a3796c40932a941fb13c87fb6b",
+        "task_model_prompt_sha256": "1bd0216e496c56724319255001abe4e677d149dec6652ad68094da2c2d253d0e"
+      },
+      "run_dir": {
+        "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-ctlrev/benchmarks/expertlongbench/runs/armC-control",
+        "files": 103,
+        "sha256": "01b2c050b1866afead1d4b5916c6293ca3c37612a01b980a6d071698274986c0"
+      },
+      "run_id": "20260904T150916Z",
+      "sample_ids": [
+        "T03MaterialSEG-10.1002/adfm.201000591",
+        "T03MaterialSEG-10.1002/adfm.202002249",
+        "T03MaterialSEG-10.1002/adfm.202402444",
+        "T03MaterialSEG-10.1002/aic.18378",
+        "T03MaterialSEG-10.1002/ange.202112688",
+        "T03MaterialSEG-10.1002/asia.202100022",
+        "T03MaterialSEG-10.1002/batt.202200056",
+        "T03MaterialSEG-10.1002/celc.202200772",
+        "T03MaterialSEG-10.1002/cjce.24030",
+        "T03MaterialSEG-10.1002/cnma.202200403",
+        "T03MaterialSEG-10.1002/cssc.202300809",
+        "T03MaterialSEG-10.1002/jbm.a.36681",
+        "T03MaterialSEG-10.1002/smll.201800441",
+        "T03MaterialSEG-10.1002/smll.202408072",
+        "T03MaterialSEG-10.1002/zaac.202200095",
+        "T03MaterialSEG-10.1126/sciadv.adj5431"
+      ],
+      "seed": 20261104,
+      "settings": {
+        "audit_rules": "rubric",
+        "checks": "general",
+        "lone_model_blocker": "block",
+        "max_rounds": 3,
+        "na_policy": "literal",
+        "probe_checkability": false
+      },
+      "started_utc": "2026-09-04T15:09:16.910011+00:00",
+      "what_differs": "tip behaviour; no document growth budget exists"
+    },
+    "G": {
+      "attempts": [
+        "20260904T150943Z"
+      ],
+      "code_sha": "63ab94c831f0d05a801e3eb258395f0141f156d8",
+      "constitution_sha256": "53fead8b0b7fdcfff7bacf91ffb70ea6f7ae8d169f32af30d0dcf9686bd155b8",
+      "ended_utc": "2026-09-04T15:09:55.836701+00:00",
+      "label": "G-split-general",
+      "models": {
+        "adjudicator": "openai:gpt-5.6-terra",
+        "auditor": "openai:gpt-5.6-terra",
+        "generator": "anthropic:claude-sonnet-4-6",
+        "judge": "openai:gpt-5.6-terra",
+        "mapper": "openai:gpt-5.6-terra"
+      },
+      "n_planned": 8,
+      "n_recorded": 8,
+      "prompt_digests": {
+        "adjudicator_system_sha256": "a2770e6078f15ff4201f84a820690833f5b7e97714efb223f3fd1239c7a394db",
+        "arm_b_instruction_sha256": "1c3d36b24e8a4e93f01d30e90fae13d6bb477e4a7193e867c924b1b2bc23ee60",
+        "judge_system_sha256": "253bb930141849728d98e0d853c48d0e1b2e01e9e96883ff1a6e39029feca0e4",
+        "mapper_system_sha256": "4fc331b034ee32dce16ae75d8842e917324129a3796c40932a941fb13c87fb6b",
+        "task_model_prompt_sha256": "1bd0216e496c56724319255001abe4e677d149dec6652ad68094da2c2d253d0e"
+      },
+      "run_dir": {
+        "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-ctlrev/benchmarks/expertlongbench/runs/armG-split-general",
+        "files": 53,
+        "sha256": "25b09bd03980ef4ac8563d2961b86d393d7e8b7b1fd34a81d4542db9e6cad110"
+      },
+      "run_id": "20260904T150943Z",
+      "sample_ids": [
+        "T03MaterialSEG-10.1002/adfm.202002249",
+        "T03MaterialSEG-10.1002/adfm.202209924",
+        "T03MaterialSEG-10.1002/adfm.202309656",
+        "T03MaterialSEG-10.1002/ange.202112688",
+        "T03MaterialSEG-10.1002/anie.201812472",
+        "T03MaterialSEG-10.1002/anie.202410016",
+        "T03MaterialSEG-10.1002/celc.202200984",
+        "T03MaterialSEG-10.1002/chem.201905217"
+      ],
+      "seed": 20260930,
+      "settings": {
+        "audit_rules": "general",
+        "checks": "general",
+        "lone_model_blocker": "block",
+        "max_rounds": 3,
+        "na_policy": "literal",
+        "probe_checkability": false
+      },
+      "started_utc": "2026-09-04T15:09:43.072336+00:00",
+      "what_differs": "tip behaviour, shipped general constitution"
+    },
+    "T": {
+      "attempts": [
+        "20260904T150924Z"
+      ],
+      "code_sha": "21f37d5a23dfbc5633908f4a8a00d81d7b868f89",
+      "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+      "ended_utc": "2026-09-04T15:09:42.723619+00:00",
+      "label": "T-scoped",
+      "models": {
+        "adjudicator": "openai:gpt-5.6-terra",
+        "auditor": "openai:gpt-5.6-terra",
+        "generator": "anthropic:claude-sonnet-4-6",
+        "judge": "openai:gpt-5.6-terra",
+        "mapper": "openai:gpt-5.6-terra"
+      },
+      "n_planned": 16,
+      "n_recorded": 16,
+      "prompt_digests": {
+        "adjudicator_system_sha256": "a2770e6078f15ff4201f84a820690833f5b7e97714efb223f3fd1239c7a394db",
+        "arm_b_instruction_sha256": "1c3d36b24e8a4e93f01d30e90fae13d6bb477e4a7193e867c924b1b2bc23ee60",
+        "judge_system_sha256": "253bb930141849728d98e0d853c48d0e1b2e01e9e96883ff1a6e39029feca0e4",
+        "mapper_system_sha256": "4fc331b034ee32dce16ae75d8842e917324129a3796c40932a941fb13c87fb6b",
+        "task_model_prompt_sha256": "1bd0216e496c56724319255001abe4e677d149dec6652ad68094da2c2d253d0e"
+      },
+      "run_dir": {
+        "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-revision/benchmarks/expertlongbench/runs/armT-scoped",
+        "files": 69,
+        "sha256": "ef79cbc74bb23bbc0b131297a8a5c54fa288ec08040c576c4e9f06953bbca642"
+      },
+      "run_id": "20260904T150924Z",
+      "sample_ids": [
+        "T03MaterialSEG-10.1002/adfm.201000591",
+        "T03MaterialSEG-10.1002/adfm.202002249",
+        "T03MaterialSEG-10.1002/adfm.202402444",
+        "T03MaterialSEG-10.1002/aic.18378",
+        "T03MaterialSEG-10.1002/ange.202112688",
+        "T03MaterialSEG-10.1002/asia.202100022",
+        "T03MaterialSEG-10.1002/batt.202200056",
+        "T03MaterialSEG-10.1002/celc.202200772",
+        "T03MaterialSEG-10.1002/cjce.24030",
+        "T03MaterialSEG-10.1002/cnma.202200403",
+        "T03MaterialSEG-10.1002/cssc.202300809",
+        "T03MaterialSEG-10.1002/jbm.a.36681",
+        "T03MaterialSEG-10.1002/smll.201800441",
+        "T03MaterialSEG-10.1002/smll.202408072",
+        "T03MaterialSEG-10.1002/zaac.202200095",
+        "T03MaterialSEG-10.1126/sciadv.adj5431"
+      ],
+      "seed": 20261104,
+      "settings": {
+        "audit_rules": "rubric",
+        "checks": "general",
+        "lone_model_blocker": "block",
+        "max_rounds": 3,
+        "na_policy": "literal",
+        "probe_checkability": false
+      },
+      "started_utc": "2026-09-04T15:09:24.309474+00:00",
+      "what_differs": "repair.max_document_growth = 0.25 (default) + the bound stated in the revision prompt"
+    }
+  },
+  "code": {
+    "branch": "feat/revision-scope",
+    "control_product_sha": "63ab94c831f0d05a801e3eb258395f0141f156d8",
+    "files_the_change_touched": [
+      "src/crossaudit/cli/build.py",
+      "src/crossaudit/cli/denials_zh.py",
+      "src/crossaudit/config.py",
+      "src/crossaudit/generator.py",
+      "src/crossaudit/repair_guard.py",
+      "tests/test_build_repair_guard.py",
+      "tests/test_generator.py",
+      "tests/test_repair_guard.py"
+    ],
+    "harness_identical_across_arms": true,
+    "harness_sha256": {
+      "adjudicate.py": "85e76698dfdec663c7a9e3203c48596ae1060898d39e9b67b322c12ea4bb28e5",
+      "clear.py": "b71c0dc90502bd625ec018ee6b939940ee51d78907cbd39804d623c5cde4ff91",
+      "provider.py": "09673ef62acfea87ba06a5ac3ebb53bc250ed22ce4b3f6f705241c31af84303f",
+      "run.py": "7475620db95d3264a3b861e450610e1cf182eeded1bc5ebed16e08262aff4e2b",
+      "stats.py": "c9d0a6cd78b8087d2d8bda4fd4d9f0553ebcbada7f8f411fa8c2cd461e50acbe",
+      "tasks.py": "dc020d689dce222e7e8b8dd95032d1b62359550e33c9af9df5d364b15184590d"
+    },
+    "report_tree_sha": "3abc8ce2eb641add4b6a800e1dc368455ce01283",
+    "treatment_product_sha": "21f37d5a23dfbc5633908f4a8a00d81d7b868f89",
+    "worktree_clean": false
+  },
+  "data": {
+    "dataset": "ExpertLongBench T03MaterialSEG",
+    "licence": "CC BY-NC-SA 4.0 \u2014 not redistributed by this repository",
+    "local_file_sha256": {
+      "T03MaterialSEG.jsonl": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0"
+    },
+    "manifest": {
+      "dataset": "launch/ExpertLongBench",
+      "license": "CC BY-NC-SA 4.0",
+      "note": "Digests and row counts only. The corpus itself is never committed -- see NOTES.md section 7. Regenerate with --rewrite-manifest only when an upstream change has been reviewed on purpose.",
+      "paper": "arXiv:2506.01241",
+      "source": "https://huggingface.co/datasets/launch/ExpertLongBench",
+      "tasks": {
+        "T01LegalMDS": {
+          "bytes": 46090275,
+          "checklist_items": [
+            "All Reported Opinions Cited with Shortened Bluebook Citation",
+            "Appeal",
+            "Cause of Action",
+            "Class Action or Individual Plaintiffs",
+            "Consolidated Cases Noted",
+            "Court Rulings",
+            "Date of Settlement",
+            "Dates of All Decrees",
+            "Disputes Over Settlement Enforcement",
+            "Factual Basis of Case",
+            "Filing Date",
+            "First and Last name of Judge",
+            "How Long Decrees will Last",
+            "How Long Settlement will Last",
+            "Monitor Reports",
+            "Name of the Monitor",
+            "Note Important Filings",
+            "Related Cases Listed by Their Case Code Number",
+            "Remedy Sought",
+            "Significant Terms of Decrees",
+            "Significant Terms of Settlement",
+            "Statutory or Constitutional Basis for the Case",
+            "Trials",
+            "Type of Counsel",
+            "Whether the Settlement is Court-enforced or Not",
+            "Who are the Parties"
+          ],
+          "filename": "T01LegalMDS.jsonl",
+          "rows": 100,
+          "sha256": "0d13750e8f757702ec7767a6256042c7ccf2f9a052715a116cf3fd8f8a19803f"
+        },
+        "T03MaterialSEG": {
+          "bytes": 81740,
+          "checklist_items": [
+            "Selection of Precursors [level] Handling Precursor Reactivity",
+            "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+            "Selection of Precursors [level] Structural Considerations",
+            "Synthesis Conditions [level] Atmosphere",
+            "Synthesis Conditions [level] Duration",
+            "Synthesis Conditions [level] Temperature and Heating Method"
+          ],
+          "filename": "T03MaterialSEG.jsonl",
+          "rows": 50,
+          "sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0"
+        },
+        "T04EduPAE": {
+          "bytes": 222535,
+          "checklist_items": [
+            "Evaluation of the student response",
+            "Mistake identification",
+            "Mistake identification type",
+            "Mistake rectification",
+            "Mistake rectification type",
+            "Repeated mistake",
+            "Sub-question Transition"
+          ],
+          "filename": "T04EduPAE.jsonl",
+          "rows": 100,
+          "sha256": "9c28b831c132c37ba87a2ac594d157d72510b4b7ba5919b61a83380ccc1e7f8e"
+        },
+        "T06HealthCNG": {
+          "bytes": 1047045,
+          "checklist_items": [
+            "Activities",
+            "Alleviating and Aggravating Factors",
+            "Character",
+            "Diagnosis and Clinical Impression",
+            "Drugs",
+            "Duration",
+            "Eating habits",
+            "Education",
+            "Employment",
+            "Family History",
+            "Home and Environment",
+            "Location",
+            "Onset",
+            "Other Objective Data",
+            "Patient Age",
+            "Patient Reason for the Visit",
+            "Patient Sex",
+            "Physical Examination Findings",
+            "Radiation",
+            "Reason for Patient Office Visit or Hospitalization",
+            "Relevant Medical History",
+            "Review of Systems (ROS)",
+            "Severity",
+            "Sexuality",
+            "Suicide/Depression",
+            "Surgical History",
+            "Temporal Factor",
+            "Treatment and Management Plan",
+            "Vital Signs"
+          ],
+          "filename": "T06HealthCNG.jsonl",
+          "rows": 100,
+          "sha256": "8bd9b60605b81443b26df90dd0973bcc7280508236f920cf20e01dab6edd2252"
+        },
+        "T07ChemMDG": {
+          "bytes": 166663,
+          "checklist_items": [
+            "Biological Function and Applications",
+            "Chemical Compound Classifications",
+            "Conjugate acid",
+            "Conjugate base",
+            "Origin",
+            "Structure"
+          ],
+          "filename": "T07ChemMDG.jsonl",
+          "rows": 100,
+          "sha256": "935f22c72222b771864caf958303355b18c66c294e2445b5d1147a69a2832771"
+        },
+        "T08BioPDG": {
+          "bytes": 247203,
+          "checklist_items": [
+            "Cellular Localization",
+            "Domain/Motif",
+            "Functional Role",
+            "Gene Ontology",
+            "Interactions"
+          ],
+          "filename": "T08BioPDG.jsonl",
+          "rows": 100,
+          "sha256": "bba75f28d1266e21d0baec373ecb584abb60a37d016177bd0fba5d8d1296113b"
+        },
+        "T11CyberRDG": {
+          "bytes": 380902,
+          "checklist_items": [
+            "Attack Tools",
+            "Label",
+            "Motivation",
+            "Outcome",
+            "Trigger",
+            "Trigger tools"
+          ],
+          "filename": "T11CyberRDG.jsonl",
+          "rows": 100,
+          "sha256": "132d6b86dbc9bda94398073099ec52ee7256999da0a39d381444bce036b1894d"
+        }
+      }
+    },
+    "row_counts": {
+      "T03MaterialSEG.jsonl": 50
+    }
+  },
+  "environment": {
+    "interpreter": "/Users/ericdong/Documents/Crossaudit/crossaudit_v4/.venv/bin/python",
+    "network": "all provider traffic via https_proxy=http://127.0.0.1:7897",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.13.5"
+  },
+  "generated_utc": "2026-09-04T15:13:45.741828+00:00",
+  "preregistration": "benchmarks/expertlongbench/study4/PREREGISTRATION.md",
+  "records": {
+    "contains": "derived values and digests only; no corpus text, no model output",
+    "path": "benchmarks/expertlongbench/study4/records.jsonl",
+    "rows": 40,
+    "sha256": "b75b2e4f1f059af56144c482a70811f9101ef35d785cef82907338dd4cec439b"
+  },
+  "sampling": {
+    "method": "rows sorted by id, then random.Random(seed).sample(rows, n), then re-sorted by id; --subset keeps the first k of that draw",
+    "seed_arm_G": 20260930,
+    "seed_arms_C_T": 20261104
+  },
+  "standard": "benchmarks/EXPERIMENT_RECORD.md",
+  "study": "study4",
+  "title": "does bounding a revision's growth repair the revision defect"
+}

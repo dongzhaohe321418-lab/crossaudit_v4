@@ -104,14 +104,18 @@ def rows_for(arm: str, run_dir: Path):
             "generator_model": b.get("model"),
             "per_round": per_round,
             "committed_growth": growth,
-            "final": {
+            # An instance the loop never produced an artefact for has no score.
+            # It stays in the record as a row with a null outcome and its error,
+            # because a dropped instance a reader cannot see is a deviation the
+            # study got to hide (EXPERIMENT_RECORD.md #3, #5).
+            "final": ({
                 "f1": b["score"]["f1"], "precision": b["score"]["precision"],
                 "recall": b["score"]["recall"], "accuracy": b["score"]["accuracy"],
                 "n_items": b["score"]["n_items"],
                 "per_item": {j["key"]: {"precision_hit": j["precision_hit"],
                                         "recall_hit": j["recall_hit"]}
                              for j in b.get("_judgements", [])},
-            },
+            } if b.get("score") else None),
             "revision": b.get("revision"),
             "findings": [{"round": f["round"], "rule": f["rule"], "severity": f["severity"],
                           "artifact": f["artifact"], "tier": f["tier"], "state": f["state"],
@@ -130,10 +134,14 @@ def rows_for(arm: str, run_dir: Path):
 
 
 def main(argv):
-    arms = {}
+    arms, logs = {}, {}
     for spec in argv:
-        name, _, d = spec.partition("=")
-        arms[name] = Path(d)
+        if spec.startswith("log:"):
+            name, _, d = spec[4:].partition("=")
+            logs[name] = Path(d)
+        else:
+            name, _, d = spec.partition("=")
+            arms[name] = Path(d)
 
     rows = []
     for arm, d in arms.items():
@@ -153,8 +161,19 @@ def main(argv):
     for arm, d in arms.items():
         p = json.loads((d / "plan.json").read_text())
         arm_rows = [r for r in rows if r["arm"] == arm]
+        # `--resume` rewrites plan.json, so its started_utc is the LAST attempt's.
+        # The true history comes from the run log's own headers, and every
+        # attempt is recorded because a resumed run is a deviation (#5).
+        attempts = []
+        if arm in logs and logs[arm].exists():
+            for line in logs[arm].read_text(errors="replace").splitlines():
+                if line.startswith("run 2026"):
+                    attempts.append(line.split(":", 1)[0][len("run "):])
+                elif "attempt" in line and "failed" in line:
+                    attempts.append(line.strip())
         plans[arm] = {
             "code_sha": ARM_CODE[arm][0],
+            "attempts": attempts,
             "what_differs": ARM_CODE[arm][1],
             "run_id": p["run_id"],
             "started_utc": p["started_utc"],
