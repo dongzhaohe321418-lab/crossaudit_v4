@@ -1,6 +1,44 @@
 {
-  "note": "sha256 of every committed record, and of the gitignored run directories they came from",
+  "note": "sha256 of every committed record and of the gitignored run directories they came from",
+  "confirmatory_run": "premise-A2 + premise-B2-rep{1,2,3} (frozen sha c2b9cd6)",
+  "first_execution": "premise-A + premise-C-pass{2,3} (frozen sha 9656cbf), reported as a prior attempt",
   "runs": {
+    "premise-A2": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-premise/benchmarks/expertlongbench/runs/premise-A2",
+      "n_files": 64,
+      "directory_sha256": "5df5beccafacb3504b14248c77a2e6758b17e4af7a229a9f4dd4e4bb458b9053",
+      "committed": {
+        "premise-A2.manifest.json": "b07a770c5e72604d393cc7d258d004235f9eab1641969bbd2ba020fad80e5efb",
+        "premise-A2.rows.jsonl": "1b862c9bb80477b24539230bb57c661c3c388dd9908697ae1f2167e31c96dc3f"
+      }
+    },
+    "premise-B2-rep1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-premise/benchmarks/expertlongbench/runs/premise-B2-rep1",
+      "n_files": 20,
+      "directory_sha256": "430fa4684b6c289ff72972752a196cd29d81a5ac933f0e42d476fed1b74b4df5",
+      "committed": {
+        "premise-B2-rep1.manifest.json": "190b5e6c9d268640bac64604108fe6b6be93477959be0dbc4874ca605c1464c9",
+        "premise-B2-rep1.rows.jsonl": "e0a43825c3556249920b70c954b7bb52c064f6352f379097245ade438bdaa5e6"
+      }
+    },
+    "premise-B2-rep2": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-premise/benchmarks/expertlongbench/runs/premise-B2-rep2",
+      "n_files": 20,
+      "directory_sha256": "ff1890abf09c10ac57980dc053a0b59eb68f57596c49d131e97444bd9a94f2dc",
+      "committed": {
+        "premise-B2-rep2.manifest.json": "0ebc8c2b2eaa1ea235dbca3d48ba47ea470fea3f8cd037ffc0942413f86e023e",
+        "premise-B2-rep2.rows.jsonl": "6fe0f6eee3a7986a422c9d7e2389295e909c572e057b252de2cab4235baceb7d"
+      }
+    },
+    "premise-B2-rep3": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-premise/benchmarks/expertlongbench/runs/premise-B2-rep3",
+      "n_files": 20,
+      "directory_sha256": "32a9b23f77c47326194c392914e212c6271ee3433e0225009e2e118d3079a252",
+      "committed": {
+        "premise-B2-rep3.manifest.json": "0a16771b10962c73eee339b9a8e712506d5084e14a94b1559bd71e19229091d6",
+        "premise-B2-rep3.rows.jsonl": "7c53a4ce036e3981172b29bdc7a6d8ea0908929e398d6bd74043d5562dac08f1"
+      }
+    },
     "premise-A": {
       "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-premise/benchmarks/expertlongbench/runs/premise-A",
       "n_files": 26,
