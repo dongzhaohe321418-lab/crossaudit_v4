@@ -161,7 +161,10 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    已撤回：一律 `str()` 强转、保持基线严重度。第三轮修复进行中。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
-   （那只在非显式范围时生效）。
+   （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
+   **两扇门**：`cmd_run` 按变更路径建增量、不经范围读取器，只改技能的提交会把技能当增量
+   送审——两扇都已关，技能-only 提交走既有的"未改动科学文件"拒绝。D156 里我写错的两处
+   （"现成排除列表"不在那个函数；只说了一扇门）已当日更正。astra 复核进行中。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
