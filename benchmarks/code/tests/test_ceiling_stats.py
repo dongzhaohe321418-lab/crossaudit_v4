@@ -1,10 +1,12 @@
 """Study 8's estimators, checked against brute force and against published values.
 
-Every inferential quantity in ``RESULTS-CEILING.md`` comes out of ``report_ceiling.py``,
-which implements its own regularised incomplete beta, Clopper-Pearson inversion, exact
-McNemar tail, saturation fit and beta-binomial likelihood rather than depending on SciPy.
-That is a reproducibility decision — a reader can read the whole of it in one file — and it
-puts the burden of proof here. These tests are the proof.
+``report_ceiling.py`` implements the estimators behind Tables 1–9 — its own regularised
+incomplete beta, Clopper-Pearson inversion, exact McNemar tail, saturation fit and
+beta-binomial likelihood — rather than depending on SciPy. That is a reproducibility
+decision — a reader can read the whole of it in one file — and it puts the burden of proof
+here: each estimator is checked against brute force or against its defining property, and
+coverage is measured in ``ceiling/measure_coverage.py`` and asserted equal here. This is
+the evidence for the estimators; it is not a proof of the report.
 
     python -m pytest benchmarks/code/tests/test_ceiling_stats.py
 """
@@ -105,7 +107,9 @@ def test_exact_mcnemar_matches_the_binomial_sign_test():
 
 
 def test_paired_difference_intervals_are_ordered_and_contain_the_point():
-    """Every interval a reader sees must be ordered and must contain its own estimate.
+    """A paired-difference interval must be ordered and must contain its own estimate —
+    checked on four synthetic shapes for the two interval fields, not on every interval
+    the report prints.
 
     An interval whose bounds are the wrong way round, or that excludes its own point
     estimate, survives every eyeball check because both numbers look plausible. It does
@@ -169,6 +173,30 @@ def test_wilson_matches_an_independent_implementation():
 # Coverage. The defect these exist to prevent from recurring silently.
 # ---------------------------------------------------------------------------------
 
+def withdrawn_conditional(b, c, n):
+    """The withdrawn paired interval, reconstructed: Clopper-Pearson on the direction
+    probability conditional on discordance, rescaled by the observed D/n."""
+    nd = b + c
+    if nd == 0:
+        return (None, None)
+    lo, hi = rc.clopper_pearson(b, nd)
+    return (nd * (2 * lo - 1) / n, nd * (2 * hi - 1) / n)
+
+
+def ideal_bootstrap(b, c, n, alpha=0.05):
+    """The infinite-resample percentile bootstrap, enumerated rather than simulated."""
+    p = (b + c) / n
+    cum, lo, hi = 0.0, None, None
+    for k in range(n + 1):
+        cum += math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+        if lo is None and cum >= alpha / 2:
+            lo = k
+        if hi is None and cum >= 1 - alpha / 2:
+            hi = k
+    span = (lo / n, (hi if hi is not None else n) / n)
+    return span if b >= c else (-span[1], -span[0])
+
+
 def _scenario_coverage(interval_fn, n=112, q=0.1, beneficial=True):
     """Exact coverage in the cross-vendor review's scenario, either direction.
 
@@ -199,7 +227,8 @@ def test_withdrawn_conditional_interval_undercovers_as_the_review_found():
     The published interval took a Clopper-Pearson interval for the direction probability
     *conditional on discordance* and rescaled it by the *observed* discordance fraction
     D/n. That throws away the uncertainty in D. Its coverage in this scenario is 0.416,
-    not the advertised 0.95, and this test exists so that the method cannot come back.
+    not the advertised 0.95. This test pins that number on a reconstruction of the method
+    so it stays checkable; it does not stop `report_ceiling.py` re-implementing it.
     """
     def withdrawn(b, c, n):
         nd = b + c
@@ -380,7 +409,7 @@ def test_fit_saturation_respects_its_registered_bound():
 
 
 # ---------------------------------------------------------------------------------
-# The pre-fix methods, kept executable so a coverage LABEL cannot drift from its number.
+# The pre-fix methods, kept executable so their coverages are re-measured rather than quoted.
 # The fourth review found the report attributing 0.960 to the pre-fix exact grid; 0.960
 # is Tango's and the exact grid's is 0.997. A prose claim about a withdrawn method is
 # still a claim, and this is how it stays checkable.
@@ -533,7 +562,10 @@ def test_the_measured_coverages_equal_the_committed_artefact():
 
     Before it existed, the statistics tests measured coverage and the report quoted
     coverage, and nothing connected the two: editing a published coverage figure left every
-    test green. The tenth cross-vendor review found that.
+    test green. The tenth cross-vendor review found that; the eleventh found this test
+    comparing eight of the artefact's eleven figures, so the withdrawn conditional and both
+    idealised-bootstrap figures were compared by nobody. All eleven are compared now, and
+    the key set is asserted equal so a twelfth cannot be added unread.
     """
     import json
     from pathlib import Path
@@ -542,6 +574,10 @@ def test_the_measured_coverages_equal_the_committed_artefact():
         (Path(__file__).resolve().parent.parent / "records" / "ceiling" /
          "coverage.json").read_text(encoding="utf-8"))
     measured = {
+        ("withdrawn_conditional", "beneficial"): _scenario_coverage(withdrawn_conditional),
+        ("ideal_bootstrap", "beneficial"): _scenario_coverage(ideal_bootstrap),
+        ("ideal_bootstrap", "detrimental"): _scenario_coverage(ideal_bootstrap, q=0.5,
+                                                               beneficial=False),
         ("tango", "beneficial"): _scenario_coverage(rc.tango_score_interval),
         ("tango", "detrimental"): _scenario_coverage(rc.tango_score_interval, q=0.5,
                                                      beneficial=False),
@@ -555,6 +591,8 @@ def test_the_measured_coverages_equal_the_committed_artefact():
         ("exact_grid_prefix", "detrimental"): _scenario_coverage(prefix_exact, q=0.5,
                                                                  beneficial=False),
     }
+    assert set(measured) == {(m, s) for m in artefact["coverage"]
+                             for s in artefact["coverage"][m]}
     for (method, scenario), value in measured.items():
         stored = artefact["coverage"][method][scenario]
         assert abs(value - stored) < 1e-9, (method, scenario, value, stored)

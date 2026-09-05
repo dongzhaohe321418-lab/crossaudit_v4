@@ -618,3 +618,31 @@ its sentence must name its family; it does not parse grammatical ownership, does
 rates written in words, and applies membership checks only outside those sections* — and the
 four attacks are committed as passing tests that document the boundary. Found by the ninth
 cross-vendor review, whose instruction was to narrow the claim rather than widen the guard.
+
+**30. A build reported as "46 tests pass" had one failing test, and three coverage figures
+were compared by nobody.** The eleventh cross-vendor review of study 8 ran the suite and
+found `test_no_guarantee_words_outside_their_denials` red on a sentence of the report —
+"Every rate carries a 95% … interval" — that the same commit had reported green. The count
+was not the runner's; it was a claim. The sentence is rewritten, and from this round the
+test count stated for a build is the runner's own summary line, copied.
+
+The same review found the coverage binding described in deviation 38 incomplete: the
+statistics suite compared eight of the artefact's eleven figures, so the withdrawn
+conditional and both idealised-bootstrap coverages could be edited in the artefact and the
+table together with every test green; the report test compared table cells but not the
+column headers, so swapping the beneficial and detrimental columns was green; and a
+coverage figure quoted in a sentence was checked by nothing. All eleven are compared and
+the key set asserted; the headers' column order and every unsigned three-decimal figure in
+a sentence about coverage are now read against the artefact.
+
+The guarantee-word check itself exempted quoted spans and stopped scanning at its own
+marker, so a forbidden phrase in quotation marks, broken across a line, or written after
+the marker survived, and an allowed phrase reused as a bare assertion was green. Allowances
+are now whole sentences, matched exactly and required to still occur; the check's tables
+are excised precisely and nothing else is skipped; and the review's four attacks are
+committed as cases that must be red. Deviation 34's correction table gains the rows the
+reviews state that it lacked, one round citation is corrected (round 9, not 8), and its
+"complete list" is now "the rows the reviews state". Twenty further sentences across the
+report and both test files promised more than their checks do — "every interval", "cannot
+drift", "the only rule", "finds them forever", "every inferential quantity", "regenerates
+every table" — and each is rewritten to what is checked.
