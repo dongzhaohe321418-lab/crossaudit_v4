@@ -247,6 +247,106 @@ def test_report_states_the_correction_threshold_once_in_live_prose():
     assert _current_claims().count("0.00313") == 1, _current_claims().count("0.00313")
 
 
+# ---------------------------------------------------------------------------------
+# Interval completeness, mechanically. Four reviews found bare rates in the opening and
+# the conclusion by hand; this finds them forever.
+# ---------------------------------------------------------------------------------
+
+#: A rate in these sections must be followed, in the same sentence, by a bracketed
+#: interval — or be one of the exceptions below, each of which is a rate that HAS no
+#: interval rather than one whose interval was forgotten.
+_RATE = re.compile(r"(?<![\w.])([+" + MINUS + r"\-]?\d+(?:\.\d+)?)\s*(%|pp\b|points\b|"
+                   r"percentage points\b)")
+
+ALLOWED_BARE = {
+    # denominators, counts and sizes — not estimates
+    "112", "110", "150", "260", "290", "96", "56", "57", "68", "46", "40", "20", "16",
+    "8", "4", "3", "2", "1", "0", "5", "6", "7", "11", "25", "10", "13", "12", "103",
+    "179", "178", "19", "17", "36", "33", "32", "34", "54", "18", "55", "27",
+    # exact/threshold quantities that are not interval-bearing
+    "0.05", "1.0", "95", "0.00313",
+}
+
+#: Phrases whose numbers are structural rather than estimates: budgets, K values, counts
+#: of instances, coverage figures (which are exact enumerations, not estimates), power
+#: (also exact), and the flattening bar.
+#: An interval written in prose rather than brackets, e.g. "interval −3.54 to +5.88".
+_PROSE_INTERVAL = re.compile(
+    r"interval\s+[+" + MINUS + r"\-]?\d+(?:\.\d+)?\s+to\s+[+" + MINUS + r"\-]?\d+(?:\.\d+)?")
+
+BARE_OK_CONTEXT = re.compile(
+    r"coverage|power|budget|spend|tokens|threshold|K = |draws|readings|instances|"
+    r"problems|files|bar \(|flatten|Bonferroni|seed|of a \$|points? of recall|"
+    r"under-cover|nominal|last-step|gain from|version|round|deviation|item",
+    re.I)
+
+
+def _sections(text: str) -> dict[str, str]:
+    """The opening (before 'What the review changed') and the conclusion."""
+    opening = text.split("## What the review changed", 1)[0]
+    tail = text.split("## What this study licenses, and what it does not", 1)
+    conclusion = tail[1].split("### Where this sits beside the earlier record", 1)[0] \
+        if len(tail) > 1 else ""
+    return {"opening": opening, "conclusion": conclusion}
+
+
+def test_rates_in_the_opening_and_conclusion_carry_intervals():
+    """Every percentage or signed pp value in these two sections is followed, in the same
+    sentence, by a bracketed interval — or is a count, a denominator, or an exact
+    quantity that has no sampling interval.
+
+    Four consecutive reviews found bare rates here by hand. This is the rule that replaces
+    the hand search.
+    """
+    text = REPORT.read_text(encoding="utf-8")
+    bare = []
+    for name, section in _sections(text).items():
+        # split into sentences, keeping it crude on purpose: a rate and its interval must
+        # be close together for a reader to connect them anyway
+        for sentence in re.split(r"(?<=[.;:])\s", section.replace("\n", " ")):
+            if "|" in sentence:            # generated table rows carry their own intervals
+                continue
+            # An interval may be written in brackets, or in prose ("interval −3.54 to
+            # +5.88" — the form the reviewer's reader sentence uses). Both count.
+            intervals = list(_INTERVAL.finditer(sentence)) + list(_PROSE_INTERVAL.finditer(sentence))
+            for match in _RATE.finditer(sentence):
+                value = match.group(1).replace(MINUS, "-").lstrip("+")
+                if value.lstrip("-") in ALLOWED_BARE:
+                    continue
+                before = sentence[max(0, match.start() - 90):match.start()]
+                if BARE_OK_CONTEXT.search(before) or BARE_OK_CONTEXT.search(
+                        sentence[match.end():match.end() + 60]):
+                    continue
+                # The interval must be ADJACENT to the rate, not merely somewhere later
+                # in the sentence: a sentence quoting three rates and one interval would
+                # otherwise pass. 48 characters is about as far as "30.0% (33 of 110)
+                # [20.0, 40.7]" reaches, and further than that a reader stops connecting
+                # them anyway.
+                if any(0 <= iv.start() - match.end() <= 48 for iv in intervals):
+                    continue
+                bare.append(f"[{name}] {match.group(0)!r} in: ...{sentence.strip()[:150]}")
+    assert not bare, ("rates without an interval in the opening or conclusion:\n"
+                      + "\n".join("  " + b for b in bare[:15]))
+
+
+def test_the_completeness_rule_goes_red_on_a_stripped_interval():
+    """A test of the test: remove an interval from the opening and the rule must fire."""
+    text = REPORT.read_text(encoding="utf-8")
+    stripped = text.replace("**30.0% (33 of 110) [20.0, 40.7]**", "**30.0% (33 of 110)**", 1)
+    assert stripped != text, "the opening sentence changed shape; update this test"
+    saved = REPORT.read_text(encoding="utf-8")
+    try:
+        REPORT.write_text(stripped, encoding="utf-8")
+        fired = False
+        try:
+            test_rates_in_the_opening_and_conclusion_carry_intervals()
+        except AssertionError:
+            fired = True
+        assert fired, "the completeness rule stayed green after an interval was removed"
+    finally:
+        REPORT.write_text(saved, encoding="utf-8")
+
+
 if __name__ == "__main__":
     failures = 0
     for name, fn in sorted(globals().items()):

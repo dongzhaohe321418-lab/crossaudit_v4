@@ -1,8 +1,9 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Fourth version.** Three independent cross-vendor reviews have read this study. Rounds 1
-> and 2 refused quotation approval; **round 3 approved it subject to the corrections made
-> here**, all of which are reporting corrections — no analysis changed. Round 1 found that the headline's "95% exact" interval had
+> **Fifth version.** Four independent cross-vendor reviews have read this study. Rounds 1
+> and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
+> all of which were reporting corrections — no analysis has changed since round 2, and no
+> point estimate has changed since the first version. Round 1 found that the headline's "95% exact" interval had
 > 0.416 coverage. Round 2 found that **its replacement was also wrong** — both check
 > intervals bounded the nuisance parameter by `(1 − |δ|)/2` instead of `(1 − δ)/2`, which
 > is correct only for a non-negative difference and gave 0.075 coverage in the other
@@ -73,7 +74,7 @@ outcomes on all 112 instances**. Eight readings find **two** more defects than t
 single reading (17 → 19). Meanwhile **one reading by the strongest model available
 (`gpt-6-astra`, high reasoning) recalls 30.2% [19.3, 42.0] at 9.7% [5.3, 14.5] false
 positives, matching eight unioned readings of the shipped auditor on recall at less than
-two-thirds of the false-positive cost** (30.0% at 16.0%).
+two-thirds of the false-positive cost** (30.0% [20.0, 40.7] at 16.0% [10.1, 22.3]).
 
 The largest effect measured anywhere in this study came from changing what the auditor was
 told to look for. One added constitution rule — *find what the visible tests do not cover* —
@@ -81,7 +82,8 @@ moved flags on the defect population from 10 of 56 to 25 of 56: **+26.8 points, 
 [13.6, 40.4], exact unconditional [+6.3, +43.7], McNemar p = 0.0003, cluster sign-flip
 p = 0.0009**. **Two contrasts in this study clear the Bonferroni threshold over the sixteen
 comparisons actually computed, and both are this same effect seen two ways**: referent
-against cross on stratum-P flags (+26.8 points, p = 2.7 × 10⁻⁴, cluster p = 8.5 × 10⁻⁴) and
+against cross on stratum-P flags (+26.8 points [13.6, 40.4], p = 2.7 × 10⁻⁴,
+cluster p = 8.5 × 10⁻⁴) and
 on the pooled P + C flags (+19.6 points [11.7, 27.8], p = 3.0 × 10⁻⁶, cluster
 p = 1.0 × 10⁻⁵). **Both are exploratory**: the preregistration named outcome contrasts, not
 flag contrasts.
@@ -112,7 +114,8 @@ one intervention that named the gap moved flags more than anything else tried.
 the 110 stratum-P instances fail because the hidden suite **did not terminate**. The
 registered analysis keeps the registered population; Table 9 narrows it to the 103
 instances with an observed assertion failure, and nothing moves: unions 32 / 18 / 34 against
-33 / 19 / 36, residual 54 of 103 (52.4%) against 57 of 110 (51.8%).
+33 / 19 / 36, and the residual is 54 of 103 (52.4% [40.4, 64.4]) against 57 of 110
+(51.8% [40.4, 63.6]).
 
 **Total spend: $13.23 of a $20 budget, plus 4,427,530 tokens on a subscription-billed route
 that reports no dollar cost.**
@@ -141,6 +144,21 @@ corrected report.
 **What did not change: any point estimate.** The asymptotes, the union curves, the primary
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
+
+### What the fourth review changed
+
+Round 4 reproduced everything again — all 25 tests, all four mutations red, all 233
+pre-existing arrays byte-identical, all 67 new arrays regenerating (comparator bootstraps
+agreeing to 2.8 × 10⁻¹⁷), all 533 version-1 scalars unchanged, the coverage table to twelve
+digits, byte-identical regeneration — and approved subject to four written corrections. All
+four reproduced here first.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | **A coverage label was newly wrong**: the report, Amendment 5 and CORRECTIONS #17 attributed beneficial coverage **0.960 to the pre-fix exact grid**. It is Tango's; the pre-fix exact grid covered **0.997** | re-executing the pre-fix code gives Tango 0.960 / 0.953 and exact grid 0.997 / 0.075 | Fixed in all three places, as a table rather than a sentence. The pre-fix estimators are now **committed as runnable code with their coverages pinned as tests**, so a label cannot drift from its number again. The re-execution also showed something worth saying: **pre-fix Tango covered 0.953 detrimental while still returning wrong intervals** — coverage in the scenarios you happen to test does not certify a method, which is why sign symmetry is what pins this |
+| 2 | The withdrawn blanket "2 to 5 points optimistic" **survived in deviation 19**, as that deviation's own conclusion | verified | Struck through in place and marked superseded by deviation 21, rather than deleted — the deviation record should show what it said |
+| 3 | Interval completeness still incomplete: opening repetitions, conclusion rates, Table 1's last-step gains | verified | Intervals added everywhere named, and **the rule is now mechanical**: a test requires every rate in the opening and conclusion to be followed *adjacently* by an interval, or to be a count. Writing it found two more gaps the review had not listed, including a bare `+26.8 points`. Its own test-of-the-test caught that a first version accepted any later interval in the sentence |
+| 4 | Provenance: `working_tree_at_freeze` still present while the record said removed; 24 events described as individually enumerated when ten run-ID groups were listed; seed inventory missing `+50+total`, `+14`, `+15` | verified | The record now distinguishes **removed** (`finalised_at_commit`) from **retained and rewritten** (`working_tree_at_freeze`, kept because it is true); the event block says plainly that it lists **10 run_ids covering 24 events** with their composition; the seed inventory is complete and **cross-checked against every `BOOT_SEED` offset in the code** |
 
 ### What the third review changed
 
@@ -215,9 +233,9 @@ Every rate carries a 95% **problem-cluster bootstrap** interval; the P populatio
 
 | family | K_max | union recall on P at K=1 [95% CI] | at K_max [95% CI] | fitted asymptote A [95% CI] | union FP on C at K=1 [95% CI] | at K_max [95% CI] | last-step gain | flat? |
 |---|---:|---|---|---|---|---|---:|:---:|
-| `cross` | 8 | 10.7% [5.1, 17.4] | **30.0%** (33/110) [20.0, 40.7] | 31.5% [21.7, 45.6] *(extrapolation)* | 4.5% [2.4, 7.0] | **16.0%** [10.1, 22.3] | 1.93% | **no** |
-| `self` | 8 | 15.5% [7.1, 24.9] | **17.3%** (19/110) [8.3, 27.3] | **16.6%** [8.1, 26.3] | 21.9% [15.5, 28.9] | **24.0%** [17.2, 31.2] | 0.23% | yes |
-| `astra` | 4 | 30.2% [19.3, 42.0] | **32.7%** (36/110) [20.7, 45.0] | **32.5%** [20.5, 44.8] | 9.7% [5.3, 14.5] | **10.7%** [5.9, 16.1] | 0.23% | yes |
+| `cross` | 8 | 10.7% [5.1, 17.4] | **30.0%** (33/110) [20.0, 40.7] | 31.5% [21.7, 45.6] *(extrapolation)* | 4.5% [2.4, 7.0] | **16.0%** [10.1, 22.3] | 1.93% [1.14, 2.78] | **no** |
+| `self` | 8 | 15.5% [7.1, 24.9] | **17.3%** (19/110) [8.3, 27.3] | **16.6%** [8.1, 26.3] | 21.9% [15.5, 28.9] | **24.0%** [17.2, 31.2] | 0.23% [0.00, 0.57] | yes |
+| `astra` | 4 | 30.2% [19.3, 42.0] | **32.7%** (36/110) [20.7, 45.0] | **32.5%** [20.5, 44.8] | 9.7% [5.3, 14.5] | **10.7%** [5.9, 16.1] | 0.23% [0.00, 0.69] | yes |
 ### Table 2 — union recall and union false positives at every K
 
 Unit of analysis: the instance; the same instances at every K, so the columns are repeated measures and not independent samples.
@@ -421,10 +439,23 @@ inward rounding at the endpoint, and is quoted as measured rather than as a guar
 **Both check intervals carried a nuisance-bound defect until the second review found it.**
 They bounded the nuisance `q = p_c` by `(1 − |δ|)/2` where the feasible bound is
 `(1 − δ)/2`. The two are equal for a non-negative difference and diverge sharply for a
-negative one, so the **exact grid** interval covered **0.960 under `D ~ Bin(112, 0.1)` (all beneficial)
-and 0.075 under `C ~ Bin(112, 0.5)` (all detrimental)**, and
-`tango_score_interval(20, 70, 112)` returned [−0.539, −0.358] instead of [−0.577, −0.291].
-Fixed; detrimental-direction coverage is now **0.953 (Tango) and 0.984 (exact grid)**. A **sign-symmetry test** —
+negative one, so the defect was invisible in the direction this study's own results point.
+Re-executing the pre-fix code gives:
+
+| pre-fix method | beneficial `D ~ Bin(112, 0.1)` | detrimental `C ~ Bin(112, 0.5)` |
+|---|---:|---:|
+| Tango, pre-fix | 0.960 | **0.953** |
+| exact grid, pre-fix | 0.997 | **0.075** |
+
+**Two things follow, and an earlier version of this paragraph got the first wrong by
+attributing 0.960 to the exact grid; 0.960 is Tango's.** First, the *coverage* collapse was
+confined to the exact grid: pre-fix Tango still covered 0.953 in the detrimental scenario.
+Second, adequate coverage did not make Tango's *intervals* right —
+`tango_score_interval(20, 70, 112)` returned [−0.539, −0.358] where the correct interval is
+[−0.577, −0.291]. **A method can carry a real defect and still pass a coverage check in the
+scenarios you happen to test**, which is why a sign-symmetry test, not a coverage number, is
+what now pins this. Fixed; detrimental-direction coverage is now **0.953 (Tango) and 0.984
+(exact grid)**. A **sign-symmetry test** —
 swapping b and c must negate and reverse the interval — now pins it, because that asymmetry
 is the defect's fingerprint and was invisible in the direction this study's own results
 happen to point.
@@ -627,7 +658,13 @@ simulation" and that the exact unconditional check "never under-covers". Neither
 the idealised bootstrap covers **0.924** at this n, the committed simulation gives 0.933
 and 0.897, and the exact check is **grid-approximated** with no bound on the missed
 supremum. Both claims are withdrawn and replaced by measured numbers in both directions.
-**Every interval in this report should be read as approximately 2 to 5 points optimistic.**
+~~*Every interval in this report should be read as approximately 2 to 5 points
+optimistic.*~~ **Superseded by deviation 21.** That sentence, written as this deviation's
+own conclusion, is the same over-generalisation the deviation was recording: it takes two
+independent-instance scenarios and applies them to every estimand under a clustered design.
+The supportable statement is in deviation 21 and in the coverage section — **coverage under
+the actual clustered design is unvalidated**, and the per-method, per-scenario figures are
+the only coverage claims this study makes.
 
 **20. The report's tables were re-spliced after the second review.** Between the second and
 third versions the prose was edited but the tables were not re-generated into the document,
@@ -661,6 +698,24 @@ contrast's exact interval was quoted in prose but never stored in the record.
 re-generating the tables into the document, leaving the report a version behind its own
 numbers; the third review caught the second occurrence. `ceiling/splice_tables.py` does it
 in one step and warns if a generated table is missing from the report.
+
+**24. A coverage figure was attributed to the wrong method.** The third version's account
+of the nuisance-bound defect said the *exact grid* covered 0.960 in the beneficial
+direction. **0.960 is Tango's**; the pre-fix exact grid covered 0.997 beneficial and 0.075
+detrimental. Corrected in the report, Amendment 5 and `CORRECTIONS.md` #17, and the pre-fix
+estimators are now committed as runnable code with their coverages asserted, so the label
+and the number cannot drift apart again. *Direction: the error understated how well the
+pre-fix exact grid did in one direction and obscured that the collapse was confined to that
+one method. It changed no result.*
+
+**25. The interval-completeness rule is now mechanical, and it found gaps four reviews had
+not.** Bare rates in the opening and conclusion were corrected by hand after each of the
+first four reviews. A test now requires every percentage or signed pp value in those two
+sections to be followed adjacently by an interval, or to be a count or an exact quantity.
+Writing it exposed **two further gaps no reviewer had listed** — a bare `+26.8 points` in
+the opening and a `51.8%` whose interval sat too far away to read as attached — and its
+test-of-the-test exposed that a first version of the rule accepted any interval later in
+the sentence, including one belonging to a different rate.
 
 ### The beta-tail defect, stated exactly
 
@@ -701,24 +756,25 @@ seconds and was corrected before any prose quoted it.**
 ## What this study licenses, and what it does not
 
 **It licenses**: that on this corpus, a generator's own model auditing and revising its own
-code produced no measurable gain in hidden-test accuracy (+0.89 pp, every interval spanning
-zero); that over eight readings each, its union recall was **below** a cross-vendor
+code produced no measurable gain in hidden-test accuracy (+0.89 pp, cluster CI
+[−3.54, +5.88], every interval spanning zero); that over eight readings each, its union recall was **below** a cross-vendor
 stranger's (raw −12.7 points [−25.0, −0.9]) while its false-positive rate was higher
 (24.0% [17.2, 31.2] against 16.0% [10.1, 22.3]); that
 repetition saturates quickly, and on a temperature-0 route almost immediately; that one
 frontier reading matched eight shipped readings on recall (30.2% [19.3, 42.0] against
 30.0% [20.0, 40.7]) at lower false-positive cost (9.7% [5.3, 14.5] against 16.0%
 [10.1, 22.3]); and
-that **51.8% of this defect population (57 of 110, cluster CI [40.4, 63.6]) was flagged by
-no reading of any family**, dominated by inputs the visible tests never construct.
+that **51.8% [40.4, 63.6] of this defect population (57 of 110) was flagged by no reading
+of any family**, dominated by inputs the visible tests never construct.
 
 **It does not license** the claim that those defects cannot be found. It shows that these
 detectors, over 20 readings, did not find them.
 
 **It does not license** "the referent works". It licenses "**the referent moved what the
 auditor flagged, by more than anything else tried** (+26.8 points on stratum-P flags,
-exploratory, clearing the corrected threshold), **and whether that converts into accuracy is
-not established**" (+5.36 pp against `cross-loop`, p = 0.146). It licenses running that arm
+cluster CI [13.6, 40.4], exploratory, clearing the corrected threshold), **and whether that
+converts into accuracy is not established**" (+5.36 pp against `cross-loop`, cluster CI
+[−0.89, +12.07], p = 0.146). It licenses running that arm
 again, larger, as a primary outcome.
 
 **It does not license** replacing the shipped auditor with `astra`, nor any statement about

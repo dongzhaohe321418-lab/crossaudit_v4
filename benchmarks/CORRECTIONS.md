@@ -391,9 +391,14 @@ independent cross-vendor review found the replacements defective in turn.
 
 Both `tango_score_interval` and `exact_unconditional_interval` bounded the nuisance
 `q = p_c` above by `(1 − |δ|)/2`; the feasible bound is `(1 − δ)/2`. Correct for a
-non-negative difference, wrong for a negative one. Measured for the **exact grid** interval:
-**0.960 under `D ~ Bin(112, 0.1)` (all beneficial) against 0.0752249063 under
-`C ~ Bin(112, 0.5)` (all detrimental)** — reproduced to ten digits before the fix was made.
+non-negative difference, wrong for a negative one. Re-executing the pre-fix code:
+**Tango covered 0.960 beneficial / 0.953 detrimental; the exact grid covered 0.997
+beneficial / 0.0752249063 detrimental** — the last reproduced to ten digits before the fix
+was made. *Corrected 2026-09-06: an earlier version of this entry attributed 0.960 to the
+exact grid. It is Tango's.* The coverage collapse was confined to the exact grid, and
+pre-fix Tango covered adequately while still returning wrong intervals
+(`tango_score_interval(20, 70, 112)` gave [−0.539, −0.358] against [−0.577, −0.291]) — so a
+coverage figure was never going to catch this, and a **sign-symmetry test** is what does.
 Corrected; detrimental coverage is now **0.953 (Tango) and 0.984 (exact grid)**, and a
 sign-symmetry test plus a two-directional coverage enumeration are in the suite.
 
@@ -463,3 +468,25 @@ rather than by the author**, after the interval method (item 15) and the nuisanc
 (item 17). The pattern is worth stating plainly in the corrections record: **every defect in
 this study's statistical machinery has been found by cross-vendor review, and none by the
 author's own tests until those tests were rewritten in response.**
+
+**22. Study 8 attributed a coverage figure to the wrong withdrawn method.**
+Item 17, and the report and preregistration amendment it summarises, said the **pre-fix
+exact-grid** interval covered 0.960 in the beneficial direction. **0.960 is Tango's.**
+Re-executing the pre-fix code: Tango covered **0.960 beneficial / 0.953 detrimental**; the
+exact grid covered **0.997 beneficial / 0.075 detrimental**. Corrected in all three places,
+and the pre-fix estimators are now committed as runnable code with their coverages asserted
+as tests, so a label about a withdrawn method cannot drift from its number.
+
+The re-execution also corrects the shape of the story told in item 17. **The coverage
+collapse was confined to the exact grid**, and **pre-fix Tango covered adequately while
+still returning wrong intervals** — `tango_score_interval(20, 70, 112)` gave
+[−0.539, −0.358] against the correct [−0.577, −0.291]. A coverage check in two chosen
+scenarios was never going to catch that defect; a sign-symmetry test does.
+
+**23. Study 8's blanket under-coverage claim survived its own withdrawal.**
+Item 20 withdrew "every interval should be read as roughly 2 to 5 percentage points
+optimistic". The sentence nonetheless remained in the report as deviation 19's own
+conclusion. It is now struck through in place and marked superseded, rather than deleted,
+so the deviation record shows what it said. **The live claim is the per-method,
+per-scenario coverage table, plus the statement that coverage under the actual clustered
+design is unvalidated.**

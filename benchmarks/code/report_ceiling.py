@@ -759,6 +759,25 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
                             else 0.0) for i in ids},
                         ids, instances, BOOTSTRAP, BOOT_SEED + 20 + K)["cluster_ci95"]
                     for K in range(1, len(complete) + 1)],
+                # The last-step gain is a difference of two means over the SAME
+                # instances, so it gets a per-instance value and the same cluster
+                # bootstrap as everything else rather than being quoted bare.
+                "last_step_gain_block": (clustered_mean(
+                    {i: ((1.0 - (math.comb(len(complete) - sum(
+                        1 for d in complete if draws[family][d].get(i)), len(complete))
+                        / math.comb(len(complete), len(complete))
+                        if len(complete) - sum(1 for d in complete
+                                               if draws[family][d].get(i)) >= len(complete)
+                        else 0.0))
+                        - (1.0 - (math.comb(len(complete) - sum(
+                            1 for d in complete if draws[family][d].get(i)),
+                            len(complete) - 1)
+                            / math.comb(len(complete), len(complete) - 1)
+                            if len(complete) - sum(1 for d in complete
+                                                   if draws[family][d].get(i))
+                            >= len(complete) - 1 else 0.0)))
+                     for i in ids}, ids, instances, BOOTSTRAP, BOOT_SEED + 60)
+                    if len(complete) >= 2 else None),
                 "draw1_block": clustered_mean(
                     {i: sum(1 for d in complete if draws[family][d].get(i)) / len(complete)
                      for i in ids}, ids, instances, BOOTSTRAP, BOOT_SEED + 3),
@@ -1308,7 +1327,9 @@ def tables(numbers: dict) -> str:
             f"{pct(C['draw1_block']['rate'])} {ci(C['draw1_block']['cluster_ci95'])} | "
             f"**{pct(C['union_at_kmax'])}** "
             f"{ci(C['union_at_kmax_block']['cluster_ci95'])} | "
-            f"{pct(P['marginal_gain_last_step'], 2)} | {flat} |")
+            f"{pct(P['marginal_gain_last_step'], 2)} "
+            f"{ci(P['last_step_gain_block']['cluster_ci95'], 2) if P.get('last_step_gain_block') else ''}"
+            f" | {flat} |")
     lines.append("")
     lines.append("### Table 2 — union recall and union false positives at every K\n")
     lines.append("Unit of analysis: the instance; the same instances at every K, so the "

@@ -136,25 +136,33 @@ def route_metadata() -> dict:
     return out
 
 
-#: Fields written by an earlier finalisation that a later one supersedes. They are
-#: REMOVED, not left beside their replacements: a manifest that carries both a wrong
-#: `finalised_at_commit` and a corrective `analysis_freeze` block contradicts itself, and a
-#: reader has no way to know which one is live. The third review found exactly that.
-SUPERSEDED_FIELDS = ("finalised_at_commit", "working_tree_at_freeze")
+#: Removed outright: contradicted by what replaced it and carrying no information the
+#: replacement lacks. `finalised_at_commit` named the PARENT of the analysis commit while
+#: claiming to be the analysis freeze.
+REMOVED_FIELDS = ("finalised_at_commit",)
+
+#: Retained but REWRITTEN on every run. Listed separately because the fourth review found
+#: the manifest claiming `working_tree_at_freeze` had been removed while it was still
+#: present. It is present, deliberately: both manifests WERE written mid-run against dirty
+#: trees, so the fact is true and worth keeping — only its wording needed correcting.
+REWRITTEN_FIELDS = ("working_tree_at_freeze",)
 
 
 def _drop_superseded(manifest: dict) -> None:
-    removed = [f for f in SUPERSEDED_FIELDS if f in manifest]
+    removed = [f for f in REMOVED_FIELDS if f in manifest]
     for field in removed:
         manifest.pop(field)
-    if removed:
-        manifest["superseded_fields_removed"] = {
-            "fields": removed,
-            "why": "written by an earlier finalisation and contradicted by the fields "
-                   "that replaced them (analysis_freeze, provenance_note). Removed rather "
-                   "than left in place; the third cross-vendor review found them still "
-                   "present and reported as renamed when they were not.",
-        }
+    manifest["superseded_fields"] = {
+        "removed": removed,
+        "removed_why": "contradicted by the field that replaced it (analysis_freeze): "
+                       "`finalised_at_commit` named the parent of the analysis commit "
+                       "while claiming to be the analysis freeze.",
+        "retained_and_rewritten": list(REWRITTEN_FIELDS),
+        "retained_why": "still true and still useful, so kept and re-worded on every "
+                        "finalisation rather than deleted. An earlier version of this "
+                        "record said it had been REMOVED; it had not, and the fourth "
+                        "cross-vendor review caught the discrepancy.",
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -168,11 +176,28 @@ def main(argv: list[str] | None = None) -> int:
     shared = {
         "analysis_seeds": {
             "bootstrap": 20260908,
-            "derived": "report_ceiling.py offsets BOOT_SEED per quantity; the residual "
-                       "share uses BOOT_SEED + 4 = 20260912, residual categories "
-                       "BOOT_SEED + 11, the timeout sensitivity BOOT_SEED + 12 and + 13, "
-                       "the union curves BOOT_SEED + 20 + K, the mixed families "
-                       "BOOT_SEED + 30 + per_family",
+            "derived_offsets": {
+                "BOOT_SEED": 20260908,
+                "+3  draw-1 mean per family": 20260911,
+                "+4  residual share": 20260912,
+                "+5/+6  loop flag rates P/C": [20260913, 20260914],
+                "+8/+9  fixed-on-P / broken-on-C": [20260916, 20260917],
+                "+11 residual categories": 20260919,
+                "+12 timeout sensitivity, assertion-only unions": 20260920,
+                "+13 timeout sensitivity, assertion-only residual": 20260921,
+                "+14 timeout sensitivity, registered unions": 20260922,
+                "+15 timeout sensitivity, registered residual": 20260923,
+                "+20+K  union curve at each K": "20260928 .. 20260936 for K = 8 .. 16",
+                "+30+per_family  mixed families": "20260938 .. 20260946",
+                "+50+total  Table 4 single-family comparators": "20260958 .. 20260974",
+                "+60 last-step gain": 20260968,
+                "+7  sign-flip sampling fallback": 20260915,
+                "+1  primary asymptote difference": 20260909,
+                "+2  (unused since amendment 4)": 20260910,
+            },
+            "completeness": "every offset report_ceiling.py uses is listed above; the "
+                            "fourth review found +50+total, +14 and +15 missing while the "
+                            "manifest claimed to be sufficient on its own",
             "loop_sample": 20260907,
             "note": "recorded here as well as in numbers.json and the preregistration, "
                     "so the manifest alone is sufficient to reproduce every interval",
@@ -332,6 +357,16 @@ def main(argv: list[str] | None = None) -> int:
         "by_run_id": dict(sorted(m2_unmatched.items())),
         "by_run_id_prefix": by_prefix,
         "total": sum(m2_unmatched.values()),
+        "grouping_note": "`by_run_id` lists every DISTINCT run_id with its event count — "
+                         f"{len(m2_unmatched)} run_ids covering "
+                         f"{sum(m2_unmatched.values())} ledger events. It is not a list of "
+                         "individual event records: the ledger writes one event per "
+                         "completion and several completions share a run_id. An earlier "
+                         "version of this manifest was described as enumerating the "
+                         "events individually; it enumerates the run_ids. Individual "
+                         "events are in the archived ledgers themselves.",
+        "composition": "2 credential probes, 16 pilot audit completions (8 instances x 2 "
+                       "events) and 6 pilot revision completions",
         "why": "run_ids minted before the per-invocation stamp was introduced "
                "(deviation 6) — the discarded pilots. Their spend IS counted in the "
                "ledger totals; they simply have no invocation stamp to group by.",

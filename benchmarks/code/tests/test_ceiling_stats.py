@@ -375,3 +375,145 @@ def test_fit_saturation_respects_its_registered_bound():
     bootstrap path treats the boundary identically."""
     assert rc.fit_saturation(rc.union_curve([1] * 110, 8))["A"] == 1.0
     assert 0.0 <= rc.fit_saturation(rc.union_curve([0] * 110, 8))["A"] <= 1.0
+
+
+# ---------------------------------------------------------------------------------
+# The pre-fix methods, kept executable so a coverage LABEL cannot drift from its number.
+# The fourth review found the report attributing 0.960 to the pre-fix exact grid; 0.960
+# is Tango's and the exact grid's is 0.997. A prose claim about a withdrawn method is
+# still a claim, and this is how it stays checkable.
+# ---------------------------------------------------------------------------------
+
+def _prefix_bound(d: float) -> float:
+    """The defective nuisance upper bound: (1 - |delta|)/2 instead of (1 - delta)/2."""
+    return (1.0 - abs(d)) / 2
+
+
+def prefix_tango(b: int, c: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
+    z = 1.959963984540054
+
+    def q_hat(d):
+        lo, hi = max(0.0, -d) + 1e-12, _prefix_bound(d) - 1e-12
+        if hi <= lo:
+            return max(lo, 0.0)
+
+        def deriv(q):
+            rest = 1.0 - 2 * q - d
+            if q + d <= 0 or q <= 0 or rest <= 0:
+                return float("inf")
+            return b / (q + d) + c / q - 2 * (n - b - c) / rest
+
+        if deriv(lo) < 0:
+            return lo
+        if deriv(hi) > 0:
+            return hi
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if deriv(mid) > 0:
+                lo = mid
+            else:
+                hi = mid
+        return (lo + hi) / 2
+
+    def score(d):
+        var = n * (2 * q_hat(d) + d * (1 - d))
+        if var <= 0:
+            return float("inf") if (b - c - n * d) > 0 else float("-inf")
+        return (b - c - n * d) / math.sqrt(var)
+
+    point = (b - c) / n
+
+    def solve(target, lo, hi):
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if score(mid) > target:
+                lo = mid
+            else:
+                hi = mid
+        return (lo + hi) / 2
+
+    return (solve(z, -1.0 + 1e-9, point), solve(-z, point, 1.0 - 1e-9))
+
+
+def prefix_exact(b: int, c: int, n: int, alpha: float = 0.05, grid: int = 40,
+                 gamma: float = 1e-4) -> tuple[float, float]:
+    logfac = [0.0] * (n + 1)
+    for i in range(1, n + 1):
+        logfac[i] = logfac[i - 1] + math.log(i)
+    cells = [(x, y) for x in range(n + 1) for y in range(n + 1 - x)]
+    coef = {(x, y): logfac[n] - logfac[x] - logfac[y] - logfac[n - x - y] for x, y in cells}
+    t_obs = b - c
+    s_lo, s_hi = rc.clopper_pearson(b + c, n, alpha=gamma)
+
+    def maximised_p(d):
+        lo_q = max(0.0, -d, (s_lo - d) / 2)
+        hi_q = min(_prefix_bound(d), (s_hi - d) / 2)
+        if hi_q < lo_q:
+            return 0.0
+        best = 0.0
+        for g in range(grid + 1):
+            q = lo_q + (hi_q - lo_q) * g / grid
+            pb, pc = q + d, q
+            rest = 1.0 - pb - pc
+            if pb < 0 or pc < 0 or rest < -1e-12:
+                continue
+            lpb = math.log(pb) if pb > 0 else float("-inf")
+            lpc = math.log(pc) if pc > 0 else float("-inf")
+            lre = math.log(rest) if rest > 0 else float("-inf")
+            total, centre = 0.0, n * d
+            for x, y in cells:
+                if abs((x - y) - centre) < abs(t_obs - centre) - 1e-9:
+                    continue
+                if (x > 0 and lpb == float("-inf")) or (y > 0 and lpc == float("-inf")):
+                    continue
+                if (n - x - y) > 0 and lre == float("-inf"):
+                    continue
+                lp = (coef[(x, y)] + (x * lpb if x else 0.0) + (y * lpc if y else 0.0)
+                      + ((n - x - y) * lre if (n - x - y) else 0.0))
+                if lp > -60:
+                    total += math.exp(lp)
+            best = max(best, min(1.0, total))
+            if best + gamma > alpha:
+                return best + gamma
+        return best + gamma
+
+    point = (b - c) / n
+
+    def edge(direction):
+        lo, hi = point, float(direction)
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            if maximised_p(mid) > alpha:
+                lo = mid
+            else:
+                hi = mid
+        return lo
+
+    return (edge(-1), edge(1))
+
+
+def test_the_withdrawn_methods_coverages_are_attributed_to_the_right_method():
+    """0.960 is Tango's; the pre-fix exact grid was 0.997 beneficial and 0.075 detrimental.
+
+    The report, the preregistration amendment and the corrections record all make claims
+    about what the *withdrawn* methods covered. Those claims are checked here, because a
+    withdrawn method's number is still a number and the fourth review found it mislabelled.
+    """
+    assert abs(_scenario_coverage(prefix_tango) - 0.9603704095) < 1e-6
+    assert abs(_scenario_coverage(prefix_tango, q=0.5, beneficial=False)
+               - 0.9532649318) < 1e-6
+    assert abs(_scenario_coverage(prefix_exact) - 0.9968790922) < 1e-6
+    assert abs(_scenario_coverage(prefix_exact, q=0.5, beneficial=False)
+               - 0.0752249063) < 1e-6
+
+
+def test_the_prefix_defect_was_in_the_endpoints_not_only_the_coverage():
+    """Pre-fix Tango covered 0.953 detrimental and still returned a wrong interval.
+
+    This is the reason the suite pins sign symmetry rather than trusting coverage: a
+    coverage check in the scenarios you happen to pick can pass while the method is wrong.
+    """
+    lo, hi = prefix_tango(20, 70, 112)
+    assert abs(lo - (-0.53875)) < 1e-4 and abs(hi - (-0.35766)) < 1e-4, (lo, hi)
+    good_lo, good_hi = rc.tango_score_interval(20, 70, 112)
+    assert abs(good_lo - (-0.576935)) < 1e-5 and abs(good_hi - (-0.290872)) < 1e-5

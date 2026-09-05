@@ -543,10 +543,15 @@ reproduced before anything was changed.
 nuisance parameter `q = p_c` above by `(1 − |δ|)/2`. The feasible region is
 `max(0, −δ) ≤ q ≤ (1 − δ)/2`. The two agree for `δ ≥ 0` and diverge for `δ < 0`, so the
 implementations were correct in the direction this study's own results happen to point and
-wrong in the other. Measured for the **exact grid** interval: **0.960 under
-`D ~ Bin(112, 0.1)` (all beneficial) against 0.075 under `C ~ Bin(112, 0.5)` (all
-detrimental)**. Corrected; detrimental coverage is now **0.953 (Tango) and 0.984 (exact
-grid)**.
+wrong in the other. Re-executing the pre-fix code: **Tango covered 0.960 beneficial and
+0.953 detrimental; the exact grid covered 0.997 beneficial and 0.075 detrimental.** The
+coverage collapse was confined to the exact grid. *Corrected 2026-09-06 after the fourth
+review, which found an earlier version of this sentence attributing 0.960 to the exact grid;
+0.960 is Tango's.* Note that pre-fix Tango's coverage was adequate while its intervals were
+still wrong — `tango_score_interval(20, 70, 112)` returned [−0.539, −0.358] against the
+correct [−0.577, −0.291] — so a coverage figure was never going to catch this defect, and
+the sign-symmetry test is what does. Corrected; detrimental coverage is now **0.953 (Tango)
+and 0.984 (exact grid)**.
 
 **The overstatement.** Amendment 4 said the primary bootstrap had 0.95 nominal coverage and
 that the exact check "never under-covers". Measured at this study's own n = 112:

@@ -7,7 +7,32 @@
   },
   "analysis_seeds": {
     "bootstrap": 20260908,
-    "derived": "report_ceiling.py offsets BOOT_SEED per quantity; the residual share uses BOOT_SEED + 4 = 20260912, residual categories BOOT_SEED + 11, the timeout sensitivity BOOT_SEED + 12 and + 13, the union curves BOOT_SEED + 20 + K, the mixed families BOOT_SEED + 30 + per_family",
+    "completeness": "every offset report_ceiling.py uses is listed above; the fourth review found +50+total, +14 and +15 missing while the manifest claimed to be sufficient on its own",
+    "derived_offsets": {
+      "+1  primary asymptote difference": 20260909,
+      "+11 residual categories": 20260919,
+      "+12 timeout sensitivity, assertion-only unions": 20260920,
+      "+13 timeout sensitivity, assertion-only residual": 20260921,
+      "+14 timeout sensitivity, registered unions": 20260922,
+      "+15 timeout sensitivity, registered residual": 20260923,
+      "+2  (unused since amendment 4)": 20260910,
+      "+20+K  union curve at each K": "20260928 .. 20260936 for K = 8 .. 16",
+      "+3  draw-1 mean per family": 20260911,
+      "+30+per_family  mixed families": "20260938 .. 20260946",
+      "+4  residual share": 20260912,
+      "+5/+6  loop flag rates P/C": [
+        20260913,
+        20260914
+      ],
+      "+50+total  Table 4 single-family comparators": "20260958 .. 20260974",
+      "+60 last-step gain": 20260968,
+      "+7  sign-flip sampling fallback": 20260915,
+      "+8/+9  fixed-on-P / broken-on-C": [
+        20260916,
+        20260917
+      ],
+      "BOOT_SEED": 20260908
+    },
     "loop_sample": 20260907,
     "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval"
   },
@@ -28,6 +53,8 @@
       "ceiling-loop": 2,
       "ceiling-loop-self-loop": 22
     },
+    "composition": "2 credential probes, 16 pilot audit completions (8 instances x 2 events) and 6 pilot revision completions",
+    "grouping_note": "`by_run_id` lists every DISTINCT run_id with its event count \u2014 10 run_ids covering 24 ledger events. It is not a list of individual event records: the ledger writes one event per completion and several completions share a run_id. An earlier version of this manifest was described as enumerating the events individually; it enumerates the run_ids. Individual events are in the archived ledgers themselves.",
     "total": 24,
     "why": "run_ids minted before the per-invocation stamp was introduced (deviation 6) \u2014 the discarded pilots. Their spend IS counted in the ledger totals; they simply have no invocation stamp to group by."
   },
@@ -139,9 +166,9 @@
   "code": {
     "commit": "b68e7fa50120450b1f38297462386e88b90a7365",
     "files": {
-      "benchmarks/code/ceiling/PREREGISTRATION.md": "75b5617e5b920260968e55c29ffd3ae95c35c95145a19330591e7f0c12cfe60c",
+      "benchmarks/code/ceiling/PREREGISTRATION.md": "a7aaa5d162f0bf68e3dbd146fdd8c91c9f7cfa9cfb9f5ac79167824f35471e8c",
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
-      "benchmarks/code/report_ceiling.py": "bf06b09e4956891c877b778ea740d06d135616a00b1714226f3e461319820e4a"
+      "benchmarks/code/report_ceiling.py": "c736b4fab76d04e6a0d34ed72289866eb84f55e3e281e974bb6895b767d3c03b"
     },
     "status_porcelain": " M benchmarks/code/loop.py\n?? benchmarks/code/ceiling/archive.sh\n?? benchmarks/code/records/ceiling/\n"
   },
@@ -156,8 +183,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "d9bf61efd8786779ae0d22ae470641bae43c8800",
-  "finalised_utc": "2026-09-05T17:12:12Z",
+  "finalised_on_parent_commit": "1750bfde3b7bf008016ed16cfb82a9792a295d35",
+  "finalised_utc": "2026-09-05T18:01:47Z",
   "package_versions": {
     "anthropic": "not installed",
     "certifi": "2026.7.22",
@@ -831,6 +858,14 @@
   },
   "spend_usd_total": 3.708342,
   "study": "ceiling (study 8), ceiling 2 \u2014 the closed loop",
+  "superseded_fields": {
+    "removed": [],
+    "removed_why": "contradicted by the field that replaced it (analysis_freeze): `finalised_at_commit` named the parent of the analysis commit while claiming to be the analysis freeze.",
+    "retained_and_rewritten": [
+      "working_tree_at_freeze"
+    ],
+    "retained_why": "still true and still useful, so kept and re-worded on every finalisation rather than deleted. An earlier version of this record said it had been REMOVED; it had not, and the fourth cross-vendor review caught the discrepancy."
+  },
   "superseded_fields_removed": {
     "fields": [
       "working_tree_at_freeze"
