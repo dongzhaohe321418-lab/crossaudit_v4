@@ -236,7 +236,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    对真实 git 断言删除的暂存与提交序列；**rebase 时发现真缺陷**——旧技能清理按文件系统路径寻址，
    在 `skills -> work/guidance` 下会删掉 `work/guidance/provenance.md`（git 视为工作），
    正是 D156 的"两个目录身份"在迁移代码里重现，现改为经 `house_dir()`，别名即 ConfigDenial
-   而非删除。第七轮复核中，预计合并。**
+   而非删除。**全套 3173 / 8 已在我的主机上独立核实（6ea38ba）。** 第七轮复核中，预计合并。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
