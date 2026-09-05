@@ -6819,3 +6819,65 @@ exactly. No p-value was copied from an unrelated comparison. And the
 false-positive half of the cross-vendor finding — that a stranger flags fewer
 correct outputs — stands, which is the half that decides whether anyone adopts
 the tool.
+
+## D154 — The model rung flips its own verdict 30% of the time on identical bytes, and it is not a setting we can turn
+
+Study 6 replayed the shipped cross-vendor audit four times over the same 20
+byte-fixed drafts, same constitution, same auditor, same commit. The aggregate
+was reproducible to the decimal — pooled round-one recall 23.5, 19.4, 25.5,
+25.5, SD 2.89 pp, comfortably inside the preregistered kill condition. Almost
+nothing underneath it was:
+
+| repeated over four identical runs | stable |
+|---|---|
+| pooled recall (the aggregate) | to the decimal |
+| per-instance recall | 4 of 20 |
+| per-instance finding count | **2 of 20** |
+| per-instance BLOCKED/PASS verdict | **14 of 20** |
+
+**Re-running the identical audit over the identical commit changes whether the
+work is stopped on 6 of 20 instances.** Recomputed here from the committed rows
+before being accepted, per D153; the first recomputation was wrong (a file
+ordering bug let failed rows supersede their retries) and the corrected one
+matches the study exactly.
+
+**It is not a configuration defect.** The broker already sends `temperature: 0`
+to every model whose capability card accepts one. The auditor model's card
+carries `temperature=False`, because reasoning models of this generation accept
+only their own default — the field is withheld deliberately rather than
+forgotten. There is no knob. Verdict instability is a property of putting a
+reasoning model on the rung, not of how we called it.
+
+**What this does not touch.** The deterministic rung is unaffected: DCL blockers
+are stable by construction, and a failed check blocks whatever the model says.
+The receipt is not weakened either — it binds what actually happened on that run,
+which remains true and re-derivable. What changes is what a *single* model
+verdict is worth as evidence about the work.
+
+**What it settles.** `RESULTS-GATE.md` found nothing that predicts a harmful
+revision and could only say so as an absence. This supplies the mechanism: the
+best candidate predictor, the finding count, has a within-instance re-run spread
+of 1.45 against a between-instance range of 0–5. The signal is smaller than the
+noise in the signal. That negative result is now settled rather than unproven.
+
+**What it bears on, and does not decide.** D144 held `authority.lone_model_blocker`
+at the conservative `block` and said the default moves "when finding-states
+produce a confirmation rate, not before". The relevant number has arrived from a
+different direction: a lone model BLOCKER, re-run on the same bytes, is not the
+same verdict about 30% of the time. That is evidence about **stability**, not
+about correctness — an unstable finding can still be right when it fires, and
+study 5 measured this auditor filing 160 of 160 findings as BLOCKER, which is a
+severity property and not a reliability one.
+
+Two responses are available and they are not equivalent. Best-of-K voting on the
+model rung would reduce flips at K× the cost, and this project has already
+measured one composition scheme failing badly: study 2 in the code harness found
+two-stage filtering cut recall to 3.6% to remove 1.3 points of false positives.
+Alternatively the default moves to `escalate`, which routes a lone model blocker
+to a person instead of stopping the work — the Observe-shaped default D142
+declined to adopt on argument alone, now with a measurement attached.
+
+**This is a product decision and it stays with the owner.** What engineering owes
+it is the number, which is above, and the statement that no configuration change
+will make it go away.
+
