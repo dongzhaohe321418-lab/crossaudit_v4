@@ -213,7 +213,18 @@ def annotation_skills_owned(target: Path, checks) -> list[str]:
     and both callers dropped it, so the file was deleted from the tree and left
     alive in the commit. A removal only counts once it is staged, and it is only
     safe to stage when git already tracks it (`tracked_paths`).
+
+    **The directory is resolved before anything is written.** Pruning validated
+    it and writing did not, so on `skills -> work/guidance` this wrote
+    `work/guidance/provenance-numbers.md` and `-sources.md` into somebody's WORK
+    and only then refused — the denial arriving after the damage it exists to
+    prevent, and on a path where the two files are audited as work rather than
+    read as guidance. Setup either writes guidance into the one directory
+    `house_dir` accepts, or it writes nothing and says why.
     """
+    from .. import skills as skills_mod
+
+    skills_mod.house_dir(Path(target))          # denies an alias before a write
     written = write_tree(target, annotation_skill_tree(checks))
     return written + tracked_paths(target, prune_legacy_annotation_skill(target))
 

@@ -1310,85 +1310,156 @@ def _git(root, *args, **kw):
                           text=True, check=kw.get("check", True)).stdout
 
 
-@pytest.mark.parametrize("path_name", ["cli", "console"])
-@pytest.mark.parametrize("rendering", ["numbers.md", "sources.md", "both.md"])
-def test_a_tracked_legacy_skill_is_removed_and_the_deletion_is_staged(
-        tmp_path, monkeypatch, path_name, rendering):
-    """MUTATION: drop the removal from what either creation path stages.
+def _run_creation(path_name, tmp_path, monkeypatch, name):
+    """Drive ONE of the two real creation entry points and return its root.
 
-    Both callers discarded the returned list, so the file was deleted from the
-    working tree and left alive in the commit — a migration that runs and does
-    not stick. They now share `wizard.annotation_skills_owned`, which is the one
-    production statement both paths execute, and this drives it against REAL git
-    for every historical rendering.
-
-    `path_name` names which creation path's statement is under test; both
-    resolve to the same function precisely so that neither can quietly stop
-    doing it, and the parametrisation is what makes that visible if they
-    diverge again."""
+    `wizard.run` is the `crossaudit init` path and `projects.create_project` is
+    the console path. Both are entered here, not stood in for: an earlier
+    version of these tests mapped both labels onto the shared helper and created
+    every project through the console, so deleting the CLI caller's invocation
+    of that helper would not have reddened anything.
+    """
     from crossaudit.cli import wizard
-    from crossaudit.config import load
     from crossaudit.console import projects
+
+    monkeypatch.delenv("CROSSAUDIT_AUDITOR_KEY", raising=False)
+    if path_name == "cli":
+        target = tmp_path / name
+        wizard.run(target, mode="local", profile="science")
+        return target
+    return Path(projects.create_project(
+        tmp_path,
+        {"name": name, "description": "Numbers need units and sources.",
+         "max_rounds": 3, "auditor_vendor": "openai", "auditor_model": "gpt-5.6-sol",
+         "generator_vendor": "anthropic", "generator_model": "claude-sonnet-4-6",
+         "github": False, "project_type": "science"},
+        lambda *_: None)["root"])
+
+
+def _inject_legacy_before_the_helper(monkeypatch, rendering, commit: bool):
+    """Put a pre-split `skills/provenance.md` in the project at the moment the
+    creation path reaches `annotation_skills_owned`, and record that it did.
+
+    This is the seam BOTH production paths go through, and patching it on the
+    `wizard` module intercepts each of them — `projects.py` looks the name up on
+    the module and `wizard.py` looks it up as a module global. If either caller
+    stops invoking it, the spy never runs, no legacy file is ever created, and
+    the assertions below fail: which is the coverage the previous version of
+    this test claimed and did not have.
+    """
+    from crossaudit.cli import wizard
     from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
 
-    call = {"cli": wizard.annotation_skills_owned,
-            "console": lambda t, c: wizard.annotation_skills_owned(t, c)}[path_name]
-    assert projects.wizard.annotation_skills_owned is wizard.annotation_skills_owned
+    real = wizard.annotation_skills_owned
+    seen: list[Path] = []
 
-    root = _science_project(tmp_path, monkeypatch, f"lab{path_name}{rendering[:3]}")
-    checks = load(root / "crossaudit.yml").checks
+    def spy(target, checks):
+        root = Path(target)
+        (root / "skills").mkdir(parents=True, exist_ok=True)
+        (root / LEGACY_ANNOTATION_SKILL).write_bytes(
+            (LEGACY_FIXTURES / rendering).read_bytes())
+        if commit:
+            _git(root, "add", "--", LEGACY_ANNOTATION_SKILL)
+            _git(root, "-c", "user.name=t", "-c", "user.email=t@t.invalid",
+                 "commit", "-qm", "legacy skill from a previous version")
+        seen.append(root)
+        return real(target, checks)
 
-    legacy = root / LEGACY_ANNOTATION_SKILL
-    legacy.write_bytes((LEGACY_FIXTURES / rendering).read_bytes())
-    _git(root, "add", "--", LEGACY_ANNOTATION_SKILL)
-    _git(root, "-c", "user.name=t", "-c", "user.email=t@t.invalid",
-         "commit", "-qm", "legacy skill")
-    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip()
-
-    owned = call(root, checks)
-    assert LEGACY_ANNOTATION_SKILL in owned
-    assert not legacy.exists()
-    # Deleted in the working tree and not yet staged — which is exactly the
-    # state the first version left it in permanently, because the path never
-    # reached `commit_setup`.
-    assert _git(root, "status", "--porcelain").splitlines() == [
-        f" D {LEGACY_ANNOTATION_SKILL}"]
-    assert _git(root, "diff", "--cached", "--name-only").strip() == ""
-
-    # This is the assertion the reviewer could not make in a read-only sandbox:
-    # the deletion reaches the index and then the commit.
-    wizard.commit_setup(root, owned)
-    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip() == ""
-    assert _git(root, "status", "--porcelain").strip() == ""
-    assert f"D\t{LEGACY_ANNOTATION_SKILL}" in _git(
-        root, "show", "--name-status", "--format=", "HEAD")
+    monkeypatch.setattr(wizard, "annotation_skills_owned", spy)
+    return seen
 
 
 @pytest.mark.parametrize("path_name", ["cli", "console"])
-def test_an_untracked_legacy_skill_is_removed_and_nothing_is_staged_for_it(
+@pytest.mark.parametrize("rendering", ["numbers.md", "sources.md", "both.md"])
+def test_each_creation_path_removes_a_tracked_legacy_skill_and_commits_it(
+        tmp_path, monkeypatch, path_name, rendering):
+    """MUTATION: delete either path's call to `annotation_skills_owned`, or drop
+    the removal from what it returns.
+
+    Both callers once discarded the removal, so the file was deleted from the
+    working tree and left alive in the commit — a migration that runs and does
+    not stick. The legacy file is injected INSIDE each real creation path, at
+    the moment it reaches the shared helper, and the assertions run on the
+    project that path produced."""
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL as legacy_path
+
+    seen = _inject_legacy_before_the_helper(monkeypatch, rendering, commit=True)
+    root = _run_creation(path_name, tmp_path, monkeypatch,
+                         f"lab{path_name}{rendering[:3]}")
+
+    assert seen == [root], "the creation path never reached the shared helper"
+    assert not (root / legacy_path).exists()
+    # Committed, not merely deleted: gone from the index, tree clean, and the
+    # deletion visible in the setup commit this path wrote.
+    assert _git(root, "ls-files", "--", legacy_path).strip() == ""
+    assert _git(root, "status", "--porcelain").strip() == ""
+    # `--no-renames`, because git's similarity heuristic reports the removal as
+    # a rename to `provenance-numbers.md` for two of the three renderings. The
+    # end state is the claim — the path left the tree in this commit — and it
+    # must not depend on how similar the replacement happens to be.
+    assert f"D\t{legacy_path}" in _git(
+        root, "log", "--no-renames", "--name-status", "--format=", "-3")
+    # And the skill the checks DO want is there, committed, in its own file.
+    assert (root / NUMBERS_SKILL).is_file()
+    assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == NUMBERS_SKILL
+
+
+@pytest.mark.parametrize("path_name", ["cli", "console"])
+def test_each_creation_path_removes_an_untracked_legacy_skill_without_staging_it(
         tmp_path, monkeypatch, path_name):
     """MUTATION: stage the removal without checking that git tracks the path.
 
     `git add -- <path>` on a pathspec that neither exists nor is tracked is
-    FATAL, so an untracked leftover would turn setup into a denial over a file
-    nobody was tracking. It is still removed; it is simply not staged."""
-    from crossaudit.cli import wizard
-    from crossaudit.config import load
-    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
+    FATAL, so an untracked leftover would turn setup itself into a denial over a
+    file nobody was tracking. It is still removed; it is simply not staged, and
+    the creation path completes."""
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL as legacy_path
 
-    root = _science_project(tmp_path, monkeypatch, f"lab{path_name}untracked")
-    checks = load(root / "crossaudit.yml").checks
+    seen = _inject_legacy_before_the_helper(monkeypatch, "both.md", commit=False)
+    root = _run_creation(path_name, tmp_path, monkeypatch, f"lab{path_name}untracked")
 
-    legacy = root / LEGACY_ANNOTATION_SKILL
-    legacy.write_bytes((LEGACY_FIXTURES / "both.md").read_bytes())
-    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip() == ""
-
-    owned = wizard.annotation_skills_owned(root, checks)
-    assert LEGACY_ANNOTATION_SKILL not in owned
-    assert not legacy.exists()
+    assert seen == [root]
+    assert not (root / legacy_path).exists()
     assert _git(root, "status", "--porcelain").strip() == ""
-    # And `commit_setup` over what was returned does not raise.
-    wizard.commit_setup(root, owned)
+    assert _git(root, "ls-files", "--", legacy_path).strip() == ""
+
+
+@pytest.mark.parametrize("alias", ["symlink", "case", "file"])
+def test_setup_writes_no_guidance_through_an_alias(tmp_path, alias):
+    """MUTATION: write before validating — `write_tree(...)` above the
+    `house_dir` call.
+
+    Pruning validated the guidance directory and writing did not, so on
+    `skills -> work/guidance` setup wrote `provenance-numbers.md` and
+    `-sources.md` into somebody's WORK and only then refused: the denial
+    arriving after the damage it exists to prevent, and on a path where those
+    two files are audited as work rather than read as guidance. The whole
+    destination tree is snapshotted, not just the legacy file, because the
+    defect was files nobody was looking for."""
+    from crossaudit.cli import wizard
+    from crossaudit.errors import ConfigDenial
+
+    root = tmp_path / f"lab{alias}"
+    root.mkdir()
+    if alias == "symlink":
+        (root / "work" / "guidance").mkdir(parents=True)
+        (root / "work" / "guidance" / "note.md").write_text("mine\n")
+        (root / "skills").symlink_to(root / "work" / "guidance")
+    elif alias == "case":
+        (root / "SKILLS").mkdir()
+        (root / "SKILLS" / "note.md").write_text("mine\n")
+    else:
+        (root / "skills").write_text("i am a file\n")
+
+    def snapshot():
+        return sorted((str(p.relative_to(root)),
+                       p.read_bytes() if p.is_file() and not p.is_symlink() else b"")
+                      for p in root.rglob("*"))
+
+    before = snapshot()
+    with pytest.raises(ConfigDenial):
+        wizard.annotation_skills_owned(root, ["number_source", "source_provenance"])
+    assert snapshot() == before, "setup wrote guidance through an alias"
 
 
 def test_a_project_with_no_legacy_skill_is_untouched(tmp_path, monkeypatch):
@@ -1555,10 +1626,16 @@ def test_an_explicit_positive_exponent_is_never_a_negative_one(exponent):
     assert rule(f"{minus} g", minus) == []
 
 
-@pytest.mark.parametrize("exponent", [1, 5, 23, 100])
+@pytest.mark.parametrize("exponent", range(1, 101))
 def test_the_exponent_sign_holds_through_a_structured_citation_too(exponent):
     """The same pair where the review also found it: a `results.json` quantity,
-    under every check the science profile resolves to."""
+    under every check the science profile resolves to.
+
+    The whole 1–100 range, like the fence sweep beside it. Sampling four
+    exponents and describing it as a sweep is the kind of claim this slice has
+    been correcting all the way through: the fence and the structured interface
+    reach `contains_pair` by different routes, and only one of them was actually
+    swept."""
     from crossaudit.dcl.profiles import resolve
 
     def rule(span, value):
