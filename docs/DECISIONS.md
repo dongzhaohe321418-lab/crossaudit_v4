@@ -6988,7 +6988,18 @@ after slice 1 and not later.
 RULING: **exclude `skills/` from the audited increment the same way `TEMPLATE`,
 `cycles/`, the state directory and `.github/` are excluded**, in a slice of its
 own immediately after slice 1 lands, with a test that renders an auditor prompt
-for a root-scoped project carrying a skill and asserts the skill text is absent. State the receipt
+for a root-scoped project carrying a skill and asserts the skill text is absent.
+
+*Second correction (same day, from the slice's independent review): the
+sentence "no check reads skill bytes, so nothing is weakened" was also wrong as
+stated. `internal` and `complete-strict` read any text file they are handed,
+a skill body included. What is true, and what the slice enforces, is that
+skill bytes are removed from the increment **before any check runs** — so no
+finding can name a `skills/` path. The test asserts that property, not a grep.
+And the review found the real root cause of the exposure: the loader resolves
+the skills directory through the filesystem while the filters compare Git tree
+paths, so a case-insensitive host (`SKILLS/`) or a symlinked `skills` directory
+defeats both filters. One identity, enforced at the loader, is the fix.* State the receipt
 consequence in that slice: `inputs` digests over the audited scope change for
 projects whose scope currently includes `skills/`, and `verify` of earlier
 receipts is unaffected because it re-derives against the receipt's own recorded
