@@ -214,7 +214,11 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    逃出项目的值单独拒绝，`skills/../AUDIT_RULES.md` 归一化后为合法路径**有意接受**（守卫管位置
    不管拼法）；`_is_house_skill` 只匹配目录**之下**的路径，裸文件 `skills` 三处口径统一为"工作"；
    `cmd_run` 顶部 `_speak(args)` 只尊重显式 `--lang`、不用环境变量回退（`run` 叙述 2/33 走目录，
-   半翻译屏 D21 禁止；更宽的 i18n 缺口另开一片）。第三轮 astra 复核进行中。
+   半翻译屏 D21 禁止；更宽的 i18n 缺口另开一片）。第三轮 astra 复核（`…-round3.md`，首次
+   满负荷中断后重跑）否决，四项小问题：`/abs/skills/house.md` 配置加载仍接受；通过守卫的
+   `skills/../AUDIT_RULES.md` 以原始拼法存储、下游严格读取器拒绝；性质测试依赖注册表状态、
+   新进程下失败；**"只尊重显式 --lang"与 `init`/`doctor`/拒绝处理器不一致（它们经
+   `_language_for` 尊重环境）——我已推翻该决定，改为与其它命令一致。** 第四轮修复中。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
