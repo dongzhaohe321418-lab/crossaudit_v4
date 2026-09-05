@@ -141,10 +141,16 @@ def house_dir(root: Path, directory: str = SKILLS_DIR) -> Path | None:
             f"ordinary work to git, and the audit boundary cannot hold both. "
             f"Replace the link with a real {directory!r} directory.")
     if not base.is_dir():
+        # The sentence used to say such a file "would be invisible". It is not:
+        # `cmd_run` audits it as ordinary work, and the increment filter now
+        # agrees (it excludes paths UNDER the directory, never the entry). So
+        # the refusal says the true thing — nothing is loaded as guidance, and
+        # the file is judged as what it is.
         raise ConfigDenial(
-            f"{directory!r} is not a directory. Guidance lives in a real "
-            f"{directory!r} directory; a file of that name is neither loaded as "
-            f"guidance nor audited as work, so it would be invisible.")
+            f"{directory!r} is a file, not a directory. Guidance lives in a "
+            f"real {directory!r} directory, so nothing here is loaded as "
+            f"guidance; the file itself is audited as ordinary work. Make "
+            f"{directory!r} a directory, or rename the file.")
     if base.resolve() != (root.resolve() / directory):
         raise ConfigDenial(
             f"{directory!r} resolves to {base.resolve()}, outside the project's "

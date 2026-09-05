@@ -275,6 +275,11 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     # D156. Guidance and the Constitution are exclusive roles for one file: the
     # increment filter drops a skill, and `_committed_constitution` would hand
     # the same bytes to the auditor as law. Refused at configuration time.
+    ("constitution {} points outside the project. The Constitution is a "
+     "committed file in this repository, cited by commit; a path that leaves "
+     "the project cannot be.",
+     "constitution {} 指向项目之外。章程是本仓库中已提交、并按提交被引用的文件；"
+     "离开项目的路径无法做到这一点。"),
     ("constitution {} is inside {}. Guidance shapes how the generator writes; "
      "the Constitution is what the auditor judges against. One file cannot be "
      "both — move the rules out of {}.",
@@ -1058,11 +1063,12 @@ ENTRIES: tuple[tuple[str, str], ...] = (
      "{0} 是一个符号链接。指导必须是项目里真实存在的目录：通过链接，同一个文件在这里"
      "是指导、对 git 却是普通成果，审计边界无法同时容纳这两种身份。请用真实的 {1} "
      "目录替换该链接。"),
-    ("{} is not a directory. Guidance lives in a real {} directory; a file of "
-     "that name is neither loaded as guidance nor audited as work, so it would "
-     "be invisible.",
-     "{0} 不是目录。指导存放在真实的 {1} 目录里；同名的文件既不会作为指导加载，也不会"
-     "作为成果审计，因此它会变成不可见的。"),
+    ("{} is a file, not a directory. Guidance lives in a real {} directory, so "
+     "nothing here is loaded as guidance; the file itself is audited as "
+     "ordinary work. Make {} a directory, or rename the file.",
+     "{0} 是文件，不是目录。指导存放在真实的 {1} 目录里，因此这里没有任何内容会作为"
+     "指导加载；这个文件本身会作为普通成果被审计。请把 {2} 改成目录，或者给该文件"
+     "改名。"),
     ("{} resolves to {}, outside the project's own {}. Guidance must be a real "
      "directory in the project, so that what is loaded as guidance is exactly "
      "what the audit boundary excludes.",

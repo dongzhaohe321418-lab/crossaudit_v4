@@ -305,7 +305,11 @@ def _is_house_skill(path: str) -> bool:
     from .. import skills as skills_mod
 
     parts = Path(path).parts
-    return bool(parts) and parts[0] == skills_mod.SKILLS_DIR
+    # More than one component: a path UNDER the directory, never the entry
+    # itself. A stray FILE named `skills` is work, not guidance, and `cmd_run`
+    # audits it as work; excluding it here made the two audit routes disagree
+    # about the same file. Real guidance is always `skills/<something>`.
+    return len(parts) > 1 and parts[0] == skills_mod.SKILLS_DIR
 
 
 def _outside_the_increment(path: str) -> bool:
@@ -1630,6 +1634,22 @@ def cmd_run(args: argparse.Namespace) -> int:
     """The guided verb: audit the latest commit, narrate every step, decide
     nothing the commit itself cannot decide. `audit` remains the precise tool;
     `run` is the one you can give a colleague with no explanation."""
+    # `crossaudit --lang zh run` narrated the walk-back line in English, because
+    # `run` never selected a language: `_speak()` is per-command by design (D21
+    # — a half-translated screen must not ship) and `run` is not in a shipped
+    # translation wave. Measured: `cmd_run` makes 31 raw `print()` calls and 2
+    # catalogue calls, so it IS that half-translated screen, and that gap is a
+    # slice of its own — reported, not widened here.
+    #
+    # What is honoured is the EXPLICIT flag only, deliberately not
+    # `_language_for`'s environment fallback: a person who typed `--lang zh`
+    # asked for whatever Chinese exists, and can see the seam they asked for; a
+    # person whose `LANG` merely happens to be zh_CN did not ask, and must not
+    # be opted into a 2-of-33 screen without saying so. `init` refuses the
+    # environment for exactly this reason (see its `--lang` comment).
+    if getattr(args, "lang", None):
+        _speak(args)
+
     try:
         cfg = load()
     except ConfigDenial:
