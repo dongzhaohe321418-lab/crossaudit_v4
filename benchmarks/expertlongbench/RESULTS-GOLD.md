@@ -429,3 +429,10 @@ difference it reports is the extension and nothing else.
 this study: one task is one task; and *a model-judged ground truth is not ground
 truth* — half of this gold is a model's labels, which is why the headline is κ
 and not either labeller's numbers.
+
+## Amendment 1 (2026-09-06)
+
+The one rule sharpening this report said was owed is now written into the
+labelling rule as R6a (a basis qualifier — `vol/vol`, `w/w`, `wt` — is part of
+the unit expression), dated and after the fact; no recorded label changes. Every
+extension measured against this gold from here on is measured under R6a.
