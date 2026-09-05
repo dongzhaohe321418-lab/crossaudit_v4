@@ -7265,4 +7265,24 @@ still narrow what it may BE, and length or bracket guards are guessing where a
 grammar is owed. A third finding retracted a claim of ours — this record's
 earlier "the narrowing alone fails its own kill" was an over-strong ablation
 measuring the instrument, not the narrowing, and the correct ablation gives
-W' = 0. Arm 4 next.*
+W' = 0.
+
+The second build was refused too, and its three findings are one lesson: **the
+rule after a join was written as an exception list where the first continuation
+had a grammar.** The substance test came after the fragment table, so `5 wt % K`
+blocked where `5 g K` passed (15 of 118 elements); marked prose the first
+continuation had just learned to read as words (`wet/dry`, `batch-1`, `A2`,
+`H2O`) blocked after a join; and the token cap fired before the boundary test,
+so a complete six-token expression blocked whenever anything followed it.
+`_is_boundary` now enumerates the prose shapes, in the first continuation's
+order, and blocks whatever is left. The finding that stays is a limit, not a
+fix: an unnamed fragment of four or more letters, or a capitalised one, is
+indistinguishable from a word on the surface, so `5 kg m mmHg` offers `kg m`
+exactly as `5 g mmHg` has always offered `g` — the base's class, reached after a
+join by the same rule. "After a join an omission is a block" is therefore
+narrowed to short and marked fragments, a generated test removes each of the
+table's 112 entries in turn, and the 18 the table alone guards are pinned as a
+literal. Two sentences of the companion report were also false — "every
+configuration clears both kills" (the over-strong ablation does not, W' = 2)
+and "seven redundant entries removed" (four) — and are corrected there. Arm 4
+next.*

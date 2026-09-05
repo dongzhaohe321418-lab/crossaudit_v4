@@ -40,7 +40,9 @@ passes turned into blocks that the gold labels `N` (wrong passes removed); `W′
 = passes turned into blocks that the gold labels `C` (wrong blocks added, **the
 narrowing's kill**).
 
-**Every configuration clears both kills. W = 0 and W′ = 0 throughout.**
+**The shipped rule, E4 alone and the narrowing alone clear both kills: W = 0 and
+W′ = 0 in each. The over-strong ablation does not (W′ = 2); §2 records why that
+number measures the instrument and not the narrowing.**
 
 * **The 10 gold-right blocks all still block**, 10 of 10 (M1b ×3, M7 ×3, M8 ×2,
   M9a ×1, M9b ×1). This is the claim "additive in `dcl/`" makes, measured rather
@@ -99,7 +101,9 @@ instance at all** of:
   `5 g sample¹`);
 * a spaced expression the matcher **cannot read to its end** (`5 g / 100 mL`,
   `5 kg m qz`, seven tokens);
-* a continuation across a **line break**.
+* a continuation across a **line break**;
+* an **unnamed fragment of four or more letters** after a join (`5 kg m mmHg`),
+  or a substance or a marked word after one (`5 wt % K`, `5 wt % batch-1`).
 
 *A correction to round 1 of this file:* it said the gold contains no bracketed
 continuation prose. **It does** — G0105, `… for 5 h (heating/cooling rate 5 °C
@@ -108,7 +112,7 @@ missing guard. The sentence was wrong and the row is the counterexample it names
 three paragraphs later.
 
 Those classes ship as the slice's own adversarial cases,
-`tests/test_number_source_check.py::SPACED_UNITS` (36 rows, both interfaces),
+`tests/test_number_source_check.py::SPACED_UNITS` (44 rows, both interfaces),
 `STOPPED_SCANS`, the 2–20-token sweep, and the three continuation tests beside
 them.
 
@@ -140,14 +144,64 @@ them.
 
 ### The fragment table's incompleteness, stated correctly
 
-Round 1 claimed omissions "fail toward today's behaviour". **That is true only
-before a join has begun.** After one, an omitted fragment means the scan cannot
-reach a boundary, and the shipped rule makes that a **block**, not a pass — the
-reviewer's `5 kg m sr` is the witness. The contract now says this. Seven entries
-in the round-1 table were redundant and are gone: `hour`, `hours`, `minute`,
-`minutes` and `µm` are covered by `normalise_unit`'s synonym folding (`_fragment`
-consults it), and `%`/`‰` stay because they are load-bearing for `wt %` under
-the new structural test.
+Round 1 claimed omissions "fail toward today's behaviour"; round 2 claimed that
+after a join an omission is a block. **Both were example-driven, and the second
+review showed the second holds only for a fragment of one to three lower-case
+letters or a marked one** (`s`, `sr`, `K⁻¹`): removing `mbar`, `Torr`, `sccm`
+or `µmol` from the table makes `5 kg m <fragment>` offer `kg m`, because an
+alphabetic token of four or more letters, or a capitalised one, reads as prose —
+and nothing on the surface separates `mmHg` from `sample`. That is the base's
+own class at the first continuation (`5 g mmHg` has always offered `g`), reached
+after a join by the same rule; not a new one. A generated test now removes every
+one of the table's 112 entries in turn: **18 are guarded by the table alone** —
+`Bq GHz GPa Gy Hz MHz MPa MeV Sv Torr Wb mbar mmol nmol sccm torr µmol μmol` —
+pinned as a literal so an addition to that class is a visible change; the other
+94 block when unnamed, and with its fragment unnamed the whole expression never
+reads in either class. The contract, the shipped skill and `_is_boundary` state
+the limit in the same words.
+
+Four entries in the round-1 table were redundant and are gone: `hour`, `hours`,
+`minute` and `minutes`, folded by `normalise_unit` (`_fragment` consults it).
+`µm` and `μm` both stay — the folding runs one way, and the generated test shows
+`µm` still named when removed for exactly that reason — and `%`/`‰` stay because
+they are load-bearing for `wt %` under the structural test. Round 2 of this file
+said seven entries; that was wrong.
+
+### What the second review found, and what it changed
+
+1. **The substance test came after the fragment table** (P1). `_continues_unit`
+   refuses a bare element or capital, so `K` after `5 wt %` reached
+   `_is_boundary` — which asked the table first, found `K` named (for `K⁻¹`),
+   and called it a unit it could not read: `5 wt % K`, `5 wt % Pa`, `5 wt % A`
+   blocked `wt %` where `5 wt % Ni` passed, **15 of the 118 elements** (`B C F H
+   I K N O P Pa S U V W Y`). After `5 g` the first-continuation path never asks,
+   which is why the 118-element loop was green while this was red. The order is
+   now the first continuation's — substance or label first, then the table — and
+   every element and every capital is asserted after both joins.
+2. **Marked prose blocked after a join** (P1). `wet/dry`, `batch-1`, `sample¹`,
+   `A2`, `Li₂O`, `H2O` — the forms round 2 had just taught the first
+   continuation to read as words — fell through `_is_boundary`'s alphabetic test
+   and blocked `wt %`. `_is_boundary` now **enumerates the prose shapes** and
+   blocks whatever is left; the mirrors (`xyz⁻¹`, `g/xyz`, `qz`, `°X`) still
+   block. One consequence is disclosed rather than argued away: `run-2` blocks
+   after a join, because a three-letter stem under an exponent is the shape of
+   `s-1`.
+3. **The cap fired before the boundary test** (P2). A complete six-token
+   expression blocked whenever anything followed it on the line — ` sample`,
+   ` 10 s`, ` (dry)` — while a comma read. The cap is now consulted only when a
+   seventh fragment would join; then, as before, nothing reads. That a valid
+   seven-token expression cannot be read at all is a readability limit of the
+   cap, stated here; it is not a false pass.
+4. **The omission claim, narrowed** — the paragraph above.
+5. **Three sentences of this file were false** and are corrected in place:
+   "every configuration clears both kills" (the over-strong ablation does not,
+   W′ = 2, §2); "seven redundant entries are gone" (four); "36 rows" (44).
+
+Re-measured after the fix, the table in §1 is unchanged to the row: shipped
+R = 6, W = 0, R′ = 11, W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0;
+narrowing-all-spaced 0/0/11/2; 10 of 10 gold-right blocks; panel 2 of 97. The
+gold holds no instance of any of the three shapes, which is why it could not
+have found them (the list above).
 
 ### Out of scope, noted for a later extension
 

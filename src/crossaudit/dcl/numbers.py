@@ -348,11 +348,19 @@ _CONNECTORS = frozenset("/⁄·⋅")
 #:
 #: * BEFORE a join has begun, an omission leaves the shipped behaviour — the
 #:   bare token still matches, exactly as it does today;
-#: * AFTER a join has begun, an omission is a BLOCK, not a pass. `5 kg m sr`
-#:   with `sr` missing must not hand back `kg m`; the scan stops without a
-#:   boundary and `_unit_candidates` returns nothing (see `_spaced_unit`). The
-#:   first build returned the joined prefix instead, which is "a prefix never
-#:   satisfies" defeated a fourth time.
+#: * AFTER a join has begun, an omission is a BLOCK for a fragment of one to
+#:   three lower-case letters or any marked one: `5 kg m sr` with `sr` missing
+#:   must not hand back `kg m`; the scan stops without a boundary and
+#:   `_unit_candidates` returns nothing (see `_spaced_unit`). The first build
+#:   returned the joined prefix instead, which is "a prefix never satisfies"
+#:   defeated a fourth time;
+#: * but a fragment of FOUR OR MORE LETTERS, or a capitalised one, that this
+#:   table does not name reads as PROSE, after a join exactly as before one:
+#:   `5 kg m mmHg` offers `kg m` the way `5 g mmHg` offers `g` today, because
+#:   nothing on the surface separates `mmHg` from `sample`. That is the base's
+#:   class, not a new one, and for the entries of that shape listed here —
+#:   `mbar`, `Torr`, `sccm`, `mmol`, `Hz`, `Sv` and their like — this table is
+#:   the only guard. `tests/test_number_source_check.py` enumerates them.
 #:
 #: What is excluded is still the argument, because a wrong INCLUSION is a false
 #: blocker: no English function word (`of`, `in`, `at`, `per`), no word that is
@@ -400,7 +408,9 @@ _STOPWORDS = frozenset("""
 #: How many tokens one unit expression may span. A LOOP GUARD, and since review
 #: emphatically not a candidate producer: hitting it truncates the scan and
 #: yields no reading at all. Seven-token expressions used to hand back their
-#: first six.
+#: first six. Consulted only when the next token WOULD CONTINUE the expression:
+#: prose, a numeral or a bracket after six tokens is a boundary exactly as it
+#: is after two, which the second review found it was not.
 _MAX_UNIT_TOKENS = 6
 #: The run of whitespace a unit expression may cross. `_INLINE` and not `\s`:
 #: Python's `\s` already covers U+00A0, U+2003 and U+202F (a hand-written list of
@@ -450,22 +460,60 @@ def _continues_unit(token: str) -> bool:
 
 
 def _is_boundary(token: str) -> bool:
-    """Whether this token ENDS a unit expression rather than continuing it or
-    truncating it — consulted only after a join has begun, where the difference
-    between "prose" and "a unit this table does not name" decides between a
-    reading and a block. Prose, a numeral, or an opening bracket. A short
-    alphabetic token that is not a function word is NOT prose: `sr`, `cd` and
-    `rad` are units, and guessing they are words is how a joined prefix gets
-    offered as a whole unit."""
+    """Whether the token after a join is the PROSE the unit expression ended
+    at, as opposed to a unit this table cannot read.
+
+    Consulted only once a join has begun (`_spaced_unit`), and only for a
+    token `_continues_unit` refused, so the answer decides between a reading
+    and a block. The prose shapes are ENUMERATED and everything else blocks,
+    because the block is the safe failure:
+
+    * nothing, a numeral, an opening bracket;
+    * a bare element symbol, a bare capital, a capitalised word — `5 wt % Ni`,
+      `5 wt % K`, `5 wt % A`, `5 wt % Sample`: the substance or the label the
+      quantity is OF. Decided BEFORE the fragment table is consulted: `K` and
+      `Pa` are in that table for the sake of `K⁻¹` and `Pa·s`, and the second
+      review found the table consulted first, which blocked `wt %` before
+      fifteen elements;
+    * a function word (`of`, `at`, `per`), or an alphabetic word of four or
+      more letters (`sample`, `later`);
+    * a marked word whose stem is longer than a unit symbol (`batch-1`,
+      `sample¹`). A stem of one to three letters under an exponent is a unit
+      symbol this table does not name (`xyz⁻¹`, and `run-2` with it), and
+      blocks;
+    * a word carrying a digit or a subscript (`A2`, `H2O`, `Li₂O`);
+    * words joined by a solidus with no named fragment among them (`wet/dry`;
+      `g/xyz` is a unit half-read, and blocks).
+
+    A short lower-case token that is none of these — `qz`, `sr` were it
+    unnamed — is a unit this table does not know, and blocks.
+
+    **What this cannot tell apart, stated rather than hidden:** an alphabetic
+    token of four or more letters, or a capitalised one, that is a unit this
+    table does not name — `mmHg`, `kcal`, `mrad`, `dbar` — reads as prose, so
+    `5 kg m mmHg` offers `kg m`. That is the base's own class at the first
+    continuation (`5 g mmHg` matches `g` today and always did), reached after
+    a join by the same rule, and no surface test separates `mmHg` from
+    `sample`. The fragment table is the guard for those, and the test file
+    enumerates which of its entries are guarded by nothing else."""
     if not token:
         return True
     if token[0].isdigit() or token[0] in _OPENERS:
         return True
-    if _fragment(token):
-        return False                         # a named unit is never the prose
     if token in _ELEMENTS or (token[0].isupper() and token.isalpha()):
         return True                          # `5 wt % Ni`: a substance, a label
-    return token.isalpha() and (len(token) >= 4 or token.lower() in _STOPWORDS)
+    if token.isalpha():
+        return len(token) >= 4 or token.lower() in _STOPWORDS
+    tail = _EXPONENT_TAIL.search(token)
+    if tail and tail.start() > 0:
+        stem = token[:tail.start()]
+        return stem.isalpha() and len(stem) >= 4   # `batch-1` a label, `xyz⁻¹` a unit
+    if any(ch.isdigit() for ch in token):
+        return True                          # `A2`, `H2O`, `Li₂O`
+    parts = _FRAGMENT_SPLIT.split(token)
+    if len(parts) > 1:
+        return all(part.isalpha() for part in parts) and not any(_unit_atom(p) for p in parts)
+    return False
 
 
 def _text(data: bytes) -> str | None:
@@ -567,10 +615,10 @@ def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
         nxt, remainder = _scan(after[gap:], False)
         if not nxt:
             break                            # whitespace, then nothing to read
-        if len(parts) >= _MAX_UNIT_TOKENS:
-            complete = False
-            break
         if _continues_unit(nxt) or nxt in _CONNECTORS:
+            if len(parts) >= _MAX_UNIT_TOKENS:
+                complete = False             # an overflow reads nothing at all
+                break
             parts.append(nxt)
             end += gap + len(nxt)
             after = remainder
@@ -602,7 +650,10 @@ def _unit_candidates(rest: str) -> list[tuple[str, int]]:
     * where the source writes a spaced unit this module cannot read to its end,
       **nothing**. Neither the join nor the bare token: an unreadable unit is a
       block, and the one thing it must never be is a shorter reading that
-      happens to be readable.
+      happens to be readable. With the one limit `_is_boundary` states: a
+      fragment of four or more letters, or a capitalised one, that the table
+      does not name is not "unreadable" to this module, it is a word, and the
+      expression before it is offered.
 
     The percent split (`wt %`) that used to be a special case is now this rule:
     `%` is a continuation like any other, and `wt %/s` is still one expression
@@ -1221,9 +1272,13 @@ register("number_source", check_number_source,
          "neither is a substance or a label, so '5 wt % Ni' has the unit 'wt %' "
          "and '5 g K' still matches 'g'. Where the spaced expression runs past "
          "what the check can read - more tokens than it scans, an operator with "
-         "nothing after it, or a fragment it does not name - it reports NO "
-         "reading and the row BLOCKS; it never falls back to the part it "
-         "managed to read, because that part is a prefix. "
+         "nothing after it, or a short or marked fragment it does not name - it "
+         "reports NO reading and the row BLOCKS; it never falls back to the part "
+         "it managed to read, because that part is a prefix. One limit is stated "
+         "rather than hidden: an unnamed fragment of four or more letters, or a "
+         "capitalised one, reads as a WORD, so '5 kg m mmHg' offers 'kg m' exactly "
+         "as '5 g mmHg' offers 'g', and the fragment table is the only guard "
+         "there. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "

@@ -1553,6 +1553,7 @@ def test_the_shipped_words_say_what_the_scanner_does():
     assert "'5 wt % Ni' has the unit 'wt %'" in contract
     assert "reports NO reading and the row BLOCKS" in contract
     assert "never falls back to the part it managed to read" in contract
+    assert "the fragment table is the only guard" in contract   # round 3's limit
     assert "first token only" not in contract       # D160 ruling 1 deleted it
     assert "structural" not in contract
     assert "EMPTY unit imposes no unit constraint" in contract.replace("an EMPTY", "EMPTY")
@@ -1565,6 +1566,7 @@ def test_the_shipped_words_say_what_the_scanner_does():
     assert "`m-2 s-1`" in body and "uncited" in body
     assert "`5 wt % Ni` the unit is `wt %`" in body
     assert "cannot read to its end" in body
+    assert "is read as a word after the unit" in body           # and its limit
     assert "FIRST token only" not in body           # D160 ruling 1 deleted it
     assert "structural" not in body
     assert "so it is one token" not in body         # and the instruction with it
@@ -1794,6 +1796,141 @@ def test_no_prefix_of_an_overflowing_expression_is_ever_a_reading():
             assert not contains_pair(span, "5", " ".join(tokens[:k])), (n, k)
         # Within the cap the whole expression reads; past it, nothing does.
         assert contains_pair(span, "5", " ".join(tokens)) is (n <= 6), n
+
+
+def test_a_substance_or_label_ends_a_joined_expression_before_the_table_is_read():
+    """MUTATION: in `_is_boundary`, consult `_fragment` before the element and
+    bare-capital test — the order the second build had.
+
+    `_continues_unit` already refuses a bare element symbol or bare capital,
+    so the token reaches `_is_boundary`; there `K`, `Pa`, `A` and twelve more
+    elements are ALSO named fragments (for `K⁻¹`, `Pa·s`), and answering the
+    table first made them "a unit this table cannot read" — a block on `wt %`
+    for `5 wt % K` where `5 wt % Ni` passed. The second review counted 15 of
+    118. After `5 g` the first-continuation path never asks, which is why the
+    118-element loop above stayed green while this one was red.
+
+    The mirror: a marker still brings the element back as a unit."""
+    from crossaudit.dcl.numbers import _ELEMENTS, contains_pair
+
+    for element in sorted(_ELEMENTS):
+        assert contains_pair(f"5 wt % {element}", "5", "wt %"), element
+        assert contains_pair(f"5 kg m {element}", "5", "kg m"), element
+    for label in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        assert contains_pair(f"5 wt % {label}", "5", "wt %"), label
+    assert contains_pair("5 wt % Sample", "5", "wt %")
+    assert not contains_pair("5 wt % K⁻¹", "5", "wt %")
+    assert contains_pair("5 wt % K⁻¹", "5", "wt % K⁻¹")
+    assert not contains_pair("5 kg m Pa·s", "5", "kg m")
+    assert contains_pair("5 kg m Pa·s", "5", "kg m Pa·s")
+
+
+#: Prose after a JOIN, in the shapes the review used after `5 g`, and the
+#: unit-shaped tokens they must not be confused with. Each row is asserted
+#: after `5 wt %` and after `5 kg m`, because both joins reach `_is_boundary`
+#: by the same path and both were wrong.
+JOINED_PROSE = [
+    ("wet/dry",      "words joined by a solidus, no fragment among them"),
+    ("batch-1",      "a label: a hyphen-numeral on a stem longer than a symbol"),
+    ("sample\u00b9", "a footnote on a long stem"),
+    ("A2",           "a label with a digit"),
+    ("Li₂O",         "a formula with a subscript"),
+    ("H2O",          "a formula with a digit"),
+    ("x/y",          "two letters joined by a solidus, neither a fragment"),
+    ("sample",       "a word"),
+    ("of",           "a function word"),
+    ("Sample",       "a capitalised word"),
+]
+JOINED_UNREADABLE = [
+    ("xyz⁻¹", "an exponent on a stem this table does not name"),
+    ("run-2", "an ASCII one on a three-letter stem — the shape of `s-1`"),
+    ("g/xyz", "a fragment joined to something that is not one"),
+    ("qz",    "a short lower-case token: not a word, not a fragment"),
+    ("°X",    "a degree sign on an unnamed letter"),
+]
+
+
+@pytest.mark.parametrize("token,why", JOINED_PROSE)
+def test_prose_after_a_join_is_the_boundary_it_is_after_one_token(token, why):
+    """MUTATION: in `_is_boundary`, return False for every token that is not
+    purely alphabetic — the second build's rule, which the review found
+    blocked `wt %` before `wet/dry`, `batch-1`, `sample¹`, `A2`, `Li₂O` and
+    `H2O`: six forms the first-continuation path had just been taught to read
+    as words. The prose shapes are enumerated in `_is_boundary`; this is the
+    enumeration, asserted at both joins."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(f"5 wt % {token}", "5", "wt %"), why
+    assert contains_pair(f"5 kg m {token}", "5", "kg m"), why
+
+
+@pytest.mark.parametrize("token,why", JOINED_UNREADABLE)
+def test_an_unreadable_unit_after_a_join_still_blocks(token, why):
+    """The mirror of the table above: widening prose to "anything that is not
+    a fragment" would pass these, and each is a unit half-read."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert not contains_pair(f"5 wt % {token}", "5", "wt %"), why
+    assert not contains_pair(f"5 kg m {token}", "5", "kg m"), why
+
+
+def test_the_cap_is_consulted_only_when_the_next_token_would_continue():
+    """MUTATION: test the cap before asking whether the next token continues —
+    the second build's order, which made a complete six-token expression
+    unreadable whenever ANYTHING followed it on the line: `… mol⁻¹ sample`,
+    `… mol⁻¹ 10 s` and `… mol⁻¹ (dry)` all blocked their whole unit while
+    `… mol⁻¹,` read. The cap is an overflow guard: it fires when a seventh
+    fragment would join, and then nothing reads, as the sweep above asserts."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    six = "kg m s⁻² A⁻¹ K⁻¹ mol⁻¹"
+    for tail in ("", ",", " sample", " 10 s", " (dry)", " of water", " Ni", " —",
+                 " batch-1"):
+        assert contains_pair(f"5 {six}{tail}", "5", six), tail
+        assert not contains_pair(f"5 {six}{tail}", "5", "kg m s⁻² A⁻¹ K⁻¹"), tail
+    for tail in (" sr⁻¹", " · s", " / mL", " qz", " xyz⁻¹"):
+        assert not contains_pair(f"5 {six}{tail}", "5", six), tail
+
+
+#: The entries of the fragment table that nothing but the table guards: an
+#: alphabetic fragment of four or more letters, or a capitalised one, reads as
+#: PROSE when it is not named, so a join before it is offered. Pinned as a
+#: literal so the count in study 9's RESULTS §3 is a tested number, and an
+#: addition to the table that lands in this class is a visible change.
+TABLE_ONLY_GUARDED = frozenset("""
+    Bq GHz GPa Gy Hz MHz MPa MeV Sv Torr Wb mbar mmol nmol sccm torr µmol μmol
+""".split())
+
+
+def test_which_omissions_from_the_table_block_and_which_read_as_prose(monkeypatch):
+    """GENERATED over the whole table, because the second review showed the
+    example-driven claim was false: "after a join an omission is a block" held
+    for `s` and `sr` and failed for `mbar`, `Torr`, `sccm` and `µmol`.
+
+    Every entry is removed in turn and `5 kg m <entry>` is asked for `kg m`
+    (an element or bare capital in its `⁻¹` form, since the bare form is a
+    substance by design). One to three lower-case letters, or any marked
+    entry: BLOCK. Four or more letters, or capitalised: the join is offered,
+    and the table is the only guard — those are the entries listed above,
+    exactly. `µm` stays named when removed because `normalise_unit` folds
+    `μm` onto it; it is asserted for what it does, not skipped. And with its
+    fragment unnamed the WHOLE expression never reads, whichever class."""
+    import crossaudit.dcl.numbers as numbers
+
+    table = set(numbers._UNIT_FRAGMENTS)
+    offered = set()
+    for entry in sorted(table):
+        monkeypatch.setattr(numbers, "_UNIT_FRAGMENTS", frozenset(table - {entry}))
+        bare = entry in numbers._ELEMENTS or (len(entry) == 1 and entry.isupper())
+        form = entry + "⁻¹" if bare else entry
+        if numbers.contains_pair(f"5 kg m {form}", "5", "kg m"):
+            offered.add(entry)
+        if not numbers._fragment(entry):
+            assert not numbers.contains_pair(f"5 kg m {form}", "5", f"kg m {form}"), entry
+    assert offered == TABLE_ONLY_GUARDED
+    assert all(e.isalpha() and (len(e) >= 4 or e[0].isupper()) for e in offered)
+    assert not any(e.isalpha() and (len(e) >= 4 or e[0].isupper()) for e in table - offered
+                   if not numbers._ELEMENTS.__contains__(e) and not (len(e) == 1 and e.isupper()))
 
 
 def test_a_continuation_never_crosses_a_line():

@@ -40,7 +40,10 @@ All three fields, every row. A row with two cannot be checked and is refused.
     OF, not part of how it is measured.
   - If the unit at that spot is something the checker cannot read to its end,
     the row blocks rather than matching half of it. `uncited` is the honest
-    answer there, and it never counts against the work.
+    answer there, and it never counts against the work. One limit: a unit
+    symbol of four or more letters, or a capitalised one, that the checker
+    does not know is read as a word after the unit, so the part before it may
+    match — copy the whole unit regardless.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the
