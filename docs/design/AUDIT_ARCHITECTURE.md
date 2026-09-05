@@ -125,12 +125,16 @@ Observe-shaped default D142 declined to adopt on argument alone, now with a
 number attached. It ships as a dial with the default unchanged, and the default
 moves on measurement, per D144.
 
-Detection at K draws costs K×, on the cheaper half of the problem: the literature
-puts judging well above enumerating in difficulty (+0.29 F1, stable across a 24×
-parameter range), so the detectors need not be the expensive model. Against that,
-one cost disappears: the adjudicator model agreed with the deterministic mapping
-on **130 of 130** findings it mapped, so on this constitution it buys nothing but
-latency and rate-limit failures.
+Detection at K draws costs K×. The argument first written here — that detection
+is the cheaper half of the problem, so the detectors need not be the expensive
+model — **was measured and is wrong**: three draws of the cheap tier cost 1.9× a
+single shipped draw and found less (16.4% against 20.0% recall, 9.5% against
+6.8% false positives), one of only two dominated specs in the exploration grid.
+Whatever the literature says about enumerating being easier than judging, this
+auditor's cheap sibling does not enumerate well enough to be worth its calls.
+Against that, one cost does disappear: the adjudicator model agreed with the
+deterministic mapping on **130 of 130** findings it mapped, so on this
+constitution it buys nothing but latency and rate-limit failures.
 
 ## 5. What is not established, stated before anyone builds on it
 

@@ -1,10 +1,10 @@
 {
   "archived_utc": "2026-09-05",
-  "bytes": 16525129,
+  "bytes": 21747842,
   "location": "/Users/ericdong/Documents/Crossaudit/study-data",
-  "n_files": 1841,
+  "n_files": 1891,
   "not_committed": "contains model outputs derived from ExpertLongBench (CC BY-NC-SA 4.0, non-commercial, no redistribution). Only this manifest of derived values is committed.",
-  "per_file_manifest": "MANIFEST.json in the archive directory; 1841 entries",
+  "per_file_manifest": "MANIFEST.json in the archive directory; 1891 entries",
   "studies": {
     "wt-arch-runs": {
       "bytes": 3203299,
@@ -25,6 +25,11 @@
       "bytes": 1295442,
       "directory_sha256": "758908b6762bf7e0e417e8b4a82ad7f78c792a870811d4681027fce6596a54dc",
       "n_files": 217
+    },
+    "wt-explore-runs": {
+      "bytes": 5222713,
+      "directory_sha256": "660a9d98a0f82116a5d5de2c92223f2dc202a640e7439a70d0ef15c31cedff32",
+      "n_files": 50
     },
     "wt-premise-runs": {
       "bytes": 3507857,

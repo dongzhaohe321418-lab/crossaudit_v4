@@ -283,3 +283,14 @@ see the assumption. A reviewer that did not share it did.
 Withdrawal is not retraction of the line of work. Every number here was produced
 by a study that recorded enough about itself to be checked, which is why it could
 be checked. The record is what the corrections are made of.
+
+**12. "The code noise floor is 1.8 points on P."**
+Restated. 1.8 was the difference between one specific pair of draws (study 1's
+`cross` and `cross-replicate`) — the narrowest of what turned out to be three
+pairwise comparisons. Three full draws of the shipped architecture over all 290
+instances (`records/explore/`) give a **widest pair of 6.4 points at n = 110 and
+9.1 on the confirm half at n = 55** (11, 7 and 6 of 55). The stratum-C column,
+on which the adoption constraint is written, is stable at 5, 5, 4 of 74. Every
+statement in this record that reads an effect against "1.8 points" should be
+re-read against 6.4 at n = 110; the ones in `RESULTS-2.md` (+9.1 recall) and
+`RESULTS-EXPLORE.md` (`tri_union`, `hc_u_dc`) survive it, the rest do not.
