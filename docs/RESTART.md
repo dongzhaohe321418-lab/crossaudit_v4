@@ -192,7 +192,11 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    CA-NUM-001 不截断；`1,000` 只读作一千；所有定位器解析器统一 `[0-9]` + 绝对末尾、去掉
    `.strip()`；技能门控改为 front-matter `requires_check:`。**注意：本轮改了 `skills.py`
    （内核外，可加），与 `fix/skills-not-in-audit` 冲突——合并顺序：先 skills 片，本片再 rebase。**
-   第四轮 astra 复核进行中。**
+   第四轮 astra 复核（`…-round4.md`）仍否决，剩**一个**缺陷：扫描器是字符白名单，白名单外的
+   字符（句中 `.`、`β`、`%` 后续接）截断 token，前缀再次通过（`5 kg.m` 标 `kg`）。第五轮：
+   反转规则——穷举边界（空白、未配对闭括号、`,;:!?"'«»…`、句末 `.`），其余一律 token；
+   fence `at` 与 `src` 同等校验；结构化源去 `.strip()`；指数 >99999 报 CA-NUM-001。
+   第五轮修复进行中，预计为最后一轮。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
