@@ -359,8 +359,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "6073d0de61bab83b99bc0569aa9dccb198396e9a",
-  "finalised_utc": "2026-09-05T19:50:54Z",
+  "finalised_on_parent_commit": "b887bb8ad1303ccad9e7b3dc14cdb408e8a9a0a5",
+  "finalised_utc": "2026-09-05T20:26:24Z",
   "package_versions": {
     "anthropic": "not installed",
     "certifi": "2026.7.22",

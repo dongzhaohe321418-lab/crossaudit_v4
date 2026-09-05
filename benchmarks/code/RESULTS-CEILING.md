@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Eighth version.** Seven independent cross-vendor reviews have read this study. Rounds 1
+> **Ninth version.** Eight independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2, and no
 > point estimate has changed since the first version. Round 5's corrections included one
@@ -54,10 +54,12 @@ Four further results, in the order they matter.
 **1. Reading the same code more times saturates, and not high.** Unioning eight independent
 readings by the shipped cross-vendor auditor lifts recall on the defect population from
 **10.7% [5.1, 17.4]** to **30.0% (33 of 110) [20.0, 40.7]**, while false positives on
-correct code go from **4.5% [2.4, 7.0]** to **16.0% [10.1, 22.3]**. Its fitted asymptote is
-31.5% [21.7, 45.6], **but that curve has not flattened** — it still gained 1.93 points [1.14, 2.78]
-from K = 7 to K = 8, failing the preregistered flattening bar — **so 31.5% [21.7, 45.6] is an
-extrapolation and 30.0% [20.0, 40.7] is the number to quote.** The generator's own model does flatten, and far lower:
+correct code go from **4.5% [2.4, 7.0]** to **16.0% [10.1, 22.3]**. The shipped cross-vendor auditor's fitted
+asymptote is 31.5% [21.7, 45.6], **but that curve has not flattened** — the shipped
+auditor still gained 1.93 points [1.14, 2.78] from K = 7 to K = 8, failing the
+preregistered flattening bar — **so the shipped cross-vendor asymptote of
+31.5% [21.7, 45.6] is an extrapolation and its eight-reading 30.0% [20.0, 40.7] is the
+number to quote.** The generator's own model does flatten, and far lower:
 **15.5% [7.1, 24.9]** at one reading, **17.3% (19 of 110) [8.3, 27.3]** at eight, asymptote
 **16.6% [8.1, 26.3]**, at a false-positive rate of **24.0% [17.2, 31.2]**.
 
@@ -80,10 +82,10 @@ positives, matching eight unioned readings of the shipped auditor on recall at l
 two-thirds of the false-positive cost** (30.0% [20.0, 40.7] at 16.0% [10.1, 22.3]).
 
 The largest effect measured anywhere in this study came from changing what the auditor was
-told to look for. One added constitution rule — *find what the visible tests do not cover* —
-moved flags on the defect population from 10 of 56 to 25 of 56: **+26.8 points, cluster CI
-[13.6, 40.4], exact unconditional [+6.3, +43.7], McNemar p = 0.0003, cluster sign-flip
-p = 0.0009**. **Two contrasts in this study clear the Bonferroni threshold over the sixteen
+told to look for. One added constitution rule — *find what the visible tests do not
+cover* — moved the referent arm's flags on the defect population from 10 of 56 to 25 of
+56: **+26.8 points, cluster CI [13.6, 40.4], exact unconditional [+6.3, +43.7], McNemar
+p = 0.0003, cluster sign-flip p = 0.0009**. **Two contrasts in this study clear the Bonferroni threshold over the sixteen
 comparisons actually computed, and both are this same effect seen two ways**: referent
 against cross on stratum-P flags (+26.8 points [13.6, 40.4], p = 2.7 × 10⁻⁴,
 cluster p = 8.5 × 10⁻⁴) and
@@ -103,8 +105,8 @@ title says "did the most", not "works".
 **3. Half the defects were flagged by no reading of any family.** **57 of 110 defective
 solutions (51.8%, cluster CI [40.0, 63.3]) were flagged by no reading of any family** — 20
 readings, three models, two vendors, one frontier route. Classified by hand under a rule
-fixed before the first was opened, **46 of those 57 (80.7%, problem-cluster CI [66.1, 93.1], seed 20260919) fail
-only on an input class the visible test suite never constructs**: the empty list, the negative number,
+fixed before the first was opened, **46 of those 57 residual instances (80.7%, problem-cluster CI [66.1, 93.1],
+seed 20260919) fail only on an input class the visible test suite never constructs**: the empty list, the negative number,
 the two-digit case, the ragged input, the punctuation character. **That is the shape of what
 was missed.** A model shown a specification and a test suite has no evidence in front of it
 that those classes never appear in what the readers were shown. **This is a statement about the
@@ -148,6 +150,24 @@ corrected report.
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
 
+### What the eighth review changed
+
+Round 8 confirmed hashes equal to round 7, derived seed status, zero duplicates, 37 tests
+and byte-identical regeneration — and made the point that mattered: **three consecutive
+rounds had found the same class of defect in the same guard, because each round I fixed the
+instance.** Three more re-attributions were green: renaming the self-loop arm to cross-loop
+(loop nets carried no subject requirement at all), attributing the shipped auditor's
+asymptote to the self model (asymptote rules accepted generic words), and the same rename in
+the conclusion. All three reproduced.
+
+The fix is structural, not another instance.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | Family binding was example-driven: 11 of 23 bound arrays had **no** subject requirement, and several others accepted generic words | all three edits green | **Every** bound array now declares a family/arm subject, enforced by `test_every_bound_rule_declares_a_subject`, which fails on an absent or generic declaration. A **generated** test rewrites each rule's sentence subject to every other family in turn — **312 mutations** — and requires each to redden; it also asserts the unmutated report is clean and that no rule is unmutatable, so a too-generic subject cannot hide. Seven report sentences could not name their own subject and **were rewritten**, which the test identified. The three counterexamples are committed as named tests as well |
+| 2 | The AST duplicate check existed only at review time | duplicating `_pairs` left the suite green | Committed as `test_the_analysis_files_contain_no_duplicate_definitions`, covering eight analysis files; verified to redden on a duplicated `_pairs` |
+| 3 | The attribution table lists ten rows; the sentence said nine and "the single exception" | verified | Sentence rewritten to "eight of the nine numbered corrections, plus the author-found beta-tail defect fixed before round 1", and **a test derives those counts from the table** so they cannot drift |
+
 ### What the seventh review changed
 
 Round 7 confirmed both artefacts byte-identical to round 6, all prior mutations red, the
@@ -171,7 +191,7 @@ counterparts, 302 byte-identical, 533 scalars unchanged, five mutations red, 32 
 |---|---|---|---|
 | 1 | **The reader sentence's interval was never bound.** A declaration claimed the headline mechanism checked it; that mechanism checks a different sentence. Replacing `−3.54 to +5.88` with `+1.00 to +2.00`, or deleting it, left all 12 tests green. And a **reused label** bound a rate to the wrong family: an inserted sentence attributing astra's 9.7% [5.3, 14.5] to the shipped auditor's eight readings (16.0% [10.1, 22.3]) also passed | all three reproduced | The reader sentence is bound to `ceiling2.arms.self-loop.net_primary.ci95`, with its prose "to"-form parsed. Every reused label now carries its discriminating family and reading count. A further test fails if **any binding rule matches more than once** — which is how new prose slips under an existing anchor — and that test immediately found a legitimate duplicate to split. All three counterexamples are committed |
 | 2 | **Seed 20260915 is consumed**, not unused: the pooled self−cross flag contrast has 25 non-zero clusters and uses the sampled sign-flip path. The manifest's claim was contradicted by `numbers.json` in plain text | verified | The inventory now instruments **`random.Random` itself**, not one call site, so every generator is counted whatever builds it: **34 seeds over 205 constructions**, against 32 over 196 from the narrower instrument. `+7` is recorded as consumed with its sample size and p |
-| 3 | **`CORRECTIONS.md` #25 misattributed discoveries**, crediting tests for what round 4 had explicitly reported | verified against round 4's report | #25 is replaced with a per-item table naming who found each defect. **Eight** of the nine were cross-vendor findings; one was the author's, and only because a reviewer had demanded the mechanism that exposed it |
+| 3 | **`CORRECTIONS.md` #25 misattributed discoveries**, crediting tests for what round 4 had explicitly reported | verified against round 4's report | #25 is replaced with a per-item table naming who found each defect. **Eight of the nine numbered corrections** were cross-vendor findings; the ninth was the author's, and only because a reviewer had demanded the mechanism that exposed it. The beta-tail defect, fixed before round 1, was the author's own unprompted find and is listed separately |
 
 While fixing item 1, a defect in the test file itself came to light: **the binding rules had been duplicated**, with the second copy silently overriding the first. Both copies were identical, so no check was wrong — but the file was 142 lines of dead code that could have diverged. Deduplicated.
 
@@ -826,6 +846,22 @@ no check was wrong — but this is the second time duplication has appeared in t
 after string-level surgery, and the hazard is the one already recorded in deviation 26.
 Removed, with an `ast`-based check used to confirm none remain.
 
+**34. The subject binding was example-driven for three rounds.** Rounds 6, 7 and 8 each
+found a rate that could be re-attributed by editing prose, and rounds 6 and 7 were each
+fixed as an instance. Round 8 established the pattern: **11 of 23 bound arrays had no
+subject requirement at all**, and the asymptote rules accepted generic words, so three
+further re-attributions were green. Every bound array now declares a family or arm subject,
+a test fails on an absent or generic declaration, and **a generated test produces 312
+re-attribution mutations from the rule table and requires every one to redden**. Seven
+report sentences that could not name their own subject were rewritten — the test named
+them. *No published number was ever wrong at any point in this sequence; what was wrong,
+three times, was the strength of the guarantee claimed for them.*
+
+**35. A check that only ran at review time is not a check.** The AST duplicate scan that
+found deviation 33's eleven duplicates was run by hand and never committed, so the suite
+stayed green when a function was duplicated. It is now a test over eight analysis files,
+verified to redden on a duplicated helper.
+
 ### The beta-tail defect, stated exactly
 
 The first version said a swapped Clopper–Pearson tail was "caught by my own tests" and that
@@ -864,9 +900,9 @@ seconds and was corrected before any prose quoted it.**
 
 ## What this study licenses, and what it does not
 
-**It licenses**: that on this corpus, a generator's own model auditing and revising its own
-code produced no measurable gain in hidden-test accuracy (+0.89 pp, cluster CI
-[−3.54, +5.88], every interval spanning zero); that over eight readings each, its union recall was **below** a cross-vendor
+**It licenses**: that on this corpus, the `self-loop` arm — the generator's own model
+auditing and revising its own code — produced no measurable gain in hidden-test accuracy
+(+0.89 pp, cluster CI [−3.54, +5.88], every interval spanning zero); that over eight readings each, its union recall was **below** a cross-vendor
 stranger's (raw −12.7 points [−25.0, −0.9]) while its false-positive rate was higher
 (24.0% [17.2, 31.2] against 16.0% [10.1, 22.3]); that
 repetition saturates quickly, and on a temperature-0 route almost immediately; that one

@@ -285,17 +285,17 @@ RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
      C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
     (r"go from (?P<v>4\.5)% " + _IV, C1 + ("cross", "C", "draw1_block", "rate"),
      C1 + ("cross", "C", "draw1_block", "cluster_ci95"), ""),
-    (r"to (?P<v>16\.0)% " + _IV + r"\. Its fitted",
+    (r"to (?P<v>16\.0)% " + _IV + r"\. The shipped cross-vendor auditor's fitted",
      C1 + ("cross", "C", "union_at_kmax"),
      C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"fitted asymptote is (?P<v>31\.5)% " + _IV, C1 + ("cross", "P", "fit", "A"),
+    (r"auditor's fitted\s*asymptote is (?P<v>31\.5)% " + _IV, C1 + ("cross", "P", "fit", "A"),
      C1 + ("cross", "P", "fit_A_ci95"), ""),
-    (r"gained (?P<v>1\.93) points " + _IV,
+    (r"auditor still gained (?P<v>1\.93) points " + _IV,
      C1 + ("cross", "P", "marginal_gain_last_step"),
      C1 + ("cross", "P", "last_step_gain_block", "cluster_ci95"), ""),
-    (r"so (?P<v>31\.5)% " + _IV + r" is an\s*extrapolation", C1 + ("cross", "P", "fit", "A"),
+    (r"cross-vendor asymptote of\s*(?P<v>31\.5)% " + _IV + r" is an extrapolation", C1 + ("cross", "P", "fit", "A"),
      C1 + ("cross", "P", "fit_A_ci95"), ""),
-    (r"and (?P<v>30\.0)% " + _IV + r" is the number to quote",
+    (r"eight-reading (?P<v>30\.0)% " + _IV + r" is the\s*number to quote",
      C1 + ("cross", "P", "union_at_kmax"),
      C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
     (r"far lower: (?P<v>15\.5)% " + _IV, C1 + ("self", "P", "draw1_block", "rate"),
@@ -433,6 +433,31 @@ def _sections(text: str) -> dict[str, str]:
     return {"opening": opening, "conclusion": conclusion}
 
 
+def _normalise_with_map(section: str) -> tuple[str, list[int]]:
+    """(normalised text, offset of each normalised character in `section`).
+
+    The map is what lets a mutation be applied to the file the guard actually reads.
+    Reconstructing the raw span by re-matching a prefix was fragile and silently produced
+    no mutation for several rules, which made the generated test vacuous for them.
+    """
+    out, offsets = [], []
+    previous_space = False
+    for index, char in enumerate(section):
+        if char in "*`>":
+            continue
+        if char.isspace():
+            if previous_space or not out:
+                continue
+            out.append(" ")
+            offsets.append(index)
+            previous_space = True
+            continue
+        out.append(char)
+        offsets.append(index)
+        previous_space = False
+    return "".join(out), offsets
+
+
 def _normalise(section: str) -> str:
     """Flatten and strip markdown, so a binding pattern is written against prose.
 
@@ -451,43 +476,79 @@ def _flat_sections(text: str) -> dict[str, str]:
     return {k: _normalise(v) for k, v in _sections(text).items()}
 
 
-#: Tokens that must appear in the SAME SENTENCE as a rate, keyed by the interval array it
-#: is bound to. A rule's anchor identifies *where* a rate sits; these identify *what the
-#: sentence is about*. Without them a rate could be re-attributed by moving a clause into a
-#: new sentence with a different subject — which is exactly what the seventh review did:
-#:
-#:     ... on recall (30.2% [...] against 30.0% [...]). The shipped auditor's eight
-#:     readings operated at lower false-positive cost (9.7% [5.3, 14.5] against ...)
-#:
-#: leaving astra's one-reading false-positive rate attributed to the shipped auditor's
-#: eight readings, with every test green. Requiring the sentence to name the family makes
-#: that unbound, and red.
-SUBJECT_TOKENS: dict[tuple, list[str]] = {
-    ("ceiling1", "families", "astra", "P", "draw1_block", "cluster_ci95"):
-        [r"astra|frontier"],
-    ("ceiling1", "families", "astra", "C", "draw1_block", "cluster_ci95"):
-        [r"astra|frontier"],
-    ("ceiling1", "families", "cross", "P", "draw1_block", "cluster_ci95"):
-        [r"cross-vendor|shipped"],
-    ("ceiling1", "families", "cross", "C", "draw1_block", "cluster_ci95"):
-        [r"cross-vendor|shipped"],
-    ("ceiling1", "families", "cross", "P", "union_at_kmax_block", "cluster_ci95"):
-        [r"cross-vendor|shipped|extrapolation", r"eight|K = 8|number to quote"],
-    ("ceiling1", "families", "cross", "C", "union_at_kmax_block", "cluster_ci95"):
-        [r"cross-vendor|shipped", r"eight|false positives|false-positive"],
-    ("ceiling1", "families", "self", "P", "draw1_block", "cluster_ci95"):
-        [r"generator's own model|self"],
-    ("ceiling1", "families", "self", "P", "union_at_kmax_block", "cluster_ci95"):
-        [r"generator's own model|self", r"eight"],
-    ("ceiling1", "families", "self", "C", "union_at_kmax_block", "cluster_ci95"):
-        [r"generator's own model|self|false-positive"],
-    ("ceiling1", "families", "cross", "P", "fit_A_ci95"):
-        [r"asymptote|extrapolation"],
-    ("ceiling1", "families", "self", "P", "fit_A_ci95"):
-        [r"asymptote"],
-    ("ceiling1", "families", "cross", "P", "last_step_gain_block", "cluster_ci95"):
-        [r"flattened|gained"],
+#: The vocabulary that identifies a subject. Each key is a family or arm; the value is
+#: (regexes that identify it in prose, the canonical phrase used when mutating to it).
+#: The generated re-attribution test rewrites a rule's sentence from its own subject to
+#: each of the others in turn and requires the guard to redden every time — so a new
+#: binding cannot be added without its mutations existing.
+FAMILY_VOCAB: dict[str, tuple[list[str], str]] = {
+    "cross":         ([r"cross-vendor", r"shipped"], "shipped cross-vendor"),
+    "self":          ([r"generator's own model", r"self model", r"self-auditor"],
+                      "generator's own model"),
+    "astra":         ([r"astra", r"frontier"], "astra"),
+    "self-loop":     ([r"self-audit", r"self-loop"], "self-loop"),
+    "cross-loop":    ([r"cross-loop"], "cross-loop"),
+    "referent-loop": ([r"referent"], "referent-loop"),
+    "residual":      ([r"residual", r"no reading of any family", r"flagged by no"],
+                      "residual"),
+    "primary":       ([r"A\(self\) . A\(cross\)", r"union recalls", r"union recall"],
+                      "the primary outcome"),
+    "timeout":       ([r"assertion failure", r"timeout"], "the assertion-only population"),
 }
+
+#: Every bound array's subject requirement: (family key, extra tokens that must also be
+#: present). **No bound array may be absent from this map, and none may have an empty
+#: family** — `test_every_bound_rule_declares_a_subject` enforces both. Eight rounds of
+#: review kept finding rates that could be re-attributed by editing prose; requiring the
+#: sentence to name its own subject, for every array without exception, is the structural
+#: answer to that whole class rather than to its instances.
+SUBJECT_TOKENS: dict[tuple, tuple[str, list[str]]] = {
+    ("ceiling1", "families", "astra", "P", "draw1_block", "cluster_ci95"): ("astra", []),
+    ("ceiling1", "families", "astra", "C", "draw1_block", "cluster_ci95"): ("astra", []),
+    ("ceiling1", "families", "cross", "P", "draw1_block", "cluster_ci95"):
+        ("cross", [r"one reading|lifts recall"]),
+    ("ceiling1", "families", "cross", "C", "draw1_block", "cluster_ci95"):
+        ("cross", [r"false positives|false-positive"]),
+    ("ceiling1", "families", "cross", "P", "union_at_kmax_block", "cluster_ci95"):
+        ("cross", [r"eight|number to quote"]),
+    ("ceiling1", "families", "cross", "C", "union_at_kmax_block", "cluster_ci95"):
+        ("cross", [r"eight|false positives|false-positive"]),
+    ("ceiling1", "families", "cross", "P", "fit_A_ci95"):
+        ("cross", [r"asymptote|extrapolation"]),
+    ("ceiling1", "families", "cross", "P", "last_step_gain_block", "cluster_ci95"):
+        ("cross", [r"flattened|gained"]),
+    ("ceiling1", "families", "self", "P", "draw1_block", "cluster_ci95"):
+        ("self", [r"one reading"]),
+    ("ceiling1", "families", "self", "P", "union_at_kmax_block", "cluster_ci95"):
+        ("self", [r"eight"]),
+    ("ceiling1", "families", "self", "C", "union_at_kmax_block", "cluster_ci95"):
+        ("self", [r"false-positive|false positives"]),
+    ("ceiling1", "families", "self", "P", "fit_A_ci95"): ("self", [r"asymptote"]),
+    ("ceiling1", "primary_ceiling1", "P", "ci95"): ("primary", [r"primary outcome"]),
+    ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"): ("primary", []),
+    ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"):
+        ("residual", []),
+    ("ceiling1", "residual_classified", "all_families", "cluster_ci95",
+     "unexercised-edge"): ("residual", [r"input class|never constructs"]),
+    ("ceiling2", "arms", "self-loop", "net_primary", "ci95"): ("self-loop", []),
+    ("ceiling2", "arms", "referent-loop", "net_primary", "ci95"): ("referent-loop", []),
+    ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"):
+        ("referent-loop", [r"cross-loop"]),
+    ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+     "ci95"): ("referent-loop", [r"flags|flagged"]),
+    ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
+     "ci95"): ("referent-loop", [r"pooled"]),
+    ("timeout_sensitivity", "residual_registered", "cluster_ci95"):
+        ("timeout", [r"registered|110"]),
+    ("timeout_sensitivity", "residual_assertion_only", "cluster_ci95"):
+        ("timeout", [r"assertion|103"]),
+}
+
+
+def _subject_regexes(path) -> list[str]:
+    """Every regex the sentence around a rate bound to `path` must match."""
+    family, extra = SUBJECT_TOKENS[tuple(path)]
+    return ["|".join(FAMILY_VOCAB[family][0])] + list(extra)
 
 
 def _sentence_around(section: str, position: int) -> str:
@@ -541,8 +602,14 @@ def check_rate_bindings(text: str, numbers: dict) -> list[str]:
                         f"{stored_value:.{decimals}f}")
                 lo, dlo = _parse(match.group("lo"))
                 hi, dhi = _parse(match.group("hi"))
-                required = SUBJECT_TOKENS.get(tuple(interval_path), [])
-                if required:
+                required = (_subject_regexes(interval_path)
+                            if tuple(interval_path) in SUBJECT_TOKENS else None)
+                if required is None:
+                    problems.append(
+                        f"[{name}] {match.group('v')!r} is bound to "
+                        f"{'.'.join(map(str, interval_path))}, which declares no subject "
+                        f"tokens — every bound array must declare them")
+                elif required:
                     sentence = _sentence_around(section, match.start("v"))
                     absent = [tok for tok in required
                               if not re.search(tok, sentence, re.I)]
@@ -698,6 +765,202 @@ def test_the_binding_rejects_a_rate_moved_under_a_new_subject():
     assert any("astra" in p for p in problems), problems[:2]
 
 
+def test_the_binding_rejects_the_round_eight_reattributions():
+    """The eighth review's three edits, committed as fixed tests.
+
+    All three left every test green when they were found: the loop-net arrays carried no
+    subject requirement at all, and the asymptote rules accepted generic words. They are
+    kept alongside the generated mutation set because a named regression is easier to read
+    than a generated one, and because they are the cases that motivated the rule.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    cases = [
+        ("Self-audit changed accuracy by +0.89",
+         "Cross-loop changed accuracy by +0.89"),
+        ("The shipped cross-vendor auditor's fitted\nasymptote is",
+         "Its fitted curve provides a comparison. The self model's fitted asymptote is"),
+        ("the `self-loop` arm — the generator's own model\nauditing and revising its own "
+         "code — produced no measurable gain",
+         "the cross-loop arm produced no measurable gain"),
+    ]
+    for before, after in cases:
+        mutated = original.replace(before, after, 1)
+        assert mutated != original, f"the report changed shape: {before[:48]!r}"
+        assert _binding_problems(mutated), \
+            f"a re-attribution survived the guard: {after[:60]!r}"
+
+
+def test_the_analysis_files_contain_no_duplicate_definitions():
+    """No module may define the same name twice at top level.
+
+    A duplicate silently overrides its twin, so a check can appear to exist while a stale
+    copy is what actually runs. This file has had that defect twice — once in the rule
+    table, once across eleven functions — and both times it was found by review rather
+    than by the suite. The check is committed so it cannot be a third time.
+    """
+    import ast
+    import collections
+
+    offenders = {}
+    for name in ("tests/test_report_consistency.py", "tests/test_ceiling_stats.py",
+                 "report_ceiling.py", "ceiling/finalise_manifests.py",
+                 "ceiling/splice_tables.py", "loop.py", "ceiling.py",
+                 "residual_dump.py"):
+        path = CODE / name
+        if not path.exists():
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        counts = collections.Counter(
+            node.name for node in tree.body
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)))
+        counts.update(
+            target.id for node in tree.body if isinstance(node, ast.Assign)
+            for target in node.targets if isinstance(target, ast.Name))
+        duplicated = {k: v for k, v in counts.items() if v > 1}
+        if duplicated:
+            offenders[name] = duplicated
+    assert not offenders, f"duplicate top-level definitions: {offenders}"
+
+
+def test_every_bound_rule_declares_a_subject():
+    """No bound array may omit its subject tokens, and none may be generic.
+
+    Eight rounds of review each found a rate that could be re-attributed by editing prose,
+    and each was fixed as an instance. This is the rule that closes the class: a binding
+    without a declared, family-specific subject is a defect in the guard itself.
+    """
+    undeclared, generic = [], []
+    for _pattern, value_path, interval_path, _why in RATE_RULES:
+        if interval_path is None:
+            continue
+        key = tuple(interval_path)
+        if key not in SUBJECT_TOKENS:
+            undeclared.append(".".join(map(str, key)))
+            continue
+        family, _extra = SUBJECT_TOKENS[key]
+        if not family or family not in FAMILY_VOCAB or not FAMILY_VOCAB[family][0]:
+            generic.append(".".join(map(str, key)))
+    assert not undeclared, ("bound arrays with no subject declaration:\n"
+                            + "\n".join("  " + u for u in sorted(set(undeclared))))
+    assert not generic, ("bound arrays whose subject is empty or unknown:\n"
+                         + "\n".join("  " + g for g in sorted(set(generic))))
+
+
+def _reattribute(section_text: str, sentence: str, frm: str, to: str) -> str:
+    """That sentence, with every token of family `frm` replaced by family `to`'s phrase."""
+    mutated = sentence
+    for token in FAMILY_VOCAB[frm][0]:
+        mutated = re.sub(token, FAMILY_VOCAB[to][1], mutated, flags=re.I)
+    return section_text.replace(sentence, mutated, 1)
+
+
+def test_generated_reattribution_mutations_all_redden():
+    """For EVERY binding rule, rewrite its sentence's subject to each other family in turn
+    and require the guard to redden.
+
+    The structural replacement for eight rounds of hand-written counterexamples: the
+    mutations are generated from the rule table, so a new binding cannot be added without
+    its re-attribution mutations existing. Four properties are asserted:
+
+    1. the unmutated report is clean, so mutations mean something;
+    2. every bound rule yields at least one mutation — a rule cannot pass by being
+       unmutatable, which is how a too-generic subject would hide;
+    3. every mutation reddens;
+    4. enough mutations are generated that the table has not quietly shrunk.
+    """
+    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
+    report = REPORT.read_text(encoding="utf-8")
+    assert not check_rate_bindings(report, numbers), \
+        "the unmutated report must be clean before mutations mean anything"
+
+    survived, unmutatable, total = [], [], 0
+    for pattern, _value_path, interval_path, _why in RATE_RULES:
+        if interval_path is None:
+            continue
+        label = ".".join(map(str, interval_path))
+        family, _extra = SUBJECT_TOKENS[tuple(interval_path)]
+        made_one = False
+        for raw_section, section_start in _raw_sections(report).values():
+            clean, offsets = _normalise_with_map(raw_section)
+            match = re.search(pattern, clean)
+            if match is None:
+                continue
+            lo, hi = _sentence_bounds(clean, match.start("v"))
+            raw_lo = section_start + offsets[lo]
+            raw_hi = section_start + offsets[hi - 1] + 1
+            raw_sentence = report[raw_lo:raw_hi]
+            for other in FAMILY_VOCAB:
+                if other == family:
+                    continue
+                mutated = raw_sentence
+                for token in FAMILY_VOCAB[family][0]:
+                    mutated = re.sub(token, FAMILY_VOCAB[other][1], mutated, flags=re.I)
+                if mutated == raw_sentence:
+                    continue
+                made_one = True
+                total += 1
+                candidate = report[:raw_lo] + mutated + report[raw_hi:]
+                if not check_rate_bindings(candidate, numbers):
+                    survived.append(f"{label} survived re-attribution to {other!r}")
+            break
+        if not made_one:
+            unmutatable.append(f"{label}: its sentence contains no token of its declared "
+                               f"family {family!r}, so no re-attribution can be generated")
+    assert not unmutatable, ("bindings whose subject cannot be mutated:\n"
+                             + "\n".join("  " + u for u in sorted(set(unmutatable))))
+    assert total > 100, f"only {total} mutations generated; the rule table changed shape"
+    assert not survived, ("re-attribution mutations the guard accepted:\n"
+                          + "\n".join("  " + s for s in sorted(set(survived))[:15]))
+
+
+def _raw_sections(text: str) -> dict[str, tuple[str, int]]:
+    """Each analysed section as (raw text, its offset in the whole report)."""
+    out = {}
+    opening = text.split("## What the review changed", 1)[0]
+    out["opening"] = (opening, 0)
+    marker = "## What this study licenses, and what it does not"
+    if marker in text:
+        start = text.index(marker)
+        rest = text[start:]
+        end = rest.find("### Where this sits beside the earlier record")
+        out["conclusion"] = (rest[:end if end != -1 else len(rest)], start)
+    return out
+
+
+def _sentence_bounds(clean: str, position: int) -> tuple[int, int]:
+    """[start, end) of the sentence containing `position` in normalised text."""
+    boundaries = [m.end() for m in
+                  re.finditer(r"(?<=[.;])\s+(?=[A-Z(\u201c\"])", clean)]
+    start = max([0] + [b for b in boundaries if b <= position])
+    after = [b for b in boundaries if b > position]
+    return start, (after[0] if after else len(clean))
+
+
+def _raw_sentence(report: str, flattened_sentence: str) -> str | None:
+    """The raw (un-normalised) span of the report corresponding to a flattened sentence.
+
+    Matching is done on a distinctive prefix, then extended to the same word count, so a
+    mutation can be applied to the file the guard actually reads.
+    """
+    words = [w for w in flattened_sentence.split() if w]
+    if len(words) < 4:
+        return None
+    probe = re.escape(words[0]) + r"[\s*`>]*" + r"[\s*`>]*".join(
+        re.escape(w) for w in words[1:4])
+    match = re.search(probe, report)
+    if match is None:
+        return None
+    tail = report[match.start():]
+    end = 0
+    seen = 0
+    for token in re.finditer(r"\S+", tail):
+        seen += 1
+        end = token.end()
+        if seen >= len(words):
+            break
+    return tail[:end]
+
+
 def test_no_binding_rule_matches_more_than_once():
     """Each rule identifies one occurrence. A second match means new prose slipped under
     an existing rule's anchor — which is how the reused-label counterexample got in.
@@ -739,6 +1002,29 @@ def test_every_bound_rule_actually_fires():
 # the conclusion by hand; this finds them forever.
 # ---------------------------------------------------------------------------------
 
+
+
+def test_the_attribution_counts_match_the_attribution_table():
+    """The prose counts beside the attribution table are derived from the table.
+
+    They drifted once already — the table listed ten rows while the sentence said nine and
+    "the single exception". A count written beside a table it does not read is a count
+    that will drift again.
+    """
+    corrections = (CODE.parent / "CORRECTIONS.md").read_text(encoding="utf-8")
+    section = corrections.split("**25. Who found what, corrected.**", 1)[1]
+    section = section.split("**26.", 1)[0]
+    rows = [line for line in section.splitlines()
+            if line.startswith("| ") and "found by" not in line and "---" not in line]
+    reviewer = [r for r in rows if "cross-vendor review" in r]
+    author = [r for r in rows if "**the author**" in r]
+    numbered = [r for r in rows if not r.startswith("| — ")]
+    assert len(rows) == len(reviewer) + len(author), rows
+    assert len(numbered) == 9, f"{len(numbered)} numbered rows, prose says nine"
+    assert len(reviewer) == 8, f"{len(reviewer)} reviewer rows, prose says eight"
+    assert len(author) == 2, f"{len(author)} author rows (item 24 and the beta tail)"
+    assert "Eight of the nine numbered corrections" in section, \
+        "the sentence no longer states the count the table shows"
 
 
 if __name__ == "__main__":

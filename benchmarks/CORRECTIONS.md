@@ -531,10 +531,12 @@ misattribution. The record, accurately:
 | 26 | the reader sentence's interval was never bound; a reused label bound a rate to another family's array | **cross-vendor review, round 6** |
 | 27 | seed BOOT_SEED + 7 declared unused while `numbers.json` recorded it as consumed | **cross-vendor review, round 6** |
 
-**Of the nine items listed above, eight were found by cross-vendor review.** The single
-exception, item 24, was found by the author only because a reviewer had demanded a
-mechanism strong enough to expose it — the rate-to-key binding — and the reviewer's
-requirement, not the author's insight, is what made that discovery possible.
+**Eight of the nine numbered corrections above were found by cross-vendor review, plus
+the author-found beta-tail defect that was fixed before round 1.** Of the two the author
+found, item 24 emerged only because a reviewer had demanded a mechanism strong enough to
+expose it — the rate-to-key binding — so the reviewer's requirement, not the author's
+insight, is what made that discovery possible; the beta tail is the one defect the
+author's own test caught unprompted.
 
 *The claim is deliberately narrowed to the listed items.* An earlier version said "every
 defect in this study's statistical machinery" was found by review, which is not true: the
