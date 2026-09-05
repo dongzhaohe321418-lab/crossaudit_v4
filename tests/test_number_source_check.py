@@ -1589,3 +1589,133 @@ def test_the_canonical_key_reads_the_exponent_sign_it_was_given(value, canonical
     from crossaudit.dcl.quantities import normalise_number
 
     assert normalise_number(value) == canonical
+
+
+# ------------- after the rebase: this slice's skills under the tightened loader
+def _house(root, files: dict[str, bytes]) -> None:
+    (root / "skills").mkdir(parents=True, exist_ok=True)
+    for name, body in files.items():
+        (root / "skills" / name).write_bytes(body)
+
+
+def test_the_check_gate_survives_the_house_dir_loader(tmp_path):
+    """The two slices meet here: `skills.load` now routes through `house_dir`
+    (D156), and this slice's `requires_check` is read by `_parse` and honoured
+    by `select(checks=)`. Neither knows about the other, and that is the claim
+    under test — front matter parses through the new loader, and the gate still
+    decides what reaches the generator.
+
+    MUTATION: drop `requires_check` from `_parse`'s front-matter loop, or the
+    `checks=` argument from `select`."""
+    from crossaudit import skills as skills_mod
+    from crossaudit.scaffold import annotation_skill_tree
+
+    tree = annotation_skill_tree(["number_source", "source_provenance"])
+    _house(tmp_path, {Path(p).name: body.encode() for p, body in tree.items()})
+
+    house = skills_mod.load(tmp_path)
+    assert sorted(s.name for s in house) == ["provenance-numbers", "provenance-sources"]
+    assert {s.name: s.requires_check for s in house} == {
+        "provenance-numbers": ("number_source",),
+        "provenance-sources": ("source_provenance",)}
+    # And both front-matter keys still parse side by side.
+    both = skills_mod._parse(
+        "---\napplies_to: work/, experiments/\nrequires_check: number_source\n---\nx\n",
+        "both", "skills/both.md")
+    assert both.applies_to == ("work/", "experiments/")
+    assert both.requires_check == ("number_source",)
+
+    def names(checks):
+        return sorted(s.name for s in skills_mod.select(house, ["src"], checks=checks))
+
+    assert names(["number_source"]) == ["provenance-numbers"]
+    assert names(["source_provenance"]) == ["provenance-sources"]
+    assert names(["parseable"]) == []
+    assert names(None) == ["provenance-numbers", "provenance-sources"]
+
+
+@pytest.mark.parametrize("break_it", ["case", "symlink", "file"])
+def test_this_slices_skills_are_refused_with_the_rest_when_the_directory_is_wrong(
+        tmp_path, break_it):
+    """MUTATION: give the provenance skills a loader of their own.
+
+    They are ordinary `skills/*.md` and must be refused exactly as a
+    hand-written one is when the guidance directory is a case variant, a
+    symlink, or a file — D156's invariant is that guidance and work cannot be
+    the same bytes, and a second loading path would reopen it for precisely the
+    files this slice ships."""
+    from crossaudit import skills as skills_mod
+    from crossaudit.errors import ConfigDenial
+    from crossaudit.scaffold import annotation_skill_tree
+
+    body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL].encode()
+    if break_it == "case":
+        (tmp_path / "SKILLS").mkdir()
+        (tmp_path / "SKILLS" / "provenance-numbers.md").write_bytes(body)
+    elif break_it == "symlink":
+        (tmp_path / "work" / "guidance").mkdir(parents=True)
+        (tmp_path / "work" / "guidance" / "provenance-numbers.md").write_bytes(body)
+        (tmp_path / "skills").symlink_to(tmp_path / "work" / "guidance")
+    else:
+        (tmp_path / "skills").write_bytes(body)
+
+    with pytest.raises(ConfigDenial):
+        skills_mod.load(tmp_path)
+
+
+@pytest.mark.parametrize("break_it", ["case", "symlink"])
+def test_pruning_uses_the_loader_identity_and_never_a_filesystem_alias(
+        tmp_path, break_it):
+    """MUTATION: `Path(root) / "skills/provenance.md"` again.
+
+    Reproduced on this tree before the fix: with `skills -> work/guidance`, the
+    migration deleted `work/guidance/provenance.md` — a file git tracks as WORK
+    and `house_dir` refuses to read as guidance. A migration that follows an
+    alias the loader denies is deleting somebody's work on the strength of a
+    name. It now resolves the directory the way the loader does, so an alias is
+    a denial and never a deletion."""
+    from crossaudit.errors import ConfigDenial
+    from crossaudit.scaffold import prune_legacy_annotation_skill
+
+    legacy = (LEGACY_FIXTURES / "both.md").read_bytes()
+    if break_it == "case":
+        (tmp_path / "SKILLS").mkdir()
+        victim = tmp_path / "SKILLS" / "provenance.md"
+    else:
+        (tmp_path / "work" / "guidance").mkdir(parents=True)
+        victim = tmp_path / "work" / "guidance" / "provenance.md"
+        (tmp_path / "skills").symlink_to(tmp_path / "work" / "guidance")
+    victim.write_bytes(legacy)
+
+    with pytest.raises(ConfigDenial):
+        prune_legacy_annotation_skill(tmp_path)
+    assert victim.exists(), "the migration followed an alias and deleted it"
+
+    # The real directory still prunes, and an absent one is still not an error.
+    real = tmp_path / "real"
+    (real / "skills").mkdir(parents=True)
+    (real / "skills" / "provenance.md").write_bytes(legacy)
+    assert prune_legacy_annotation_skill(real) == ["skills/provenance.md"]
+    assert prune_legacy_annotation_skill(tmp_path / "empty") == []
+
+
+def test_tracked_paths_asks_git_about_the_git_path(tmp_path):
+    """`wizard.tracked_paths` compares what `git ls-files` prints, which is the
+    tree path — the same identity `house_dir` enforces and the audited-scope
+    filters compare. Asserted rather than assumed, because the whole D156
+    finding was two notions of "the skills directory" disagreeing."""
+    from crossaudit.cli import wizard
+
+    _git(tmp_path, "init", "-q", "-b", "main")
+    _git(tmp_path, "config", "user.email", "t@t.invalid")
+    _git(tmp_path, "config", "user.name", "t")
+    (tmp_path / "skills").mkdir()
+    (tmp_path / "skills" / "provenance.md").write_text("x\n")
+    (tmp_path / "skills" / "other.md").write_text("y\n")
+    _git(tmp_path, "add", "--", "skills/provenance.md")
+    _git(tmp_path, "commit", "-qm", "one tracked")
+
+    assert wizard.tracked_paths(tmp_path, ["skills/provenance.md"]) == [
+        "skills/provenance.md"]
+    assert wizard.tracked_paths(tmp_path, ["skills/other.md"]) == []
+    assert wizard.tracked_paths(tmp_path, []) == []

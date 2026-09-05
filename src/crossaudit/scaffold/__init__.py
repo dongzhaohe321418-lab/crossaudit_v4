@@ -76,7 +76,21 @@ def prune_legacy_annotation_skill(root) -> list[str]:
     """
     if root is None:
         return []
-    target = Path(root) / LEGACY_ANNOTATION_SKILL
+    # THE SAME DIRECTORY IDENTITY THE LOADER ACCEPTS, never a filesystem alias.
+    # `Path(root) / "skills/provenance.md"` opens whatever the OS resolves: on a
+    # case-insensitive host that is `SKILLS/`, and through `skills ->
+    # work/guidance` it is an ordinary work file. Measured on this tree before
+    # the fix, pruning deleted `work/guidance/provenance.md` — a file git tracks
+    # as work and `house_dir` refuses to read as guidance. `house_dir` resolves
+    # the one identity and denies every alias; a malformed directory raises here
+    # exactly as it would on the next round's load, rather than being quietly
+    # followed.
+    from .. import skills as skills_mod
+
+    base = skills_mod.house_dir(Path(root))
+    if base is None:
+        return []
+    target = base / Path(LEGACY_ANNOTATION_SKILL).name
     if not target.is_file() or target.is_symlink():
         return []
     try:
