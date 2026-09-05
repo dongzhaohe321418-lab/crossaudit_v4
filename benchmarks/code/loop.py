@@ -251,7 +251,7 @@ def audit_one(cfg, problem: Problem, solution: str, inst: dict, constitution: st
 # ---------------------------------------------------------------------------------
 
 def revise_one(cfg, complete, problem: Problem, solution: str, report: str,
-               constitution: str) -> dict:
+               constitution: str, attempts: int = 4, cooldown_s: float = 75.0) -> dict:
     """One repair round, exactly as ``cli/build.py`` runs one.
 
     ``current`` — "THE WORK AS IT STANDS" — is **the solution file alone** (deviation 2).
@@ -276,15 +276,28 @@ def revise_one(cfg, complete, problem: Problem, solution: str, report: str,
 
     out: dict = {"findings_sha256": sha256_text(findings), "findings_chars": len(findings)}
     started = time.monotonic()
-    try:
-        work = gen_mod.generate(
-            task=problem.spec, constitution=constitution,
-            current=current, complete=complete, findings=findings,
-            allowed_dirs=cfg.scope_dirs, root=root,
-            document_growth_budget=(cfg.repair.max_document_growth or None
-                                    if cfg.repair.enabled else None))
-    except Exception as exc:  # noqa: BLE001
-        out.update({"revise_ok": False, "revise_error": f"{type(exc).__name__}: {exc}",
+    # The generator route has the same circuit breaker as the auditor route, and a
+    # revision that dies in the cooldown is indistinguishable in the record from a
+    # revision that decided to change nothing. That is a silent bias against the arm, so
+    # the call gets bounded retries across the cooldown; what still fails is recorded as
+    # a failure and counted in the report, never as "no change".
+    work = None
+    last = ""
+    for attempt in range(1, attempts + 1):
+        try:
+            work = gen_mod.generate(
+                task=problem.spec, constitution=constitution,
+                current=current, complete=complete, findings=findings,
+                allowed_dirs=cfg.scope_dirs, root=root,
+                document_growth_budget=(cfg.repair.max_document_growth or None
+                                        if cfg.repair.enabled else None))
+            break
+        except Exception as exc:  # noqa: BLE001
+            last = f"{type(exc).__name__}: {exc}"
+            if attempt < attempts:
+                time.sleep(cooldown_s)
+    if work is None:
+        out.update({"revise_ok": False, "revise_error": last, "revise_attempts": attempts,
                     "revise_wall_s": round(time.monotonic() - started, 3)})
         return out
     files = getattr(work, "files", None)
@@ -557,6 +570,102 @@ def run_arm(arm: str, sample: list[str], *, instances, problems, solutions, scor
     return len(finished)
 
 
+
+def repair_revisions(arm: str, *, instances, problems, solutions, scratch: Path,
+                     spend: Spend, timeout: float, run_dir: Path) -> int:
+    """Re-run only the revisions that died on the provider, reusing the cached audit.
+
+    A revision killed inside the circuit breaker's cooldown leaves a row that looks
+    exactly like a revision that decided to change nothing, which biases the arm's net
+    downward. Re-auditing the arm would be a different draw of the audit; so the audit is
+    kept and only the revision is re-issued, from the report that audit produced, which is
+    retained in the run directory. Only rows with ``revise_ok is False`` are touched, and
+    the arm's audit column is untouched by construction.
+    """
+    from crossaudit.config import load
+    from crossaudit import usage as usage_mod
+    from crossaudit.cli.build import _generator_complete
+
+    cache_path = LOOP / f"{arm}.jsonl"
+    rows = [json.loads(l) for l in cache_path.read_text(encoding="utf-8").splitlines()
+            if l.strip()]
+    broken = [r for r in rows if r.get("revise_ok") is False]
+    if not broken:
+        print(f"{arm}: no failed revisions to repair")
+        return 0
+    reports: dict[str, str] = {}
+    for line in (run_dir / "loop" / arm / "reports.jsonl").read_text(
+            encoding="utf-8").splitlines():
+        if line.strip():
+            row = json.loads(line)
+            reports[row["instance_id"]] = row["report"]
+
+    constitution = study1.shipped_constitution()
+    reviser_cfg = load(build_reviser_project(scratch, constitution) / "crossaudit.yml")
+    spend.add_ledger(reviser_cfg.root / reviser_cfg.state_dir / usage_mod.LEDGER_NAME)
+    revise_run_id = f"{spend.prefix}{arm}-{spend.stamp}-repair"
+    complete = _generator_complete(reviser_cfg, False,
+                                   usage_context={"run_id": revise_run_id})
+    print(f"{arm}: repairing {len(broken)} failed revisions", flush=True)
+
+    repaired: dict[str, dict] = {}
+    for n, row in enumerate(broken, start=1):
+        iid = row["instance_id"]
+        inst = instances[iid]
+        problem = problems[inst["problem_id"]]
+        repaired[iid] = revise_one(reviser_cfg, complete, problem,
+                                   solutions[iid]["solution"], reports[iid], constitution)
+        print(f"  {arm} repair {n}/{len(broken)} {iid} "
+              f"ok={repaired[iid].get('revise_ok')}  ${spend.total():.3f}", flush=True)
+
+    costs = spend.by_run_id()
+    each = (costs.get(revise_run_id, 0.0) / len(repaired)) if repaired else 0.0
+    out_rows = []
+    solution_rows = {}
+    for row in rows:
+        iid = row["instance_id"]
+        rev = repaired.get(iid)
+        if rev is not None:
+            problem = problems[instances[iid]["problem_id"]]
+            original = solutions[iid]["solution"]
+            revised = rev.get("revised_solution", original)
+            row = dict(row)
+            row["revise_ok"] = rev.get("revise_ok")
+            row["revise_error"] = rev.get("revise_error", "")
+            row["revise_attempts"] = rev.get("revise_attempts", 1)
+            row["revise_cost_usd_apportioned"] = round(each, 8)
+            row["touched_tests"] = bool(rev.get("touched_tests", False))
+            row["returned_paths"] = rev.get("returned_paths", [])
+            row["returned_non_solution"] = rev.get("returned_non_solution", [])
+            row["changed"] = bool(rev.get("changed", False))
+            row["findings_sha256"] = rev.get("findings_sha256", "")
+            row["findings_chars"] = rev.get("findings_chars", 0)
+            row["revised_solution_sha256"] = sha256_text(revised)
+            row["repaired_revision"] = True
+            if row["changed"]:
+                after = score(problem, revised, timeout)
+                for key in list(row):
+                    if key.endswith("_after"):
+                        row.pop(key)
+                row.update({f"{k}_after": v for k, v in after.items()})
+            solution_rows[iid] = {"arm": arm, "instance_id": iid,
+                                  "problem_id": row["problem_id"], "revised": True,
+                                  "changed": row["changed"], "solution": revised,
+                                  "solution_sha256": row["revised_solution_sha256"]}
+        out_rows.append(row)
+    cache_path.write_text(
+        "".join(json.dumps(r, sort_keys=True) + "\n"
+                for r in sorted(out_rows, key=lambda r: r["instance_id"])), encoding="utf-8")
+    sol_path = LOOP / f"solutions-{arm}.jsonl"
+    sols = {json.loads(l)["instance_id"]: json.loads(l)
+            for l in sol_path.read_text(encoding="utf-8").splitlines() if l.strip()}
+    sols.update(solution_rows)
+    sol_path.write_text("".join(json.dumps(sols[i], sort_keys=True) + "\n"
+                                for i in sorted(sols)), encoding="utf-8")
+    print(f"{arm}: repaired {len(repaired)} revisions; spend ${spend.total():.4f}")
+    return len(repaired)
+
+
 # ---------------------------------------------------------------------------------
 # driver
 # ---------------------------------------------------------------------------------
@@ -600,6 +709,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-passes", type=int, default=6,
                         help="re-attempt passes for instances the provider "
                              "layer failed; a pass waits out the cooldown")
+    parser.add_argument("--repair-revisions", action="store_true",
+                        help="re-issue only the revisions that died on the "
+                             "provider, reusing the cached audit reports")
     parser.add_argument("--probe", action="store_true")
     args = parser.parse_args(argv)
 
@@ -651,6 +763,15 @@ def main(argv: list[str] | None = None) -> int:
                 scored[f"{batch}:{row['problem_id']}"] = row
 
     arms = [args.arm] if args.arm else list(ARM_ORDER)
+    if args.repair_revisions:
+        for arm in arms:
+            if (LOOP / f"{arm}.jsonl").exists():
+                repair_revisions(arm, instances=instances, problems=problems,
+                                 solutions=solutions, scratch=scratch, spend=spend,
+                                 timeout=args.timeout, run_dir=run_dir)
+        print(f"\nrepair spend this invocation: ${spend.total():.4f}")
+        write_manifest(spend, run_dir, scratch)
+        return 0
     for arm in arms:
         if spend.total() >= args.budget_usd:
             print(f"budget ${args.budget_usd:.2f} reached; {arm} not run")
@@ -662,6 +783,31 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nceiling-2 spend this invocation: ${spend.total():.4f}", flush=True)
     write_manifest(spend, run_dir, scratch)
     return 0
+
+
+def ledger_spend(scratch: Path) -> dict:
+    """Total model spend for ceiling 2, read from every project ledger under ``scratch``.
+
+    This is the ceiling's spend, not one invocation's, and it deliberately includes the
+    discarded pilots and the run the circuit breaker destroyed: that money was spent, and
+    a study that reports only the spend of the runs it kept is under-reporting its cost.
+    """
+    from crossaudit import usage
+    ledgers = sorted(scratch.glob("*/.crossaudit/usage.jsonl"))
+    if not ledgers:
+        return {"usd": None, "calls": None,
+                "note": f"AUTHOR_INPUT_NEEDED: no ledger under {scratch}"}
+    total, calls, per = 0.0, 0, {}
+    for led in ledgers:
+        events, _ = usage.read_events(led)
+        name = led.parent.parent.name
+        for event in events:
+            total += float(event.get("api_value_usd") or 0.0)
+            calls += 1
+            per[name] = round(per.get(name, 0.0) + float(event.get("api_value_usd") or 0.0), 6)
+    return {"usd": round(total, 6), "calls": calls, "by_project": per,
+            "source": str(scratch),
+            "includes": "the discarded pilots and the breaker-destroyed run"}
 
 
 def write_manifest(spend: Spend, run_dir: Path, scratch: Path) -> None:
@@ -705,6 +851,7 @@ def write_manifest(spend: Spend, run_dir: Path, scratch: Path) -> None:
         "run_dir": str(run_dir), "scratch": str(scratch),
         "spend_usd_by_run_id": {k: round(v, 6) for k, v in sorted(spend.by_run_id().items())},
         "spend_usd_total": round(spend.total(), 6),
+        "spend_usd_ceiling2_all_ledgers": ledger_spend(scratch),
         "written_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     if prior.get("spend_usd_total") and not manifest["spend_usd_total"]:

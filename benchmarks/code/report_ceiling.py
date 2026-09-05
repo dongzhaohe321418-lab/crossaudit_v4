@@ -573,8 +573,11 @@ def load_spend() -> dict:
                        ("ceiling2", CEILING / "manifest_loop.json")):
         if path.exists():
             m = json.loads(path.read_text(encoding="utf-8"))
+            all_ledgers = (m.get("spend_usd_ceiling2_all_ledgers") or {}).get("usd")
             out[name] = {
-                "spend_usd": m.get("spend_usd_cumulative", m.get("spend_usd_total")),
+                "spend_usd": (all_ledgers if all_ledgers is not None
+                              else m.get("spend_usd_cumulative", m.get("spend_usd_total"))),
+                "calls": (m.get("spend_usd_ceiling2_all_ledgers") or {}).get("calls"),
                 "astra_tokens": m.get("astra_tokens_cumulative"),
                 "note": m.get("astra", {}).get("bypasses") if name == "ceiling1" else None,
             }

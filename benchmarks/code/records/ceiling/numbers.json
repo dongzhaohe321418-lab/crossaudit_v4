@@ -1,0 +1,518 @@
+{
+  "bootstrap_reps": 100,
+  "bootstrap_seed": 20260908,
+  "ceiling1": {
+    "families": {
+      "astra": {
+        "k_max": 0,
+        "note": "not run",
+        "partial_draws": [
+          "partial-1"
+        ]
+      },
+      "cross": {
+        "C": {
+          "asymptote_is_extrapolation": true,
+          "bootstrap_reps": 100,
+          "counts_k": {
+            "0": 139,
+            "1": 7,
+            "2": 2,
+            "3": 2
+          },
+          "curve": [
+            0.037778,
+            0.057778,
+            0.073333
+          ],
+          "draw1_rate": 0.03777777777777778,
+          "fit": {
+            "A": 0.09369542950442128,
+            "max_resid": 0.0013681412194071832,
+            "r2": 0.9949475743574325,
+            "sse": 3.210265511162234e-06,
+            "tau": 2.004698958956282
+          },
+          "fit_A_ci95": [
+            0.041529332597909745,
+            0.22226939982673963
+          ],
+          "marginal_gain_last_step": 0.015555555555555559,
+          "n_instances": 150,
+          "raw_kmax_ci95": [
+            0.032467532467532464,
+            0.11559803921568623
+          ],
+          "union_at_kmax": 0.07333333333333333,
+          "union_at_kmax_count": 11,
+          "union_at_kmax_wilson95": [
+            0.041438815160384994,
+            0.12653579336704038
+          ],
+          "zibb_secondary": {
+            "a": 0.04910118706142356,
+            "b": 1.2301004254734642,
+            "nll": 49.55941973527307,
+            "pi": 0.999999999989178
+          }
+        },
+        "P": {
+          "asymptote_is_extrapolation": true,
+          "bootstrap_reps": 100,
+          "counts_k": {
+            "0": 90,
+            "1": 10,
+            "2": 3,
+            "3": 7
+          },
+          "curve": [
+            0.112121,
+            0.151515,
+            0.181818
+          ],
+          "draw1_rate": 0.11212121212121215,
+          "fit": {
+            "A": 0.19605629386077678,
+            "max_resid": 0.005728347536428036,
+            "r2": 0.9783535657880177,
+            "sse": 5.287375115139854e-05,
+            "tau": 1.2348332560964916
+          },
+          "fit_A_ci95": [
+            0.10859916388113636,
+            0.3098912763955421
+          ],
+          "marginal_gain_last_step": 0.03030303030303033,
+          "n_instances": 110,
+          "raw_kmax_ci95": [
+            0.10337837837837838,
+            0.2669724770642199
+          ],
+          "union_at_kmax": 0.18181818181818182,
+          "union_at_kmax_count": 20,
+          "union_at_kmax_wilson95": [
+            0.12089572411843909,
+            0.2642140528894836
+          ],
+          "zibb_secondary": {
+            "a": 0.07763009802012649,
+            "b": 0.5956011100654416,
+            "nll": 73.03367116035511,
+            "pi": 0.9999999999986873
+          }
+        },
+        "draws_used": [
+          1,
+          2,
+          3
+        ],
+        "exchange_rate_recall_per_fp": 1.960227272727272,
+        "k_max": 3,
+        "partial_draws": []
+      },
+      "self": {
+        "C": {
+          "asymptote_is_extrapolation": false,
+          "bootstrap_reps": 0,
+          "counts_k": {
+            "0": 117,
+            "1": 33
+          },
+          "curve": [
+            0.22
+          ],
+          "draw1_rate": 0.22,
+          "fit": {
+            "A": null,
+            "max_resid": null,
+            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
+            "r2": null,
+            "tau": null
+          },
+          "fit_A_ci95": [
+            null,
+            null
+          ],
+          "marginal_gain_last_step": null,
+          "n_instances": 150,
+          "raw_kmax_ci95": [
+            null,
+            null
+          ],
+          "union_at_kmax": 0.22,
+          "union_at_kmax_count": 33,
+          "union_at_kmax_wilson95": [
+            0.16116023701753923,
+            0.29282309982858373
+          ],
+          "zibb_secondary": {
+            "a": 1.7764519488004658,
+            "b": 2.5111081830192536,
+            "nll": 79.03619421470668,
+            "pi": 0.5309815397046671
+          }
+        },
+        "P": {
+          "asymptote_is_extrapolation": false,
+          "bootstrap_reps": 0,
+          "counts_k": {
+            "0": 93,
+            "1": 17
+          },
+          "curve": [
+            0.154545
+          ],
+          "draw1_rate": 0.15454545454545454,
+          "fit": {
+            "A": null,
+            "max_resid": null,
+            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
+            "r2": null,
+            "tau": null
+          },
+          "fit_A_ci95": [
+            null,
+            null
+          ],
+          "marginal_gain_last_step": null,
+          "n_instances": 110,
+          "raw_kmax_ci95": [
+            null,
+            null
+          ],
+          "union_at_kmax": 0.15454545454545454,
+          "union_at_kmax_count": 17,
+          "union_at_kmax_wilson95": [
+            0.09878652361939873,
+            0.23361837713206013
+          ],
+          "zibb_secondary": {
+            "a": 1.146674819606424,
+            "b": 3.0791079149976115,
+            "nll": 47.3564605249571,
+            "pi": 0.5695385668862869
+          }
+        },
+        "draws_used": [
+          1
+        ],
+        "exchange_rate_recall_per_fp": null,
+        "k_max": 1,
+        "partial_draws": [
+          "partial-2"
+        ]
+      }
+    },
+    "k_common": 1,
+    "mixed": {
+      "cross+self": {
+        "2": {
+          "C": 0.24444444444444444,
+          "C_cross_alone_at_2": 0.057777777777777775,
+          "P": 0.21515151515151512,
+          "P_cross_alone_at_2": 0.1515151515151515,
+          "per_family": 1,
+          "total_draws": 2
+        }
+      }
+    },
+    "n_C": 150,
+    "n_P": 110,
+    "primary_ceiling1_status": "AUTHOR_INPUT_NEEDED: fewer than two complete draws in one of the two families (K_common = 1); the asymptote is not estimable yet",
+    "residual": {
+      "all_families": {
+        "families": [
+          "cross",
+          "self"
+        ],
+        "instance_ids": [
+          "b1:HumanEval/151",
+          "b1:HumanEval/154",
+          "b1:Mbpp/102",
+          "b1:Mbpp/103",
+          "b1:Mbpp/109",
+          "b1:Mbpp/113",
+          "b1:Mbpp/119",
+          "b1:Mbpp/137",
+          "b1:Mbpp/142",
+          "b1:Mbpp/161",
+          "b1:Mbpp/244",
+          "b1:Mbpp/267",
+          "b1:Mbpp/278",
+          "b1:Mbpp/294",
+          "b1:Mbpp/300",
+          "b1:Mbpp/305",
+          "b1:Mbpp/391",
+          "b1:Mbpp/398",
+          "b1:Mbpp/410",
+          "b1:Mbpp/427",
+          "b1:Mbpp/459",
+          "b1:Mbpp/556",
+          "b1:Mbpp/558",
+          "b1:Mbpp/559",
+          "b1:Mbpp/576",
+          "b1:Mbpp/577",
+          "b1:Mbpp/589",
+          "b1:Mbpp/594",
+          "b1:Mbpp/597",
+          "b1:Mbpp/630",
+          "b1:Mbpp/7",
+          "b1:Mbpp/735",
+          "b1:Mbpp/74",
+          "b1:Mbpp/748",
+          "b1:Mbpp/757",
+          "b1:Mbpp/765",
+          "b1:Mbpp/771",
+          "b1:Mbpp/790",
+          "b1:Mbpp/792",
+          "b1:Mbpp/806",
+          "b1:Mbpp/99",
+          "b2:HumanEval/151",
+          "b2:HumanEval/154",
+          "b2:Mbpp/102",
+          "b2:Mbpp/103",
+          "b2:Mbpp/109",
+          "b2:Mbpp/113",
+          "b2:Mbpp/119",
+          "b2:Mbpp/137",
+          "b2:Mbpp/142",
+          "b2:Mbpp/244",
+          "b2:Mbpp/267",
+          "b2:Mbpp/278",
+          "b2:Mbpp/294",
+          "b2:Mbpp/300",
+          "b2:Mbpp/305",
+          "b2:Mbpp/391",
+          "b2:Mbpp/398",
+          "b2:Mbpp/410",
+          "b2:Mbpp/459",
+          "b2:Mbpp/556",
+          "b2:Mbpp/558",
+          "b2:Mbpp/559",
+          "b2:Mbpp/576",
+          "b2:Mbpp/589",
+          "b2:Mbpp/594",
+          "b2:Mbpp/597",
+          "b2:Mbpp/630",
+          "b2:Mbpp/7",
+          "b2:Mbpp/735",
+          "b2:Mbpp/739",
+          "b2:Mbpp/74",
+          "b2:Mbpp/748",
+          "b2:Mbpp/765",
+          "b2:Mbpp/771",
+          "b2:Mbpp/790",
+          "b2:Mbpp/792",
+          "b2:Mbpp/806",
+          "b2:Mbpp/92",
+          "b2:Mbpp/99"
+        ],
+        "n_P": 110,
+        "n_never_flagged": 80,
+        "share": 0.7272727272727273,
+        "share_wilson95": [
+          0.6374341513147903,
+          0.8017731508224077
+        ],
+        "total_draws": 4
+      },
+      "three_families_all_P": {
+        "families": [
+          "cross",
+          "self"
+        ],
+        "instance_ids": [
+          "b1:HumanEval/151",
+          "b1:HumanEval/154",
+          "b1:Mbpp/102",
+          "b1:Mbpp/103",
+          "b1:Mbpp/109",
+          "b1:Mbpp/113",
+          "b1:Mbpp/119",
+          "b1:Mbpp/137",
+          "b1:Mbpp/142",
+          "b1:Mbpp/161",
+          "b1:Mbpp/244",
+          "b1:Mbpp/267",
+          "b1:Mbpp/278",
+          "b1:Mbpp/294",
+          "b1:Mbpp/300",
+          "b1:Mbpp/305",
+          "b1:Mbpp/391",
+          "b1:Mbpp/398",
+          "b1:Mbpp/410",
+          "b1:Mbpp/427",
+          "b1:Mbpp/459",
+          "b1:Mbpp/556",
+          "b1:Mbpp/558",
+          "b1:Mbpp/559",
+          "b1:Mbpp/576",
+          "b1:Mbpp/577",
+          "b1:Mbpp/589",
+          "b1:Mbpp/594",
+          "b1:Mbpp/597",
+          "b1:Mbpp/630",
+          "b1:Mbpp/7",
+          "b1:Mbpp/735",
+          "b1:Mbpp/74",
+          "b1:Mbpp/748",
+          "b1:Mbpp/757",
+          "b1:Mbpp/765",
+          "b1:Mbpp/771",
+          "b1:Mbpp/790",
+          "b1:Mbpp/792",
+          "b1:Mbpp/806",
+          "b1:Mbpp/99",
+          "b2:HumanEval/151",
+          "b2:HumanEval/154",
+          "b2:Mbpp/102",
+          "b2:Mbpp/103",
+          "b2:Mbpp/109",
+          "b2:Mbpp/113",
+          "b2:Mbpp/119",
+          "b2:Mbpp/137",
+          "b2:Mbpp/142",
+          "b2:Mbpp/244",
+          "b2:Mbpp/267",
+          "b2:Mbpp/278",
+          "b2:Mbpp/294",
+          "b2:Mbpp/300",
+          "b2:Mbpp/305",
+          "b2:Mbpp/391",
+          "b2:Mbpp/398",
+          "b2:Mbpp/410",
+          "b2:Mbpp/459",
+          "b2:Mbpp/556",
+          "b2:Mbpp/558",
+          "b2:Mbpp/559",
+          "b2:Mbpp/576",
+          "b2:Mbpp/589",
+          "b2:Mbpp/594",
+          "b2:Mbpp/597",
+          "b2:Mbpp/630",
+          "b2:Mbpp/7",
+          "b2:Mbpp/735",
+          "b2:Mbpp/739",
+          "b2:Mbpp/74",
+          "b2:Mbpp/748",
+          "b2:Mbpp/765",
+          "b2:Mbpp/771",
+          "b2:Mbpp/790",
+          "b2:Mbpp/792",
+          "b2:Mbpp/806",
+          "b2:Mbpp/92",
+          "b2:Mbpp/99"
+        ],
+        "n_P": 110,
+        "n_never_flagged": 80,
+        "share": 0.7272727272727273,
+        "share_wilson95": [
+          0.6374341513147903,
+          0.8017731508224077
+        ],
+        "total_draws": 4
+      }
+    },
+    "residual_classified": {
+      "status": "AUTHOR_INPUT_NEEDED: records/ceiling/residual_classification.json has not been written yet"
+    },
+    "unit_of_analysis": "instance (batch, problem_id); intervals resample problem clusters"
+  },
+  "ceiling2": {
+    "arms": {
+      "cross-loop": {
+        "note": "not run"
+      },
+      "referent-loop": {
+        "note": "not run"
+      },
+      "self-loop": {
+        "audit_cost_usd": 0.32751,
+        "blocked_C": 13,
+        "blocked_P": 10,
+        "broken_on_C": {
+          "k": 2,
+          "n": 56,
+          "wilson95": [
+            0.00984942514823639,
+            0.12118780180490107
+          ]
+        },
+        "conditional_on_change_EXPLORATORY": {
+          "broken": 2,
+          "fixed": 3,
+          "n": 19,
+          "net": 0.05263157894736842,
+          "warning": "conditions on a post-treatment variable; exploratory only"
+        },
+        "fixed_on_P": {
+          "k": 3,
+          "n": 56,
+          "wilson95": [
+            0.018385781382109126,
+            0.14607309068821533
+          ]
+        },
+        "flag_rate_C": {
+          "k": 13,
+          "n": 56
+        },
+        "flag_rate_P": {
+          "k": 10,
+          "n": 56
+        },
+        "n_C": 56,
+        "n_P": 56,
+        "n_changed": 19,
+        "n_instances": 112,
+        "n_returned_non_solution": 4,
+        "n_revised": 23,
+        "net_bootstrap_secondary_ci95": [
+          -0.032155499367888744,
+          0.053824806949806944
+        ],
+        "net_primary": {
+          "b": 3,
+          "c": 2,
+          "ci95": [
+            0.03155064288976132,
+            -0.019323030010543713
+          ],
+          "delta": 0.008928571428571428,
+          "method": "exact-conditional (Clopper-Pearson on the discordant pairs), exact McNemar p",
+          "n": 112,
+          "n_discordant": 5,
+          "p_exact": 1.0
+        },
+        "pass_rate_after": {
+          "k": 57,
+          "n": 112
+        },
+        "pass_rate_before": {
+          "k": 56,
+          "n": 112
+        },
+        "revise_cost_usd": 0.121278
+      },
+      "self-loop-rep": {
+        "note": "not run"
+      }
+    },
+    "contrasts": {},
+    "unit_of_analysis": "instance; paired before/after on the same instance"
+  },
+  "preregistration": "benchmarks/code/ceiling/PREREGISTRATION.md",
+  "spend": {
+    "ceiling1": {
+      "astra_tokens": 0,
+      "note": "the product's provider broker, its metered usage ledger and its same-vendor heterogeneity guard; a measurement of a model, not of the product path",
+      "spend_usd": 0
+    },
+    "ceiling2": {
+      "astra_tokens": null,
+      "note": null,
+      "spend_usd": 0.526253
+    }
+  },
+  "study": "ceiling (study 8)"
+}
