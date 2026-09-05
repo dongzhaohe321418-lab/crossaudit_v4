@@ -4,3 +4,4 @@ data/
 # test-failure messages, which quote the corpus's inputs. export.py produces the
 # committed, corpus-free record under records/.
 runs/
+data

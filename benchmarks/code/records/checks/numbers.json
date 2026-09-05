@@ -1,0 +1,43 @@
+{
+  "check": {
+    "discriminates": 19,
+    "false_negative": 107,
+    "false_positive": 34,
+    "parses": 140,
+    "runs": 134,
+    "wrong": 115
+  },
+  "cost_usd": 0.4338625,
+  "input_tokens": 46051,
+  "instance": {
+    "blocks_canonical": 22,
+    "blocks_defective": 18,
+    "discriminates": 13,
+    "parses": 56,
+    "runs": 56
+  },
+  "kill_condition": {
+    "fired": true,
+    "observed": 13,
+    "threshold": "M3 instance count <= 18 of 56"
+  },
+  "n_checks": 140,
+  "n_instances": 56,
+  "outcome_taxonomy": {
+    "canonical:FAIL_ASSERT": 34,
+    "canonical:FAIL_EXC:IndexError": 2,
+    "canonical:FAIL_EXC:OverflowError": 2,
+    "canonical:FAIL_EXC:ValueError": 1,
+    "canonical:FAIL_EXC:ZeroDivisionError": 1,
+    "canonical:PASS": 100,
+    "defective:FAIL_ASSERT": 24,
+    "defective:FAIL_EXC:OverflowError": 2,
+    "defective:FAIL_EXC:TypeError": 2,
+    "defective:FAIL_EXC:ValueError": 1,
+    "defective:FAIL_EXC:ZeroDivisionError": 1,
+    "defective:PASS": 110
+  },
+  "output_tokens": 21249,
+  "sandbox_trips": [],
+  "static_scan_hits": {}
+}

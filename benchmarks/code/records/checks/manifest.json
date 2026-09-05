@@ -1,0 +1,144 @@
+{
+  "study": "checks-emit \u2014 can the auditor emit executable checks?",
+  "preregistration": "benchmarks/code/PREREGISTRATION-CHECKS.md",
+  "code": {
+    "branch": "fusion/evidence-authority",
+    "head_at_report": "714704de72b5073ed1dae3860237336acd6d92f1",
+    "status_porcelain_at_report": "?? benchmarks/code/checks_study.py\n?? benchmarks/code/data\n?? benchmarks/code/records/checks/\n?? scratchpad/\n",
+    "study_files_sha256": {
+      "checks_study.py": "857b0686678439a168ac9d86bdea39807dee4ee4cb8d6a448e34eca75e91c5a0",
+      "PREREGISTRATION-CHECKS.md": "72dd9bcb06e2088d3475361f8781dc5cf0b1487df3bd8c39c9a5a7af40673162",
+      "execute.py": "171dcb505bc1fd8742f552d3c2e71659920a68b59deb584083df37a7c517574a",
+      "corpus.py": "646f05dc69e662b2f341582bc296ee60d8d2e908222c15ec9f32faa23f5d4424"
+    }
+  },
+  "data": {
+    "fetched_via": "https://datasets-server.huggingface.co/rows",
+    "datasets": {
+      "humaneval_base": {
+        "dataset": "openai/openai_humaneval",
+        "config": "openai_humaneval",
+        "split": "test",
+        "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+        "rows": 164,
+        "bytes": 214315,
+        "sha256": "b19293e42932e70278b8e5ed83f8c82879cf34e0d3a44cc580f060b7cdaba4f8",
+        "licence": "MIT",
+        "homepage": "https://huggingface.co/datasets/openai/openai_humaneval"
+      },
+      "humaneval_plus": {
+        "dataset": "evalplus/humanevalplus",
+        "config": "default",
+        "split": "test",
+        "revision": "d32357cf319e50e9c8d8dab5ea876c72b0fd321b",
+        "rows": 164,
+        "bytes": 10991704,
+        "sha256": "8778f6f31e78d1630709eb36e296fe4705466e6aa2b50dea7db67959ae0ef158",
+        "licence": "Apache-2.0",
+        "homepage": "https://huggingface.co/datasets/evalplus/humanevalplus"
+      },
+      "mbpp_plus": {
+        "dataset": "evalplus/mbppplus",
+        "config": "default",
+        "split": "test",
+        "revision": "b2d74c91837c3f2a20c1299ae98133cbe7cfa077",
+        "rows": 378,
+        "bytes": 4887790,
+        "sha256": "43dd5c25c4f976d6ca98f4475b08fcc2add43b6e480348a22a25d1a020fe5866",
+        "licence": "Apache-2.0",
+        "homepage": "https://huggingface.co/datasets/evalplus/mbppplus"
+      }
+    }
+  },
+  "population": {
+    "definition": "study-1 stratum P: passes every visible test, fails at least one hidden test",
+    "n": 56,
+    "humaneval": 6,
+    "mbpp": 50,
+    "source_scored": "benchmarks/code/records/study1/scored.jsonl",
+    "solution_text_source": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-code/benchmarks/code/runs/study1/solutions.jsonl",
+    "solution_text_verification": "all 540 study-1 solutions re-hashed against the committed solution_sha256; 0 mismatches (deviation D1)",
+    "correct_solution_control": "EvalPlus canonical reference solution for the same problem (model-free)"
+  },
+  "models": {
+    "auditor": {
+      "spec": "openai:gpt-5.6-terra",
+      "role": "auditor",
+      "base_url": "https://api.openai.com/v1",
+      "temperature": "provider-default (not settable through the product's provider layer; the auditor model's capability card carries temperature=False)",
+      "reasoning_effort": "provider-default"
+    },
+    "generator_of_the_population": {
+      "spec": "anthropic:claude-haiku-4-5-20251001",
+      "role": "generator",
+      "base_url": "https://api.anthropic.com/v1",
+      "temperature": "provider-default (not settable through the product's provider layer)",
+      "reasoning_effort": "provider-default"
+    },
+    "judge": null,
+    "note": "no model judges any outcome in this study; every outcome is a Python interpreter exit status"
+  },
+  "seed": "none \u2014 n is the whole stratum, not a sample, so there is no selection step",
+  "arms": {
+    "emit": {
+      "run_id": "checks-emit-r1",
+      "instances": 56,
+      "calls": 56,
+      "usd": 0.4339,
+      "input_tokens": 46051,
+      "output_tokens": 21249
+    },
+    "emit-r2": {
+      "run_id": "checks-emit-r2",
+      "instances": 56,
+      "calls": 56,
+      "usd": 0.4279,
+      "input_tokens": 39620,
+      "output_tokens": 21813,
+      "purpose": "preregistered replicate, identical in every respect; the only thing licensing a run-to-run statement about this estimand"
+    },
+    "probe": {
+      "run_id": "checks-probe",
+      "calls": 1,
+      "usd": 0.0001
+    }
+  },
+  "cost_usd_total_from_ledger": 0.8618,
+  "budget_usd": 2.0,
+  "time_utc": {
+    "preflight_and_arms": "2026-09-05",
+    "note": "single session; per-instance wall_s is in the JSONL rows"
+  },
+  "environment": {
+    "python_harness": "3.13.5",
+    "python_executor": "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3",
+    "os": "Darwin 25.6.0"
+  },
+  "records": {
+    "preflight": "records/checks/preflight.jsonl",
+    "asked": "records/checks/asked.jsonl",
+    "executed": "records/checks/executed.jsonl",
+    "asked_r2": "records/checks/asked-r2.jsonl",
+    "executed_r2": "records/checks/executed-r2.jsonl",
+    "numbers": "records/checks/numbers.json",
+    "numbers_r2": "records/checks/numbers-r2.json"
+  },
+  "guard_calibration": {
+    "canonical_passes_hidden_suite_under_guard": "56/56",
+    "stratum_P_fails_hidden_suite_under_guard": "56/56",
+    "sandbox_trips": 0,
+    "meaning": "the sandbox guard reproduces study 1's model-free ground truth exactly, so a non-runnable check is the check's fault, not the harness's"
+  },
+  "kill_condition": {
+    "threshold": "M3 instance count <= 18 of 56",
+    "emit": 13,
+    "emit_r2": 11,
+    "union_of_both_arms": 13,
+    "fired": true
+  },
+  "archive": {
+    "project_and_usage_ledger": "~/Documents/Crossaudit/study-data/checks-emit-project/project-cross",
+    "ledger_lines": 113,
+    "note": "EXPERIMENT_RECORD \u00a73: run material lives outside the session scratchpad, which the system clears. The per-instance records themselves are committed under records/checks/ (deviation D0)."
+  }
+}
