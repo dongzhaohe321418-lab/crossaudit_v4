@@ -190,6 +190,11 @@ def test_an_uncited_row_is_advisory_whatever_its_own_address_says():
     None` blocker back above the `uncited` branch, which is where it stood
     until this hotfix (`numbers.py:406-421`). This test then reddens on its
     first assertion: the row becomes a non-overridable CA-NUM-001 BLOCKER.
+    Run against the full suite, moving ONLY the address blocker back above the
+    branch is **1 failed, 3274 passed, 8 skipped**, and the one is this node:
+
+        tests/test_number_source_check.py::
+            test_an_uncited_row_is_advisory_whatever_its_own_address_says
 
     Arm 2 measured that defect on real drafts: 6 of its 215 generator-written
     rows declined to name any evidence and blocked anyway, because they
@@ -235,7 +240,16 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
     `uncited` branch. Each row here goes from ADVISORY to BLOCKER, and the
     design's one disposition for a row that names no source (§3.4: ADVISORY,
     counted, carried to the auditor) is again contradicted by the field beside
-    it, which is the shape of the defect Arm 2 found in `at`.
+    it, which is the shape of the defect Arm 2 found in `at`. Run against the
+    full suite, moving ONLY the value blockers back above the branch is
+    **1 failed, 3274 passed, 8 skipped**, and the one is this node:
+
+        tests/test_number_source_check.py::
+            test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe
+
+    It is a separate mutation from the address one above and reddens a separate
+    node — moving the address blocker alone leaves this test green, so the two
+    guards are not substitutes for one another.
 
     A row naming no source gives this layer nothing to open and nothing to look
     for; there is no comparison it can fail. What it got wrong is still said, in
@@ -272,7 +286,35 @@ def test_the_check_is_registered_and_selectable_and_in_no_profile():
 
     Selectable by explicit name is the half that must not rot: a project that
     wants this contract today writes it into `checks:` and gets the check, the
-    skill and the blocker, exactly as measured."""
+    skill and the blocker, exactly as measured.
+
+    Each half of the mutation was run separately against the full suite. This
+    node is in both, which is what makes it the guard that names both lists:
+
+        `PROFILES["science"]` += number_source   -> 106 failed, 3169 passed
+            tests/test_check_profiles.py::
+                test_science_profile_is_the_structured_science_pack
+            tests/test_number_source_check.py::
+                test_the_check_is_registered_and_selectable_and_in_no_profile
+                test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for_one
+                test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance
+                test_a_fresh_science_project_is_told_nothing_about_numbers
+            (the remaining 101 node ids are `test_signed_notation_...` and
+             `test_the_exponent_sign_...[1-100]`, which redden incidentally:
+             `science_with_numbers()` then lists the check TWICE and every
+             finding is duplicated. They do not detect the profile change on
+             their own merits and are not counted as guards for it.)
+
+        `PROFILES["research"]` += number_source  -> 3 failed, 3272 passed
+            tests/test_check_profiles.py::
+                test_research_profile_is_the_general_pack_plus_the_provenance_checks
+            tests/test_number_source_check.py::
+                test_the_check_is_registered_and_selectable_and_in_no_profile
+                test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for_one
+
+    Neither profile mutation reddens the scaffold's own list, and the
+    `SCIENCE_CHECKS` mutation reddens neither profile assertion. The two lists
+    need tests that name each, which is why both exist."""
     from crossaudit.dcl.framework import available
     from crossaudit.dcl.profiles import PROFILES, resolve
 
@@ -767,11 +809,36 @@ def _first_round_prompt(root) -> str:
 
 def test_a_fresh_science_project_is_told_nothing_about_numbers(tmp_path,
                                                                monkeypatch):
-    """MUTATION (D158 ruling 1): put `number_source` back into `SCIENCE_CHECKS`
-    or `PROFILES["science"]`. Both halves of this redden — the file appears and
-    the fence returns to the prompt — and every science project is once again
-    handed an addressing contract its generator cannot satisfy, which Arm 2
-    measured as 24 of 24 drafts BLOCKED.
+    """MUTATION (D158 ruling 1): put `number_source` back into
+    `scaffold.SCIENCE_CHECKS`. That is the list BOTH creation paths read —
+    `console/projects.py:1597` and `cli/wizard.py:438` — and restoring it
+    reddens every assertion below: the file is written, the fence returns to
+    the prompt, and every science project is once again handed an addressing
+    contract its generator cannot satisfy (Arm 2: 24 of 24 drafts BLOCKED).
+
+    Run against the full suite, that mutation alone is **14 failed, 3261
+    passed, 8 skipped**, this node among them:
+
+        tests/test_number_source_check.py::
+            test_a_fresh_science_project_is_told_nothing_about_numbers
+
+    **The docstring here first named `PROFILES["science"]` as an equivalent
+    mutation, and an independent review proved it is not.** No creation path
+    reads the profile — `console/projects.py:1597` and `cli/wizard.py:438` both
+    read `SCIENCE_CHECKS`, and `dcl.profiles.resolve` is reached only from
+    `config.load` (a project that writes `checks: science` as a NAME) and
+    `receipt/verify.py`. Restoring the check in the profile alone therefore left
+    this test green, and the docstring was claiming detection the test did not
+    have: AGENTS.md §3.5, a test that overclaims is worse than a missing test.
+
+    The two lists are separate objects coupled only by a comment
+    (`scaffold/__init__.py:9-11`, "Kept identical to dcl/profiles.py"), which is
+    exactly the drift a guard should catch. So the equality is asserted
+    directly below, and the profile-only mutation now does redden this test —
+    **106 failed, 3169 passed, 8 skipped**, this node among them — as well as
+    reddening `test_the_check_is_registered_and_selectable_and_in_no_profile`
+    and `test_check_profiles.py::test_science_profile_is_the_structured_science_pack`,
+    which name that list directly.
 
     The assertion is on the rendered generator prompt and not only on the file,
     because a skill delivered but never rendered and a skill never written are
@@ -779,10 +846,17 @@ def test_a_fresh_science_project_is_told_nothing_about_numbers(tmp_path,
     is `requires_check:` in the skill's own front matter, read by
     `skills.select` against the live check list — nothing here special-cases
     `number_source` by name."""
+    from crossaudit.dcl.profiles import resolve
+
     root = _science_project(tmp_path, monkeypatch, "labdefault")
     cfg = load(root / "crossaudit.yml")
 
     assert "number_source" not in cfg.checks
+    # The scaffold's list and the profile's are two objects, and a project that
+    # scaffolds as "science" and one that writes `checks: science` must still
+    # mean the same thing. Pinning both here is what makes the profile-only
+    # mutation visible to a test that scaffolds.
+    assert cfg.checks == resolve("science")
     assert not (root / NUMBERS_SKILL).exists()
     assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == ""
 
