@@ -204,6 +204,20 @@ def tracked_paths(target: Path, paths: list[str]) -> list[str]:
     return [p for p in paths if p in known]
 
 
+def annotation_skills_owned(target: Path, checks) -> list[str]:
+    """Write the annotation skills these checks need, clear the pre-split one,
+    and return every path the setup commit must stage — written and REMOVED.
+
+    One function because both creation paths must do the identical thing and one
+    of them not doing it is invisible: the first version returned the removal
+    and both callers dropped it, so the file was deleted from the tree and left
+    alive in the commit. A removal only counts once it is staged, and it is only
+    safe to stage when git already tracks it (`tracked_paths`).
+    """
+    written = write_tree(target, annotation_skill_tree(checks))
+    return written + tracked_paths(target, prune_legacy_annotation_skill(target))
+
+
 def commit_setup(target: Path, paths: list[str]) -> str:
     """Version only the files setup owns and return the new commit hash.
 
@@ -863,12 +877,9 @@ def run(target: Path, *, mode: str, force: bool = False,
     owned.extend(write_tree(target, SCIENCE_TREE))
     # A check that reads a generator-emitted block ships with the house skill
     # that asks for one, or it is a name that lies (PROVENANCE_CHECKS.md §5.4).
-    owned.extend(write_tree(
-        target, annotation_skill_tree(STARTING_CHECKS[starting_point])))
-    # Staged, not merely deleted: `commit_setup` records exactly `owned`, so a
-    # removal dropped here leaves the file deleted in the tree and alive in the
-    # commit.
-    owned.extend(tracked_paths(target, prune_legacy_annotation_skill(target)))
+    # Writes the skills and stages the pre-split removal. Staged, not merely
+    # deleted: `commit_setup` records exactly `owned`.
+    owned.extend(annotation_skills_owned(target, STARTING_CHECKS[starting_point]))
     if mode == "local":
         owned.extend(write_tree(target, AUDIT_TREE))
 

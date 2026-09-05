@@ -120,7 +120,13 @@ def normalise_number(token) -> str | None:
     # digits made `1e000005` a malformed row while `1e99999` was fine — the
     # padding, not the number, decided it.
     if exponent:
-        sign, digits = ("-", exponent[1:]) if exponent[0] in "+-" else ("", exponent)
+        # The sign is read, not assumed. A single tuple wrote "-" for BOTH `+`
+        # and `-` here, so `1e+5` normalised to `1e-5`: ten orders of magnitude
+        # apart compared equal, and a citation of one satisfied the other on 100
+        # of 100 exponents. `+` is not a sign, it is padding, and it is dropped;
+        # only `-` survives into the key.
+        sign = "-" if exponent[0] == "-" else ""
+        digits = exponent[1:] if exponent[0] in "+-" else exponent
         digits = digits.lstrip("0") or "0"
         if len(digits) > _MAX_EXPONENT_DIGITS:
             return None

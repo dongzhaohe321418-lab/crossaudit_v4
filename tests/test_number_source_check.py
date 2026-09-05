@@ -1291,52 +1291,117 @@ def test_nothing_to_prune_is_not_an_error(tmp_path):
     assert prune_legacy_annotation_skill(None) == []
 
 
-def test_the_removal_is_staged_so_the_setup_commit_records_it(tmp_path, monkeypatch):
-    """MUTATION: drop the return value at either creation path.
-
-    Both callers discarded it, so the file was deleted from the working tree
-    and left alive in the commit — a migration that runs and does not stick.
-    `commit_setup` stages exactly `owned`, so a removal has to travel there.
-
-    The `git add` guard is asserted too: a pathspec that neither exists nor is
-    tracked makes `git add` fail, which would turn setup into a denial over an
-    untracked leftover."""
-    from crossaudit.cli import wizard
+def _science_project(tmp_path, monkeypatch, name):
+    """A real project on disk, made by the console creation path."""
     from crossaudit.console import projects
-    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
 
     monkeypatch.delenv("CROSSAUDIT_AUDITOR_KEY", raising=False)
-    root = Path(projects.create_project(
+    return Path(projects.create_project(
         tmp_path,
-        {"name": "lab", "description": "Numbers need units and sources.",
+        {"name": name, "description": "Numbers need units and sources.",
          "max_rounds": 3, "auditor_vendor": "openai", "auditor_model": "gpt-5.6-sol",
          "generator_vendor": "anthropic", "generator_model": "claude-sonnet-4-6",
          "github": False, "project_type": "science"},
         lambda *_: None)["root"])
 
+
+def _git(root, *args, **kw):
+    return subprocess.run(["git", *args], cwd=root, capture_output=True,
+                          text=True, check=kw.get("check", True)).stdout
+
+
+@pytest.mark.parametrize("path_name", ["cli", "console"])
+@pytest.mark.parametrize("rendering", ["numbers.md", "sources.md", "both.md"])
+def test_a_tracked_legacy_skill_is_removed_and_the_deletion_is_staged(
+        tmp_path, monkeypatch, path_name, rendering):
+    """MUTATION: drop the removal from what either creation path stages.
+
+    Both callers discarded the returned list, so the file was deleted from the
+    working tree and left alive in the commit — a migration that runs and does
+    not stick. They now share `wizard.annotation_skills_owned`, which is the one
+    production statement both paths execute, and this drives it against REAL git
+    for every historical rendering.
+
+    `path_name` names which creation path's statement is under test; both
+    resolve to the same function precisely so that neither can quietly stop
+    doing it, and the parametrisation is what makes that visible if they
+    diverge again."""
+    from crossaudit.cli import wizard
+    from crossaudit.config import load
+    from crossaudit.console import projects
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
+
+    call = {"cli": wizard.annotation_skills_owned,
+            "console": lambda t, c: wizard.annotation_skills_owned(t, c)}[path_name]
+    assert projects.wizard.annotation_skills_owned is wizard.annotation_skills_owned
+
+    root = _science_project(tmp_path, monkeypatch, f"lab{path_name}{rendering[:3]}")
+    checks = load(root / "crossaudit.yml").checks
+
+    legacy = root / LEGACY_ANNOTATION_SKILL
+    legacy.write_bytes((LEGACY_FIXTURES / rendering).read_bytes())
+    _git(root, "add", "--", LEGACY_ANNOTATION_SKILL)
+    _git(root, "-c", "user.name=t", "-c", "user.email=t@t.invalid",
+         "commit", "-qm", "legacy skill")
+    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip()
+
+    owned = call(root, checks)
+    assert LEGACY_ANNOTATION_SKILL in owned
+    assert not legacy.exists()
+    # Deleted in the working tree and not yet staged — which is exactly the
+    # state the first version left it in permanently, because the path never
+    # reached `commit_setup`.
+    assert _git(root, "status", "--porcelain").splitlines() == [
+        f" D {LEGACY_ANNOTATION_SKILL}"]
+    assert _git(root, "diff", "--cached", "--name-only").strip() == ""
+
+    # This is the assertion the reviewer could not make in a read-only sandbox:
+    # the deletion reaches the index and then the commit.
+    wizard.commit_setup(root, owned)
+    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip() == ""
+    assert _git(root, "status", "--porcelain").strip() == ""
+    assert f"D\t{LEGACY_ANNOTATION_SKILL}" in _git(
+        root, "show", "--name-status", "--format=", "HEAD")
+
+
+@pytest.mark.parametrize("path_name", ["cli", "console"])
+def test_an_untracked_legacy_skill_is_removed_and_nothing_is_staged_for_it(
+        tmp_path, monkeypatch, path_name):
+    """MUTATION: stage the removal without checking that git tracks the path.
+
+    `git add -- <path>` on a pathspec that neither exists nor is tracked is
+    FATAL, so an untracked leftover would turn setup into a denial over a file
+    nobody was tracking. It is still removed; it is simply not staged."""
+    from crossaudit.cli import wizard
+    from crossaudit.config import load
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
+
+    root = _science_project(tmp_path, monkeypatch, f"lab{path_name}untracked")
+    checks = load(root / "crossaudit.yml").checks
+
     legacy = root / LEGACY_ANNOTATION_SKILL
     legacy.write_bytes((LEGACY_FIXTURES / "both.md").read_bytes())
-    subprocess.run(["git", "add", "--", LEGACY_ANNOTATION_SKILL], cwd=root, check=True)
-    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t.invalid",
-                    "commit", "-qm", "legacy skill"], cwd=root, check=True)
+    assert _git(root, "ls-files", "--", LEGACY_ANNOTATION_SKILL).strip() == ""
 
-    from crossaudit.scaffold import prune_legacy_annotation_skill
-    removed = wizard.tracked_paths(root, prune_legacy_annotation_skill(root))
-    assert removed == [LEGACY_ANNOTATION_SKILL]
-    wizard.commit_setup(root, removed)
+    owned = wizard.annotation_skills_owned(root, checks)
+    assert LEGACY_ANNOTATION_SKILL not in owned
     assert not legacy.exists()
-    listed = subprocess.run(["git", "ls-files", "--", LEGACY_ANNOTATION_SKILL],
-                            cwd=root, capture_output=True, text=True, check=True)
-    assert listed.stdout.strip() == "", "the deletion was not committed"
-    dirty = subprocess.run(["git", "status", "--porcelain"], cwd=root,
-                           capture_output=True, text=True, check=True)
-    assert dirty.stdout.strip() == "", dirty.stdout
+    assert _git(root, "status", "--porcelain").strip() == ""
+    # And `commit_setup` over what was returned does not raise.
+    wizard.commit_setup(root, owned)
 
-    # An UNTRACKED leftover is removed but never staged, because `git add` on a
-    # pathspec that neither exists nor is tracked is a fatal error.
-    legacy.write_bytes((LEGACY_FIXTURES / "both.md").read_bytes())
-    assert wizard.tracked_paths(root, prune_legacy_annotation_skill(root)) == []
-    assert not legacy.exists()
+
+def test_a_project_with_no_legacy_skill_is_untouched(tmp_path, monkeypatch):
+    """The negative control: the migration must be silent where it has nothing
+    to do, and must not stage a path that was never there."""
+    from crossaudit.cli import wizard
+    from crossaudit.config import load
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
+
+    root = _science_project(tmp_path, monkeypatch, "labclean")
+    owned = wizard.annotation_skills_owned(root, load(root / "crossaudit.yml").checks)
+    assert LEGACY_ANNOTATION_SKILL not in owned
+    assert _git(root, "status", "--porcelain").strip() == ""
 
 
 # ------------------ the fifth review: signed notation, and quotes as boundaries
@@ -1447,6 +1512,80 @@ def test_the_exponent_cap_is_on_magnitude_not_on_padding(value, canonical):
     `1e000005` was CA-NUM-001 and `1e99999` was fine — the padding deciding, not
     the number. A cap that a literal can trip by being written verbosely is not
     a cap on anything."""
+    from crossaudit.dcl.quantities import normalise_number
+
+    assert normalise_number(value) == canonical
+
+
+# --------- the sixth review: an explicit `+` is padding, and `-` is a magnitude
+@pytest.mark.parametrize("exponent", range(1, 101))
+def test_an_explicit_positive_exponent_is_never_a_negative_one(exponent):
+    """MUTATION: write the sign with one tuple —
+    `("-", exponent[1:]) if exponent[0] in "+-" else ("", exponent)` — which maps
+    BOTH `+` and `-` onto `-`.
+
+    `normalise_number("1e+5")` became `1e-5`: ten orders of magnitude apart
+    comparing equal, so a citation of one satisfied the other, and the values
+    that genuinely ARE equal stopped matching. Through the fence and through a
+    `results.json` citation under the complete science profile, 100 of 100
+    exponents were wrong in both directions.
+
+    The sweep is parametrised over the whole range and stays that way. A sign
+    bug in the one function every numeric comparison passes through survived a
+    3015-test suite because no case compared an explicit `+` exponent against
+    its `-` twin: the pair is the test, and one example of it is not."""
+    plus, minus = f"1e+{exponent}", f"1e-{exponent}"
+    bare, expanded = f"1e{exponent}", "1" + "0" * exponent
+
+    def rule(span, value):
+        files = {RECIPE_PATH: (span + "\n").encode(),
+                 DRAFT_PATH: draft([row(value=value, unit="g", src=f"{RECIPE_PATH}#L1")])}
+        return [f.rule for f in findings(files)]
+
+    # `1e+N` ≡ `1eN` ≡ the expanded integer, in both directions.
+    assert rule(f"{plus} g", bare) == []
+    assert rule(f"{bare} g", plus) == []
+    if exponent <= 30:                       # keep the expanded literal sane
+        assert rule(f"{expanded} g", plus) == []
+        assert rule(f"{plus} g", expanded) == []
+    # And `1e+N` is never `1e-N`, in either direction.
+    assert rule(f"{plus} g", minus) == ["CA-NUM-002"]
+    assert rule(f"{minus} g", plus) == ["CA-NUM-002"]
+    # A negative exponent still matches itself.
+    assert rule(f"{minus} g", minus) == []
+
+
+@pytest.mark.parametrize("exponent", [1, 5, 23, 100])
+def test_the_exponent_sign_holds_through_a_structured_citation_too(exponent):
+    """The same pair where the review also found it: a `results.json` quantity,
+    under every check the science profile resolves to."""
+    from crossaudit.dcl.profiles import resolve
+
+    def rule(span, value):
+        files = {"experiments/e1/metadata.yml":
+                     b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+                 "experiments/e1/runs.csv": f"run,y\n{span}\n".encode(),
+                 "experiments/e1/results.json": json.dumps(
+                     {"quantities": [{"name": "y", "value": value, "unit": "g",
+                                      "source": "runs.csv@v3#L2"}],
+                      "convergence": {"converged": True}}).encode()}
+        return [f.rule for f in run_checks(files, resolve("science")).findings]
+
+    assert rule(f"1e+{exponent} g", f"1e{exponent}") == []
+    assert rule(f"1e+{exponent} g", f"1e+{exponent}") == []
+    assert rule(f"1e+{exponent} g", f"1e-{exponent}") == ["CA-NUM-002"]
+    assert rule(f"1e-{exponent} g", f"1e+{exponent}") == ["CA-NUM-002"]
+
+
+@pytest.mark.parametrize("value,canonical", [
+    ("1e+5", "1e5"), ("1e5", "1e5"), ("100000", "1e5"),
+    ("1e-5", "1e-5"), ("0.00001", "1e-5"),
+    ("1e+000005", "1e5"), ("1e-000005", "1e-5"),
+    ("1e+0", "1e0"), ("1e-0", "1e0"), ("-1e+5", "-1e5"), ("1E+5", "1e5"),
+])
+def test_the_canonical_key_reads_the_exponent_sign_it_was_given(value, canonical):
+    """The unit-level twin of the sweep, so a future reader can see the keys
+    rather than infer them from a pass/block table."""
     from crossaudit.dcl.quantities import normalise_number
 
     assert normalise_number(value) == canonical
