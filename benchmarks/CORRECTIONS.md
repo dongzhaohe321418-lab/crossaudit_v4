@@ -294,3 +294,19 @@ on which the adoption constraint is written, is stable at 5, 5, 4 of 74. Every
 statement in this record that reads an effect against "1.8 points" should be
 re-read against 6.4 at n = 110; the ones in `RESULTS-2.md` (+9.1 recall) and
 `RESULTS-EXPLORE.md` (`tri_union`, `hc_u_dc`) survive it, the rest do not.
+
+**13. "Even with every extension the containment rule does not reach §6's 2%
+line, and reaching it depends on the generator's transcription discipline."**
+Withdrawn as stated. `docs/design/CONTAINMENT_RULE.md` §5 computed the residue
+over **all 401 resolvable rows** — 12 = 2.99% [1.72, 5.16] — but
+`PROVENANCE_CHECKS.md` §6's line is *of numbers that **do trace** to the source,
+no more than 2% blocked*, and 401 includes rows that do not trace. The hand
+gold (`benchmarks/expertlongbench/RESULTS-GOLD.md`) supplies the missing
+denominator: 10 of the 12 residual blocks are blocks the gold calls **right**, so
+on §6's own estimand the extensions alone land at **0.62%** (draft-clustered
+bootstrap [0.00, 1.55], **uncalibrated** per EXPERIMENT_RECORD §10 — it combines
+a census with a sample and its coverage is not yet simulated). The `(a)` and
+`(c)` skill sentences are still worth writing; they are no longer what stands
+between the check and its design target. §5's block-rate ladder (13.22% → 10.47%
+→ 5.74% → 2.99%) is arithmetically correct and reproduces exactly; only its
+reading against the 2% line is withdrawn.
