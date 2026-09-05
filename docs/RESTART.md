@@ -277,7 +277,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    与指令、显式启用则两者俱全。`src/` 仅三文件。复核（`2026-09-06-number-source-hotfix-astra.md`）：行为全部验证正确，唯一项是一个测试文档字符串声称的变异不会触发它（控制台创建读 `SCIENCE_CHECKS` 而非 `PROFILES`）——构建者修正中；**全套 3275 / 8 已在我的主机上核实（f6e6621）**，文档字符串修正已交（815ea50，仅改测试）：根因比措辞更深——**创建路径读 `scaffold.SCIENCE_CHECKS`，
    从不读 `dcl.profiles`**，两个列表只靠一条注释耦合、无测试守卫；现加断言 `cfg.checks == resolve("science")`
    互相钉住。五个变异逐个对全套跑并附节点 ID（M1 的 106 个失败中 101 个是 `science_with_numbers()`
-   重复列检查的伪影，已如实标注不计为守卫；"九个红"的说法撤回）。终审**通过**（`…-hotfix-astra-round2-final.md`）；**最终提交主机套件 3275/8 核实，已合并**（D158 裁定 1 落地）。合并后发布分支套件在跑。P3 后续：`science_with_numbers()` 测试助手会重复列检查，变异下产生重复发现——去重，非阻塞。
+   重复列检查的伪影，已如实标注不计为守卫；"九个红"的说法撤回）。终审**通过**（`…-hotfix-astra-round2-final.md`）；**最终提交主机套件 3275/8 核实，已合并**（D158 裁定 1 落地）。**合并后发布分支全套：3275 通过 / 8 跳过（720d1c1）。** 发布分支现无阻塞缺陷；推送公开仓库仍等 owner 看过 README 定位改写。P3 后续：`science_with_numbers()` 测试助手会重复列检查，变异下产生重复发现——去重，非阻塞。
    **寻址重设计已合并**（`docs/design/PROVENANCE_ADDRESSING.md`）：A 行号渲染上限 150/183=82.0%
    但 `shape_work` 大纲替换制造假行号；B 内容寻址上限 142/183=77.6%（可阻断行 142/166=85.5%）；
    26 行结构性分歧。推荐 B（去 `at`、歧义提示级）。**A vs B 对照实验已按 §8g 派出**（同 24 实例，
