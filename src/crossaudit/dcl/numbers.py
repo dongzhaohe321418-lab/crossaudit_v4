@@ -89,7 +89,7 @@ _LINE = r"[0-9]{1,9}"
 _SPAN = re.compile(r"(?P<path>[^@#]+?)(?:@(?P<sha>[0-9a-fA-F]{8,64}))?"
                    rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?")
 #: ``#L<n>`` — where in the enclosing artefact the number was written.
-_AT = re.compile(rf"#L(?P<line>{_LINE})(?:-L{_LINE})?")
+_AT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?")
 #: The same span fragment where it hangs off a `path@revision` results source.
 _SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?\Z")
 
@@ -132,19 +132,30 @@ _NUMBER = re.compile(r"(?<![\w.])([+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?"
 #: not.
 _GAP = r"\s*"
 
-#: What may appear INSIDE a unit token. Everything a unit is written with, and
-#: nothing that ends one.
-_UNIT_INSIDE = set(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "µμ°ÅΩ%‰/·⋅∙*^-+_$#&@!?~<>=\\|"
-    "⁻⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉"
-)
-#: What ENDS one, other than whitespace or the end of the text. A bracket closes
-#: the token only when nothing opened it inside the token.
-_UNIT_CLOSERS = set(")]}")
-_UNIT_OPENERS = set("([{")
-_UNIT_STOPS = set(",;:\"'«»…")
+#: What ENDS a unit token. **This list is exhaustive, and everything not in it
+#: is token.** It used to be the other way round — a set of characters allowed
+#: INSIDE a token — and an allowlist is the same defect as a prefix reading
+#: wearing a third hat: any character its author did not think of silently ended
+#: the token, so a shorter reading satisfied a longer source. `5 °Cβ` satisfied
+#: an annotation of `°C` because β was not on the list, and nothing about β
+#: makes it a boundary. Inverting the rule means a character nobody anticipated
+#: (`Ω`, `Å`, `′`, `″`, subscripts, `⁄`, a new SI prefix) keeps the token whole
+#: instead of cutting it short, and the failure direction is a blocker on a
+#: half-transcribed unit rather than a pass on one.
+_BOUNDARY = set(',;:!?"\'«»…')
+#: An em or en dash never continues a unit: it separates prose or a range.
+_DASHES = set("—–")
+_OPENERS, _CLOSERS = set("([{"), set(")]}")
+
+#: Notation this layer does not parse, sitting DIRECTLY on the end of a number:
+#: a superscript exponent (`10⁵`), or a multiplication sign or caret before a
+#: digit (`5×10³`, `10^5`). The number the source states is not the number the
+#: scanner just read, so the occurrence is not a match for ANY unit — including
+#: the empty one, which is how `10⁵ g` was satisfying an annotation of `10` with
+#: no unit. Narrow on purpose: it fires on the number's own continuation and
+#: never on a word that merely follows, because "a unitless number may not be
+#: followed by anything" would block every `run 5 of 12` in the corpus.
+_UNPARSED = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹]|[×x*^]\s*[0-9]")
 
 #: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
 #: as the ambient window `(20°C-25°C)`. Whole-token comparison is what stops a
@@ -189,41 +200,48 @@ def normalise_unit(unit: str) -> str:
     return SYNONYMS.get(folded, folded)
 
 
-def unit_token(rest: str) -> tuple[str, str]:
-    """The WHOLE unit token following a number, and whatever follows it.
-
-    Runs from the first non-space character to a true boundary: whitespace, the
-    end of the text, a closing bracket nothing opened, one of `,;:"'«»…`, or a
-    `.` that ends a sentence. Everything in between belongs to the token —
-    letters, digits, `°`, `µ`, `/`, `·`, `^`, `-`, superscripts and balanced
-    brackets.
-
-    **Whole token, because a prefix must never satisfy.** Reading the unit with
-    a pattern that could return a shorter alternative let `5 m-2s-1` satisfy an
-    annotation of `m`, `10 kg-m` satisfy `kg`, `5 g-equivalent` satisfy `g` and
-    `2 h-long` satisfy `h` — four different quantities accepted as one, under a
-    contract that says the pair is compared literally.
-    """
-    i = len(rest) - len(rest.lstrip())
+def _scan(text: str, skip_space: bool) -> tuple[str, str]:
+    """One unit token and the remainder, by boundary rather than by allowlist."""
+    i = (len(text) - len(text.lstrip())) if skip_space else 0
     depth, start = 0, i
-    while i < len(rest):
-        ch = rest[i]
-        if ch.isspace():
+    while i < len(text):
+        ch = text[i]
+        if ch.isspace() or ch in _BOUNDARY or ch in _DASHES:
             break
-        if ch in _UNIT_OPENERS:
+        if ch in _OPENERS:
             depth += 1
-        elif ch in _UNIT_CLOSERS:
+        elif ch in _CLOSERS:
             if depth == 0:
                 break
             depth -= 1
-        elif ch in _UNIT_STOPS:
-            break
-        elif ch == "." and (i + 1 == len(rest) or rest[i + 1].isspace()):
-            break
-        elif ch not in _UNIT_INSIDE:
-            break
+        elif ch == ".":
+            # A period is part of the token only where a unit can have one:
+            # directly before a letter or a digit (`kg.m`, `mol.L-1`, `a.u`).
+            # Anything else — a space, the end of the text, another period,
+            # punctuation — ends a sentence, not a unit.
+            nxt = text[i + 1:i + 2]
+            if not nxt.isalnum():
+                break
         i += 1
-    return rest[start:i], rest[i:]
+    return text[start:i], text[i:]
+
+
+def unit_token(rest: str) -> tuple[str, str]:
+    """The WHOLE unit token following a number, and whatever follows it.
+
+    Runs from the first non-space character to a boundary, and **every
+    boundary is enumerated**: whitespace, the end of the text, a closing bracket
+    nothing opened, one of `,;:!?"'«»…`, an em or en dash, or a period that is
+    not directly before a letter or digit. Everything else is token.
+
+    **Whole token, because a prefix must never satisfy.** Reading the unit with
+    a pattern that could return a shorter alternative let `5 m-2s-1` satisfy an
+    annotation of `m`, `10 kg-m` satisfy `kg` and `2 h-long` satisfy `h`; the
+    allowlist that replaced it let `5 kg.m` satisfy `kg` and `5 °Cβ` satisfy
+    `°C`. Four different quantities accepted as one, under a contract that says
+    the pair is compared literally.
+    """
+    return _scan(rest, True)
 
 
 def _unit_candidates(rest: str) -> list[str]:
@@ -233,9 +251,11 @@ def _unit_candidates(rest: str) -> list[str]:
     * a range split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole
       window — recognised only where both halves are the same unit;
     * the word split from a percent sign (`wt %`), which the boundary rule would
-      otherwise cut at the space. It is in the synonym table for a measured
-      reason, and it can only ever extend a token, so it cannot bring back the
-      prefix defect.
+      otherwise cut at the space. **It continues past the percent to the next
+      boundary**, so `wt %/s` is one token and does not satisfy `wt %`; taking
+      the percent alone was the same prefix defect one more time. It is in the
+      synonym table for a measured reason, and because it can only ever extend a
+      token it cannot reintroduce a shorter reading.
     """
     token, after = unit_token(rest)
     if not token:
@@ -245,9 +265,11 @@ def _unit_candidates(rest: str) -> list[str]:
     if span and normalise_unit(span.group("u1")) == normalise_unit(span.group("u2")):
         out.append(span.group("u1"))
     if "%" not in token and "‰" not in token and token.isalpha():
-        tail = after.lstrip()
-        if tail[:1] in ("%", "‰"):
-            out.append(f"{token} {tail[0]}")
+        gap = len(after) - len(after.lstrip())
+        sign = after[gap:gap + 1]
+        if sign in ("%", "‰"):
+            tail, _ = _scan(after[gap + 1:], False)
+            out.append(f"{token} {sign}{tail}")
     return out
 
 
@@ -273,10 +295,12 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
         token = m.group(1)
         if normalise_number(token) != wanted_value:
             continue
+        rest = span[m.end():]
+        if _UNPARSED.match(rest):
+            continue                      # the source's number is not this one
         if not wanted_unit:
             return True
-        if any(normalise_unit(c) == wanted_unit
-               for c in _unit_candidates(span[m.end():])):
+        if any(normalise_unit(c) == wanted_unit for c in _unit_candidates(rest)):
             return True
     return False
 
@@ -309,9 +333,24 @@ def _span(text: str, start: int, end: int) -> str | None:
     return "\n".join(lines[start - 1:end])
 
 
-def _at_line(at: str) -> str:
+def _at_span(at) -> tuple[int, int] | None:
+    """Where in the enclosing artefact the number was written, or None.
+
+    Validated exactly as `src` is (`_span`): the line is 1-based so it must be
+    at least 1, a range must be ordered, and both ends are kept. `at` used to be
+    checked for SYNTAX only and to discard the range end, so `#L0` and `#L5-L2`
+    were accepted — a locator this layer would refuse in the other field, waved
+    through in this one. `at` is the address the activity stream prints back to
+    a person; an address that cannot exist is a malformed row, not a detail.
+    """
     m = _AT.fullmatch(str(at or ""))
-    return m.group("line") if m else ""
+    if not m:
+        return None
+    start = int(m.group("start"))
+    end = int(m.group("end") or start)
+    if start < 1 or end < start:
+        return None
+    return start, end
 
 
 #: A transcribed value or unit may arrive as a string or as a JSON number: a
@@ -340,13 +379,13 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict) -> list[Find
     # by the same `.strip()` that made `$` and `\Z` indistinguishable in the
     # membership test next door.
     src = str(row["src"])
-    at = _at_line(row["at"])
-    if not at or not v.strip() or not src:
+    at = _at_span(row["at"])
+    if at is None or not v.strip() or not src:
         return [Finding(BLOCKER, "CA-NUM-001", path,
                         "a source annotation has an empty number or location; each "
                         "row names v, u, at and src")]
     shown = f'"{v} {u}"' if u else f'"{v}"'
-    where = f"line {at}"
+    where = f"line {at[0]}" if at[0] == at[1] else f"lines {at[0]}-{at[1]}"
     if normalise_number(v) is None:
         # A transcription that is not a number cannot be looked for. It used to
         # fall through to a substring test that ignored the unit entirely, so
@@ -463,7 +502,18 @@ def _results_findings(path: str, files: Mapping[str, bytes], data: bytes,
         raw_src = q.get("source")
         if not isinstance(raw_src, str):
             continue                            # not a locator; provenance blocks it
-        src = raw_src.strip()
+        # NOT stripped, and a source that only differs by whitespace is this
+        # check's finding rather than another check's. `provenance` catches a
+        # whitespace-padded source too, and a check that relies on that is root
+        # cause 1 again: `number_source` must hold its own contract with no
+        # other check enabled.
+        src = raw_src
+        if src != src.strip() and _SOURCE_FRAGMENT.search(src.strip()):
+            out.append(Finding(
+                BLOCKER, "CA-NUM-001", path,
+                f"quantities[{i}] source {raw_src!r} names a line but is not an "
+                f"exact address; a locator carries no surrounding whitespace"))
+            continue
         if src in opaque:
             continue                            # declared verbatim, so opaque
         fragment = _SOURCE_FRAGMENT.search(src)
@@ -548,8 +598,10 @@ register("number_source", check_number_source,
          "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
          "number and a reported precision is not preserved); the unit must equal the "
          "WHOLE unit token following that number, under a fixed synonym table, so a "
-         "prefix of a compound unit never satisfies it. A named span that does not "
-         "resolve or does not contain the pair is a blocker; 'uncited' is advisory "
+         "prefix of a compound unit never satisfies it (a unit written with a space "
+         "inside it, such as 'm-2 s-1', therefore cannot be matched at all and "
+         "belongs in 'uncited'). A named span that does not resolve or does not "
+         "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "
          "a number is correct.")

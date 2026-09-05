@@ -1007,3 +1007,210 @@ def test_the_contract_discloses_what_normalisation_does_to_a_number():
     assert "1.50" in contract and "not significant" in contract
     assert "WHOLE unit token" in contract and "prefix" in contract
     assert "never coverage" in contract and "never judges whether a number is correct" in contract
+
+
+# ---------------------------- the fourth review: boundaries, not an allowlist
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # The three P1 rows: a character the allowlist did not list ended the token.
+    ("5 kg.m",   "5", "kg",      ["CA-NUM-002"], "a period inside a unit is not a boundary"),
+    ("5 kg.m",   "5", "kg.m",    [],             "and the whole token matches"),
+    ("5 wt %/s", "5", "wt %",    ["CA-NUM-002"], "the percent reading runs on to the boundary"),
+    ("5 wt %/s", "5", "wt %/s",  [],             "and the whole token matches"),
+    ("5 °Cβ",    "5", "°C",      ["CA-NUM-002"], "β is not a boundary; nothing said it was"),
+    ("5 °Cβ",    "5", "°Cβ",     [],             "and the whole token matches"),
+    # Characters no allowlist author would have listed, all token.
+    ("5 Ω′",     "5", "Ω′",      [],             "prime and ohm"),
+    ("5 m⁄s",    "5", "m⁄s",     [],             "a fraction slash"),
+    ("5 H₂O",    "5", "H₂O",     [],             "a subscript"),
+    ("5 Å",      "5", "Å",       [],             "angstrom"),
+    ("5 Ω′",     "5", "Ω",       ["CA-NUM-002"], "and a prefix of any of them still fails"),
+    # The review's ordinary-prose table: every boundary, enumerated.
+    ("(5 °C)",      "5", "°C", [], "an unopened closing bracket"),
+    ("5 °C, then",  "5", "°C", [], "a comma"),
+    ("5 °C; then",  "5", "°C", [], "a semicolon"),
+    ("5 °C: then",  "5", "°C", [], "a colon"),
+    ("5 °C.",       "5", "°C", [], "a period at the end of the text"),
+    ("5 °C. Then",  "5", "°C", [], "a period before a space"),
+    ("5 °C!",       "5", "°C", [], "an exclamation mark — a round-3 prose regression"),
+    ("5 °C?",       "5", "°C", [], "a question mark — the same"),
+    ("5 °C—",       "5", "°C", [], "an em dash"),
+    ("5 °C–",       "5", "°C", [], "an en dash"),
+    ('"5 °C"',      "5", "°C", [], "a quotation mark"),
+    ("5 °C…",       "5", "°C", [], "an ellipsis"),
+    ("5 °C ± 1",    "5", "°C", [], "whitespace, as always"),
+    ("5 %",         "5", "%",  [], "a bare percent"),
+    ("5%",          "5", "%",  [], "and a closed-up one"),
+    ("10 wt % Ni",  "10", "wt%", [], "the percent split still ends at the space"),
+    ("5 mol/(L·s)", "5", "mol/(L·s)", [], "balanced brackets stay inside"),
+    ("5 mol/(L·s)", "5", "mol/(L",   ["CA-NUM-002"], "and half of one does not"),
+    ("at 5 K.",     "5", "K",  [], "a sentence period after a bare unit"),
+    ("a 5 g-sample", "5", "g", ["CA-NUM-002"], "a hyphenated word is one token"),
+    ("5 °C¹",       "5", "°C", ["CA-NUM-002"], "a superscript belongs to the token"),
+    ("5 °C¹",       "5", "°C¹", [],           "so the whole thing matches"),
+    # Ranges, unchanged by the inversion.
+    ("(20°C-25°C)", "20", "°C", [], "a closed-up range names one unit"),
+    ("(20°C-25°C)", "25", "°C", [], "from either end"),
+    ("20-25 °C",    "25", "°C", [], "the half that carries the unit"),
+    ("20-25 °C",    "20", "°C", ["CA-NUM-002"], "and the half that does not"),
+    ("1-2 h",       "2", "h",  [], "the same for a duration"),
+    ("20°C–25°C",   "20", "°C", [], "an en-dash range ends the token outright"),
+])
+def test_the_boundary_list_is_exhaustive_and_everything_else_is_token(
+        span, v, u, expected, why):
+    """MUTATION: make `_scan` an allowlist of characters permitted INSIDE a unit
+    again, or drop `!`/`?`/the dashes from `_BOUNDARY`.
+
+    An allowlist is the prefix defect in a third costume: any character its
+    author did not think of ends the token, so a shorter reading satisfies a
+    longer source. `5 kg.m` satisfied `kg`, `5 wt %/s` satisfied `wt %`, and
+    `5 °Cβ` satisfied `°C` — all three through a `results.json` citation under
+    the complete science profile with zero findings, where base blocks.
+
+    Inverted, the failure direction inverts with it: a character nobody
+    anticipated keeps the token whole, so the worst case is a blocker on a
+    half-transcribed unit rather than a pass on one. The boundaries are
+    enumerated here in full because the enumeration IS the contract."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+@pytest.mark.parametrize("at,blocks", [
+    ("#L3", False), ("#L2-L4", False), ("#L1-L1", False),
+    ("#L0", True), ("#L00", True), ("#L5-L2", True), ("#L3\n", True), ("#L٣", True),
+])
+def test_the_at_locator_is_validated_the_way_the_src_locator_is(at, blocks):
+    """MUTATION: check `at` for syntax only, or discard its range end.
+
+    `#L0` and `#L5-L2` were accepted — a line number that cannot exist and a
+    range that runs backwards, both of which this layer refuses in the `src`
+    field one line away. `at` is the address the activity stream prints back to
+    a person (§7), so an address that cannot exist is a malformed row."""
+    files = {RECIPE_PATH: RECIPE.encode(),
+             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at,
+                                 "src": f"{RECIPE_PATH}#L11"}])}
+    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
+
+
+@pytest.mark.parametrize("source,blocks", [
+    ("runs.csv@v3#L2", False),
+    (" runs.csv@v3#L2", True),
+    ("runs.csv@v3#L2\n", True),
+    ("runs.csv@v3#L2 ", True),
+])
+def test_a_structured_source_holds_its_own_contract_with_no_other_check_on(
+        source, blocks):
+    """MUTATION: `.strip()` the structured source again.
+
+    A whitespace-padded locator was caught only because `provenance` also runs
+    in the science profile. A check that needs another check to hold its own
+    contract is root cause 1 in miniature, and `checks: [number_source]` is a
+    configuration a project may write."""
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": b"run,y\n0.42 K\n",
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "y", "value": 0.42, "unit": "K",
+                                  "source": source}],
+                  "convergence": {"converged": True}}).encode()}
+    found = [f.rule for f in run_checks(files, ["number_source"]).findings]
+    assert (found == ["CA-NUM-001"]) is blocks
+
+
+def test_an_exponent_past_the_bound_is_refused_and_not_truncated():
+    """MUTATION: allow six exponent digits again.
+
+    The contract said the literal was bounded while `1e999999` passed. The cap
+    is what makes "bounded" true, and it is a refusal (CA-NUM-001) rather than a
+    truncation — truncation is what handed `1e10001`'s last digit to the unit
+    reader."""
+    files = {RECIPE_PATH: b"1e999999 g\n",
+             DRAFT_PATH: draft([row(value="1e999999", unit="g", src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-001"]
+
+    ok = {RECIPE_PATH: b"1e99999 g\n",
+          DRAFT_PATH: draft([row(value="1e99999", unit="g", src=f"{RECIPE_PATH}#L1")])}
+    assert findings(ok) == []
+
+
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    ("10⁵ g",   "10", "",  ["CA-NUM-002"], "a superscript exponent is not read"),
+    ("10⁵ g",   "10", "g", ["CA-NUM-002"], "with or without a unit"),
+    ("5×10³ g", "5",  "",  ["CA-NUM-002"], "nor is a multiplication sign"),
+    ("10^5 g",  "10", "",  ["CA-NUM-002"], "nor a caret"),
+    ("run 5 of 12", "5", "", [],           "but a WORD after a number is not notation"),
+    ("5 samples",   "5", "", [],           "and neither is a plain noun"),
+    ("at 5, then",  "5", "", [],           "nor punctuation"),
+    ("5 m·s^-1", "5", "m·s^-1", [],        "a caret inside a unit is untouched"),
+])
+def test_an_unparsed_numeric_notation_is_not_a_match_for_any_unit(
+        span, v, u, expected, why):
+    """DECIDED, and this is the statement the review asked for.
+
+    `10⁵ g` and `5×10³ g` were satisfying an annotation of `10` and `5` with an
+    EMPTY unit, because the scanner reads the mantissa and an empty unit asks no
+    further question. The rule is: an occurrence whose number continues directly
+    into notation this layer does not parse — a superscript exponent, a
+    multiplication sign or a caret before a digit — is not a match for any unit,
+    the empty one included. The source's number is not the number that was read,
+    so no annotation of it can be verified against that line.
+
+    The alternative the review offered — treat an empty unit as a mismatch
+    whenever the source has a unit — is rejected, and the reason is measurable
+    rather than aesthetic. Under a boundary scanner ANY word after a number is a
+    token: `run 5 of 12` would make `of` the unit and `Sample 3 was calcined`
+    would make `was` one, so that rule would block every legitimately unitless
+    annotation whose number is followed by prose — most of them, on this corpus.
+    This rule fires on the number's own continuation and never on what merely
+    follows it, so it removes the false pass without inventing a false blocker."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_the_skill_and_the_contract_admit_the_spaced_compound_unit():
+    """MUTATION: promise the unit "in full" and stop there.
+
+    `5 m-2 s-1` cannot be matched at all: whitespace is where a token ends, so
+    the source offers `m-2` and the full unit is unreachable. Telling a
+    generator to transcribe in full without saying that leaves it one blocker it
+    can neither avoid nor understand."""
+    from crossaudit.dcl.framework import contracts
+    from crossaudit.scaffold import annotation_skill_tree
+
+    contract = contracts(["number_source"])["number_source"]
+    assert "space inside it" in contract and "'m-2 s-1'" in contract
+    assert contract.count("does not resolve") == 1        # and it reads once
+
+    body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
+    assert "space inside it" in body
+    assert "m-2s-1" in body and "uncited" in body
+
+
+def test_the_pre_split_generated_skill_is_removed_and_a_written_one_is_not(tmp_path):
+    """MUTATION: leave `skills/provenance.md` where it is.
+
+    The round-3 file carried both fences and no `requires_check:`, so no gate
+    can reach it: it stays selected at `checks: []`, instructing a generator
+    about checks the project may have turned off. Nothing shipped with it, so
+    there is no migration — it is cleared where it is found. A file a PERSON
+    wrote at that path must survive, which is why the removal is conditioned on
+    the bytes this scaffold produced rather than on the name."""
+    from crossaudit.scaffold import (LEGACY_ANNOTATION_SKILL, SCIENCE_CHECKS,
+                                     annotation_skill_tree,
+                                     prune_legacy_annotation_skill)
+
+    legacy = tmp_path / LEGACY_ANNOTATION_SKILL
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text("# guidance\n\n```crossaudit-numbers\n[]\n```\n")
+    assert annotation_skill_tree(SCIENCE_CHECKS, tmp_path)
+    assert not legacy.exists()
+
+    for kept in ("---\nrequires_check: number_source\n---\n```crossaudit-numbers\n```\n",
+                 "# my own house style\n"):
+        legacy.write_text(kept)
+        assert prune_legacy_annotation_skill(tmp_path) == []
+        assert legacy.read_text() == kept
+
+    legacy.unlink()
+    assert prune_legacy_annotation_skill(tmp_path) == []
+    assert prune_legacy_annotation_skill(None) == []

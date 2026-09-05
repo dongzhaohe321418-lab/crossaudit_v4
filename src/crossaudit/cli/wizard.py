@@ -845,7 +845,7 @@ def run(target: Path, *, mode: str, force: bool = False,
     # A check that reads a generator-emitted block ships with the house skill
     # that asks for one, or it is a name that lies (PROVENANCE_CHECKS.md §5.4).
     owned.extend(write_tree(
-        target, annotation_skill_tree(STARTING_CHECKS[starting_point])))
+        target, annotation_skill_tree(STARTING_CHECKS[starting_point], target)))
     if mode == "local":
         owned.extend(write_tree(target, AUDIT_TREE))
 

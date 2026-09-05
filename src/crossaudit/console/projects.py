@@ -1785,7 +1785,7 @@ def create_project(base: Path, payload: dict, progress) -> dict:
     if gitignore_changed:
         owned.append(".gitignore")
     owned.extend(write_tree(target, tree))
-    owned.extend(write_tree(target, annotation_skill_tree(checks)))
+    owned.extend(write_tree(target, annotation_skill_tree(checks, target)))
     commit = wizard.commit_setup(target, owned)
     record("local", f"Committed local project {commit[:12]}")
 

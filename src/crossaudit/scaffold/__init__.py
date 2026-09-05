@@ -37,14 +37,51 @@ ANNOTATION_SKILLS: dict[str, tuple[str, str]] = {
 ANNOTATION_CHECKS = tuple(ANNOTATION_SKILLS)
 
 
-def annotation_skill_tree(checks) -> dict[str, str]:
+#: A generated skill from before the per-check split. It carried both fences and
+#: no `requires_check:` key, so it stays selected however the check list moves —
+#: including `checks: []`. Nothing shipped with it and there is no migration
+#: path, so it is removed where it is found rather than left to instruct a
+#: generator about checks the project may no longer run. A file a PERSON wrote
+#: at that path is never touched: only one that still matches the bytes this
+#: scaffold produced.
+LEGACY_ANNOTATION_SKILL = "skills/provenance.md"
+LEGACY_ANNOTATION_MARK = "```crossaudit-numbers"
+
+
+def prune_legacy_annotation_skill(root) -> list[str]:
+    """Delete the pre-split generated skill if it is still there, unmodified.
+
+    Returns the paths removed, so the caller can record them in the setup commit
+    the way it records what it wrote.
+    """
+    if root is None:
+        return []
+    target = Path(root) / LEGACY_ANNOTATION_SKILL
+    if not target.is_file() or target.is_symlink():
+        return []
+    try:
+        text = target.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return []
+    if "requires_check" in text or LEGACY_ANNOTATION_MARK not in text:
+        return []                      # hand-edited, or already keyed: leave it
+    target.unlink()
+    return [LEGACY_ANNOTATION_SKILL]
+
+
+def annotation_skill_tree(checks, root=None) -> dict[str, str]:
     """The house skills a project's checks need, or nothing at all.
 
     Keyed off the resolved check list rather than the project type, so a project
     that composes its own mix is told exactly what its own checks will read —
     and a `general` project, which enables neither, gets no advice about
     annotating numbers it has no reason to annotate.
+
+    `root`, when given, also clears the pre-split generated skill: a keyless
+    `skills/provenance.md` from before this round survives every check gate,
+    because the gate it would be read by lives in front matter it does not have.
     """
+    prune_legacy_annotation_skill(root)
     return {path: read(template)
             for name, (path, template) in ANNOTATION_SKILLS.items()
             if name in (checks or ())}

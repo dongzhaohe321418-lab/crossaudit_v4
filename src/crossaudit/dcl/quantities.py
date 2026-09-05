@@ -47,8 +47,12 @@ RESULTS_SUFFIX = "results.json"
 #: 100 false passes out of 100. Here the pattern is used with `fullmatch`, so an
 #: over-long literal matches nothing, `normalise_number` returns None, and the
 #: caller raises CA-NUM-001.
+#: The exponent is capped at five digits — a magnitude above 99,999 is refused,
+#: not truncated. Six digits was the contract saying "bounded" while `1e999999`
+#: sailed through; the number a source could actually state is many orders of
+#: magnitude below either bound, so the cap only has to be a cap.
 _DECIMAL = re.compile(r"[+-]?(?:[0-9]{1,512}(?:\.[0-9]{1,512})?|\.[0-9]{1,512})"
-                      r"(?:[eE][+-]?[0-9]{1,6})?")
+                      r"(?:[eE][+-]?[0-9]{1,5})?")
 #: U+2212 MINUS SIGN is what a typesetter, a spreadsheet export and half the
 #: scientific literature write for a negative number. It is a minus.
 _MINUS = "−"

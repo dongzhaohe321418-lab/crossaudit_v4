@@ -28,6 +28,11 @@ All four fields, every row. A row with three cannot be checked and is refused.
 - `u` — its unit, as you wrote it, **in full**: `°C/min`, not `°C`; `mg/mL`, not
   `mg`. The whole unit is compared, so half of one does not match. Use `""` when
   the number has no unit.
+  - A unit written with a **space inside it** cannot be checked, because a space
+    is where the unit ends. If your source says `5 m-2 s-1`, either write the
+    unit closed up (`m-2s-1`) or joined (`m-2·s-1`), or write `uncited`. Naming
+    only the first half (`m-2`) would be a half-transcription, and the check
+    refuses those.
 - `at` — the line of *this* artefact where you wrote it: `"#L14"`. Exactly that,
   with no spaces around it.
 - `src` — where you read it, as a **line**, never as a whole file:
