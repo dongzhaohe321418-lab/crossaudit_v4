@@ -231,7 +231,11 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    满负荷中断后重跑）否决，四项小问题：`/abs/skills/house.md` 配置加载仍接受；通过守卫的
    `skills/../AUDIT_RULES.md` 以原始拼法存储、下游严格读取器拒绝；性质测试依赖注册表状态、
    新进程下失败；**"只尊重显式 --lang"与 `init`/`doctor`/拒绝处理器不一致（它们经
-   `_language_for` 尊重环境）——我已推翻该决定，改为与其它命令一致。** 第四轮修复中。
+   `_language_for` 尊重环境）——我已推翻该决定，改为与其它命令一致。** 第四轮修复已交（ab4183c，全套 2768 通过）：
+   绝对路径宪法拒绝（`isabs` + Windows 盘符）；`Config.constitution` 存**归一化**路径，
+   `skills/../AUDIT_RULES.md` 现能到达提交读取器；性质测试显式导入检查包并断言注册表 ≥10，
+   24 个用例逐个在新解释器下通过；`cmd_run` 无条件 `_speak(args)`，`LANG=zh_CN.UTF-8 run`
+   叙述为中文。第四轮 astra 复核进行中，预计最后一轮。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
