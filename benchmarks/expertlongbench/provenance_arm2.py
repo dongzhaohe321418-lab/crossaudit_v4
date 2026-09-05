@@ -364,6 +364,16 @@ def analyse_project(project: Path, instance: str) -> dict:
 
     files = audited_increment(project, sha_science, cfg)
     record["increment_files"] = sorted(files)
+    # The receipt records the increment the audit actually read, file by file
+    # and hash by hash (`inputs.manifest`). Comparing against it is the second,
+    # independent proof that the reconstruction above is the shipped increment
+    # — the first being that the check's findings over it equal the ledger's.
+    record["manifest_agrees"] = None
+    for cycle in sorted((project / cfg.ledger_dir).glob("*/receipt.json")):
+        manifest = json.loads(cycle.read_text(encoding="utf-8")).get(
+            "inputs", {}).get("manifest", {})
+        record["manifest_agrees"] = manifest == {
+            k: hashlib.sha256(v).hexdigest() for k, v in files.items()}
     draft = files.get(OUTPUT_PATH, b"").decode("utf-8", "replace")
     record["output_sha256"] = sha(draft)
     record["draft_chars"] = len(draft)
