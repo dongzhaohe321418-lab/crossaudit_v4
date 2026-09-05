@@ -263,6 +263,66 @@ def spread_statistics(labels: list[str], per_replicate: dict[str, dict[str, dict
     return result
 
 
+def secondary_spread(labels: list[str], per_replicate: dict[str, dict[str, dict]],
+                     instances: list[str]) -> dict:
+    """Run-to-run spread of the preregistered secondary outcomes.
+
+    Each is treated the way its own comparisons are made. Gate rate is a paired BINARY
+    outcome, so its floor is the spread of the paired difference between two runs of one
+    configuration, together with the discordant counts a McNemar test would use. Findings
+    per audit and item precision are rates, reported with their range and SD.
+    """
+    out: dict = {}
+
+    def per_instance(label: str, getter) -> list[float]:
+        return [getter(per_replicate[label][i]) for i in instances]
+
+    gate = {label: per_instance(label, lambda r: 1.0 if r["audit"]["gated"] else 0.0)
+            for label in labels}
+    findings = {label: per_instance(label, lambda r: float(r["audit"]["n_findings"]))
+                for label in labels}
+
+    gate_rates = [100.0 * sum(gate[label]) / len(instances) for label in labels]
+    find_totals = [sum(findings[label]) for label in labels]
+    precisions = []
+    for label in labels:
+        named = sum(per_replicate[label][i]["scored"]["rule_mapping"]["n_named"]
+                    for i in instances)
+        hit = sum(per_replicate[label][i]["scored"]["rule_mapping"]["n_wrong_and_named"]
+                  for i in instances)
+        precisions.append(100.0 * hit / named if named else 0.0)
+
+    pairs = []
+    for a, b in combinations(range(len(labels)), 2):
+        discordant_ab = sum(1 for k, i in enumerate(instances)
+                            if gate[labels[a]][k] and not gate[labels[b]][k])
+        discordant_ba = sum(1 for k, i in enumerate(instances)
+                            if gate[labels[b]][k] and not gate[labels[a]][k])
+        pairs.append({
+            "a": labels[a], "b": labels[b],
+            "gate_difference_pp": gate_rates[a] - gate_rates[b],
+            "discordant_a_only": discordant_ab,
+            "discordant_b_only": discordant_ba,
+        })
+
+    for name, values in (("gate_rate_pct", gate_rates),
+                         ("findings_total", find_totals),
+                         ("item_precision_pct_rule", precisions)):
+        out[name] = {
+            "per_replicate": dict(zip(labels, values)),
+            "range": max(values) - min(values),
+            "sd": statistics.stdev(values) if len(values) > 1 else 0.0,
+        }
+    nulls = [pair["gate_difference_pp"] for pair in pairs]
+    out["gate_null_contrast"] = {
+        "values": nulls,
+        "sd": statistics.stdev(nulls) if len(nulls) > 1 else 0.0,
+        "max_abs": max(abs(v) for v in nulls) if nulls else 0.0,
+        "pairs": pairs,
+    }
+    return out
+
+
 def instance_table(labels: list[str], per_replicate: dict[str, dict[str, dict]],
                    instances: list[str], mapping: str) -> list[dict]:
     """Every instance's recall in every replicate, and how far it moved. Not summarised."""
@@ -363,6 +423,26 @@ def render(payload: dict) -> str:
                 f"Wilcoxon {pair['wilcoxon']}")
         add("")
 
+    secondary = payload["secondary"]
+    add("-" * 88)
+    add("SECONDARY OUTCOMES -- run-to-run spread (PREREGISTRATION-6 s3)")
+    add("-" * 88)
+    for name, unit in (("gate_rate_pct", "pp"), ("findings_total", "findings"),
+                       ("item_precision_pct_rule", "pp")):
+        entry = secondary[name]
+        values = ", ".join(f"{label} {value:.1f}"
+                           for label, value in entry["per_replicate"].items())
+        add(f"  {name:<26} {values}   range {entry['range']:.2f} {unit}, "
+            f"SD {entry['sd']:.2f}")
+    gate_null = secondary["gate_null_contrast"]
+    add(f"  gate rate, DERIVED signed paired contrast between two runs of one config: "
+        f"{', '.join(f'{v:+.1f}' for v in gate_null['values'])} pp; "
+        f"SD {gate_null['sd']:.2f} (2 SD {2 * gate_null['sd']:.2f})")
+    for pair in gate_null["pairs"]:
+        add(f"    {pair['a']} vs {pair['b']}: discordant "
+            f"{pair['discordant_a_only']}/{pair['discordant_b_only']}")
+    add("")
+
     kill = payload["kill"]
     add("=" * 88)
     add("KILL CONDITION (PREREGISTRATION-6 s6): range of the aggregate round-one recall "
@@ -440,6 +520,7 @@ def main(argv: list[str] | None = None) -> int:
                        for label in labels],
         "spread": {mapping: spread_statistics(labels, per_replicate, common, mapping)
                    for mapping in MAPPINGS},
+        "secondary": secondary_spread(labels, per_replicate, common),
         "instances": instance_table(labels, per_replicate, common, "model_mapping"),
         "cost_usd": args.ledger_cost,
     }
