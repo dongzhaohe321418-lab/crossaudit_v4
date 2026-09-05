@@ -7142,3 +7142,46 @@ Rulings 2 and 3 are in flight: the addressing redesign is merged as
 recommended; simulated ceilings A 82.0% / B 77.6%, 85.5% over blockable rows)
 and Arm 3, one draft per contract on the same 24 instances under §8g, is
 running.*
+
+## D159 — Contract B, content addressing, with the quote cap removed; the containment rule is the next constraint
+
+Arm 3 (`benchmarks/expertlongbench/RESULTS-ARM3.md`) ran both redesigned
+addressing contracts on Arm 2's 24 instances under the §8g rule. Both pass —
+A (numbered rendering) 0/183, B (content addressing) 2/167 = 1.20% [0.33, 4.26]
+— against Arm 2's 7/7 on the same estimand. The paired difference is inside
+its interval, so the preregistered decision rule defers to the design's
+standing argument, and the design's one reversal condition (the generator
+paraphrasing its quote) did not occur: 0 of 192.
+
+RULING 1: **build contract B.** `src` becomes `{"file": path, "quote": bytes}`;
+the quote is found by exact whitespace-folded bytes, must be unique in the
+file (non-unique → ADVISORY, absent → BLOCKER), and `(v, u)` is verified inside
+it by the shipped matcher. `at` is dropped. **The 80-character cap is removed**
+— both of B's false blockers were correct 97- and 104-character quotes; the
+only bound is that a quote lies within one line. The skill is rewritten to
+ask for a copied span and nothing else. D64 mutations as always; the verifier
+already exists in the Arm 3 harness with its fixtures and is ported, not
+rewritten.
+
+RULING 2: **B enters no profile until Arm 4** — the built check, the shipped
+skill, a fresh sample, §8g — passes. D158 ruling 3 stands.
+
+RULING 3: **the containment rule goes to a design note before anyone touches
+the matcher.** 51 of 53 blocks in Arm 3 were the rule meeting ranges
+(`20–25 °C`), stoichiometric subscripts (`Li₂O`), unit re-renderings
+(`hours` written as `h`), unit words, hyphenated compounds and unsupported
+transcriptions — in both arms alike. These are legitimate source text the
+matcher does not read, and each is a *semantic* decision about what "contains"
+means, not a bug. The note enumerates the classes with Arm 3's counts,
+proposes a disposition per class (which are transcription errors the
+generator should fix, which are matcher extensions, which are `uncited` by
+contract), and preregisters how a matcher change would be measured — because
+the primary outcome's adjudicator *is* the containment rule, and a change to
+it changes the ruler.
+
+What Arm 3 also settled: the numbered gutter costs +0.59% of a prompt (design
+predicted +0.7%), so A remains available as a fallback at negligible cost;
+A's outline hazard was never exercised and stays unmeasured; and Arm 2's
+malformed-envelope re-ask did not reproduce (7 of 48 rounds against 23 of 24),
+which means that incidental finding is not yet understood and must not be
+"fixed" until it is.
