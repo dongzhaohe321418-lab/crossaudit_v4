@@ -148,3 +148,27 @@ So, binding on summaries, decision records, plans and prose, not only on reports
 - When a later study supersedes an earlier number, the earlier number is
   withdrawn in writing, in `CORRECTIONS.md`. A superseded figure that is merely
   not repeated will be repeated.
+
+## 10. An interval states its coverage, and the coverage is checked
+
+Added 2026-09-05 after the ceiling study's headline "95% exact" interval was
+found by independent review to have **41.6% coverage**. The arithmetic was
+right; the quantity was wrong: a Clopper–Pearson interval on the direction
+probability *conditional on discordance*, multiplied by the *observed*
+discordance fraction, is not an interval for the unconditional risk
+difference, because the discordance fraction is itself uncertain.
+
+So, binding on every interval this project reports:
+
+- Name the method and the quantity it covers, in the same sentence as the
+  interval. "Exact" names an algorithm, not a guarantee.
+- For any interval built by transforming or combining other intervals, or
+  conditioning on an observed event, **simulate its coverage** at the study's
+  n and a plausible effect, and commit that simulation as a test. A transformed
+  interval whose coverage has not been checked is reported as "uncalibrated".
+- Where the unit of analysis repeats — the same problem in two batches, the
+  same instance under twenty readings — the interval is bootstrapped over the
+  independent unit, and any test that assumes independence is accompanied by
+  a cluster-aware sensitivity test.
+- A point estimate may be quoted with its p-value before its interval is
+  repaired; an interval may not be quoted until it is.
