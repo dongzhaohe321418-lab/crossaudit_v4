@@ -365,6 +365,11 @@ def _at_span(at, lines: int) -> tuple[int, int] | None:
     CA-NUM-001. A locator this layer refuses in one field must not be waved
     through in the field beside it, and `at` is the address §7 prints back to a
     person.
+
+    Refusing it is not the same as blocking on it. `_row_findings` consults this
+    for a row that NAMES a source; a row whose `src` is `uncited` names none, so
+    it is ADVISORY whatever this returns (D158, §3.4) and the unreadable address
+    is reported inside that advisory instead.
     """
     m = _AT.fullmatch(str(at or ""))
     if not m:
@@ -404,12 +409,47 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
     # membership test next door.
     src = str(row["src"])
     at = _at_span(row["at"], lines)
+    shown = f'"{v} {u}"' if u else f'"{v}"'
+    # Said in a form that survives an `at` this layer cannot read, because the
+    # `uncited` branch below is now reached with an unresolved `at` and its
+    # report still has to name where it is talking about.
+    where = (f"line {at[0]}" if at[0] == at[1] else f"lines {at[0]}-{at[1]}") \
+        if at is not None else f"the row addressed {str(row['at'])!r}"
+
+    # **`uncited` never blocks — D158 ruling 1, and `PROVENANCE_CHECKS.md`
+    # §2.1/§3.4 as written.** This branch used to sit BELOW the `at` and value
+    # validation, so a row that declined to name any evidence at all still
+    # became a non-overridable BLOCKER when it miscounted its own address. Six
+    # of Arm 2's 215 generator-written rows did exactly that
+    # (`benchmarks/expertlongbench/RESULTS-ARM2.md` §3) — the design's stated
+    # contract violated inside the contract that was failing.
+    #
+    # The ordering was the defect, not the severity. A row that names no source
+    # gives this layer nothing to open and nothing to look for, so there is
+    # nothing in it that can fail; §3.4's table has exactly one disposition for
+    # it, ADVISORY, counted and carried to the auditor, who is the reader that
+    # can weigh an unsourced number.
+    #
+    # Nothing is waved through in silence, though: whatever the row got wrong is
+    # said in the same ADVISORY's own observation, which is the text §7 prints
+    # to a person. Advisory and visible, never blocking.
+    if src == "uncited":
+        wrong = []
+        if at is None:
+            wrong.append(f'its "at" is not a line in this {lines}-line artefact')
+        if not v.strip():
+            wrong.append("it transcribes no number")
+        elif normalise_number(v) is None:
+            wrong.append(f"it transcribes {v!r}, which is not a number")
+        malformed = f" (the row is also malformed: {'; '.join(wrong)})" if wrong else ""
+        return [Finding(ADVISORY, "CA-NUM-003", path,
+                        f"{where} names no source for {shown}; passed to the "
+                        f"auditor{malformed}")]
+
     if at is None or not v.strip() or not src:
         return [Finding(BLOCKER, "CA-NUM-001", path,
                         "a source annotation has an empty number or location; each "
                         "row names v, u, at and src")]
-    shown = f'"{v} {u}"' if u else f'"{v}"'
-    where = f"line {at[0]}" if at[0] == at[1] else f"lines {at[0]}-{at[1]}"
     if normalise_number(v) is None:
         # A transcription that is not a number cannot be looked for. It used to
         # fall through to a substring test that ignored the unit entirely, so
@@ -418,9 +458,6 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
                         f"{where} transcribes {v!r}, which is not a number; write the "
                         f"number alone, or name no source with \"uncited\"")]
 
-    if src == "uncited":
-        return [Finding(ADVISORY, "CA-NUM-003", path,
-                        f"{where} names no source for {shown}; passed to the auditor")]
     if src.startswith("governed:"):
         # §1.2: the fetched text is not retained anywhere, so code cannot
         # re-read it. Saying so is honest; passing in silence would not be.
