@@ -138,13 +138,31 @@ and §3.3 says when it can.
 
 **Superseded in its addressing half by `PROVENANCE_ADDRESSING.md` §2 (D158
 ruling 2, D159 ruling 1), and kept as written because the rest of it still
-governs.** `src` in the fence is no longer `path#L11`: it is
-`{"file": …, "quote": …}`, the quote is found by exact whitespace-folded bytes
-within ONE line, there is no length cap, a quote the file says on more than one
-line is ADVISORY CA-NUM-004, and `at` is gone from the row (accepted, ignored).
-The `results.json` locator below is unchanged. Everything from "Says what was
-claimed" onward — the synonym table, the containment rule, where determinism
-ends — is the same rule reading a quoted span instead of a named one.
+governs.** As built:
+
+* `src` in the fence is no longer `path#L11`. It is `{"file": …, "quote": …}`,
+  and the quotation is found by exact bytes with every run of whitespace folded
+  to one space on both sides. There is **no length cap**; the only bound is that
+  the quotation lie within ONE line.
+* The pair is then verified **in that line, bounded to the quoted interval** —
+  never in the quotation read on its own, which would crop away the characters
+  every boundary rule in the matcher reads.
+* A quotation the file does not contain is `BLOCKER CA-NUM-002`, not -001: the
+  quote is the span, so a quotation that does not land is a wrong span, and
+  -001 stays "the row cannot be read, or the file it names is not here". One the
+  file writes across a line break is -002 as well, with its own observation,
+  because the remedy differs.
+* A quotation the file says **on more than one line** is `ADVISORY CA-NUM-004`
+  and never blocks. Twice on one line is not ambiguity and passes.
+* `at` is gone from the row. An old `at` **field** beside a new `src` is
+  accepted and ignored; an unchanged old-format annotation is rejected. The
+  address §7 prints is derived from the draft, with the fence bodies blanked.
+* `computed:` prefixes the `file` value; `governed:` stays the string form.
+
+The `results.json` locator below is unchanged and is now the only place a line
+range is parsed. Everything from "Says what was claimed" onward — the synonym
+table, the containment rule, where determinism ends — is the same rule reading a
+quoted span instead of a named one.
 
 *Exists* = `src`'s path is a key of the `files` mapping the DCL is handed
 (`dcl/framework.py:172`) and the line range is inside it. *Says what was claimed*

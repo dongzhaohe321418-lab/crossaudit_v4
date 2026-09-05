@@ -166,8 +166,9 @@ def test_the_quote_and_not_the_file_is_what_is_checked(monkeypatch):
     wrong_line = increment(row(src=cite(L12)))
     assert [f.rule for f in findings(wrong_line)] == ["CA-NUM-002"]
 
-    monkeypatch.setattr(numbers, "_quote_span",
-                        lambda text, quote: (text, 1))          # the mutation
+    monkeypatch.setattr(                                        # the mutation
+        numbers, "_quote_span",
+        lambda text, quote: (numbers._Located(text, ((0, len(text)),)), 1))
     assert findings(wrong_line) == [], (
         "with the quote widened to the whole file the wrong line passes; that "
         "is the coincidence rate the quote scoping exists to remove")
@@ -571,11 +572,17 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
     # to assess (D155).
     assert "```crossaudit-numbers" in body
     assert "uncited" in body and '"quote"' in body
-    # And it asks for NO line number anywhere — not for the source, and not for
-    # the draft's own position. That is the whole of D159 ruling 1 on the
-    # generator's side: an address the model is never shown is an address it
-    # cannot give, and Arm 2 blocked 24 of 24 drafts proving it.
-    assert "#L" not in body and '"at"' not in body
+    # The FENCE asks for no line number and no `at` — that is the whole of D159
+    # ruling 1 on the generator's side: an address the model is never shown is
+    # an address it cannot give, and Arm 2 blocked 24 of 24 drafts proving it.
+    fence, _, structured = body.partition("## The one place a line number")
+    assert "#L" not in fence and '"at"' not in fence
+    # And the `results.json` source, which is NOT that interface, keeps the
+    # sentence that describes it: a deterministic producer wrote that file and
+    # knows which line it read, the check still verifies the fragment, and a
+    # skill that stopped mentioning it would leave a live interface unwritten.
+    assert "runs.csv@v3#L14" in structured
+    assert structured.count("#L") == 1 and "Never write a line number" in structured
     assert "you name a location, you never say what is at it" in body.lower()
     # And it says the unit is compared whole, because a half-transcribed
     # compound unit is now a blocker and the generator has to be told.
@@ -698,7 +705,8 @@ def test_the_pair_comparison_is_literal_in_both_directions(span, v, u, expected,
     assert [f.rule for f in findings(files)] == expected, why
 
 
-def test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance():
+def test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance(
+        monkeypatch):
     """MUTATION: restore `numbers.py`'s skip of `results.json`, or widen
     `check_provenance` to open the file.
 
@@ -734,6 +742,14 @@ def test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance()
 
     # A source with no fragment is the world before the widening, untouched.
     assert run_checks(project("runs.csv@v3"), ["number_source"]).findings == []
+
+    # MUTATION (§4 row 3, for the locator that still names lines): widen `_span`
+    # to the whole file, and the wrong-line citation goes GREEN. `_span` says in
+    # its own docstring that this test holds it, so this test has to hold it —
+    # the fence's half of that guard moved to `_quote_span` and the structured
+    # half must not have been left behind with nobody asserting it.
+    monkeypatch.setattr(numbers, "_span", lambda text, start, end: text)
+    assert run_checks(project("runs.csv@v3#L3"), ["number_source"]).findings == []
     # The pair still has to run together — `provenance` from the pack and
     # `number_source` by name, which is the only way to get it after D158.
     from crossaudit.dcl.profiles import PROFILES
@@ -2122,27 +2138,54 @@ def test_tracked_paths_asks_git_about_the_git_path(tmp_path):
 # the file does not hold is CA-NUM-002 rather than the harness's CA-NUM-001,
 # because the quote is the SPAN and a wrong span has always been -002.
 
-#: One long line, the shape both of Arm 3's false blockers had: a sentence whose
-#: value and unit are far enough apart that no short quotation contains them.
+#: One long line, SYNTHETIC, with the shape both of Arm 3's false blockers had:
+#: a sentence whose value and unit are far enough apart that no quotation of
+#: eighty characters contains them both. The archived quotations themselves are
+#: corpus text and are not in this repository; see the test below.
 LONG_LINE = ("Calcination was carried out in a muffle furnace at 950 °C for 1 hour "
              "under flowing synthetic air at 100 mL/min, then cooled slowly.")
 LONG_RECIPE = f"# Long\n\n{LONG_LINE}\n\nnothing else here.\n"
+
+
+#: Arm 3's record of its own two false blockers, and the whole of what the
+#: repository keeps of them: `quote_len` and a `quote_sha256`, never the text
+#: (EXPERIMENT_RECORD §3 — corpus bytes live in the archive, not in a checkout).
+#: The lengths below are read back from it where the file is present, so the
+#: number this test parametrises on is the archived fact and not a memory of it.
+ARM3_ROWS = (Path(__file__).parent.parent / "benchmarks" / "expertlongbench"
+             / "study8" / "rows.jsonl")
 
 
 @pytest.mark.parametrize("length", [97, 104])
 def test_a_quote_longer_than_eighty_characters_is_not_a_blocker(length):
     """MUTATION (D159 ruling 1): reinstate the design's 80-character cap —
     `if not 1 <= len(quote) <= 80: return CA-NUM-001` at the head of
-    `_verify_quote`. Both rows here redden, and they are not hypothetical: they
-    are Arm 3's ONLY two false blockers, 2 of 167 rows, quotations of 97 and 104
-    characters that the named file contains exactly once and that do contain the
-    transcribed pair (`benchmarks/expertlongbench/RESULTS-ARM3.md` §1, §8).
+    `_verify_quote`. Both rows here redden.
+
+    **The fixture is a synthetic line of the archived LENGTH, not the archived
+    quotation.** Arm 3's only two false blockers were 2 of 167 rows, from
+    `T03MaterialSEG-10.1002/aic.18378` and `…/smll.201800441`: quotations of 97
+    and 104 characters that the named file contained exactly once and that did
+    contain the transcribed pair, refused by the length rule alone
+    (`RESULTS-ARM3.md` §1, §8). Their text is corpus and stays in the archive —
+    `study8/rows.jsonl` keeps `quote_len` and `quote_sha256` and no bytes — so
+    what a committed test can reproduce is the property that mattered, a correct
+    quotation longer than the cap, at exactly the lengths the record carries.
+    The lengths are read back from that record below rather than remembered.
 
     The cap was there to stop a "quote" that is the whole file — a file-scoped
     citation in disguise, which contains the claimed pair by coincidence 27.7%
     of the time. That job now belongs to the one-line rule, which does it
     without refusing a long line: see
     `test_a_quotation_lies_within_one_line`."""
+    if ARM3_ROWS.exists():
+        archived = sorted(int(r["quote_len"]) for r in
+                          (json.loads(line) for line in
+                           ARM3_ROWS.read_text(encoding="utf-8").splitlines() if line.strip())
+                          if r.get("class") == "verifier wrong")
+        assert archived == [97, 104], archived
+        assert length in archived
+
     quote = LONG_LINE[:length]
     assert len(quote) == length and "950 °C" in quote
     files = {RECIPE_PATH: LONG_RECIPE.encode(),
@@ -2399,3 +2442,138 @@ def test_the_same_narrowing_holds_through_a_structured_citation():
                   "convergence": {"converged": True}}).encode()}
     assert [f.rule for f in
             run_checks(files, ["number_source"]).findings] == ["CA-NUM-002"]
+
+
+# ---------------- the review's P1: the quote selects where, the line says what
+@pytest.mark.parametrize("line,quote,v,u,expected,why", [
+    # Every row of the review's table. Left column is what the base check said
+    # of the same source through a line citation, and it said BLOCKER to all.
+    ("5 mg/mL",  "5 mg", "5", "mg", ["CA-NUM-002"], "a unit token cropped in half"),
+    ("5 m-2s-1", "5 m",  "5", "m",  ["CA-NUM-002"], "and a compound exponent unit"),
+    ("-5 g",     "5 g",  "5", "g",  ["CA-NUM-002"], "a minus sign cropped away"),
+    ("1e+5 g",   "5 g",  "5", "g",  ["CA-NUM-002"], "an exponent cropped away"),
+    ("30 °C",    "3",    "3", "",   ["CA-NUM-002"], "a digit cropped off a number"),
+    ("base pressure ≈ 3 × 10⁻² mbar", "3", "3", "",
+                                     ["CA-NUM-002"], "and the notation rule itself"),
+    # The other bypass the fix must not open: the quote has to bound the match,
+    # or a quotation of one phrase is satisfied by a number elsewhere on it.
+    ("Add 5 g, then hold at 25 °C.", "then hold at 25 °C.", "5", "g",
+                                     ["CA-NUM-002"], "the pair is outside the quotation"),
+    # And every honest crop still passes: the quotation is a WINDOW on the line,
+    # not a replacement for it.
+    ("Add 5 g, then hold at 25 °C.", "Add 5 g",  "5", "g",  [], "the first pair"),
+    ("Add 5 g, then hold at 25 °C.", "at 25 °C", "25", "°C", [], "the second pair"),
+    ("5 mg/mL",  "5 mg/mL",  "5", "mg/mL", [], "the whole unit token, quoted whole"),
+    ("10 wt % Ni", "10 wt %", "10", "wt%",  [], "the percent split, quoted to its end"),
+    ("3. Calcine at 950 °C for 1 hour.", "950 °C", "950", "°C", [], "a crop of the fixture"),
+    ("cool to 25–106 °C", "106 °C", "106", "°C", [], "the endpoint that carries the unit"),
+])
+def test_the_quote_selects_the_window_and_the_line_decides_the_pair(
+        line, quote, v, u, expected, why):
+    """MUTATION: match the isolated quotation — hand `contains_pair` the quoted
+    characters instead of the line they came from. Every blocking row above goes
+    green, and this is not a new defect but three old ones returning at once:
+    the unit prefix (D157 lesson 2, fixed three times), the sign rule (the fifth
+    review), and the exponent sign (the sixth). **Cropping the adjoining
+    characters out of the text handed to the matcher disables every boundary
+    rule in the module simultaneously**, because each of them reads what adjoins
+    an occurrence — which is what an independent review found in the first cut
+    of this slice, and what `test_the_sign_cropping_sweep_the_review_ran`
+    measures at a hundred rows.
+
+    The rule that replaces it: the matcher scans the whole folded LINE, so
+    `_NUMBER`'s lookbehind, the sign, the whole-unit-token boundary and
+    `_UNPARSED` all see their context; the occurrence it returns must then lie
+    INSIDE the quoted interval. Drop the interval clause and the row marked "the
+    pair is outside the quotation" goes green instead — a quotation satisfied by
+    a number it does not contain, which is the other half of the same bypass.
+    The design's sentence "every property the span rule bought stays bought" is
+    only true under both halves."""
+    files = {RECIPE_PATH: (line + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(quote))],
+                               prose="see the source")}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+@pytest.mark.parametrize("magnitude", range(1, 101))
+def test_the_sign_cropping_sweep_the_review_ran(magnitude):
+    """MUTATION: the same one — match the isolated quotation. All 100 rows go
+    green, which is what the review measured against the first cut of this
+    slice: `-1 g` through `-100 g`, each annotated as the positive value and
+    quoted from just after the minus sign, was **100 of 100 incorrect PASS**.
+
+    A contiguous hundred is a grammar defect and not a curiosity, which is the
+    same reason the round-3 exponent sweep and the round-6 sign sweep are whole
+    ranges rather than examples. The base check blocks all 100 through a line
+    citation; so does this one now."""
+    files = {RECIPE_PATH: f"-{magnitude} g\n".encode(),
+             DRAFT_PATH: draft([row(value=str(magnitude), unit="g",
+                                    src=cite(f"{magnitude} g"))],
+                               prose="see the source")}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
+
+
+# ------------------ the review's P2: a separated superscript is a footnote
+@pytest.mark.parametrize("line,quote,v,u,expected,why", [
+    ("Participants: 5 ¹", "Participants: 5 ¹", "5", "", [],
+     "a footnote mark is not an exponent"),
+    ("Enrolled 12 ² at baseline", "Enrolled 12 ²", "12", "", [],
+     "and it is not one mid-sentence either"),
+    ("Yield 5 ⁻ see note", "Yield 5 ⁻", "5", "", [],
+     "nor is a separated superscript sign"),
+    # The adjacent forms are untouched: they are the bytes that shipped.
+    ("Yield 10⁵ g", "Yield 10⁵ g", "10", "", ["CA-NUM-002"], "adjacent stays notation"),
+    ("Yield 10⁻⁵ g", "Yield 10⁻⁵ g", "10", "", ["CA-NUM-002"], "in either sign"),
+    # And the separated OPERATOR form, which is the whole point of the change.
+    ("base pressure ≈ 3 × 10⁻² mbar", "base pressure ≈ 3 × 10⁻² mbar", "3", "",
+     ["CA-NUM-002"], "a separated operator is still notation"),
+])
+def test_a_separated_superscript_is_a_footnote_and_not_an_exponent(
+        line, quote, v, u, expected, why):
+    """MUTATION: allow whitespace before the superscript alternatives of
+    `_UNPARSED` as well as before the operator — which is what the first cut of
+    this slice did. The footnote rows redden: `Participants: 5 ¹`, with
+    `¹ Enrollment count` further down the page, becomes a non-overridable
+    blocker on a correct unitless annotation, and a footnote mark is the most
+    ordinary thing in the world to find after a number in a paper.
+
+    Only an OPERATOR may be separated from its left operand, and only where its
+    right operand is exponentiated. The four adjacent alternatives are the bytes
+    that shipped before this slice and are asserted here beside the new one, so
+    the change is visibly one alternative and not four."""
+    files = {RECIPE_PATH: (line + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(quote))],
+                               prose="see the source")}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_the_continuation_never_crosses_a_line_break():
+    """MUTATION: write the new alternative's whitespace as `\\s` rather than
+    `[^\\S\\r\\n]`. A superscript or an operator on the NEXT line then continues
+    the number above it, and both rows here redden.
+
+    It reaches the check through the `results.json` locator, which is the one
+    place a span can still be MORE than one line — a footnote definition on the
+    line after the number is exactly the shape `#L2-L3` names."""
+    footnote = "run,p\nParticipants: 5\n¹ Enrollment count; see the trial log.\n"
+    def project(source):
+        return {"experiments/e1/metadata.yml":
+                b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+                "experiments/e1/runs.csv": footnote.encode(),
+                "experiments/e1/results.json": json.dumps(
+                    {"quantities": [{"name": "p", "value": 5, "unit": "",
+                                     "source": source}],
+                     "convergence": {"converged": True}}).encode()}
+    assert run_checks(project("runs.csv@v3#L2-L3"), ["number_source"]).findings == []
+    assert run_checks(project("runs.csv@v3#L2"), ["number_source"]).findings == []
+
+    # The operator form, one line down, is not this number's continuation either.
+    product = "run,p\nBase pressure 3\n× 10⁻² mbar in the chamber.\n"
+    files = {"experiments/e1/metadata.yml":
+             b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": product.encode(),
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "p", "value": 3, "unit": "",
+                                  "source": "runs.csv@v3#L2-L3"}],
+                  "convergence": {"converged": True}}).encode()}
+    assert run_checks(files, ["number_source"]).findings == []

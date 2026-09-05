@@ -93,8 +93,20 @@ No line number anywhere. `src` becomes an object — e.g.
 `{"file": "work/synthesis/RECIPE.md", "quote": "Calcination: 950 °C for 1 h"}`:
 
     src := "uncited"
-         | {"file": <path>, "quote": <string, 1..80 chars>}
+         | {"file": <path>, "quote": <string, no length limit>}
          | {"file": <path>, "quote": <…>, "sha": <8..64 hex>}      (optional pin)
+
+**AS BUILT (slice 2, D159 ruling 1).** The cap is gone — D159 removed it, and
+the only bound is that a quotation lie within ONE line of the file. `computed:`
+keeps its disposition as a prefix on the `file` value
+(`{"file": "computed:work/x.md", "quote": …}`); `governed:` keeps its own as the
+string form it already was. A row that still carries the old `at` **field** is
+accepted and its `at` ignored — that is the compatibility claim and its exact
+extent: an unchanged old-format annotation, whose `src` is still `path#L11`, is
+NOT accepted and is CA-NUM-001. The address §7 prints back to a person is
+derived by code from the draft and the transcribed pair, and the fence bodies
+are blanked newline-for-newline before it looks, or a row locates itself inside
+its own annotation whenever the unit is empty.
 
 `file` resolves exactly as today (`numbers._resolve`, `numbers.py:328-338`: exact
 key, then relative to the annotating artefact's directory — deterministic, never
@@ -110,23 +122,67 @@ string, which is what lets a quote survive the source's line wrapping. Nothing
 else: no case folding, no punctuation stripping, no tokenisation. Then:
 
 ```
-occurrences = flat(file).count(flat(quote))
-occurrences == 0                -> BLOCKER  CA-NUM-001   (not in the file)
-occurrences  > 1                -> ADVISORY CA-NUM-004   (ambiguous)
-not contains_pair(quote, v, u)  -> BLOCKER  CA-NUM-002   (quote lacks the pair)
-otherwise                       -> pass
+lines = [L for L in file.splitlines() if flat(quote) in flat(L)]     # AS BUILT
+len(lines) == 0, quote in flat(file) -> BLOCKER  CA-NUM-002  (across a line break)
+len(lines) == 0                      -> BLOCKER  CA-NUM-002  (not in the file)
+len(lines)  > 1                      -> ADVISORY CA-NUM-004  (ambiguous)
+pair not inside the quoted interval
+              of that line           -> BLOCKER  CA-NUM-002  (quote lacks the pair)
+otherwise                            -> pass
 ```
+
+**AS BUILT, and four corrections to the block above as it was designed.**
+
+1. **Counted over LINES, not over occurrences of the quote in the file.** The
+   same characters twice on ONE line still name that line and the located text
+   is the same text either way, so it passes; twice on two lines is the
+   ambiguity this routes to ADVISORY. D159's "must be unique in the file" is
+   unique-to-a-line as built.
+2. **A quotation the file does not hold is CA-NUM-002, not -001.** The quote IS
+   the span, so a quotation that does not land is a wrong span — the failure
+   -002 has always named — while -001 stays "the row cannot be read, or the FILE
+   it names is not here". The severity is the same either way; the codes are
+   what a reader is told the remedy from.
+3. **"Not in the file" is two failures with one code**, because the remedies
+   differ: a quotation the file writes ACROSS A LINE BREAK is quoted too widely
+   (quote less), and one the file does not contain at all is quoted wrongly
+   (copy, do not retype). Two observations, one code.
+4. **The pair is verified in the LINE, bounded to the quoted interval** — not in
+   the quotation read on its own. `contains_pair(quote, v, u)` as written above
+   is the defect an independent review found in the first cut of this slice:
+   every boundary rule in the matcher reads what ADJOINS an occurrence, so
+   cropping the adjoining characters away disables all of them at once. Quoting
+   `5 mg` out of `5 mg/mL` satisfied `mg`, `5 g` out of `-5 g` satisfied five,
+   and a sweep of `-1 g`…`-100 g` cropped its sign 100 times out of 100. The
+   quote selects the window; the line decides what is in it.
 
 `contains_pair` is unchanged (`numbers.py:296-326`) and runs against the quote,
 not the file: **the quote is the span**, so every property the span rule bought
 stays bought — the whole-unit-token rule (`numbers.py:249-266`), the synonym
 table (`numbers.py:201-207`), the maximal-number reading.
 
+**FALSE AS WRITTEN, and corrected in the build.** Running the matcher against
+the quote *read on its own* does not keep those properties; it disables them,
+because each one is a rule about the characters that ADJOIN an occurrence and a
+quotation is precisely a crop of them. As built the matcher runs against the
+whole folded line and the occurrence it finds must lie inside the quoted
+interval — see §2.2's correction 4. Only then is the sentence above true.
+
 **80 characters, and why a cap at all.** Uncapped, a "quote" that is the whole
 file is a file-scoped citation in disguise, and §5 measured that cost: a wrong
 source file contains the claimed pair 27.7% of the time (596/2150) against 0.0%
 line-scoped (0/1825). The cap keeps B a span contract; 80 is the value §3
 simulated, where it never bound. Smaller caps are untested here.
+
+**Withdrawn by D159, and replaced.** Arm 3 ran it: the cap never bound on any
+correct annotation except two, and those two were its only false blockers —
+correct quotations of 97 and 104 characters. The job the cap was doing is done
+instead by the rule that a quotation lies within ONE line, which refuses a
+whole-file "quote" without refusing a long line. The §4 mutation "remove the
+80-char cap → the whole-file-as-quote fixture goes green" is dead with it; the
+mutations that replace it are "reinstate the cap → the 97- and 104-character
+fixtures redden" and "fold and search the whole file → the one-line fixture goes
+green".
 
 **Ambiguity is ADVISORY, and this is load-bearing.** §3.4's rule is that only a
 *named locator* can block — one that does not resolve, or resolves without
@@ -212,11 +268,13 @@ construct the whitespace fold does not reach.
 |---|---|
 | A | drop the gutter from `build_prompt`'s WORK rendering → the prompt test asserting every rendered source line carries `<n>\| ` reddens (no model needed); number an elided file too → the fixture asserting an outlined file is rendered **without** a gutter reddens |
 | A | §4's rows 1 and 3, kept verbatim: `#L11`→`#L12` → CA-NUM-002; widen the span to the whole file → the wrong-line fixture goes green |
-| B | alter one character inside the quote → CA-NUM-001 |
-| B | drop the uniqueness count → the duplicate-quote fixture stops being advisory and passes |
+| B | alter one character inside the quote → CA-NUM-002 *(as built; -001 as designed)* |
+| B | drop the per-LINE count → the duplicate-quote fixture stops being advisory and passes |
 | B | let the matcher accept a prefix of the quote → the shortened-quote fixture goes green (the defect `unit_token` has been fixed three times, `numbers.py:249-266`) |
-| B | drop the `contains_pair(quote, …)` clause → a quote that resolves without holding the pair goes green |
-| B | remove the 80-char cap → the whole-file-as-quote fixture goes green, restoring §5's 27.7% coincidental pass |
+| B | drop the containment clause → a quote that resolves without holding the pair goes green |
+| B | ~~remove the 80-char cap~~ *(dead — D159 removed the cap)*: **reinstate** it → the 97- and 104-character fixtures redden; **fold and search the whole file** → the one-line fixture goes green, restoring §5's 27.7% coincidental pass |
+| B | **match the isolated quotation** rather than its line → the unit-prefix, sign and exponent crops all pass, and the `-1 g`…`-100 g` sweep passes 100 of 100 |
+| B | **drop the quoted-interval bound** → a quotation is satisfied by a pair elsewhere on the same line |
 | both | delete the unit-synonym table → the `hours`/`h` fixture reddens (§4 row 2, kept); remove the check from the profile → the profile test reddens by name |
 
 ## 5. The experiment that decides it

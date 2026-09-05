@@ -46,8 +46,8 @@ All three fields, every row. A row with two cannot be checked and is refused.
     symbol re-spelled or an abbreviation expanded is a quote that is not there.
     Only runs of whitespace are forgiven: a line break inside your quote is the
     same as a space.
-  - If you cannot copy such a run, or the file says what you copied more than
-    once and you cannot make it longer, write `uncited`.
+  - If you cannot copy such a run, or the file says what you copied on more
+    than one line and you cannot make it longer, write `uncited`.
   - `uncited` when you did not read it anywhere — a constant you know, a value
     you computed, a number taken off a figure, or one you rounded or converted.
 
@@ -62,3 +62,13 @@ nothing it can use.
 
 Annotate what you can locate. There is no requirement to annotate every number,
 and no number is worse for being `uncited`.
+
+## The one place a line number is still right
+
+None of the above applies to a `results.json` quantity. That file says the same
+thing in its own `source` field, by adding the line to the input it already
+names: `runs.csv@v3#L14`. A script wrote that file and knows which line it read,
+so the line is a fact there rather than a guess, and the checker reads it as one.
+
+It changes nothing about the block above. **Never write a line number in the
+`crossaudit-numbers` fence** — there you quote characters, and only characters.

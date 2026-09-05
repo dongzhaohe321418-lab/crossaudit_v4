@@ -21,7 +21,16 @@ check asks two mechanical questions and no others:
 1. does `src` resolve — is its file in the audited scope, do its declared bytes
    still hash to what it declared, do the quoted characters occur on exactly one
    line of it;
-2. does the **quoted span** contain the transcribed `(value, unit)` pair.
+2. does that line contain the transcribed `(value, unit)` pair **inside the
+   quoted run**.
+
+The second question is asked in that order for a reason found by review, not by
+design: the pair is looked for in the whole LINE and the occurrence is then
+required to lie inside the quotation. Reading the quotation on its own instead
+crops away the characters that adjoin it, and every boundary rule in this module
+— the whole unit token, the sign, the maximal number, `_UNPARSED` — is a rule
+about exactly those characters. **The quote says where to look; the line says
+what is there.**
 
 **Why the quote and not a line number (D158, D159).** The generator is never
 shown line numbers (`generator.py:449-450`), so the line-addressed contract
@@ -99,7 +108,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from typing import Mapping
+from typing import Mapping, NamedTuple
 
 from .framework import ADVISORY, BLOCKER, Finding, register
 from .quantities import (declared_inputs, is_number_shape, normalise_number,
@@ -212,33 +221,51 @@ _OPENERS, _CLOSERS = set("([{"), set(")]}")
 #: never on a word that merely follows, because "a unitless number may not be
 #: followed by anything" would block every `run 5 of 12` in the corpus.
 #:
-#: **A SPACE does not end the continuation, and that hole was a live false pass**
-#: (`docs/design/CONTAINMENT_RULE.md` §4, "Out of band, and not an extension",
-#: verified against the shipped matcher while that note was written). Matched
-#: with no leading-whitespace allowance, `3×10⁻²` was refused and `3 × 10⁻²` was
-#: not, so `contains_pair("… ≈ 3 × 10⁻² mbar", "3", "")` returned True: the
-#: check reporting that a source states three when what it states is 0.03. It is
-#: a NARROWING — strictly fewer occurrences match, so it can remove a pass and
-#: can never add one — which is why it lands here rather than waiting on the
-#: gold the note preregisters for the six extensions.
+#: **A SPACE before the OPERATOR does not end the continuation, and that hole
+#: was a live false pass** (`docs/design/CONTAINMENT_RULE.md` §4, "Out of band,
+#: and not an extension", verified against the shipped matcher while that note
+#: was written). Matched with no whitespace allowance at all, `3×10⁻²` was
+#: refused and `3 × 10⁻²` was not, so `contains_pair("… ≈ 3 × 10⁻² mbar", "3",
+#: "")` returned True: the check reporting that a source states three when what
+#: it states is 0.03.
 #:
-#: The spaced form carries one extra condition the adjacent form does not need:
-#: **the right operand must itself be in exponent notation**. That is what keeps
-#: `5 x 3 grid` prose — an ASCII `x` between two plain integers is a grid, a
-#: window or a matrix, and blocking every one of them to catch a product would
-#: be the false-blocker trade this whole line exists to refuse. `3 × 10⁻²` and
-#: `5 x 10^3` continue into an exponent; `5 x 3` does not, and the difference is
-#: read off the bytes rather than guessed at.
+#: The allowance is the FIFTH alternative and nothing else moves — the four
+#: above are the bytes that shipped — because a whitespace allowance in front of
+#: the others makes a footnote into notation. `Participants: 5 ¹`, with
+#: `¹ Enrollment count` on the next line, is a superscript separated from a
+#: number by a space, and reading it as an exponent turns a correct unitless
+#: annotation into a non-overridable blocker. A bare superscript after a space
+#: is a footnote mark; only an OPERATOR can be separated from its left operand.
+#:
+#: Two further conditions, each removing a false blocker the first draft had:
+#: the whitespace is non-newline (`[^\S\r\n]`), because a superscript or an
+#: operator on the NEXT line of a multi-line span is not this number's
+#: continuation; and **the right operand must itself be in exponent notation**,
+#: which is what keeps `5 x 3 grid` prose. An ASCII `x` between two plain
+#: integers is a grid, a window or a matrix, and blocking every one of them to
+#: catch a product would be the false-blocker trade this whole line refuses.
+#: `3 × 10⁻²` and `5 x 10^3` continue into an exponent; `5 x 3` does not, and
+#: the difference is read off the bytes rather than guessed at.
+#:
+#: It is a narrowing of the matcher (strictly fewer occurrences match), so it
+#: cannot add a false PASS — but it can add a false BLOCKER, which is why the
+#: containment note requires it through the same gold as the six extensions and
+#: why it was measured there before it shipped
+#: (`benchmarks/expertlongbench/study8gold/`).
 _SIGNS = r"+\-−±"
 _SUPER = r"⁰¹²³⁴⁵⁶⁷⁸⁹"
+#: Whitespace that is not a line break: a separated operator stays on its line.
+_INLINE = r"[^\S\r\n]"
 _UNPARSED = re.compile(
-    rf"\s*[{_SUPER}]"                       # 10⁵, and `10 ⁵`
-    rf"|\s*[{_SIGNS}⁺⁻][{_SUPER}]"          # 10⁻⁵, 10⁺⁵
-    rf"|\s*[⁺⁻]"                            # a bare superscript sign
+    rf"[{_SUPER}]"                          # 10⁵
+    rf"|[{_SIGNS}⁺⁻][{_SUPER}]"             # 10⁻⁵, 10⁺⁵
+    rf"|[⁺⁻]"                               # a bare superscript sign
     rf"|[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]"     # 5×10³, 5×-10³, 5^−3
-    # `3 × 10⁻²`, `5 x 10^3`: a space before the operator only where the operand
-    # is exponentiated, so a spaced product of two plain integers stays prose.
-    rf"|\s+[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]+\s*[{_SUPER}⁺⁻^]")
+    # `3 × 10⁻²`, `5 x 10^3`: a space before the operator only, and only where
+    # the operand is exponentiated, so a spaced product of two plain integers
+    # stays prose and a spaced superscript stays a footnote mark.
+    rf"|{_INLINE}+[×x*^⋅·]{_INLINE}*[{_SIGNS}]?{_INLINE}*[0-9]+{_INLINE}*"
+    rf"[{_SUPER}⁺⁻^]")
 
 #: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
 #: as the ambient window `(20°C-25°C)`. Whole-token comparison is what stops a
@@ -356,6 +383,43 @@ def _unit_candidates(rest: str) -> list[str]:
     return out
 
 
+def pair_occurrences(span: str, value: str, unit: str):
+    """Every occurrence of the transcribed pair in this text, as the half-open
+    `(start, end)` character interval covering the number and — where a unit was
+    transcribed — the unit reading that satisfied it.
+
+    The positions are the whole reason this is not just a boolean. Under content
+    addressing the check has to answer a second question the line contract never
+    asked: not only *is the pair here*, but *is it inside the run of characters
+    the annotation quoted*. Both answers have to come from ONE scan of the same
+    text, or the quote and the line get their own matchers and the two drift —
+    which is exactly how the isolated-quote defect below was possible.
+    """
+    wanted_unit = normalise_unit(unit)
+    wanted_value = normalise_number(value)
+    if wanted_value is None:
+        return
+    for m in _NUMBER.finditer(span):
+        token = m.group(1)
+        if normalise_number(token) != wanted_value:
+            continue
+        rest = span[m.end():]
+        if _UNPARSED.match(rest):
+            continue                      # the source's number is not this one
+        if not wanted_unit:
+            yield m.start(1), m.end(1)
+            continue
+        gap = len(rest) - len(rest.lstrip())
+        for candidate in _unit_candidates(rest):
+            if normalise_unit(candidate) == wanted_unit:
+                # Every candidate starts at the first non-space after the
+                # number and is either the token, a prefix of it, or the token
+                # plus a single-spaced percent tail — so its length is its
+                # extent in text whose whitespace has been folded.
+                yield m.start(1), m.end() + gap + len(candidate)
+                break
+
+
 def contains_pair(span: str, value: str, unit: str) -> bool:
     """Whether the transcribed (value, unit) pair occurs in this text.
 
@@ -369,23 +433,11 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
     CA-NUM-001. There is no substring fallback: the one that used to be here
     ignored the unit entirely, so source `1e3 K` satisfied an annotation of `1e3`
     with unit `g`.
+
+    One implementation, `pair_occurrences`, so the span contract and the quote
+    contract can never disagree about what containment means.
     """
-    wanted_unit = normalise_unit(unit)
-    wanted_value = normalise_number(value)
-    if wanted_value is None:
-        return False
-    for m in _NUMBER.finditer(span):
-        token = m.group(1)
-        if normalise_number(token) != wanted_value:
-            continue
-        rest = span[m.end():]
-        if _UNPARSED.match(rest):
-            continue                      # the source's number is not this one
-        if not wanted_unit:
-            return True
-        if any(normalise_unit(c) == wanted_unit for c in _unit_candidates(rest)):
-            return True
-    return False
+    return any(True for _ in pair_occurrences(span, value, unit))
 
 
 def _resolve(files: Mapping[str, bytes], annotated: str, path: str) -> str | None:
@@ -405,10 +457,13 @@ def _span(text: str, start: int, end: int) -> str | None:
     """The named lines, 1-based and inclusive, or None if the range is not
     inside the file.
 
-    **The whole check turns on this function.** Returning the whole `text`
-    regardless of `start`/`end` is the §4 mutation, and it makes a
-    wrong-line annotation pass — see
-    `tests/test_number_source_check.py::test_the_span_and_not_the_file_is_what_is_checked`.
+    **The `results.json` locator turns on this function**, and only that one
+    since D159: the fence no longer names a line range. Returning the whole
+    `text` regardless of `start`/`end` is the §4 mutation, and it makes a
+    wrong-line citation pass — asserted at
+    `tests/test_number_source_check.py::test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance`,
+    which applies that mutation and requires the wrong-line row to go green.
+    `_quote_span` carries the same guard for the fence.
     """
     lines = text.split("\n")
     if start < 1 or end < start or end > len(lines):
@@ -431,8 +486,23 @@ def _fold(text) -> str:
     return " ".join(str(text or "").split())
 
 
-def _quote_span(text: str, quote: str) -> tuple[str | None, int]:
-    """The text a quotation names, and how many lines of the file hold it.
+class _Located(NamedTuple):
+    """Where a quotation landed: the whitespace-folded LINE that holds it, and
+    every interval of that line the quotation occupies.
+
+    Both halves are needed and neither is enough. The line is what the matcher
+    reads, so that a sign, a digit, an exponent or the rest of a unit token
+    sitting just outside the quotation is still in front of every boundary rule.
+    The intervals are what the matcher's answer is then held to, so that the
+    pair it found is the pair the annotation quoted rather than another one
+    further along the same line.
+    """
+    line: str
+    spans: tuple[tuple[int, int], ...]
+
+
+def _quote_span(text: str, quote: str) -> tuple[_Located | None, int]:
+    """Where a quotation names, and how many lines of the file hold it.
 
     **The whole check turns on this function**, exactly as `_span` did under the
     line contract. Returning the whole `text` regardless of the quote is the §4
@@ -456,8 +526,49 @@ def _quote_span(text: str, quote: str) -> tuple[str | None, int]:
     needle = _fold(quote)
     if not needle:
         return None, 0
-    hits = sum(1 for line in text.split("\n") if needle in _fold(line))
-    return (needle if hits else None), hits
+    found: _Located | None = None
+    hits = 0
+    for line in text.split("\n"):
+        folded = _fold(line)
+        at = folded.find(needle)
+        if at < 0:
+            continue
+        hits += 1
+        if hits > 1:
+            return None, hits
+        spans = []
+        while at >= 0:
+            spans.append((at, at + len(needle)))
+            at = folded.find(needle, at + 1)
+        found = _Located(folded, tuple(spans))
+    return found, hits
+
+
+def _pair_in_quote(located: _Located, v: str, u: str) -> bool:
+    """Whether the transcribed pair is in the quoted run — read in its own line.
+
+    **The quote says WHERE to look; the line says WHAT is there.** Matching the
+    quotation in isolation was the shipped defect this rule replaces, and it was
+    the prefix defect reborn one level up: every boundary rule in this module
+    reads what ADJOINS an occurrence, so cropping the adjoining characters out
+    of the text handed to the matcher silently disabled all of them at once.
+    Quoting `5 mg` out of `5 mg/mL` satisfied an annotation of `mg`; quoting
+    `5 g` out of `-5 g` satisfied five; quoting `5 g` out of `1e+5 g` satisfied
+    five again; quoting `3` out of `30 °C` satisfied three; and a sweep of
+    `-1 g` … `-100 g` cropped its sign 100 times out of 100. Three separate
+    reviews removed those exact readings from the matcher (D157 lesson 2, the
+    fifth review's sign rule, the round-6 exponent sign); an isolated quote
+    handed all three back.
+
+    So the scan runs over the whole folded line — `_NUMBER`'s lookbehind, the
+    sign, the whole-unit-token boundary and `_UNPARSED` all see their context —
+    and the occurrence it finds must lie INSIDE the quoted interval. Looking
+    anywhere on the line without that clause would be the other bypass: a
+    quotation of one phrase satisfied by a number somewhere else on the line.
+    """
+    return any(start >= qs and end <= qe
+               for start, end in pair_occurrences(located.line, v, u)
+               for qs, qe in located.spans)
 
 
 def _derive_at(text: str, v: str, u: str) -> int | None:
@@ -639,7 +750,7 @@ def _verify_quote(path: str, files: Mapping[str, bytes], src: dict,
         return [Finding(BLOCKER, "CA-NUM-001", path,
                         f"{where} cites {named} for {shown}, which is not readable "
                         f"text")]
-    span, hits = _quote_span(body, quote)
+    located, hits = _quote_span(body, quote)
     said = _shown_quote(quote)
     if hits == 0:
         if _fold(quote) in _fold(body):
@@ -656,7 +767,7 @@ def _verify_quote(path: str, files: Mapping[str, bytes], src: dict,
                         f"{where} quotes {said} for {shown}, which {named} says on "
                         f"{hits} lines, so it names no one place; passed to the "
                         f"auditor")]
-    if not contains_pair(span, v, u):
+    if not _pair_in_quote(located, v, u):
         return [Finding(BLOCKER, "CA-NUM-002", path,
                         f"{where} quotes {said} from {named} — {shown} is not in it")]
     return []
