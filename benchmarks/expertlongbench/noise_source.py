@@ -63,6 +63,32 @@ from tasks import get_task  # noqa: E402
 #: ``arms[0]``'s digest as the expected one, and study 6 judges with ``cross`` alone.
 SOURCE_ARM = "cross"
 
+#: The one line of the audit prompt that is NOT a function of the audited bytes.
+#:
+#: ``prompt.build`` stamps the commit that versioned the rules -- ``CONSTITUTION @ <sha>``
+#: -- so an audit can cite the standard it applied. A git commit id is a function of the
+#: tree AND the commit timestamp, so rebuilding the same tree a second later yields the
+#: same rules, the same recipe, the same draft, the same check results, and a different
+#: line here. That makes ``run_rejudge``'s ``prompt_digest_matches_source`` fire on every
+#: instance of every replicate, which is why this module records a digest over the prompt
+#: with this line normalised as well: THAT one is stable, and it is the one that means
+#: "the auditor read the same thing".
+CONSTITUTION_STAMP = "CONSTITUTION @ "
+
+
+def normalised_prompt(prompt: str) -> str:
+    """The prompt with the rules-commit stamp replaced by a constant.
+
+    Everything the auditor is asked to judge survives; only the provenance pointer to
+    the rules file is flattened. Two prompts equal under this function differ in nothing
+    a model could act on.
+    """
+    return "\n".join(
+        f"{CONSTITUTION_STAMP}<normalised>" if line.startswith(CONSTITUTION_STAMP)
+        else line
+        for line in prompt.splitlines()
+    )
+
 
 def study6_options(task_id: str, n: int, seed: int, checks: str) -> Options:
     """The Options ``premise.py`` itself builds, so the rebuilt tree is the same tree.
@@ -100,6 +126,15 @@ def main(argv: list[str] | None = None) -> int:
                              "silent auditor at round one is what ends the loop.")
     parser.add_argument("--digest-table", default="",
                         help="where to write the committable id/digest/count table")
+    parser.add_argument(
+        "--only-unreached-in", default="",
+        help="a replicate's run directory. Restrict this source to the instances whose "
+             "audit call NEVER REACHED A PROVIDER there, so the replicate can be "
+             "completed by retrying exactly those. This is retry plumbing, not a "
+             "filter on results: an instance qualifies only when ``ok`` is false, i.e. "
+             "no model answered and there is no outcome to have selected on. An "
+             "instance whose auditor answered -- with findings, with none, or with a "
+             "reply the validator rejected -- is never re-asked.")
     args = parser.parse_args(argv)
 
     archive = Path(args.archive).resolve()
@@ -112,6 +147,7 @@ def main(argv: list[str] | None = None) -> int:
 
     archive_plan = json.loads((archive / "plan.json").read_text(encoding="utf-8"))
     archive_ids = list(archive_plan["sample_ids"])
+
     if sorted(rows_by_id) != sorted(archive_ids):
         raise SystemExit(
             "the seeded sample is not the archive's sample, so the rebuilt trees would "
@@ -130,6 +166,25 @@ def main(argv: list[str] | None = None) -> int:
             "the rubric constitution has changed since study 3, so the auditor would be "
             f"reading different rules:\n  now: {constitution_sha}\n"
             f"  then: {archive_plan.get('constitution_sha256')}")
+
+    # Restriction happens AFTER every provenance check, so a retry source is still
+    # proved to be the archive's sample, corpus and constitution before it is narrowed.
+    unreached: list[str] = []
+    if args.only_unreached_in:
+        replicate = json.loads(
+            (Path(args.only_unreached_in) / "results.json").read_text(encoding="utf-8"))
+        unreached = [
+            instance["sample_id"]
+            for instance in replicate["instances"]
+            if not ((instance.get("arms") or {}).get(SOURCE_ARM) or {}).get("ok")
+        ]
+        if not unreached:
+            print(f"{Path(args.only_unreached_in).name}: every audit reached a "
+                  "provider; nothing to retry")
+            return 0
+        archive_ids = [i for i in archive_ids if i in set(unreached)]
+        print(f"restricted to {len(archive_ids)} instance(s) whose audit call never "
+              f"reached a provider in {Path(args.only_unreached_in).name}", flush=True)
 
     shutil.rmtree(out_dir, ignore_errors=True)
     (out_dir / "instances").mkdir(parents=True)
@@ -158,7 +213,23 @@ def main(argv: list[str] | None = None) -> int:
         scratch.mkdir(parents=True)
         project, cfg, sha = rebuild_project(scratch, task, rows_by_id[sample_id],
                                             options, draft)
-        _prompt, _constitution, prompt_sha, dcl = audit_inputs(cfg, sha)
+        prompt, _constitution, prompt_sha, dcl = audit_inputs(cfg, sha)
+        normalised_sha = sha256_text(normalised_prompt(prompt))
+        # A second rebuild of the same tree, so the record says how much of the prompt
+        # is actually stable rather than asserting that it is. Every line but the rules
+        # stamp must survive, and the count of survivors is committed.
+        second = scratch_root / f"{safe}-again"
+        shutil.rmtree(second, ignore_errors=True)
+        second.mkdir(parents=True)
+        _project2, cfg2, sha2 = rebuild_project(second, task, rows_by_id[sample_id],
+                                                options, draft)
+        prompt2, _c2, _sha2, _d2 = audit_inputs(cfg2, sha2)
+        shutil.rmtree(second, ignore_errors=True)
+        prompt_lines = len(prompt.splitlines())
+        lines_differing = sum(
+            1 for a, b in zip(prompt.splitlines(), prompt2.splitlines()) if a != b
+        ) + abs(prompt_lines - len(prompt2.splitlines()))
+        normalised_stable = normalised_prompt(prompt) == normalised_prompt(prompt2)
         shutil.rmtree(scratch, ignore_errors=True)
 
         instance_dir = out_dir / "instances" / safe
@@ -183,6 +254,10 @@ def main(argv: list[str] | None = None) -> int:
             "draft_sha256": draft_sha,
             "draft_bytes": len(draft.encode("utf-8")),
             "audit_prompt_sha256": prompt_sha,
+            "audit_prompt_sha256_normalised": normalised_sha,
+            "audit_prompt_lines": prompt_lines,
+            "audit_prompt_lines_differing_on_rebuild": lines_differing,
+            "audit_prompt_stable_under_normalisation": normalised_stable,
             "n_items": score["n_items"],
             "n_items_wrong": len(wrong),
             "items_wrong": wrong,
@@ -207,6 +282,8 @@ def main(argv: list[str] | None = None) -> int:
         "n": len(records),
         "seed": args.seed,
         "round_replayed": args.round,
+        "restricted_to_unreached_in": args.only_unreached_in or None,
+        "unreached_ids": unreached or None,
         "constitution_sha256": constitution_sha,
         "sample_ids": [r["sample_id"] for r in records],
         "code_sha": subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(HERE),
