@@ -83,22 +83,28 @@ def unit_candidates(rest: str, ext: set[str]) -> list[str]:
     # E1 — the endpoints of a range. The number is followed by <dash><number>,
     # and the unit token after that second number is offered to the first.
     # Only the two literal endpoints; the interior is never offered.
-    if "E1" in ext and not token:
+    if "E1" in ext:
         m = _DASH_NUM.match(rest)
-        if m:
+        # The note's shape: "the unit token is empty OR IS THE RANGE TAIL".
+        # `775–850°C` leaves an empty token (an en dash is a boundary);
+        # `99-102 kPa` leaves the token `-102`, an ASCII hyphen being none.
+        # Either way the dash and the second number must be all there is before
+        # the unit, so a hyphenated compound (`2.54-cm`) can never reach here:
+        # `_DASH_NUM` requires digits after the dash.
+        if m and (not token or rest[:m.end()].strip() == token):
             tail, _ = scan(rest[m.end():], True, e5)
             if tail:
                 out.append(tail)
-    if "E1" in ext and token:
-        # `775–850°C`: the whole token after `775` is `–850°C`? No — a dash is a
-        # boundary, so the token is empty and the branch above fires. The case
-        # that reaches here is `99-102 kPa`, where `_scan` stops at `-`.
-        pass
 
     # E2 — a list with one trailing unit. Walk forward over `,`/`and`/`or`
     # separated BARE numbers; the first member that carries a unit token ends the
     # walk and that token is offered. Any member carrying its own unit stops it.
-    if "E2" in ext and not token:
+    # `_LIST_SEP` anchors on `,`/`and`/`or`, so this cannot fire where the
+    # number carries a unit of its own: `0.2 kg, 0.5 kg` scans `kg` and the
+    # separator does not match from there. The guard the note states — every
+    # intervening member bare — is enforced by breaking at the first member that
+    # carries a unit token.
+    if "E2" in ext:
         cursor = rest
         for _ in range(8):
             m = _LIST_SEP.match(cursor)
@@ -164,7 +170,7 @@ def contains_pair(span: str, value: str, unit: str, ext: frozenset[str] = frozen
 #: The waves the note sequences, plus each extension alone.
 SETS = {
     "E1": frozenset({"E1"}), "E2": frozenset({"E2"}), "E3": frozenset({"E3"}),
-    "E4": frozenset({"E4"}), "E5": frozenset({"E5"}), "E6": frozenset({"E6"}),
+    "E4": frozenset({"E4"}), "E5": frozenset({"E5"}), "E6": frozenset({"E6"}), "E2+E5 (composed, as sequenced)": frozenset({"E2", "E5"}),
     "U0 (out-of-band narrowing)": frozenset({"U0"}),
     "wave 1 = E4+E5+E6": frozenset({"E4", "E5", "E6"}),
     "wave 1+2 = +E1+E2": frozenset({"E4", "E5", "E6", "E1", "E2"}),
