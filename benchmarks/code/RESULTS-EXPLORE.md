@@ -492,3 +492,19 @@ archived outside the repository at
 manifest at `MANIFEST.sha256`
 (`523e21aeaffb4a2b188b9a834e15e29d067cbb18db97d437334d7e6deb1f9172` over the
 manifest itself).
+
+## Deviation, recorded after the fact (2026-09-06)
+
+**The preregistration fixed the noise floor at 1.8 points on P and justified it
+against the estimand; the study's own three full draws then measured a widest
+pair of 6.4 points at n = 110 (9.1 on the confirm half), and `CORRECTIONS.md`
+item 12 restates the floor accordingly.** The selection rule was executed
+against 1.8. That cannot be un-run. What it means for this report: the
+"beats the shipped architecture by more than the noise floor" test was applied
+with too small a floor, so any spec it admitted on a margin between 1.8 and 6.4
+points would have been admitted wrongly. None was — every spec inside the
+false-positive constraint had *lower* recall than the shipped architecture, and
+the two that beat it outside the constraint did so by +18.2 and +21.8 points —
+so the conclusion stands under either floor. Recorded here because a floor
+superseded in the corrections file and not in the study that used it would
+be repeated.
