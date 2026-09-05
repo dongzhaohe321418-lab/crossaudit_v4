@@ -251,7 +251,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    绝对路径宪法拒绝（`isabs` + Windows 盘符）；`Config.constitution` 存**归一化**路径，
    `skills/../AUDIT_RULES.md` 现能到达提交读取器；性质测试显式导入检查包并断言注册表 ≥10，
    24 个用例逐个在新解释器下通过；`cmd_run` 无条件 `_speak(args)`，`LANG=zh_CN.UTF-8 run`
-   叙述为中文。第四轮 astra 复核（`…-round4.md`）：其余全部确认修好，只剩 Windows 盘符/UNC 守卫**无测试**（删掉守卫 24 个用例仍绿，违反 D64）。第五轮补四个参数化用例后终审**通过并已合并**（`…-round5-final.md`；全套 2772 在我的主机上独立核实）。读者须知：该边界管 CLI 增量与配置的宪法入口，直接调用 `auditor.prompt.build` 的代码仍可传任意映射。
+   叙述为中文。第四轮 astra 复核（`…-round4.md`）：其余全部确认修好，只剩 Windows 盘符/UNC 守卫**无测试**（删掉守卫 24 个用例仍绿，违反 D64）。第五轮补四个参数化用例后终审**通过并已合并**（`…-round5-final.md`；全套 2772 在我的主机上独立核实；**合并后发布分支再跑一遍：2772 通过 / 8 跳过**）。读者须知：该边界管 CLI 增量与配置的宪法入口，直接调用 `auditor.prompt.build` 的代码仍可传任意映射。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
