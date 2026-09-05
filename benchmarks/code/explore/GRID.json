@@ -1,0 +1,33 @@
+{
+  "grid_id": "explore-1",
+  "note": "Preregistered architecture grid. Fixed before any model call in this study. Specs are NOT added after results are seen; an exploratory addition goes in GRID-2.json and is labelled exploratory wherever it appears.",
+  "audit_set": "benchmarks/code/records/study2/audit_set.json (n=290: P 110, C 150, F 30)",
+  "split_seed": 20260906,
+  "routes": {
+    "cross": "openai:gpt-5.6-terra",
+    "self": "anthropic:claude-haiku-4-5-20251001",
+    "cheap-cross": "openai:gpt-5.6-luna"
+  },
+  "aggregates": {
+    "union": "flag if any detector flags",
+    "majority": "flag if strictly more than half of the detectors flag",
+    "unanimous": "flag only if every detector flags"
+  },
+  "specs": [
+    {"id": "hc",            "label": "holistic-cross (SHIPPED)",        "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}]},
+    {"id": "hs",            "label": "holistic-self",                   "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "self", "draw": 1}]},
+    {"id": "dc",            "label": "decomposed-cross",                "aggregate": "union",     "detectors": [{"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "hc_u_hs",       "label": "hc union hs",                     "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "self", "draw": 1}]},
+    {"id": "hc_u_dc",       "label": "hc union dc",                     "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "hs_u_dc",       "label": "hs union dc",                     "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "self", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "tri_union",     "label": "hc union hs union dc",            "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "self", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "tri_majority",  "label": "majority of {hc, hs, dc}",        "aggregate": "majority",  "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "self", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "tri_unanimous", "label": "unanimous of {hc, hs, dc}",       "aggregate": "unanimous", "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "self", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 1}]},
+    {"id": "hc_x2",         "label": "holistic-cross x2 union",         "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "cross", "draw": 2}]},
+    {"id": "hc_x3",         "label": "holistic-cross x3 union",         "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "cross", "draw": 2}, {"kind": "holistic", "model": "cross", "draw": 3}]},
+    {"id": "hc_x3_maj",     "label": "holistic-cross x3 majority",      "aggregate": "majority",  "detectors": [{"kind": "holistic", "model": "cross", "draw": 1}, {"kind": "holistic", "model": "cross", "draw": 2}, {"kind": "holistic", "model": "cross", "draw": 3}]},
+    {"id": "dc_x2",         "label": "decomposed-cross x2 union",       "aggregate": "union",     "detectors": [{"kind": "decomposed", "model": "cross", "draw": 1}, {"kind": "decomposed", "model": "cross", "draw": 2}]},
+    {"id": "cheap_hc",      "label": "cheap holistic-cross (luna) x1",  "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cheap-cross", "draw": 1}]},
+    {"id": "cheap_hc_x3",   "label": "cheap holistic-cross x3 union",   "aggregate": "union",     "detectors": [{"kind": "holistic", "model": "cheap-cross", "draw": 1}, {"kind": "holistic", "model": "cheap-cross", "draw": 2}, {"kind": "holistic", "model": "cheap-cross", "draw": 3}]}
+  ]
+}

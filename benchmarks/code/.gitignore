@@ -4,3 +4,6 @@ data/
 # test-failure messages, which quote the corpus's inputs. export.py produces the
 # committed, corpus-free record under records/.
 runs/
+
+# Study 7's scratch project dirs live outside the tree; the loop's cache and its
+# committed records are under records/explore/ and are corpus-free by construction.
