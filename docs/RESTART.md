@@ -154,7 +154,11 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    inputs 做带版本的存在性检查；数值比较改十进制字符串、带符号、复合单位）。修完再送
    第二轮独立复核。**第二轮修复已回（57100d7，全套 2811 通过）：六项全部复现并修好，
    另发现 `available()` 没导入内置包、靠调用方碰巧导入而通过，以及仓库夹具里 43 处声明了
-   从未写过的 `scripts/run_demo.py`——均已修，无断言放松。正在第二轮 astra 复核。**
+   从未写过的 `scripts/run_demo.py`——均已修，无断言放松。第二轮 astra 复核（`benchmarks/reviews/…-round2.md`）仍否决但已收窄：剩两个根因——
+   `number_source` 信任 `check_units` 校验 value 而后者从不校验（畸形量引用 `#L999` 整个
+   science 配置零发现通过）、数值比较的子串兜底（`1e3 K` 标 `1e3/g` 通过）；外加**我第二轮
+   指令自己造成的削弱**（非字符串条目降为 ADVISORY，`requires: [3]` 从 BLOCKER 变 ADVISORY），
+   已撤回：一律 `str()` 强转、保持基线严重度。第三轮修复进行中。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。
