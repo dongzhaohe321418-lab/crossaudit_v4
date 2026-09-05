@@ -1,0 +1,90 @@
+instances: 24 recorded, 24 usable (batches [1, 2])
+  the loop's own ledger agrees with the re-run check on 24/24 instances
+  the receipt's own increment manifest agrees with the reconstruction on 24/24
+
+PRIMARY — of annotation rows whose src span genuinely contains the transcribed pair
+  (adjudicator A: a deterministic re-read, the check's own contains_pair), the fraction BLOCKED:
+  false-blocker rate: 7 of 7 = 100.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 64.57–100.00%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 100.00–100.00% (3571 resamples discarded for an empty denominator)
+  §8g disposition (kill if the Wilson lower bound exceeds 2%; pass only if the upper bound is below 5%): KILL
+
+SENSITIVITY (preregistered §5; NOT a second objective and the §8g disposition is not read off it)
+  blocked, of adjudicator-B-positive rows: 15 of 15 = 100.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 79.61–100.00%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 100.00–100.00% (2 resamples discarded for an empty denominator)
+  adjudicator agreement on the 183 rows carrying a resolvable locator: 175/183 = 95.6%
+    A+/B+ 7   A+/B- 0   A-/B+ 8   A-/B- 168
+
+SECONDARIES
+  rows written: 215 over 24 drafts (9.0 per draft)
+  uncited rate: 32 of 215 = 14.88%  (95% Wilson score interval for a binomial proportion of annotation rows: 10.74–20.26%)
+  locator kinds: span=183, uncited=32
+  correct blocks (a generator error or a contract stratum), of all blocks: 189 of 189 = 100.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 98.01–100.00%)
+  block rate over ALL rows: 189 of 215 = 87.9%
+
+  block classification (§10):
+     122  generator wrong locator (wrong line)
+      50  generator wrong locator (unresolved)
+      13  generator wrong transcription
+       4  unparsed notation
+
+  annotation coverage per draft (numbers present by the Arm 1 probe's NUM extractor):
+    T03MaterialSEG-10.1002/adfm.201000591          5 /  19 =  26.3%
+    T03MaterialSEG-10.1002/adfm.202002249         10 /  25 =  40.0%
+    T03MaterialSEG-10.1002/adfm.202402444         14 /  40 =  35.0%
+    T03MaterialSEG-10.1002/aic.18378              15 /  53 =  28.3%
+    T03MaterialSEG-10.1002/ange.202112688          6 /  13 =  46.2%
+    T03MaterialSEG-10.1002/asia.202100022          5 /   9 =  55.6%
+    T03MaterialSEG-10.1002/batt.202200056         16 /  35 =  45.7%
+    T03MaterialSEG-10.1002/celc.202200772          8 /  20 =  40.0%
+    T03MaterialSEG-10.1002/cjce.24030             17 /  37 =  45.9%
+    T03MaterialSEG-10.1002/cnma.202200403         12 /  30 =  40.0%
+    T03MaterialSEG-10.1002/cssc.202300809          7 /  23 =  30.4%
+    T03MaterialSEG-10.1002/jbm.a.36681            12 /  33 =  36.4%
+    T03MaterialSEG-10.1002/smll.201800441          8 /  29 =  27.6%
+    T03MaterialSEG-10.1002/smll.202408072          5 /  27 =  18.5%
+    T03MaterialSEG-10.1002/zaac.202200095         13 /  25 =  52.0%
+    T03MaterialSEG-10.1126/sciadv.adj5431          9 /  14 =  64.3%
+    T03MaterialSEG-10.1002/adfm.202209924          5 /  21 =  23.8%
+    T03MaterialSEG-10.1002/advs.202406453          5 /  19 =  26.3%
+    T03MaterialSEG-10.1002/anie.201812472          1 /  16 =   6.2%
+    T03MaterialSEG-10.1002/anie.201913331          9 /  17 =  52.9%
+    T03MaterialSEG-10.1002/batt.202100174          4 /  26 =  15.4%
+    T03MaterialSEG-10.1002/chem.201905217          5 /   5 = 100.0%
+    T03MaterialSEG-10.1002/cjce.23950             17 /  34 =  50.0%
+    T03MaterialSEG-10.1002/cssc.201700885          7 /  22 =  31.8%
+    pooled: 215 / 592 = 36.3%
+    per-draft mean 39.1%, median 38.2%, min 6.2%, max 100.0%
+
+  unit-shortening (a transcribed unit that is a strict prefix of the whole unit token at an occurrence of its value): 0 of 183 rows with a resolvable locator
+
+  hyphen stratum (D157's open product dial): 0 block(s)
+
+  rows whose `at` (the line in the generator's OWN artefact) is outside that artefact: 50 of 215
+    of those, 7 name a src span that DOES contain the pair
+
+  cost and tokens per draft (from the product's usage ledger):
+    T03MaterialSEG-10.1002/adfm.201000591        $0.0654 (gen $0.0520 in/out 8637/1742 calls 2; aud $0.0134) 44s
+    T03MaterialSEG-10.1002/adfm.202002249        $0.0705 (gen $0.0561 in/out 8989/1944 calls 2; aud $0.0143) 49s
+    T03MaterialSEG-10.1002/adfm.202402444        $0.0849 (gen $0.0635 in/out 9081/2419 calls 2; aud $0.0214) 57s
+    T03MaterialSEG-10.1002/aic.18378             $0.1009 (gen $0.0766 in/out 9895/3130 calls 2; aud $0.0242) 75s
+    T03MaterialSEG-10.1002/ange.202112688        $0.0633 (gen $0.0468 in/out 8527/1414 calls 2; aud $0.0165) 47s
+    T03MaterialSEG-10.1002/asia.202100022        $0.0582 (gen $0.0466 in/out 8647/1377 calls 2; aud $0.0116) 35s
+    T03MaterialSEG-10.1002/batt.202200056        $0.0869 (gen $0.0663 in/out 9059/2607 calls 2; aud $0.0206) 59s
+    T03MaterialSEG-10.1002/celc.202200772        $0.0683 (gen $0.0531 in/out 9248/1691 calls 2; aud $0.0152) 43s
+    T03MaterialSEG-10.1002/cjce.24030            $0.0944 (gen $0.0706 in/out 8985/2910 calls 2; aud $0.0238) 65s
+    T03MaterialSEG-10.1002/cnma.202200403        $0.0786 (gen $0.0611 in/out 8605/2352 calls 2; aud $0.0175) 56s
+    T03MaterialSEG-10.1002/cssc.202300809        $0.0739 (gen $0.0584 in/out 8809/2132 calls 2; aud $0.0155) 54s
+    T03MaterialSEG-10.1002/jbm.a.36681           $0.0700 (gen $0.0537 in/out 8783/1822 calls 2; aud $0.0163) 172s
+    T03MaterialSEG-10.1002/smll.201800441        $0.0789 (gen $0.0615 in/out 8941/2313 calls 2; aud $0.0174) 58s
+    T03MaterialSEG-10.1002/smll.202408072        $0.0741 (gen $0.0565 in/out 8737/2022 calls 2; aud $0.0176) 53s
+    T03MaterialSEG-10.1002/zaac.202200095        $0.0832 (gen $0.0649 in/out 8993/2529 calls 2; aud $0.0183) 57s
+    T03MaterialSEG-10.1126/sciadv.adj5431        $0.0725 (gen $0.0558 in/out 8773/1968 calls 2; aud $0.0167) 48s
+    T03MaterialSEG-10.1002/adfm.202209924        $0.0771 (gen $0.0604 in/out 8825/2260 calls 2; aud $0.0167) 55s
+    T03MaterialSEG-10.1002/advs.202406453        $0.0754 (gen $0.0524 in/out 8867/1720 calls 2; aud $0.0230) 52s
+    T03MaterialSEG-10.1002/anie.201812472        $0.0596 (gen $0.0458 in/out 8597/1335 calls 2; aud $0.0138) 36s
+    T03MaterialSEG-10.1002/anie.201913331        $0.0706 (gen $0.0545 in/out 8681/1899 calls 2; aud $0.0160) 48s
+    T03MaterialSEG-10.1002/batt.202100174        $0.0663 (gen $0.0513 in/out 8545/1712 calls 2; aud $0.0150) 48s
+    T03MaterialSEG-10.1002/chem.201905217        $0.0622 (gen $0.0469 in/out 8621/1404 calls 2; aud $0.0153) 40s
+    T03MaterialSEG-10.1002/cjce.23950            $0.0876 (gen $0.0652 in/out 9075/2530 calls 2; aud $0.0224) 60s
+    T03MaterialSEG-10.1002/cssc.201700885        $0.0554 (gen $0.0421 in/out 4473/1915 calls 1; aud $0.0133) 44s
+    total $1.7782 over 24 instances = $0.0741 each

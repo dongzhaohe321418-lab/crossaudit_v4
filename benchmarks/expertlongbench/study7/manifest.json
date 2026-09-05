@@ -1,0 +1,119 @@
+{
+  "study": "study7 \u2014 provenance Arm 2",
+  "plans": {
+    "plan-b1.json": {
+      "run_id": "arm2-b1-20260905T171121Z",
+      "batch": 1,
+      "task": "T03MaterialSEG",
+      "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+      "seed": 20261104,
+      "instance_ids": [
+        "T03MaterialSEG-10.1002/adfm.201000591",
+        "T03MaterialSEG-10.1002/adfm.202002249",
+        "T03MaterialSEG-10.1002/adfm.202402444",
+        "T03MaterialSEG-10.1002/aic.18378",
+        "T03MaterialSEG-10.1002/ange.202112688",
+        "T03MaterialSEG-10.1002/asia.202100022",
+        "T03MaterialSEG-10.1002/batt.202200056",
+        "T03MaterialSEG-10.1002/celc.202200772",
+        "T03MaterialSEG-10.1002/cjce.24030",
+        "T03MaterialSEG-10.1002/cnma.202200403",
+        "T03MaterialSEG-10.1002/cssc.202300809",
+        "T03MaterialSEG-10.1002/jbm.a.36681",
+        "T03MaterialSEG-10.1002/smll.201800441",
+        "T03MaterialSEG-10.1002/smll.202408072",
+        "T03MaterialSEG-10.1002/zaac.202200095",
+        "T03MaterialSEG-10.1126/sciadv.adj5431"
+      ],
+      "models": {
+        "generator": "anthropic:claude-sonnet-4-6",
+        "auditor": "openai:gpt-5.6-terra"
+      },
+      "settings": {
+        "max_rounds": 1,
+        "checks": "science",
+        "audit_rules": "general",
+        "scope": "work",
+        "increment_dir": "work/synthesis",
+        "output": "work/synthesis/explanation.md",
+        "recipe": "work/synthesis/RECIPE.md"
+      },
+      "skill": {
+        "skills/provenance-numbers.md": "7bc51d53a0e843490aa8dd274959e514d214952de1f4fde131d226186780719c"
+      },
+      "code_sha": "824651b8eb6f8907fb120fc8f8dce80876356827",
+      "git_status": "",
+      "python": "3.13.5",
+      "platform": "darwin",
+      "started_utc": "2026-09-05T17:11:21.960180+00:00"
+    },
+    "plan-b2.json": {
+      "run_id": "arm2-b2-20260905T172717Z",
+      "batch": 2,
+      "task": "T03MaterialSEG",
+      "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+      "seed": 20261104,
+      "instance_ids": [
+        "T03MaterialSEG-10.1002/adfm.202209924",
+        "T03MaterialSEG-10.1002/advs.202406453",
+        "T03MaterialSEG-10.1002/anie.201812472",
+        "T03MaterialSEG-10.1002/anie.201913331",
+        "T03MaterialSEG-10.1002/batt.202100174",
+        "T03MaterialSEG-10.1002/chem.201905217",
+        "T03MaterialSEG-10.1002/cjce.23950",
+        "T03MaterialSEG-10.1002/cssc.201700885"
+      ],
+      "models": {
+        "generator": "anthropic:claude-sonnet-4-6",
+        "auditor": "openai:gpt-5.6-terra"
+      },
+      "settings": {
+        "max_rounds": 1,
+        "checks": "science",
+        "audit_rules": "general",
+        "scope": "work",
+        "increment_dir": "work/synthesis",
+        "output": "work/synthesis/explanation.md",
+        "recipe": "work/synthesis/RECIPE.md"
+      },
+      "skill": {
+        "skills/provenance-numbers.md": "7bc51d53a0e843490aa8dd274959e514d214952de1f4fde131d226186780719c"
+      },
+      "code_sha": "ef118be8304fead5cb53766f4a88887dc8a241cd",
+      "git_status": "",
+      "python": "3.13.5",
+      "platform": "darwin",
+      "started_utc": "2026-09-05T17:27:17.700427+00:00"
+    }
+  },
+  "code": {
+    "sha": "ef118be8304fead5cb53766f4a88887dc8a241cd",
+    "status_porcelain": "?? benchmarks/expertlongbench/RESULTS-ARM2.md\n?? benchmarks/expertlongbench/study7/analysis.txt\n?? benchmarks/expertlongbench/study7/drafts.jsonl\n?? benchmarks/expertlongbench/study7/emit_records.py\n?? benchmarks/expertlongbench/study7/manifest.json\n?? benchmarks/expertlongbench/study7/rows.jsonl\n",
+    "files": {
+      "provenance_arm2.py": "5007fd59670a05ef1b4b9f386f5d12f1c5f437e819cb3dbadaa95bf0a80b5af2",
+      "provenance_arm2_report.py": "bcab85d03b8468c0962a49f2a939519dd17f1e8462ba2a06b83044fc873dedab",
+      "study7/emit_records.py": "2cf7eea515792ab490e04efab0c37aa85ceebc59c79ceac06ab78a1dcb02e5d0",
+      "study7/PREREGISTRATION.md": "af936f9a0db3505b037b3daf835f610e9da9e2c073f31125bfd4041846088fd2"
+    }
+  },
+  "data": {
+    "task": "T03MaterialSEG",
+    "licence": "CC BY-NC-SA 4.0 \u2014 not redistributed, not committed",
+    "rows": 50,
+    "sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0"
+  },
+  "counts": {
+    "drafts": 24,
+    "annotation_rows": 215
+  },
+  "archive": {
+    "path": "/Users/ericdong/Documents/Crossaudit/study-data/wt-arm2-runs",
+    "exists": true,
+    "sha256_manifest": "MANIFEST-SHA256.json beside the run directory"
+  },
+  "environment": {
+    "python": "3.13.5",
+    "platform": "darwin"
+  },
+  "emitted_utc": "2026-09-05T17:46:29.534596+00:00"
+}
