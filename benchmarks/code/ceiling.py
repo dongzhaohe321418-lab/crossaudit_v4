@@ -378,7 +378,9 @@ def main(argv: list[str] | None = None) -> int:
     scratch = run_dir / "projects"
     scratch.mkdir(parents=True, exist_ok=True)
     cfg_cache: dict = {}
-    spend = explore.Spend("ceiling-")
+    # A per-invocation stamp so no two calls of this study ever share a run_id: the
+    # ledger is read back on run_id, and "ceiling-" would also match ceiling 2's ids.
+    spend = explore.Spend(f"ceiling1-{time.strftime('%m%d%H%M%S', time.gmtime())}-")
 
     if args.check_prompt or args.astra:
         from crossaudit.config import load

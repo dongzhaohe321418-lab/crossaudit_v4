@@ -34,7 +34,6 @@ import json
 import math
 import random
 import sys
-from itertools import combinations
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -533,6 +532,55 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
             "instance_ids": sorted(never),
         }
     out["residual"] = residual
+
+    # The hand classification (§1.5), if it has been made. Categories only — no corpus
+    # text — and the rule was fixed in the preregistration before the first instance was
+    # read. Unclassified residual instances are counted and named, never quietly dropped.
+    path = CEILING / "residual_classification.json"
+    if path.exists():
+        table = json.loads(path.read_text(encoding="utf-8"))
+        by_pop = {}
+        for label, r in residual.items():
+            counts: dict[str, int] = {}
+            missing = []
+            for iid in r["instance_ids"]:
+                cat = (table.get("classification", {}).get(iid) or {}).get("category")
+                if cat is None:
+                    missing.append(iid)
+                else:
+                    counts[cat] = counts.get(cat, 0) + 1
+            by_pop[label] = {
+                "n": r["n_never_flagged"], "counts": counts,
+                "shares": {k: v / r["n_never_flagged"] for k, v in counts.items()}
+                if r["n_never_flagged"] else {},
+                "wilson95": {k: list(wilson(v, r["n_never_flagged"]))
+                             for k, v in counts.items()},
+                "unclassified": missing,
+                "rule_version": table.get("rule_version", "AUTHOR_INPUT_NEEDED"),
+            }
+        out["residual_classified"] = by_pop
+    else:
+        out["residual_classified"] = {
+            "status": "AUTHOR_INPUT_NEEDED: records/ceiling/residual_classification.json "
+                      "has not been written yet"}
+    return out
+
+
+def load_spend() -> dict:
+    """Study spend, from the committed manifests. Never reconstructed, never guessed."""
+    out: dict = {}
+    for name, path in (("ceiling1", CEILING / "manifest_ceiling1.json"),
+                       ("ceiling2", CEILING / "manifest_loop.json")):
+        if path.exists():
+            m = json.loads(path.read_text(encoding="utf-8"))
+            out[name] = {
+                "spend_usd": m.get("spend_usd_cumulative", m.get("spend_usd_total")),
+                "astra_tokens": m.get("astra_tokens_cumulative"),
+                "note": m.get("astra", {}).get("bypasses") if name == "ceiling1" else None,
+            }
+        else:
+            out[name] = {"spend_usd": None,
+                         "note": f"AUTHOR_INPUT_NEEDED: {path.name} not written"}
     return out
 
 
@@ -748,6 +796,23 @@ def tables(numbers: dict) -> str:
                          f"{r['n_P']} | **{r['n_never_flagged']}** | "
                          f"{pct(r['share'])} {ci(r['share_wilson95'])} |")
 
+    rcl = c1.get("residual_classified") or {}
+    if rcl and "status" not in rcl:
+        lines.append("\n### Table 5b — what the residual defects are\n")
+        lines.append("Categories and their order were fixed in the preregistration "
+                     "(§1.5) before the first residual instance was read; each instance "
+                     "takes the first category that applies. Unit: the instance. "
+                     "Intervals are 95% Wilson on the residual denominator.\n")
+        lines.append("| population | n residual | category | count | share [95% Wilson] |")
+        lines.append("|---|---:|---|---:|---|")
+        for label, r in rcl.items():
+            for cat, count in sorted(r["counts"].items(), key=lambda kv: -kv[1]):
+                lines.append(f"| {label} | {r['n']} | `{cat}` | {count} | "
+                             f"{pct(r['shares'][cat])} {ci(r['wilson95'][cat])} |")
+            if r["unclassified"]:
+                lines.append(f"| {label} | {r['n']} | **unclassified** | "
+                             f"{len(r['unclassified'])} | AUTHOR_INPUT_NEEDED |")
+
     c2 = numbers["ceiling2"]
     lines.append("\n### Table 6 — ceiling 2: the closed loop, per arm\n")
     lines.append("Unit of analysis: the instance, paired before/after on the same "
@@ -783,6 +848,22 @@ def tables(numbers: dict) -> str:
             lines.append(f"| {d['label']} | {d['n']} | {d['b']} / {d['c']} | "
                          f"{d['delta'] * 100:+.2f} pp {ci(d['ci95'], 2)} | "
                          f"{d['p_exact']:.4f} | 0.00417 |")
+    spend = numbers.get("spend", {})
+    lines.append("\n### Table 8 — what it cost\n")
+    lines.append("From the product's own usage ledgers, per call, not reconstructed. The "
+                 "`astra` route bills a subscription and reports only tokens, so it "
+                 "consumes none of the dollar budget and is quoted in tokens.\n")
+    lines.append("| part | model spend | astra tokens |")
+    lines.append("|---|---:|---:|")
+    for part in ("ceiling1", "ceiling2"):
+        s = spend.get(part, {})
+        usd = s.get("spend_usd")
+        tok = s.get("astra_tokens")
+        lines.append(f"| {part} | {'AUTHOR_INPUT_NEEDED' if usd is None else f'${usd:.4f}'}"
+                     f" | {'—' if not tok else f'{tok:,}'} |")
+    total = sum(v.get("spend_usd") or 0.0 for v in spend.values())
+    lines.append(f"| **total** | **${total:.4f}** | "
+                 f"{sum(v.get('astra_tokens') or 0 for v in spend.values()):,} |")
     return "\n".join(lines) + "\n"
 
 
@@ -801,6 +882,7 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap_reps": BOOTSTRAP, "bootstrap_seed": BOOT_SEED,
         "ceiling1": analyse_ceiling1(instances, audit_set),
         "ceiling2": analyse_ceiling2(instances),
+        "spend": load_spend(),
     }
     CEILING.mkdir(parents=True, exist_ok=True)
     (CEILING / "numbers.json").write_text(
