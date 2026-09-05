@@ -397,3 +397,61 @@ count is a **Note** row — muted, no action, never a badge of zero (rule 3).
       explanation.md:14  names RECIPE.md:11 — "950 °C" is not on that line
     · 4 处数字未注明来源，已交给审计员
     · 4 numbers with no source named, passed to the auditor
+
+---
+
+## 8. As built — slice 1, and what building it corrected (2026-09-05, appended)
+
+Slice 1 (`feat/provenance-slice-1`) ships the `declared`/`provenance` fix,
+`number_source`, and the generator skill that makes A4 fire. Building it found
+eight places where the sections above are wrong or incomplete. They are
+recorded here rather than edited away; the text above stays as designed.
+
+**a. §2.1's widening was not additive.** `check_provenance` tests exact
+membership (`src not in declared`), so `runs.csv@v3#L2` is not a member of
+`["runs.csv@v3"]` and every *new*-format value would have blocked with
+CA-DATA-003. `rpartition("@")` at `dcl/builtin.py:155` does no work here. A
+fragment strip before the membership test was required and is in the slice,
+tested in both directions.
+
+**b. §3.1 and §3.4 contradict each other on unannotated numbers.** Both say
+"no annotation row → ADVISORY, counted"; §3.4's next paragraph says a document
+with no annotations passes vacuously because coverage is a model judgment.
+Emitting an advisory per unannotated number *is* coverage enforcement. Built as
+nothing, the half consistent with A4.
+
+**c. §3.1 has no row for a `governed:` locator on a number.** Passing it would
+report "verified" over bytes §1.2 says are never retained. Built as ADVISORY.
+
+**d. Deferring `computed:` wholesale to §3.2 made it a four-character bypass**
+for every blocker in slice 1. Split: whether a script *caused* the value is
+`figure_code`'s question; that the named span *holds* it is verified now.
+
+**e. §4's lifecycle paragraph contradicts its registry line.** Widening the
+guard at `auditor/run.py:255` to "any of the four names" would build a governed
+source-id set (a live ledger read) for a check with `wants_context=False`. Not
+widened; no kernel edit was needed for slice 1.
+
+**f. §4's mutation table spans three checks**, so it is not seven tests for
+one slice. Rows 1, 2, 3, 7 are built; rows 4–6 wait for `figure_code` and
+`claim_citation`.
+
+**g. §6 Arm 1's kill is preregistered on a point estimate and is silent on the
+interval.** Measured: **3/373 = 0.80%, Wilson 95% [0.27%, 2.34%]** — the point
+estimate does not cross 2%, the upper bound does. The kill as written did not
+fire, and that stands. But the same ambiguity would decide Arm 2, so it is
+settled here, before Arm 2 is run: **Arm 2's kill fires if the interval's lower
+bound exceeds 2%; Arm 2 passes only if the upper bound is below 5%; anything
+between is reported as inconclusive and the check ships ADVISORY-only until a
+larger n resolves it.** The three Arm 1 failures are the harness choosing a line
+by value alone where the pair is genuinely absent (`"(106 and 25 μm)"`,
+`"1%"` against `"1.01:1"`); on the 365 unambiguous annotations the rate is
+0/365 [0%, 1.04%]. 0.80% is therefore an upper bound.
+
+**h. §1's "one line closes that" understated the blast radius**: four test
+pins (three named, one not — `tests/test_constitution_moment.py:302`) and one
+real fixture, `tests/test_tui.py::test_default_check_uses_the_declared_scope_and_skips_the_scaffold`,
+which had been passing while citing an input nobody wrote. It was this repo's
+own suite exercising the §1 defect. Fixed by writing the input.
+
+Slice 1 is under independent cross-vendor review before merge, per D153.
