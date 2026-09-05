@@ -111,6 +111,13 @@ def replicate_summary(label: str, rows: dict[str, dict], instances: list[str]) -
                                if rows[i]["audit"]["verdict"] == "BLOCKED"),
         "invalid": sum(1 for i in instances if rows[i]["audit"]["invalid_reason"]),
         "repairs": sum(rows[i]["audit"].get("repair_attempts", 0) for i in instances),
+        # An adjudicator call that failed leaves a finding mapped to no item, which
+        # understates the MODEL mapping only. The rule mapping has no model in it, so a
+        # divergence between the two here is a signal about the adjudicator, not the
+        # auditor -- which is why the count is reported rather than absorbed.
+        "findings_unadjudicated": sum(
+            1 for i in instances for f in rows[i].get("findings", [])
+            if f.get("note")),
         "cost_usd": sum(float(rows[i]["cost"]["usd"] or 0.0) for i in instances),
         "wall_s": sum(float(rows[i].get("wall_s") or 0.0) for i in instances),
     }
@@ -247,7 +254,7 @@ def render(payload: dict) -> str:
     add("")
     add(f"{'replicate':<18} {'n':>3} {'wrong':>6} {'find':>5} {'blk':>4} {'adv':>4} "
         f"{'fired':>6} {'gated':>6} {'recall(model)':>14} {'recall(rule)':>13} "
-        f"{'prec(model)':>12} {'$':>7}")
+        f"{'prec(model)':>12} {'unadj':>6} {'$':>7}")
     for summary in payload["replicates"]:
         precision = summary["model_mapping"]["precision"]
         add(f"{summary['label']:<18} {summary['n_instances']:>3} "
@@ -257,6 +264,7 @@ def render(payload: dict) -> str:
             f"{summary['model_mapping']['recall']:>13.1f}% "
             f"{summary['rule_mapping']['recall']:>12.1f}% "
             f"{'n/a' if precision is None else f'{precision:>11.1f}%'} "
+            f"{summary['findings_unadjudicated']:>6} "
             f"{summary['cost_usd']:>7.3f}")
     add("")
 
