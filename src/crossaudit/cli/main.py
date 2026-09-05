@@ -288,8 +288,19 @@ def _is_house_skill(path: str) -> bool:
 
     Judged on the FIRST path component, and against `skills.SKILLS_DIR` rather
     than a literal, so `work/skills-notes.md` is ordinary work product and is
-    still audited. No check reads skill bytes (nothing under `dcl/` or
-    `auditor/` mentions them), so this closes a boundary and removes nothing.
+    still audited. The directory's IDENTITY — a real directory, that exact name,
+    directly in the project — is settled once in `skills.house_dir`, so the
+    loader and this filter cannot disagree about which files are guidance.
+
+    What this costs, stated exactly, because an earlier version of this
+    docstring got it wrong. It is NOT true that "no check reads skill bytes":
+    hand `internal` or `complete-strict` a skill body and they report a broken
+    relative link and a `TODO`. What is true is that guidance is not work
+    product, so those findings were never wanted — a house style file is not
+    incomplete for saying `TODO`, and the auditor's verdict is about the
+    increment. This removes an INPUT no check should have been given, not a
+    check. `test_no_check_reports_a_finding_against_house_guidance` pins the
+    property that is actually true.
     """
     from .. import skills as skills_mod
 
@@ -1692,17 +1703,34 @@ def cmd_run(args: argparse.Namespace) -> int:
                 sha, tree = resolve(cfg.root, cand)
                 subject = git("log", "-1", "--format=%s", sha, cwd=cfg.root, check=False)
                 science = found
-                print(f"  (HEAD is ledger bookkeeping; auditing the newest science "
-                      f"commit instead: {sha[:12]})")
+                # Through the catalogue: this line was printed in raw English
+                # under `zh`, and "ledger bookkeeping" was wrong besides — a
+                # guidance commit is not the ledger. The key names both.
+                print("  " + i18n.t("run.walked_back", sha=sha[:12]))
                 break
     if not science:
         # D149: the sentence a person reads names the commit by its subject.
         # The sha is not gone — it is the cycle's own `active_sha`, which the
         # decision card carries in its collapsed details, and it is untouched
         # in --json, in receipts and in the ledger.
-        reason = (f"Your last commit ({subject!r}) changed no science files — "
-                  f"only rules, configuration or ledger. Commit your "
-                  f"experiment, then run again.")
+        #
+        # D156: when the commit changed guidance and nothing else, say THAT.
+        # The generic sentence enumerates "rules, configuration or ledger",
+        # none of which is true here, and a refusal that misdescribes what the
+        # person just did sends them looking in the wrong place. The generic
+        # sentence is unchanged for the cases it does describe — including its
+        # two historic wordings, which older ledgers still carry.
+        guidance_only = bool(changed_paths(cfg.root, sha)) and all(
+            f.startswith(skills_dir + "/") for f in changed_paths(cfg.root, sha))
+        if guidance_only:
+            reason = (f"Your last commit ({subject!r}) changed only house "
+                      f"guidance under {skills_dir}/ — guidance shapes how the "
+                      f"generator writes and is never judged as work. Commit "
+                      f"your experiment, then run again.")
+        else:
+            reason = (f"Your last commit ({subject!r}) changed no science files — "
+                      f"only rules, configuration or ledger. Commit your "
+                      f"experiment, then run again.")
         # This is a SETUP mistake, not an audit dispute: nothing was audited
         # and nothing is contested. The decision object is minted here — the
         # only place that knows which branch this is — with its structured

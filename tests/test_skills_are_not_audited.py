@@ -21,6 +21,8 @@ true rather than asserting it once in prose).
 from __future__ import annotations
 
 import hashlib
+import os
+from contextlib import suppress
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -32,10 +34,12 @@ from crossaudit.auditor import dcl_source_digest, run_audit
 from crossaudit.auditor import prompt as pm
 from crossaudit.cli.main import (_materialise_tree_scope, _skills_manifest,
                                  cmd_run)
+from crossaudit.cli import i18n
+from crossaudit.config import load as cfg_load
 from crossaudit.console import overview
-from crossaudit.errors import NO_SCIENCE_COMMIT_CAUSE, ConfigDenial
+from crossaudit.errors import NO_SCIENCE_COMMIT_CAUSE, ConfigDenial, Denial
 from crossaudit.controller import StateStore
-from crossaudit.dcl import run_checks
+from crossaudit.dcl import framework, run_checks
 from crossaudit.gitio import changed_paths, materialise, parent, resolve
 from crossaudit.receipt import build
 from crossaudit.receipt.verify import verify
@@ -138,9 +142,18 @@ def test_the_generator_still_receives_the_skill(cfg, science):
     `select` -> `render` -> `generator.build_prompt(skills=...)`, which is what
     `cli/build.py` does — must be byte-for-byte unaffected by this slice.
 
-    MUTATION KILLED: an over-broad fix — filtering skills inside `skills.load`,
-    `gitio.materialise`, or `generator.build_prompt` rather than in the audited
-    scope reader -> the sentinel disappears from the generator prompt too.
+    MUTATION KILLED: an over-broad fix on the path this test actually walks —
+    an empty `skills.load`, or a `build_prompt` that drops the `skills` block.
+    Both redden it.
+
+    NOT killed, and the review was right to say so: filtering inside
+    `gitio.materialise`. The generator hand-off reads the WORKING TREE through
+    `skills.load`, never `materialise`, so that mutation leaves this green. It
+    is caught by
+    `test_a_new_skill_moves_the_skills_digest_and_not_the_audited_manifest`,
+    which reads `_skills_manifest` — the one skills path that does go through
+    `materialise`. Naming a mutation a test does not kill is worse than naming
+    none: it is a claim of coverage that is not there.
     """
     write_increment(science, GOOD_RESULTS, "Work done.", "increment")
     _commit_skill(science)
@@ -321,48 +334,75 @@ def test_a_receipt_written_before_this_slice_still_verifies(cfg, science):
 
 
 # ------------------------------------------------- the claim the fix rests on
-def test_no_deterministic_check_reads_skill_bytes():
-    """The slice's licence to remove these files from the increment.
+def test_no_check_reports_a_finding_against_house_guidance(cfg, science):
+    """What excluding guidance from the increment actually costs.
 
-    Excluding a file from the audited increment would REMOVE A CHECK if any
-    check read it. None does: neither the check layer nor the auditor package
-    so much as mentions skills. This is asserted rather than remembered, so a
-    future check that starts reading `skills/` fails here and has to argue with
-    D156 instead of silently losing its input.
+    The first version of this test grepped `dcl/` and `auditor/` for the
+    substring "skill" and concluded that no check reads skill bytes. That
+    premise is FALSE and the review reproduced it: hand `internal` a skill body
+    with a broken relative link and it reports CA-FILE-003; hand
+    `complete-strict` a `TODO` and it reports CA-FILE-004, a BLOCKER. The grep
+    also proved nothing — an injected reader using generic `files.items()`
+    survived it, and a bare `# skill` comment reddened it.
+
+    The property that IS true, and the one the policy rests on: a house skill is
+    guidance, not work product, so no check should ever have been given it. A
+    style file is not incomplete for saying TODO. This drives EVERY registered
+    check over a root-scoped project whose `skills/house.md` contains both
+    triggers, and asserts no finding names a path under `skills/`. The positive
+    control on the same bytes proves the checks are not merely inert.
+
+    MUTATION KILLED: drop the house-skill filter from `_outside_the_increment`
+    -> both findings appear against `skills/house.md`.
     """
-    src = Path(__file__).resolve().parents[1] / "src" / "crossaudit"
-    offenders = []
-    for pkg in ("dcl", "auditor"):
-        for path in sorted((src / pkg).rglob("*.py")):
-            if "skill" in path.read_text(encoding="utf-8").lower():
-                offenders.append(str(path.relative_to(src)))
+    write_increment(science, GOOD_RESULTS, "Work done.", "increment")
+    d = science / skills_mod.SKILLS_DIR
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "house.md").write_text("[broken](missing.md)\n\nTODO: finish this\n")
+    git("add", "--", skills_mod.SKILLS_DIR, cwd=science)
+    git("commit", "-q", "-m", "house skill", cwd=science)
+    sha = git("rev-parse", "HEAD", cwd=science)
+
+    every = framework.available()
+    assert {"internal", "complete-strict"} <= set(every), (
+        "the two checks the review reproduced findings with are gone; re-derive "
+        "this test against whatever replaced them")
+
+    # Positive control: these bytes DO produce findings when a check is handed
+    # them, so a green assertion below cannot come from inert checks.
+    raw = {"skills/house.md": (d / "house.md").read_bytes()}
+    control = run_checks(raw, ["internal", "complete-strict"], []).as_dict()
+    assert [f for f in control["findings"] if f["artifact"].startswith("skills/")], (
+        "the premise of this test is gone: these bytes no longer trigger a check")
+
+    files, notes, _scope = _materialise_tree_scope(cfg, sha, None)
+    result = run_checks(files, every, notes).as_dict()
+    offenders = [f for f in result["findings"]
+                 if f.get("artifact", "").startswith(skills_mod.SKILLS_DIR + "/")]
     assert offenders == [], (
-        f"a check or the auditor now reads skills: {offenders}. Excluding "
-        f"skills/ from the audited increment would remove a check; re-open D156.")
+        f"a deterministic check judged house guidance as work: {offenders}")
 
 
 # ---------------------------------------------- the second door D156 did not name
 def test_the_run_verb_does_not_treat_a_skill_edit_as_an_increment(
         cfg, science, monkeypatch):
-    """`crossaudit run` reaches the auditor by a different route, and had the bug.
+    """`crossaudit run --sha <skill commit>` refuses instead of auditing it.
 
     D156 named `_materialise_tree_scope` and only that. But `cmd_run` builds its
-    own increment from `changed_paths` (`cli/main.py`, `materialise(...,
-    only=science)`) and never passes through the scope reader. Reproduced before
-    the fix on a root-scoped project: a commit touching `skills/house.md` gave
-    `science_of` -> `['skills/house.md']`, so the skill WAS the increment and the
-    auditor was asked to judge it. Closing one door and reporting the invariant
-    honoured would have been false.
+    own increment from `changed_paths` (`materialise(..., only=science)`) and
+    never passes through the scope reader. Reproduced before the fix on a
+    root-scoped project: a commit touching `skills/house.md` gave `science_of`
+    -> `['skills/house.md']`, so the skill WAS the increment and the auditor was
+    asked to judge it.
 
     The fix puts the skills directory in `prefix_own` — the list that already
     holds the ledger, the state directory and `.github/`, "the loop's own
-    artefacts". A commit that touches nothing else then falls through to the
-    existing "changed no science files" refusal, which is the true answer:
-    editing house guidance is not an increment, and this is a setup mistake with
-    its own recorded cause, not an audit.
+    artefacts". Pointed at that commit explicitly, `run` now takes the "nothing
+    to audit" path, and says which of the two things happened: the refusal names
+    guidance rather than reciting "rules, configuration or ledger", none of
+    which the person changed.
 
-    Driven through `cmd_run` itself rather than through a copy of its filter, so
-    the test reads production code.
+    Plain `run` behaves DIFFERENTLY and the companion test below covers it.
 
     MUTATION KILLED: drop `skills_dir + "/"` from `prefix_own` -> `cmd_run`
     audits the skill instead of refusing, and this raises nothing.
@@ -375,7 +415,190 @@ def test_the_run_verb_does_not_treat_a_skill_edit_as_an_increment(
     with pytest.raises(ConfigDenial) as caught:
         cmd_run(SimpleNamespace(sha=sha, json=False, allow_custom_endpoint=False,
                                 continue_cycle=None, offline=True, science=None))
-    assert "changed no science files" in caught.value.reason
+    reason = caught.value.reason
+    assert "changed only house guidance under skills/" in reason
+    assert "rules, configuration or ledger" not in reason, (
+        "the refusal recites categories the person did not touch")
+    assert i18n.denial_zh(reason), "the guidance refusal reaches a zh reader in English"
 
     rows = [r for r in overview.escalations(cfg)]
     assert rows and rows[0]["cause"] == NO_SCIENCE_COMMIT_CAUSE
+
+
+def test_plain_run_walks_back_past_a_guidance_commit_and_says_so(
+        cfg, science, monkeypatch, capsys):
+    """Plain `run` does NOT refuse — it audits the newest commit that changed work.
+
+    The review found the previous test covered only `--sha`. With no `--sha`,
+    `cmd_run` walks back through the existing 50-commit window for a commit that
+    `science_of` accepts, and audits that instead. Stated here because it is the
+    behaviour a person actually meets after editing guidance: the run proceeds,
+    against the earlier work commit, and the skill is not in it.
+
+    The narration for that walk-back used to be printed as raw English
+    (`"(HEAD is ledger bookkeeping; ...)"`) — untranslated, and wrong besides,
+    since a guidance commit is not the ledger. It now goes through the
+    catalogue.
+
+    MUTATION KILLED: `print(f"...")` back in place of `i18n.t("run.walked_back")`
+    -> the zh half of this test sees English.
+    """
+    work_sha = write_increment(science, GOOD_RESULTS, "Work done.", "increment")
+    _commit_skill(science)
+    monkeypatch.chdir(science)
+
+    monkeypatch.setattr(i18n, "_language", "en", raising=False)
+    # The provider call is out of this test's scope — the replay transcript for
+    # that exact prompt does not exist here, and pinning prompt bytes would make
+    # this test fail for reasons that have nothing to do with guidance. What is
+    # asserted is which commit `run` SELECTED and how it said so, both of which
+    # happen before any provider is reached.
+    with suppress(Denial):
+        cmd_run(SimpleNamespace(sha=None, json=False, allow_custom_endpoint=False,
+                                continue_cycle=None, offline=True, science=None))
+    out = capsys.readouterr().out
+    assert "deterministic checks" in out, "it did not get as far as selecting work"
+    assert work_sha[:12] in out, "it did not name the work commit it fell back to"
+    assert SENTINEL not in out
+    assert "ledger bookkeeping" not in out, (
+        "a guidance commit is not ledger bookkeeping")
+
+    i18n.reset_fallbacks()
+    monkeypatch.setattr(i18n, "_language", "zh", raising=False)
+    zh = i18n.t("run.walked_back", sha=work_sha[:12])
+    assert "run.walked_back" not in i18n.fallbacks(), (
+        f"the walk-back narration reaches a zh reader in English: {zh!r}")
+    assert any("\u4e00" <= ch <= "\u9fff" for ch in zh)
+
+
+# --------------------------------------- one identity for the guidance directory
+def _case_insensitive(root: Path) -> bool:
+    """Does this host open `root/'skills'` when the entry is `SKILLS`?"""
+    probe = root / "CASEPROBE"
+    probe.mkdir()
+    try:
+        return (root / "caseprobe").is_dir()
+    finally:
+        probe.rmdir()
+
+
+def test_a_case_variant_guidance_directory_is_refused_not_silently_split(
+        cfg, science):
+    """P1: the loader and the filters must mean the same directory.
+
+    Reproduced before the fix, on this host: commit `SKILLS/house.md`;
+    `skills.load` opens it through `root / "skills"` (case-insensitive
+    filesystem) and returns it as guidance, while git keeps `SKILLS/` and every
+    filter compares `"SKILLS" == "skills"` and lets it into the increment. The
+    same bytes were guidance to the generator AND work to the auditor — the
+    sentinel appeared in a root-scoped auditor prompt.
+
+    Fixed at the loader, once, so there is one identity: `skills.house_dir`
+    reads `root`'s real directory entries (`Path.resolve()` does NOT canonicalise
+    case on macOS — measured) and refuses a spelling git would not match. A
+    refusal, not a silent empty load: answering "you have no guidance" to
+    someone looking at a folder full of it is the same class of defect.
+
+    MUTATION KILLED: `house_dir` returning `None` instead of raising for a case
+    variant -> the loader is silent and the disagreement is merely hidden.
+    """
+    write_increment(science, GOOD_RESULTS, "Work done.", "increment")
+    (science / "SKILLS").mkdir()
+    (science / "SKILLS" / "house.md").write_text(SKILL_BODY)
+    git("add", "--", "SKILLS", cwd=science)
+    git("commit", "-q", "-m", "uppercase guidance", cwd=science)
+    sha = git("rev-parse", "HEAD", cwd=science)
+
+    with pytest.raises(ConfigDenial) as caught:
+        skills_mod.load(science)
+    assert "named exactly 'skills'" in caught.value.reason
+    assert "SKILLS" in caught.value.reason, "the refusal must name what to rename"
+    assert i18n.denial_zh(caught.value.reason), "refused only in English"
+
+    # And it is not silently half-excluded either: it is not guidance, so it is
+    # ordinary work, which is the other half of one identity.
+    files, _notes, _scope = _materialise_tree_scope(cfg, sha, None)
+    assert "SKILLS/house.md" in files
+
+
+def test_the_case_variant_would_otherwise_have_been_loaded_as_guidance(science):
+    """The premise of the test above, asserted rather than assumed.
+
+    Only meaningful where the filesystem is case-insensitive; on a case-sensitive
+    host `root / "skills"` simply does not exist and the old loader returned []
+    (a different, quieter disagreement, which `house_dir` also refuses).
+    """
+    if not _case_insensitive(science):
+        pytest.skip("case-sensitive filesystem: root/'skills' cannot open SKILLS/")
+    (science / "SKILLS").mkdir()
+    (science / "SKILLS" / "house.md").write_text(SKILL_BODY)
+    assert (science / "skills").is_dir(), (
+        "the exposure this fix closes needs the lowercase path to open")
+    assert SENTINEL in (science / "skills" / "house.md").read_text()
+
+
+def test_a_symlinked_guidance_directory_is_refused_and_its_target_is_work(
+        cfg, science, monkeypatch):
+    """P1: `skills -> work/guidance` made one file guidance AND audited work.
+
+    Reproduced before the fix: the loader checked whether each `.md` FILE was a
+    symlink, never the directory it walked, so it read `work/guidance/house.md`
+    as house guidance. Git records the target under its real path, so
+    `cmd_run`'s changed-path route selected `work/guidance/house.md` and rendered
+    the sentinel into an auditor prompt.
+
+    After the fix the loader refuses the aliased directory outright, and
+    `work/guidance/house.md` is what it plainly is: ordinary audited work. That
+    is one identity — not "guidance everywhere", but the same answer from every
+    seam.
+
+    MUTATION KILLED: check only `p.is_symlink()` per file (the pre-fix shape)
+    and drop the directory checks -> the loader hands back the target as
+    guidance.
+    """
+    write_increment(science, GOOD_RESULTS, "Work done.", "increment")
+    (science / "work" / "guidance").mkdir(parents=True)
+    (science / "work" / "guidance" / "house.md").write_text(SKILL_BODY)
+    os.symlink("work/guidance", science / skills_mod.SKILLS_DIR)
+    git("add", "--", "work", skills_mod.SKILLS_DIR, cwd=science)
+    git("commit", "-q", "-m", "aliased guidance", cwd=science)
+    (science / "work" / "guidance" / "house.md").write_text(SKILL_BODY + "\nmore\n")
+    git("add", "--", "work", cwd=science)
+    git("commit", "-q", "-m", "edit guidance", cwd=science)
+    sha = git("rev-parse", "HEAD", cwd=science)
+
+    with pytest.raises(ConfigDenial) as caught:
+        skills_mod.load(science)
+    assert "symlink" in caught.value.reason
+    assert i18n.denial_zh(caught.value.reason), "refused only in English"
+
+    # The target is work, and is audited as work — the honest reading of a file
+    # that lives in the project's own work directory.
+    files, _notes = materialise(cfg.root, sha, "", only=["work/guidance/house.md"])
+    assert "work/guidance/house.md" in files
+
+
+def test_the_constitution_may_not_be_a_house_skill(science):
+    """P2: `constitution: skills/house.md` handed the auditor a skill as LAW.
+
+    Reproduced through `cmd_audit` before the fix: the increment filter removed
+    `skills/house.md`, and `_committed_constitution` then read the same file by
+    commit and fenced it into the prompt as the Constitution. The boundary was
+    not crossed by accident — it was configured around.
+
+    Guidance shapes how the generator writes; the Constitution is what the
+    auditor judges against. One file cannot be both, so config load refuses it
+    rather than the docstring qualifying it away.
+
+    MUTATION KILLED: delete the first-component check in `config.py` -> the
+    config loads and the skill is the constitution.
+    """
+    text = (science / "crossaudit.yml").read_text()
+    (science / "crossaudit.yml").write_text(
+        text.replace("constitution: AUDIT_RULES.md",
+                     f"constitution: {skills_mod.SKILLS_DIR}/house.md"))
+    with pytest.raises(ConfigDenial) as caught:
+        cfg_load(science / "crossaudit.yml")
+    assert skills_mod.SKILLS_DIR in caught.value.reason
+    assert "cannot be both" in caught.value.reason
+    assert i18n.denial_zh(caught.value.reason), "refused only in English"

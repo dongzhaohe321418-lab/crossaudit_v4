@@ -7,7 +7,7 @@ never written into a receipt.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import yaml
 
@@ -281,6 +281,24 @@ def load(path: Path | None = None) -> Config:
     for req in ("science_repo", "constitution", "auditor"):
         if not raw.get(req):
             raise ConfigDenial(f"{req} is required", file=str(p))
+    # D156. The two roles a markdown file can hold here are exclusive. A skill
+    # is the owner's guidance to the GENERATOR and is deliberately kept out of
+    # the audited increment; the Constitution is the standard the AUDITOR judges
+    # against and is read separately, by commit, whatever the scope says. Point
+    # `constitution:` inside the guidance directory and the same bytes are both
+    # — the increment filter drops the file and `_committed_constitution` hands
+    # it to the auditor as law. That is not an audit boundary anyone can reason
+    # about, so it is refused at configuration time rather than qualified in a
+    # docstring. Requires deliberate owner configuration; it is refused because
+    # it is incoherent, not because it is an attack.
+    from .skills import SKILLS_DIR as _skills_dir
+    const_parts = PurePosixPath(str(raw["constitution"])).parts
+    if const_parts and const_parts[0] == _skills_dir:
+        raise ConfigDenial(
+            f"constitution {raw['constitution']!r} is inside {_skills_dir!r}. "
+            f"Guidance shapes how the generator writes; the Constitution is what "
+            f"the auditor judges against. One file cannot be both — move the "
+            f"rules out of {_skills_dir!r}.", file=str(p))
 
     auditor = _role(raw["auditor"] or {}, "auditor", p)
     gen = raw.get("generator") or {}

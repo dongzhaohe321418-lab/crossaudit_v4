@@ -171,6 +171,16 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     # its SUBJECT and no longer leads with a sha: a 12-hex id in the first
     # sentence of a decision card is internal vocabulary, and it moves to the
     # card's collapsed details instead (D149).
+    # D156. The guidance-only case, said as itself. The generic sentence below
+    # enumerates "rules, configuration or ledger", none of which is what the
+    # person just committed, and a refusal that misdescribes the commit sends
+    # them looking in the wrong place. The generic sentence keeps both of its
+    # wordings for the cases it does describe, and for older ledgers.
+    ("Your last commit ({}) changed only house guidance under {}/ — guidance "
+     "shapes how the generator writes and is never judged as work. Commit your "
+     "experiment, then run again.",
+     "你的上一次提交（{0}）只改动了 {1}/ 下的指导——指导塑造生成者怎么写，"
+     "本身从来不作为成果被判定。请先提交你的实验，然后再运行。"),
     ("Your last commit ({}) changed no science files — only rules, "
      "configuration or ledger. Commit your experiment, then run again.",
      "你的上一次提交（{}）没有改动任何科学文件——只有规则、配置或账本。请先提交你的实验，然后再运行。"),
@@ -262,6 +272,14 @@ ENTRIES: tuple[tuple[str, str], ...] = (
      "审计者与生成者都是 {}：这是同源监督，正是本协议要避免的事"),
     ("unknown or unsupported generator vendor {}", "未知或不支持的生成者厂商 {}"),
     # ---------------------------------------------------------- config.py
+    # D156. Guidance and the Constitution are exclusive roles for one file: the
+    # increment filter drops a skill, and `_committed_constitution` would hand
+    # the same bytes to the auditor as law. Refused at configuration time.
+    ("constitution {} is inside {}. Guidance shapes how the generator writes; "
+     "the Constitution is what the auditor judges against. One file cannot be "
+     "both — move the rules out of {}.",
+     "constitution {0} 位于 {1} 之内。指导塑造生成者怎么写；章程是审计者据以判定的"
+     "标准。同一个文件不能兼任两者——请把规则移出 {2}。"),
     ("generator: unknown keys {}", "generator：未知的键 {}"),
     ("resilience: unknown keys {}", "resilience：未知的键 {}"),
     ("budgets: unknown keys {}", "budgets：未知的键 {}"),
@@ -1024,6 +1042,32 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     ("this project already owns a workspace build slot", "此项目已占有一个工作区构建槽位"),
     ("workspace build capacity is {}; wait for {}", "工作区构建容量为 {}；请等 {} 完成"),
     # ------------------------------------------------------------ skills.py
+    # D156. One identity for the guidance directory. The audited-scope filters
+    # compare git tree paths; the loader used to resolve through the
+    # filesystem, and on a case-insensitive host or through a symlink the two
+    # disagreed — the same bytes were guidance AND audited work. Refused where
+    # the ambiguity starts, so every sentence here names what to rename.
+    ("the guidance directory must be named exactly {}; this project has {}. Git "
+     "keeps the spelling, so {} would be loaded as guidance and audited as work "
+     "at the same time. Rename it to {}.",
+     "指导目录必须严格命名为 {0}；本项目里是 {1}。Git 会保留这个拼写，因此 {2} 会同时"
+     "被当作指导加载、又被当作成果审计。请把它改名为 {3}。"),
+    ("{} is a symlink. Guidance must be a real directory in the project: through "
+     "a link the same file is guidance here and ordinary work to git, and the "
+     "audit boundary cannot hold both. Replace the link with a real {} directory.",
+     "{0} 是一个符号链接。指导必须是项目里真实存在的目录：通过链接，同一个文件在这里"
+     "是指导、对 git 却是普通成果，审计边界无法同时容纳这两种身份。请用真实的 {1} "
+     "目录替换该链接。"),
+    ("{} is not a directory. Guidance lives in a real {} directory; a file of "
+     "that name is neither loaded as guidance nor audited as work, so it would "
+     "be invisible.",
+     "{0} 不是目录。指导存放在真实的 {1} 目录里；同名的文件既不会作为指导加载，也不会"
+     "作为成果审计，因此它会变成不可见的。"),
+    ("{} resolves to {}, outside the project's own {}. Guidance must be a real "
+     "directory in the project, so that what is loaded as guidance is exactly "
+     "what the audit boundary excludes.",
+     "{0} 解析到 {1}，位于项目自己的 {2} 之外。指导必须是项目里真实存在的目录，这样"
+     "被当作指导加载的内容，才正好就是审计边界排除的内容。"),
     ("refusing a symlinked skill: {}", "拒绝通过符号链接指向的技能：{}"),
     ("skill {} is {} bytes (limit {}); a skill is guidance, and one this long "
      "crowds out the work itself",
