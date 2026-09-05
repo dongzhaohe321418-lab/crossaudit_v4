@@ -6925,3 +6925,52 @@ shipped audit does not have.
 The design document keeps the withdrawn section as written, marked, above the
 section that replaces it. A proposal that lasted one day and was killed by its
 own preregistered test is the record working, not the record failing.
+
+## D156 — Two shipped defects the provenance review surfaced that are not the slice's, and one boundary to close
+
+A cross-vendor review of provenance slice 1 refused the merge (three P1s,
+`benchmarks/reviews/2026-09-05-provenance-slice-1-astra.md`). Two of the things
+it found predate the slice and are in code every project runs.
+
+**1. `check_declared` in the `general` pack mis-handles non-list and non-string
+values.** `dcl/neutral.py:90` walks `inputs`, `sources`, `requires`, `depends_on`
+in every YAML file as collections of filenames. A scalar `sources: runs.csv@v3`
+is iterated character by character and yields ten bogus CA-FILE-002 findings; a
+bare `requires: 3` raises `TypeError` out of the check. Reproduced. This is the
+default pack, so a science-shaped `metadata.yml` with a scalar `sources:` has
+been advisory-flagged ten times over in every project that wrote one. Fix in
+slice 1: a non-list value is a single entry; a non-string entry is one ADVISORY
+finding, never an exception; tests for both. Additive, no verdict moves.
+
+The same review showed why `declared` cannot simply join the `science` profile:
+`sources: [doi:10.1234/x]` and `requires: [python>=3.11]` are legitimate metadata
+under those keys and would become false blockers. The existence check that
+`science` lacks (an input named in `metadata.yml` that does not exist still
+passes `provenance`) goes inside `check_provenance`, scoped to `inputs`,
+revision-aware. I had closed that fork the other way on the strength of one
+line (`neutral.py:92` stripping `@rev`); one line was not the whole question.
+
+**2. Skill files reach the auditor's prompt as increment data.**
+`_materialise_tree_scope` (`cli/main.py:275`) reads every file under the scope
+prefixes — the repository root when no scope is configured — and excludes only
+paths containing `TEMPLATE`. `render_increment` (`auditor/prompt.py:83`) then
+fences every one of them into the auditor's prompt. A project's `skills/*.md` are
+therefore shown to the auditor whenever they fall inside the scope. They are
+committed files, so the README's "the auditor reads committed files" is not
+contradicted; but they are *instruction-shaped* — written to steer a model — and
+they are generator inputs (hashed into the receipt as such), not work product.
+Of every file class the auditor could be shown, this is the one most likely to
+read as instructions rather than as data.
+
+RULING: **exclude `skills/` from the audited increment the same way `TEMPLATE`
+is excluded**, in a slice of its own after slice 1 lands. State the receipt
+consequence in that slice: `inputs` digests over the audited scope change for
+projects whose scope currently includes `skills/`, and `verify` of earlier
+receipts is unaffected because it re-derives against the receipt's own recorded
+inputs. This closes a boundary; it does not weaken a check — no check reads
+skill bytes. Until it lands, a project that wants the boundary today sets
+`scope_dirs` to its work directories, which is what `init` writes.
+
+Neither of these was found by a test or by a reader from this vendor. Both were
+found by a different vendor's model reading the same tree, in the course of
+reviewing something else. D153 keeps earning its place.
