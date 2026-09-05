@@ -7081,3 +7081,54 @@ a declared span contains the transcribed value and unit; it does not verify
 coverage, correctness, or that a number is unitless (an empty unit imposes no
 constraint); a unit containing a space is read as its first token; reported
 precision is normalised away (`1.50` ≡ `1.5`).
+
+## D158 — Arm 2 killed `number_source` as shipped: the generator cannot address lines it is never shown
+
+Hours after D157 landed `number_source` in the `science` and `research`
+profiles, Arm 2 (`benchmarks/expertlongbench/RESULTS-ARM2.md`) ran the check
+against what a real generator writes under the shipped skill. **Not one of 215
+annotation rows passed; 24 of 24 drafts were BLOCKED** before any model verdict.
+The preregistered §8g rule fired on its kill branch.
+
+The failure is not the verifier's. It was wrong about a span zero times in 189
+blocks and beat an independent naive adjudicator 8–0. The failure is the
+contract's addressing half, which the design assumed and never measured: the
+generator is **never shown line numbers** (`generator.py:449-450`), so its `src`
+indices are off by a per-draft constant on 15 of 23 drafts (median +4) while
+86.9% of rows name a file that does contain the pair; its `at` addresses run
+past the end of its own draft on 50 rows; and six `uncited` rows blocked through
+`at` validation, which §3.4 says can never happen — a second contract violation
+inside the first.
+
+RULINGS, in order:
+
+1. **Immediately, additively: `number_source` leaves the `science` and `research`
+   profiles** and stays registered for explicit selection; the numbers skill is
+   not written unless the check is selected (the `requires_check` gate already
+   does this); and `uncited` never blocks, whatever its `at` says. Reviewed
+   cross-vendor before merge like every kernel change. This returns the shipped
+   profiles to their pre-D157 state and is not a weakening of anything that
+   existed before today.
+2. **The addressing contract goes back to design before any rebuild.** Either
+   the generator is shown numbered lines for every file it may cite (a prompt
+   change with a measured token cost), or the locator becomes content-addressed
+   — a short quoted span that code finds by exact bytes — so that no address the
+   model cannot know is ever required of it. §2.1 as written asked the model for
+   a fact it did not have, which is D155's line crossed from the other side.
+3. **Arm 2 is rerun under the redesigned contract** with the same §8g rule
+   before the check re-enters any profile. More n of the current configuration
+   resolves nothing: a tighter false-blocker interval needs drafts whose
+   annotations are addressable, and this configuration produced one in
+   twenty-four.
+
+Two things Arm 2 established that survive: the generator writes compound units
+in full when told to (zero unit-shortening in 183 rows — Arm 1's instrument
+failure was the probe's, not the model's), and the hyphen stratum produced no
+blocks in 24 drafts, which does not settle the open dial but lowers its stakes.
+Incidental finding for a separate slice: the loop spent its one free format
+re-ask on 23 of 24 rounds (`the MCP tool request envelope must be the entire
+reply`), about a quarter of generator spend.
+
+Recorded on the same day as the merge it reverses, because a check that blocks
+every project that enables it is a defect whatever the review count behind it —
+eight rounds verified the verifier and none of them ran the generator.
