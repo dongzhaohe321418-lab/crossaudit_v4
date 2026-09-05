@@ -129,6 +129,13 @@ README 里两处相反的说法已改（官网中英两版原本就是对的，�
 
 ## 下一步（按优先级）
 
+0. **把三种对照检查做进确定性层**（owner 于 2026-09-05 认可方向）：数字→来源、
+   图→生成代码、断言→引用。原则来自 D155：模型只**指名**依据（"这个数来自表 3"），
+   代码去**验证**依据存在且说的是这个；模型永远不陈述依据会说什么。Claude Science
+   的审查器（2026-06）正是这三件事，但同厂商、固定三项、边审边改；我们的差异化是
+   跨厂商分离 + 确定性阻断 + 收据 + 测出来的数字。先做设计研究，看 A4 的
+   `check_source_provenance` 能扩到哪一步，再写代码。
+
 1. **官网部署**：需要你先 `cd website && npx --yes vercel@58.9.4 login`，然后 `npx vercel link`（选现有项目 crossaudit-v4）并 `npm run release:vercel`；或在 Vercel 控制台把 Git 集成改连到 crossaudit-harness。
 2. **公证**：`CROSSAUDIT_PUBLIC_RELEASE=1` + Developer ID + notarytool profile 重新打包，替换 Release 资产，官网与 README 去掉"右键打开"说明。
 3. **Windows 移植**（可选切片）：CONTRIBUTING.md "Windows" 一节列出的五类问题。
