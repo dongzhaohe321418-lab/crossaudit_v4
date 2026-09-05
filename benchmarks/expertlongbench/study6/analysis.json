@@ -1,0 +1,1028 @@
+{
+  "study": "6-noise",
+  "labels": [
+    "rep1",
+    "rep2",
+    "rep3",
+    "rep4"
+  ],
+  "n_seeded": 20,
+  "n_common": 20,
+  "common_instances": [
+    "T03MaterialSEG-10.1002/adfm.202002249",
+    "T03MaterialSEG-10.1002/adfm.202209924",
+    "T03MaterialSEG-10.1002/adfm.202309656",
+    "T03MaterialSEG-10.1002/ange.202112688",
+    "T03MaterialSEG-10.1002/anie.201812472",
+    "T03MaterialSEG-10.1002/anie.202410016",
+    "T03MaterialSEG-10.1002/celc.202200984",
+    "T03MaterialSEG-10.1002/chem.201905217",
+    "T03MaterialSEG-10.1002/chem.202302565",
+    "T03MaterialSEG-10.1002/cjce.24030",
+    "T03MaterialSEG-10.1002/cnma.202200403",
+    "T03MaterialSEG-10.1002/cssc.201000245",
+    "T03MaterialSEG-10.1002/cssc.202300809",
+    "T03MaterialSEG-10.1002/ijch.201400157",
+    "T03MaterialSEG-10.1002/pssb.201900312",
+    "T03MaterialSEG-10.1002/smll.201800441",
+    "T03MaterialSEG-10.1002/smll.202408072",
+    "T03MaterialSEG-10.1002/zaac.201800357",
+    "T03MaterialSEG-10.1002/zaac.202200095",
+    "T03MaterialSEG-10.1126/sciadv.adp3309"
+  ],
+  "excluded": [],
+  "bootstrap": {
+    "resamples": 20000,
+    "seed": 20260930,
+    "unit": "instance",
+    "kind": "percentile"
+  },
+  "kill_threshold_pp": 8.0,
+  "replicates": [
+    {
+      "label": "rep1",
+      "n_instances": 20,
+      "n_items_wrong": 98,
+      "n_findings": 38,
+      "n_blockers": 38,
+      "fired": 18,
+      "gated": 18,
+      "verdict_blocked": 18,
+      "invalid": 0,
+      "repairs": 0,
+      "findings_unadjudicated": 2,
+      "cost_usd": 0.457255,
+      "wall_s": 267.90826904098503,
+      "n_advisories": 0,
+      "mapping_agreement": {
+        "agree": 33,
+        "disagree": 0
+      },
+      "recall_model_with_rule_imputed": 24.489795918367346,
+      "model_mapping": {
+        "recall": 23.46938775510204,
+        "n_named": 35,
+        "n_hit": 23,
+        "precision": 65.71428571428571,
+        "precision_interval": "Proportion(successes=23, total=35, point=0.6571428571428571, low=0.4915194951399626, high=0.7916830501295105, confidence=0.95)",
+        "blocker_recall": 23.46938775510204
+      },
+      "rule_mapping": {
+        "recall": 22.448979591836736,
+        "n_named": 35,
+        "n_hit": 22,
+        "precision": 62.857142857142854,
+        "precision_interval": "Proportion(successes=22, total=35, point=0.6285714285714286, low=0.4633693684359532, high=0.7683418049663429, confidence=0.95)",
+        "blocker_recall": 22.448979591836736
+      }
+    },
+    {
+      "label": "rep2",
+      "n_instances": 20,
+      "n_items_wrong": 98,
+      "n_findings": 36,
+      "n_blockers": 36,
+      "fired": 16,
+      "gated": 16,
+      "verdict_blocked": 16,
+      "invalid": 0,
+      "repairs": 0,
+      "findings_unadjudicated": 7,
+      "cost_usd": 0.41423,
+      "wall_s": 236.5267360859143,
+      "n_advisories": 0,
+      "mapping_agreement": {
+        "agree": 26,
+        "disagree": 0
+      },
+      "recall_model_with_rule_imputed": 23.46938775510204,
+      "model_mapping": {
+        "recall": 19.387755102040817,
+        "n_named": 28,
+        "n_hit": 19,
+        "precision": 67.85714285714286,
+        "precision_interval": "Proportion(successes=19, total=28, point=0.6785714285714286, low=0.49338843180857617, high=0.8206675307750504, confidence=0.95)",
+        "blocker_recall": 19.387755102040817
+      },
+      "rule_mapping": {
+        "recall": 21.428571428571427,
+        "n_named": 33,
+        "n_hit": 21,
+        "precision": 63.63636363636363,
+        "precision_interval": "Proportion(successes=21, total=33, point=0.6363636363636364, low=0.466161783022664, high=0.7781282176475764, confidence=0.95)",
+        "blocker_recall": 21.428571428571427
+      }
+    },
+    {
+      "label": "rep3",
+      "n_instances": 20,
+      "n_items_wrong": 98,
+      "n_findings": 42,
+      "n_blockers": 42,
+      "fired": 18,
+      "gated": 18,
+      "verdict_blocked": 18,
+      "invalid": 0,
+      "repairs": 0,
+      "findings_unadjudicated": 2,
+      "cost_usd": 0.46212,
+      "wall_s": 283.11468475093716,
+      "n_advisories": 0,
+      "mapping_agreement": {
+        "agree": 36,
+        "disagree": 0
+      },
+      "recall_model_with_rule_imputed": 26.53061224489796,
+      "model_mapping": {
+        "recall": 25.510204081632654,
+        "n_named": 37,
+        "n_hit": 25,
+        "precision": 67.56756756756756,
+        "precision_interval": "Proportion(successes=25, total=37, point=0.6756756756756757, low=0.514636672419722, high=0.8036673347185581, confidence=0.95)",
+        "blocker_recall": 25.510204081632654
+      },
+      "rule_mapping": {
+        "recall": 25.510204081632654,
+        "n_named": 38,
+        "n_hit": 25,
+        "precision": 65.78947368421052,
+        "precision_interval": "Proportion(successes=25, total=38, point=0.6578947368421053, low=0.4989210355178308, high=0.7878758482004058, confidence=0.95)",
+        "blocker_recall": 25.510204081632654
+      }
+    },
+    {
+      "label": "rep4",
+      "n_instances": 20,
+      "n_items_wrong": 98,
+      "n_findings": 44,
+      "n_blockers": 44,
+      "fired": 18,
+      "gated": 18,
+      "verdict_blocked": 18,
+      "invalid": 0,
+      "repairs": 0,
+      "findings_unadjudicated": 5,
+      "cost_usd": 0.4303825,
+      "wall_s": 240.43903008519555,
+      "n_advisories": 0,
+      "mapping_agreement": {
+        "agree": 35,
+        "disagree": 0
+      },
+      "recall_model_with_rule_imputed": 29.591836734693878,
+      "model_mapping": {
+        "recall": 25.510204081632654,
+        "n_named": 37,
+        "n_hit": 25,
+        "precision": 67.56756756756756,
+        "precision_interval": "Proportion(successes=25, total=37, point=0.6756756756756757, low=0.514636672419722, high=0.8036673347185581, confidence=0.95)",
+        "blocker_recall": 25.510204081632654
+      },
+      "rule_mapping": {
+        "recall": 27.551020408163264,
+        "n_named": 40,
+        "n_hit": 27,
+        "precision": 67.5,
+        "precision_interval": "Proportion(successes=27, total=40, point=0.675, low=0.5201774618987768, high=0.799154977682173, confidence=0.95)",
+        "blocker_recall": 27.551020408163264
+      }
+    }
+  ],
+  "spread": {
+    "model_mapping": {
+      "mapping": "model_mapping",
+      "per_replicate_recall": {
+        "rep1": 23.46938775510204,
+        "rep2": 19.387755102040817,
+        "rep3": 25.510204081632654,
+        "rep4": 25.510204081632654
+      },
+      "n_instances": 20,
+      "n_replicates": 4,
+      "n_pairs": 6,
+      "range": {
+        "point": 6.122448979591837,
+        "ci_low": 2.9126213592233015,
+        "ci_high": 17.708333333333336
+      },
+      "sd": {
+        "point": 2.886150127292031,
+        "ci_low": 1.2583057392117916,
+        "ci_high": 7.753115717187491
+      },
+      "mad_aggregate": {
+        "point": 3.4013605442176877,
+        "ci_low": 1.5,
+        "ci_high": 9.375
+      },
+      "mad_per_instance": {
+        "point": 14.458333333333334,
+        "ci_low": 10.51388888888889,
+        "ci_high": 18.36111111111111
+      },
+      "two_sd": 5.772300254584062,
+      "pairs": [
+        {
+          "a": "rep1",
+          "b": "rep2",
+          "aggregate_difference": 4.081632653061224,
+          "mean_per_instance_difference": 4.583333333333334,
+          "mean_absolute_per_instance_difference": 18.75,
+          "max_absolute_per_instance_difference": 50.0,
+          "n_instances_identical": 7,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=13, w_plus=58.0, w_minus=33.0, statistic=33.0, p_value=0.406982421875, method='exact (enumerated 2^13)', note='7 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep1",
+          "b": "rep3",
+          "aggregate_difference": -2.0408163265306136,
+          "mean_per_instance_difference": -2.416666666666667,
+          "mean_absolute_per_instance_difference": 10.583333333333334,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 11,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=9, w_plus=17.5, w_minus=27.5, statistic=17.5, p_value=0.58984375, method='exact (enumerated 2^9)', note='11 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep1",
+          "b": "rep4",
+          "aggregate_difference": -2.0408163265306136,
+          "mean_per_instance_difference": -2.75,
+          "mean_absolute_per_instance_difference": 9.75,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 12,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=8, w_plus=11.5, w_minus=24.5, statistic=11.5, p_value=0.4375, method='exact (enumerated 2^8)', note='12 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep2",
+          "b": "rep3",
+          "aggregate_difference": -6.122448979591837,
+          "mean_per_instance_difference": -7.0,
+          "mean_absolute_per_instance_difference": 22.0,
+          "max_absolute_per_instance_difference": 60.0,
+          "n_instances_identical": 6,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=14, w_plus=39.0, w_minus=66.0, statistic=39.0, p_value=0.4150390625, method='exact (enumerated 2^14)', note='6 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep2",
+          "b": "rep4",
+          "aggregate_difference": -6.122448979591837,
+          "mean_per_instance_difference": -7.333333333333333,
+          "mean_absolute_per_instance_difference": 11.0,
+          "max_absolute_per_instance_difference": 50.0,
+          "n_instances_identical": 12,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=8, w_plus=4.5, w_minus=31.5, statistic=4.5, p_value=0.078125, method='exact (enumerated 2^8)', note='12 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep3",
+          "b": "rep4",
+          "aggregate_difference": 0.0,
+          "mean_per_instance_difference": -0.33333333333333304,
+          "mean_absolute_per_instance_difference": 14.666666666666666,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 8,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=12, w_plus=33.0, w_minus=45.0, statistic=33.0, p_value=0.66796875, method='exact (enumerated 2^12)', note='8 of 20 pairs were exact ties and were dropped')"
+        }
+      ],
+      "null_contrast": {
+        "values": [
+          4.583333333333334,
+          -2.416666666666667,
+          -2.75,
+          -7.0,
+          -7.333333333333333,
+          -0.33333333333333304
+        ],
+        "max_abs": 7.333333333333333,
+        "sd": 4.439328652948427,
+        "range": 11.916666666666668,
+        "note": "signed mean paired difference between two runs of one configuration; the true effect is zero by construction"
+      }
+    },
+    "rule_mapping": {
+      "mapping": "rule_mapping",
+      "per_replicate_recall": {
+        "rep1": 22.448979591836736,
+        "rep2": 21.428571428571427,
+        "rep3": 25.510204081632654,
+        "rep4": 27.551020408163264
+      },
+      "n_instances": 20,
+      "n_replicates": 4,
+      "n_pairs": 6,
+      "range": {
+        "point": 6.122448979591837,
+        "ci_low": 3.8461538461538467,
+        "ci_high": 16.037735849056602
+      },
+      "sd": {
+        "point": 2.8099849731051543,
+        "ci_low": 1.707825127659933,
+        "ci_high": 7.089002754626099
+      },
+      "mad_aggregate": {
+        "point": 3.5714285714285716,
+        "ci_low": 2.040816326530612,
+        "ci_high": 8.61423220973783
+      },
+      "mad_per_instance": {
+        "point": 14.01388888888889,
+        "ci_low": 9.555555555555555,
+        "ci_high": 18.819444444444446
+      },
+      "two_sd": 5.6199699462103085,
+      "pairs": [
+        {
+          "a": "rep1",
+          "b": "rep2",
+          "aggregate_difference": 1.0204081632653086,
+          "mean_per_instance_difference": -1.2500000000000002,
+          "mean_absolute_per_instance_difference": 19.583333333333336,
+          "max_absolute_per_instance_difference": 66.66666666666667,
+          "n_instances_identical": 7,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=13, w_plus=41.5, w_minus=49.5, statistic=41.5, p_value=0.801513671875, method='exact (enumerated 2^13)', note='7 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep1",
+          "b": "rep3",
+          "aggregate_difference": -3.0612244897959187,
+          "mean_per_instance_difference": -3.5833333333333335,
+          "mean_absolute_per_instance_difference": 13.416666666666666,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 8,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=12, w_plus=27.0, w_minus=51.0, statistic=27.0, p_value=0.3740234375, method='exact (enumerated 2^12)', note='8 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep1",
+          "b": "rep4",
+          "aggregate_difference": -5.102040816326529,
+          "mean_per_instance_difference": -7.083333333333334,
+          "mean_absolute_per_instance_difference": 14.083333333333334,
+          "max_absolute_per_instance_difference": 66.66666666666667,
+          "n_instances_identical": 9,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=11, w_plus=12.0, w_minus=54.0, statistic=12.0, p_value=0.0654296875, method='exact (enumerated 2^11)', note='9 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep2",
+          "b": "rep3",
+          "aggregate_difference": -4.081632653061227,
+          "mean_per_instance_difference": -2.3333333333333335,
+          "mean_absolute_per_instance_difference": 16.666666666666664,
+          "max_absolute_per_instance_difference": 60.0,
+          "n_instances_identical": 9,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=11, w_plus=31.0, w_minus=35.0, statistic=31.0, p_value=0.8857421875, method='exact (enumerated 2^11)', note='9 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep2",
+          "b": "rep4",
+          "aggregate_difference": -6.122448979591837,
+          "mean_per_instance_difference": -5.833333333333334,
+          "mean_absolute_per_instance_difference": 7.5,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 14,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=6, w_plus=1.0, w_minus=20.0, statistic=1.0, p_value=0.0625, method='exact (enumerated 2^6)', note='14 of 20 pairs were exact ties and were dropped')"
+        },
+        {
+          "a": "rep3",
+          "b": "rep4",
+          "aggregate_difference": -2.04081632653061,
+          "mean_per_instance_difference": -3.5,
+          "mean_absolute_per_instance_difference": 12.833333333333334,
+          "max_absolute_per_instance_difference": 40.0,
+          "n_instances_identical": 10,
+          "wilcoxon": "WilcoxonResult(n_pairs=20, n_used=10, w_plus=16.5, w_minus=38.5, statistic=16.5, p_value=0.287109375, method='exact (enumerated 2^10)', note='10 of 20 pairs were exact ties and were dropped')"
+        }
+      ],
+      "null_contrast": {
+        "values": [
+          -1.2500000000000002,
+          -3.5833333333333335,
+          -7.083333333333334,
+          -2.3333333333333335,
+          -5.833333333333334,
+          -3.5
+        ],
+        "max_abs": 7.083333333333334,
+        "sd": 2.1726946062095,
+        "range": 5.833333333333334,
+        "note": "signed mean paired difference between two runs of one configuration; the true effect is zero by construction"
+      }
+    }
+  },
+  "secondary": {
+    "gate_rate_pct": {
+      "per_replicate": {
+        "rep1": 90.0,
+        "rep2": 80.0,
+        "rep3": 90.0,
+        "rep4": 90.0
+      },
+      "range": 10.0,
+      "sd": 5.0
+    },
+    "findings_total": {
+      "per_replicate": {
+        "rep1": 38.0,
+        "rep2": 36.0,
+        "rep3": 42.0,
+        "rep4": 44.0
+      },
+      "range": 8.0,
+      "sd": 3.6514837167011076
+    },
+    "item_precision_pct_rule": {
+      "per_replicate": {
+        "rep1": 62.857142857142854,
+        "rep2": 63.63636363636363,
+        "rep3": 65.78947368421052,
+        "rep4": 67.5
+      },
+      "range": 4.642857142857146,
+      "sd": 2.1065639609065046
+    },
+    "gate_null_contrast": {
+      "values": [
+        10.0,
+        0.0,
+        0.0,
+        -10.0,
+        -10.0,
+        0.0
+      ],
+      "sd": 7.52772652709081,
+      "max_abs": 10.0,
+      "pairs": [
+        {
+          "a": "rep1",
+          "b": "rep2",
+          "gate_difference_pp": 10.0,
+          "discordant_a_only": 3,
+          "discordant_b_only": 1
+        },
+        {
+          "a": "rep1",
+          "b": "rep3",
+          "gate_difference_pp": 0.0,
+          "discordant_a_only": 2,
+          "discordant_b_only": 2
+        },
+        {
+          "a": "rep1",
+          "b": "rep4",
+          "gate_difference_pp": 0.0,
+          "discordant_a_only": 2,
+          "discordant_b_only": 2
+        },
+        {
+          "a": "rep2",
+          "b": "rep3",
+          "gate_difference_pp": -10.0,
+          "discordant_a_only": 1,
+          "discordant_b_only": 3
+        },
+        {
+          "a": "rep2",
+          "b": "rep4",
+          "gate_difference_pp": -10.0,
+          "discordant_a_only": 0,
+          "discordant_b_only": 2
+        },
+        {
+          "a": "rep3",
+          "b": "rep4",
+          "gate_difference_pp": 0.0,
+          "discordant_a_only": 1,
+          "discordant_b_only": 1
+        }
+      ]
+    }
+  },
+  "instances": [
+    {
+      "instance_id": "T03MaterialSEG-10.1002/adfm.202002249",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 40.0,
+        "rep2": 0.0,
+        "rep3": 60.0,
+        "rep4": 20.0
+      },
+      "findings": {
+        "rep1": 3,
+        "rep2": 1,
+        "rep3": 4,
+        "rep4": 2
+      },
+      "range": 60.0,
+      "identical_across_replicates": false,
+      "findings_spread": 3,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/adfm.202209924",
+      "n_items_wrong": 6,
+      "recall": {
+        "rep1": 33.333333333333336,
+        "rep2": 0.0,
+        "rep3": 33.333333333333336,
+        "rep4": 33.333333333333336
+      },
+      "findings": {
+        "rep1": 3,
+        "rep2": 0,
+        "rep3": 2,
+        "rep4": 2
+      },
+      "range": 33.333333333333336,
+      "identical_across_replicates": false,
+      "findings_spread": 3,
+      "gated": {
+        "rep1": true,
+        "rep2": false,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/adfm.202309656",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 0.0,
+        "rep2": 0.0,
+        "rep3": 0.0,
+        "rep4": 0.0
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 0,
+        "rep3": 1,
+        "rep4": 0
+      },
+      "range": 0.0,
+      "identical_across_replicates": true,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": false,
+        "rep3": true,
+        "rep4": false
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/ange.202112688",
+      "n_items_wrong": 2,
+      "recall": {
+        "rep1": 50.0,
+        "rep2": 0.0,
+        "rep3": 50.0,
+        "rep4": 50.0
+      },
+      "findings": {
+        "rep1": 4,
+        "rep2": 4,
+        "rep3": 4,
+        "rep4": 4
+      },
+      "range": 50.0,
+      "identical_across_replicates": false,
+      "findings_spread": 0,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/anie.201812472",
+      "n_items_wrong": 3,
+      "recall": {
+        "rep1": 0.0,
+        "rep2": 0.0,
+        "rep3": 33.333333333333336,
+        "rep4": 0.0
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 4,
+        "rep3": 3,
+        "rep4": 4
+      },
+      "range": 33.333333333333336,
+      "identical_across_replicates": false,
+      "findings_spread": 3,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/anie.202410016",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 20.0,
+        "rep2": 60.0,
+        "rep3": 20.0,
+        "rep4": 60.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 4,
+        "rep3": 3,
+        "rep4": 4
+      },
+      "range": 40.0,
+      "identical_across_replicates": false,
+      "findings_spread": 2,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/celc.202200984",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 40.0,
+        "rep2": 0.0,
+        "rep3": 40.0,
+        "rep4": 40.0
+      },
+      "findings": {
+        "rep1": 3,
+        "rep2": 1,
+        "rep3": 3,
+        "rep4": 3
+      },
+      "range": 40.0,
+      "identical_across_replicates": false,
+      "findings_spread": 2,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/chem.201905217",
+      "n_items_wrong": 4,
+      "recall": {
+        "rep1": 0.0,
+        "rep2": 25.0,
+        "rep3": 0.0,
+        "rep4": 25.0
+      },
+      "findings": {
+        "rep1": 0,
+        "rep2": 1,
+        "rep3": 1,
+        "rep4": 1
+      },
+      "range": 25.0,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": false,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/chem.202302565",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 20.0,
+        "rep2": 40.0,
+        "rep3": 20.0,
+        "rep4": 40.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 3,
+        "rep3": 3,
+        "rep4": 3
+      },
+      "range": 20.0,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/cjce.24030",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 0.0,
+        "rep2": 0.0,
+        "rep3": 20.0,
+        "rep4": 20.0
+      },
+      "findings": {
+        "rep1": 0,
+        "rep2": 0,
+        "rep3": 1,
+        "rep4": 2
+      },
+      "range": 20.0,
+      "identical_across_replicates": false,
+      "findings_spread": 2,
+      "gated": {
+        "rep1": false,
+        "rep2": false,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/cnma.202200403",
+      "n_items_wrong": 6,
+      "recall": {
+        "rep1": 16.666666666666668,
+        "rep2": 33.333333333333336,
+        "rep3": 33.333333333333336,
+        "rep4": 16.666666666666668
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 2,
+        "rep3": 2,
+        "rep4": 1
+      },
+      "range": 16.666666666666668,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/cssc.201000245",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 0.0,
+        "rep2": 0.0,
+        "rep3": 0.0,
+        "rep4": 0.0
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 0,
+        "rep3": 0,
+        "rep4": 0
+      },
+      "range": 0.0,
+      "identical_across_replicates": true,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": false,
+        "rep3": false,
+        "rep4": false
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/cssc.202300809",
+      "n_items_wrong": 6,
+      "recall": {
+        "rep1": 33.333333333333336,
+        "rep2": 0.0,
+        "rep3": 16.666666666666668,
+        "rep4": 0.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 1,
+        "rep3": 1,
+        "rep4": 1
+      },
+      "range": 33.333333333333336,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/ijch.201400157",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 40.0,
+        "rep2": 60.0,
+        "rep3": 80.0,
+        "rep4": 60.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 3,
+        "rep3": 4,
+        "rep4": 3
+      },
+      "range": 40.0,
+      "identical_across_replicates": false,
+      "findings_spread": 2,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/pssb.201900312",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 20.0,
+        "rep2": 40.0,
+        "rep3": 0.0,
+        "rep4": 20.0
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 2,
+        "rep3": 0,
+        "rep4": 1
+      },
+      "range": 40.0,
+      "identical_across_replicates": false,
+      "findings_spread": 2,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": false,
+        "rep4": true
+      },
+      "gate_flips": true
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/smll.201800441",
+      "n_items_wrong": 6,
+      "recall": {
+        "rep1": 33.333333333333336,
+        "rep2": 16.666666666666668,
+        "rep3": 33.333333333333336,
+        "rep4": 16.666666666666668
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 1,
+        "rep3": 2,
+        "rep4": 2
+      },
+      "range": 16.666666666666668,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/smll.202408072",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 40.0,
+        "rep2": 20.0,
+        "rep3": 20.0,
+        "rep4": 40.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 1,
+        "rep3": 1,
+        "rep4": 2
+      },
+      "range": 20.0,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/zaac.201800357",
+      "n_items_wrong": 6,
+      "recall": {
+        "rep1": 16.666666666666668,
+        "rep2": 16.666666666666668,
+        "rep3": 16.666666666666668,
+        "rep4": 16.666666666666668
+      },
+      "findings": {
+        "rep1": 1,
+        "rep2": 1,
+        "rep3": 1,
+        "rep4": 1
+      },
+      "range": 0.0,
+      "identical_across_replicates": true,
+      "findings_spread": 0,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1002/zaac.202200095",
+      "n_items_wrong": 5,
+      "recall": {
+        "rep1": 20.0,
+        "rep2": 20.0,
+        "rep3": 20.0,
+        "rep4": 20.0
+      },
+      "findings": {
+        "rep1": 2,
+        "rep2": 2,
+        "rep3": 2,
+        "rep4": 3
+      },
+      "range": 0.0,
+      "identical_across_replicates": true,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    },
+    {
+      "instance_id": "T03MaterialSEG-10.1126/sciadv.adp3309",
+      "n_items_wrong": 4,
+      "recall": {
+        "rep1": 50.0,
+        "rep2": 50.0,
+        "rep3": 25.0,
+        "rep4": 50.0
+      },
+      "findings": {
+        "rep1": 5,
+        "rep2": 5,
+        "rep3": 4,
+        "rep4": 5
+      },
+      "range": 25.0,
+      "identical_across_replicates": false,
+      "findings_spread": 1,
+      "gated": {
+        "rep1": true,
+        "rep2": true,
+        "rep3": true,
+        "rep4": true
+      },
+      "gate_flips": false
+    }
+  ],
+  "cost_usd": 1.94499,
+  "kill": {
+    "threshold_pp": 8.0,
+    "range": 6.122448979591837,
+    "range_rule": 6.122448979591837,
+    "fired": false
+  }
+}

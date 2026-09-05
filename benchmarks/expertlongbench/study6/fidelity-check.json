@@ -1,0 +1,25 @@
+{
+  "note": "Is the replay faithful? Study 3's arm X round-one audit ran inside the live build loop; study 6 replicate 1 replays the same audit over the same committed bytes through premise.py --rejudge. Nothing here is a measurement of noise -- it is a check that the two pipelines are judging the same thing. Counts only; no corpus text.",
+  "comparison": "study 3 arm X, round 1  vs  study 6 replicate 1",
+  "aggregate": {
+    "study3_armX_r1": {"n_findings": 37, "n_wrong_and_named": 23, "n_items_wrong": 98, "recall_pct": 23.5},
+    "study6_rep1": {"n_findings": 38, "n_wrong_and_named": 23, "n_items_wrong": 98, "recall_pct": 23.5}
+  },
+  "rules_cited": {
+    "study3_armX_r1": {"CA-CONTENT-001": 5, "CA-RUBRIC-001": 5, "CA-RUBRIC-003": 12, "CA-RUBRIC-004": 4, "CA-RUBRIC-005": 6, "CA-RUBRIC-006": 5},
+    "study6_rep1": {"CA-CONTENT-001": 3, "CA-RUBRIC-001": 7, "CA-RUBRIC-003": 11, "CA-RUBRIC-004": 4, "CA-RUBRIC-005": 7, "CA-RUBRIC-006": 6}
+  },
+  "per_instance_findings_study3_to_rep1": {
+    "adfm.202002249": [1, 3], "adfm.202209924": [0, 3], "adfm.202309656": [0, 1],
+    "ange.202112688": [3, 4], "anie.201812472": [2, 1], "anie.202410016": [5, 2],
+    "celc.202200984": [3, 3], "chem.201905217": [1, 0], "chem.202302565": [3, 2],
+    "cjce.24030": [0, 0], "cnma.202200403": [2, 1], "cssc.201000245": [0, 1],
+    "cssc.202300809": [1, 2], "ijch.201400157": [2, 2], "pssb.201900312": [1, 1],
+    "smll.201800441": [2, 2], "smll.202408072": [2, 2], "zaac.201800357": [1, 1],
+    "zaac.202200095": [3, 2], "sciadv.adp3309": [5, 5]
+  },
+  "instances_with_identical_finding_count": 8,
+  "n_instances": 20,
+  "what_it_shows": "The aggregate reproduces exactly (23/98 both times) while only 8 of 20 instances produced the same number of findings. The pipeline is faithful at the level the published number is reported at, and the per-instance behaviour underneath it is not stable -- which is the distinction study 6 exists to measure.",
+  "inputs_held_equal": "Same drafts (sha256 pinned), same rubric constitution (9f1ee353), same recipe, same checks profile, same empty TASK.md, same auditor model. max_rounds differs (3 in study 3, 1 here) and does not enter the audit prompt."
+}
