@@ -7019,3 +7019,57 @@ count the sandboxed reviewers could not verify (2772 passed, 8 skipped) was
 re-run on a second host before merge. The boundary as shipped governs CLI
 increment and configured-Constitution ingress; `auditor.prompt.build` itself
 still fences whatever mapping it is handed.*
+
+## D157 — Provenance slice 1 landed after eight review rounds; what each round taught, and what stays open
+
+`number_source` shipped on 2026-09-06 (merge of `feat/provenance-slice-1`,
+nine commits on f91f8bb), together with the `declared`/`provenance` gap fix, the
+`check_declared` hardening, and the per-check house skills that make A4's fence
+and the new numbers fence reachable by the generator at all. Design in
+`docs/design/PROVENANCE_CHECKS.md` §1–§8; every review verbatim under
+`benchmarks/reviews/`.
+
+**The record of the rounds is the decision.** Each round found something real,
+and the sequence is the rule set this project now applies to any check that
+turns model output into a block:
+
+1. *A check may not depend on another check to hold its own contract.* Round 2
+   found `number_source` skipping malformed values "reported by units" — and
+   `check_units` never validated values. Root cause 1.
+2. *A prefix never satisfies.* Rounds 3–5: the unit matcher accepted a prefix of
+   the token three different ways (regex alternation, then an allowlist, then a
+   percent extension). The fix that held was inverting the scanner — enumerate
+   the boundaries, everything else is token — because an allowlist fails open on
+   every character its author did not think of.
+3. *Every fix ships with its mirror case.* Round 6: a one-character sign bug
+   (`+` mapped to `-`) made `1e+5 ≡ 1e-5` and survived 3,015 tests; no test had
+   compared a positive explicit exponent with its negative. The guard is now the
+   whole 1–100 sweep in both signs, through both interfaces.
+4. *Validate the directory before writing into it.* Round 7: annotation-skill
+   creation wrote through a symlinked or case-variant `skills/` and then raised
+   the denial that existed to prevent it. `house_dir()` first, or nothing.
+5. *A ruling that names code cites the function it read.* My own instruction in
+   round 2 demoted a base BLOCKER to ADVISORY; the review caught it and it was
+   retracted (see also D156's corrections).
+
+**Arm 1 has reached its limit.** 7 of 365 pair-matched citations blocked
+(1.92%, Wilson [0.93, 3.91]); all seven are the probe's own extraction errors
+(`°C/min` captured as `°C`, `10⁻²` as `10`), which the reviewer confirmed by
+reading the drafts. The corpus can no longer separate the verifier's
+false-blocker rate from the instrument's. The check ships with the §8g interval
+rule applied: point estimate under the 2% line, interval crossing it, so it is
+**advisory by default until Arm 2** — generator-written annotations on a fresh
+sample — measures the real rate.
+
+**Open for the owner, deliberately not decided here.** A hyphenated English
+word after a unit (`a 5 g-sample`, `2 h-long`) blocks on the bare unit, because
+no boundary rule distinguishes `g-sample` from `kg-m` without a unit dictionary
+and a dictionary is never complete. Kept strict. Advisory treatment is a
+product choice with a real cost on each side; the reviewer's two-sentence case
+for each is in the round-5 report.
+
+**What a reader must know before relying on it.** `number_source` verifies that
+a declared span contains the transcribed value and unit; it does not verify
+coverage, correctness, or that a number is unitless (an empty unit imposes no
+constraint); a unit containing a space is read as its first token; reported
+precision is normalised away (`1.50` ≡ `1.5`).
