@@ -152,7 +152,12 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    `requires: [python>=3.11]` 变成假阻断。构建者正按项修（片段只剥 `#L<n>(-L<n>)?`
    且在精确匹配失败后；science 撤回 declared，改在 provenance 里对 metadata.yml 的
    inputs 做带版本的存在性检查；数值比较改十进制字符串、带符号、复合单位）。修完再送
-   第二轮独立复核。
+   第二轮独立复核。**第二轮修复已回（57100d7，全套 2811 通过）：六项全部复现并修好，
+   另发现 `available()` 没导入内置包、靠调用方碰巧导入而通过，以及仓库夹具里 43 处声明了
+   从未写过的 `scripts/run_demo.py`——均已修，无断言放松。正在第二轮 astra 复核。**
+   `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
+   过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
+   （那只在非显式范围时生效）。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
