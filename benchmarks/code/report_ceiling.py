@@ -122,8 +122,10 @@ def clopper_pearson(k: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
                 hi = mid
         return (lo + hi) / 2
 
-    low = 0.0 if k == 0 else invert(1 - alpha / 2, k, n - k + 1)
-    high = 1.0 if k == n else invert(alpha / 2, k + 1, n - k)
+    # Lower bound: the p at which the upper tail P(X >= k) equals alpha/2, i.e.
+    # I^{-1}_{alpha/2}(k, n-k+1). Upper bound: I^{-1}_{1-alpha/2}(k+1, n-k).
+    low = 0.0 if k == 0 else invert(alpha / 2, k, n - k + 1)
+    high = 1.0 if k == n else invert(1 - alpha / 2, k + 1, n - k)
     return (low, high)
 
 

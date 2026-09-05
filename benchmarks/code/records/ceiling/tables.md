@@ -6,9 +6,9 @@ Unit of analysis: the instance. n = 110 stratum-P instances (recall) and 150 str
 
 | family | K_max | union recall on P at K=1 | at K_max | fitted asymptote A [95% bootstrap CI over problems] | union FP on C at K=1 | at K_max | last-step gain on P |
 |---|---:|---:|---:|---|---:|---:|---:|
-| `cross` | 3 | 11.2% | **18.2%** (20/110) | **19.6%** [10.9, 31.0] | 3.8% | **7.3%** | 3.03% |
+| `cross` | 3 | 11.2% | **18.2%** (20/110) | **19.6%** [11.4, 32.4] | 3.8% | **7.3%** | 3.03% |
 | `self` | 1 | 15.5% | **15.5%** (17/110) | **—** — | 22.0% | **22.0%** | — |
-| `astra` | — | — | — | not run | — | — | — |
+| `astra` | 1 | 28.2% | **28.2%** (31/110) | **—** — | 9.3% | **9.3%** | — |
 
 ### Table 2 — union recall and union false positives at every K
 
@@ -29,6 +29,12 @@ Unit of analysis: the instance; the same instances at every K, so the columns ar
 |---:|---:|---:|---:|
 | 1 | 15.5% | 22.0% | — |
 
+**`astra`** (K_max = 1, n = 110 P instances, 150 C instances)
+
+| K | union recall on P | union FP on C | recall per FP point |
+|---:|---:|---:|---:|
+| 1 | 28.2% | 9.3% | — |
+
 ### Table 4 — mixed families at matched total draws
 
 Unit of analysis: the instance. Each row spends the same total number of readings; the question is whether spreading them across families beats spending them all inside one.
@@ -36,13 +42,16 @@ Unit of analysis: the instance. Each row spends the same total number of reading
 | combination | total draws | per family | union recall on P | union FP on C | same total inside one family (recall) |
 |---|---:|---:|---:|---:|---|
 | `cross+self` | 2 | 1 | 21.5% | 24.4% | `cross` 15.2% |
+| `cross+self+astra` | 3 | 1 | 34.5% | 30.0% | `cross` 18.2% |
+| `cross+astra` | 2 | 1 | 29.1% | 10.9% | `cross` 15.2% |
+| `self+astra` | 2 | 1 | 33.6% | 28.7% | — |
 
 ### Table 5 — the residual: stratum-P defects no draw ever flagged
 
 | population | families | total draws | n P instances | never flagged | share [95% Wilson] |
 |---|---|---:|---:|---:|---|
 | three_families_all_P | cross, self | 4 | 110 | **80** | 72.7% [63.7, 80.2] |
-| all_families | cross, self | 4 | 110 | **80** | 72.7% [63.7, 80.2] |
+| all_families | cross, self, astra | 5 | 110 | **70** | 63.6% [54.3, 72.0] |
 
 ### Table 6 — ceiling 2: the closed loop, per arm
 
@@ -50,10 +59,20 @@ Unit of analysis: the instance, paired before/after on the same instance. Net is
 
 | arm | n | audits BLOCKED (P / C) | revisions that changed the file | fixed on P | broken on C | **net change in hidden-test pass rate** [95% exact CI] | exact p |
 |---|---:|---:|---:|---|---|---|---:|
-| `self-loop` | 112 | 10 / 13 | 19 | 3/56 [1.8, 14.6] | 2/56 [1.0, 12.1] | **+0.89 pp** [3.16, -1.93] (b=3, c=2) | 1.0000 |
-| `self-loop-rep` | — | — | — | — | — | not run | — |
-| `cross-loop` | — | — | — | — | — | not run | — |
-| `referent-loop` | — | — | — | — | — | not run | — |
+| `self-loop` | 112 | 10 / 13 | 19 | 3/56 [1.8, 14.6] | 2/56 [1.0, 12.1] | **+0.89 pp** [-3.16, 3.99] (b=3, c=2) | 1.0000 |
+| `self-loop-rep` | 112 | 10 / 13 | 19 | 3/56 [1.8, 14.6] | 2/56 [1.0, 12.1] | **+0.89 pp** [-3.16, 3.99] (b=3, c=2) | 1.0000 |
+| `cross-loop` | 112 | 10 / 3 | 12 | 3/56 [1.8, 14.6] | 0/56 [0.0, 6.4] | **+2.68 pp** [-1.11, 2.68] (b=3, c=0) | 0.2500 |
+| `referent-loop` | 112 | 25 / 10 | 35 | 11/56 [11.3, 31.8] | 2/56 [1.0, 12.1] | **+8.04 pp** [1.06, 11.16] (b=11, c=2) | 0.0225 |
+
+### Table 7 — paired contrasts between arms
+
+Outcome: whether the instance passes the hidden suite after one round. Unit: the instance, paired across arms. Exact McNemar on the discordant pairs; both discordant counts shown.
+
+| contrast | n instances | discordant (b / c) | difference [95% exact CI] | exact p | Bonferroni/12 threshold |
+|---|---:|---:|---|---:|---:|
+| self-loop minus cross-loop, hidden-test pass after one round | 112 | 3 / 5 | -1.79 pp [-5.93, 3.64] | 0.7266 | 0.00417 |
+| referent-loop minus cross-loop, hidden-test pass after one round | 112 | 9 / 3 | +5.36 pp [-1.54, 9.54] | 0.1460 | 0.00417 |
+| self-loop minus self-loop-rep, hidden-test pass after one round | 112 | 0 / 0 | +0.00 pp — | 1.0000 | 0.00417 |
 
 ### Table 8 — what it cost
 
@@ -61,6 +80,6 @@ From the product's own usage ledgers, per call, not reconstructed. The `astra` r
 
 | part | model spend | astra tokens |
 |---|---:|---:|
-| ceiling1 | $0.0000 | — |
-| ceiling2 | $0.5263 | — |
-| **total** | **$0.5263** | 0 |
+| ceiling1 | $0.0000 | 1,223,456 |
+| ceiling2 | $3.7083 | — |
+| **total** | **$3.7083** | 1,223,456 |
