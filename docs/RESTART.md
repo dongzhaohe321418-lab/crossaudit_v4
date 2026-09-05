@@ -204,7 +204,13 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    没有统一身份，别名即绕过。修法定在加载器：真实目录名必须恰为 `skills` 且非符号链接，
    否则 ConfigDenial。另：宪法路径不得位于 `skills/` 下；"没有检查读技能字节"这句前提
    为假（`internal`/`complete-strict` 会读任何文本），改为断言真实性质——技能在任何检查
-   运行前已被移出增量。第二轮修复进行中。
+   运行前已被移出增量。第二轮 astra 复核仍否决但更窄（宪法别名 `SKILLS/`、`work/../skills/`
+   在配置加载时被接受；`--lang zh run` 回退叙述为英文；文件名 `skills` 的文案与行为矛盾）。
+   **第三轮修复已交（a5ec01e，全套 2763 通过）**：宪法路径 `normpath` 后首段大小写不敏感比较、
+   逃出项目的值单独拒绝，`skills/../AUDIT_RULES.md` 归一化后为合法路径**有意接受**（守卫管位置
+   不管拼法）；`_is_house_skill` 只匹配目录**之下**的路径，裸文件 `skills` 三处口径统一为"工作"；
+   `cmd_run` 顶部 `_speak(args)` 只尊重显式 `--lang`、不用环境变量回退（`run` 叙述 2/33 走目录，
+   半翻译屏 D21 禁止；更宽的 i18n 缺口另开一片）。第三轮 astra 复核进行中。
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
