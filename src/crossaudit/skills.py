@@ -60,6 +60,14 @@ class Skill:
     path: str
     body: str
     applies_to: tuple[str, ...] = ()
+    #: Deterministic checks this guidance is ABOUT. Empty means "always", which
+    #: is every skill a person writes. It exists for the guidance that ships
+    #: beside a check: instructions for annotating numbers are worse than
+    #: useless once `number_source` is off — they describe a contract nothing
+    #: will read, and the generator pays for them every round. Composition
+    #: happens once, at scaffold time; a check can be turned off at any time
+    #: after, so the gate has to be read on every selection.
+    requires_check: tuple[str, ...] = ()
 
     @property
     def digest(self) -> str:
@@ -73,19 +81,34 @@ class Skill:
         return any(p.startswith(pref) or pref in p for pref in self.applies_to
                    for p in paths)
 
+    def wanted_by(self, checks) -> bool:
+        """Whether the project's live check list still wants this guidance.
+
+        `checks is None` means the caller does not know, and an unknown answer
+        never removes guidance a person may have written by hand.
+        """
+        if not self.requires_check or checks is None:
+            return True
+        return any(name in checks for name in self.requires_check)
+
 
 def _parse(text: str, name: str, rel: str) -> Skill:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     applies: tuple[str, ...] = ()
+    requires: tuple[str, ...] = ()
     body = text
     m = FRONT_MATTER.match(text)
     if m:
         for line in m.group(1).splitlines():
             key, _, value = line.partition(":")
+            field = tuple(v.strip() for v in value.split(",") if v.strip())
             if key.strip() == "applies_to":
-                applies = tuple(v.strip() for v in value.split(",") if v.strip())
+                applies = field
+            elif key.strip() == "requires_check":
+                requires = field
         body = text[m.end():]
-    return Skill(name=name, path=rel, body=body.strip(), applies_to=applies)
+    return Skill(name=name, path=rel, body=body.strip(), applies_to=applies,
+                 requires_check=requires)
 
 
 def house_dir(root: Path, directory: str = SKILLS_DIR) -> Path | None:
@@ -188,8 +211,14 @@ def load(root: Path, directory: str = SKILLS_DIR) -> list[Skill]:
     return out
 
 
-def select(skills: list[Skill], touched: list[str]) -> list[Skill]:
-    return [s for s in skills if s.matches(touched)]
+def select(skills: list[Skill], touched: list[str], checks=None) -> list[Skill]:
+    """The skills in force for this round.
+
+    `checks` is the project's resolved deterministic check list, and it is
+    optional so every existing caller keeps its behaviour exactly. Passing it
+    drops guidance whose `requires_check` names nothing the project still runs.
+    """
+    return [s for s in skills if s.matches(touched) and s.wanted_by(checks)]
 
 
 def render(skills: list[Skill]) -> str:

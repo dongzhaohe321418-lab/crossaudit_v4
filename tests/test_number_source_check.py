@@ -335,36 +335,43 @@ def test_the_check_is_registered_with_a_contract_and_wants_no_context():
     assert "correct" in contract          # it says out loud what it does not do
 
 
+NUMBERS_SKILL = "skills/provenance-numbers.md"
+SOURCES_SKILL = "skills/provenance-sources.md"
+
+
 def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for_one():
-    """MUTATION (§5.4): stop writing `skills/provenance.md` when the check list
-    contains one of the annotation checks. `number_source` and
-    `source_provenance` both read a block the GENERATOR emits, and nothing in
-    `generator.py` or the Constitution asks for one — so the check would pass
-    every document while appearing to guard it, which is worse than not having
-    it. `general` enables neither and must get no such file.
+    """MUTATION (§5.4): stop writing the skill when the check list contains one
+    of the annotation checks. `number_source` and `source_provenance` both read
+    a block the GENERATOR emits, and nothing in `generator.py` or the
+    Constitution asks for one — so the check would pass every document while
+    appearing to guard it, which is worse than not having it. `general` enables
+    neither and must get no such file.
 
     It travels the shipped channel and no other: a committed `skills/*.md` that
     `skills.load` reads, `skills.render` puts in the generator prompt, and the
     receipt hashes — never the auditor's prompt, and never a new channel."""
     from crossaudit import skills as skills_mod
-    from crossaudit.scaffold import (GENERAL_CHECKS, PROVENANCE_SKILL_PATH,
-                                     SCIENCE_CHECKS, annotation_skill_tree)
+    from crossaudit.scaffold import (GENERAL_CHECKS, SCIENCE_CHECKS,
+                                     annotation_skill_tree)
     from crossaudit.dcl.profiles import PROFILES
 
     assert annotation_skill_tree(GENERAL_CHECKS) == {}
     for checks in (SCIENCE_CHECKS, PROFILES["science"], PROFILES["research"]):
-        assert PROVENANCE_SKILL_PATH in annotation_skill_tree(checks)
+        assert NUMBERS_SKILL in annotation_skill_tree(checks)
 
-    body = annotation_skill_tree(SCIENCE_CHECKS)[PROVENANCE_SKILL_PATH]
+    body = annotation_skill_tree(SCIENCE_CHECKS)[NUMBERS_SKILL]
     # It tells the generator to transcribe and to locate. It must never ask it
     # to assess (D155).
     assert "```crossaudit-numbers" in body
     assert "uncited" in body and "#L11" in body
     assert "you name a location, you never say what is at it" in body.lower()
+    # And it says the unit is compared whole, because a half-transcribed
+    # compound unit is now a blocker and the generator has to be told.
+    assert "in full" in body and "°C/min" in body
 
-    # And it is a legal skill: front matter parses, size is inside the bound,
-    # and it renders into the generator block rather than anywhere else.
-    skill = skills_mod._parse(body, "provenance", PROVENANCE_SKILL_PATH)
+    # It is a legal skill: front matter parses, size is inside the bound, and it
+    # renders into the generator block rather than anywhere else.
+    skill = skills_mod._parse(body, "provenance-numbers", NUMBERS_SKILL)
     assert len(body.encode()) < skills_mod.MAX_SKILL_BYTES
     assert "crossaudit-numbers" in skills_mod.render([skill])
 
@@ -373,36 +380,67 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
     # (`cli/build.py:794`), which is `["experiments"]` — a bare directory name
     # that matches neither `experiments/` nor `work/`, so a freshly scaffolded
     # project's FIRST generation carried no provenance instruction at all and
-    # every document passed `number_source` vacuously. Unconditional is right
-    # anyway: this is how to write down a number, not advice about a directory.
+    # every document passed `number_source` vacuously.
     assert skill.applies_to == ()
     for touched in (["experiments"], ["work"], [], ["experiments/demo/x.md"]):
         assert skills_mod.select([skill], touched) == [skill], touched
 
 
-@pytest.mark.parametrize("checks,numbers,sources", [
-    (["number_source"], True, False),
-    (["source_provenance"], False, True),
+@pytest.mark.parametrize("checks,files", [
+    (["number_source"], [NUMBERS_SKILL]),
+    (["source_provenance"], [SOURCES_SKILL]),
     (["parseable", "declared", "internal", "complete", "source_provenance",
-      "number_source"], True, True),
+      "number_source"], [NUMBERS_SKILL, SOURCES_SKILL]),
 ])
-def test_the_skill_only_instructs_for_checks_the_project_actually_runs(
-        checks, numbers, sources):
+def test_the_skill_only_instructs_for_checks_the_project_actually_runs(checks, files):
     """MUTATION: ship one combined file for either check.
 
-    Selection has no profile gate — a skill in `skills/` is in force for the
-    round — so a project configured with only `source_provenance` was handed the
-    whole number-annotation contract for a fence nothing would ever read. That
-    is guidance describing a check the project does not have, and output the
-    generator pays for every round. One fragment per check, composed at scaffold
-    time from the resolved list."""
-    from crossaudit.scaffold import PROVENANCE_SKILL_PATH, annotation_skill_tree
+    A project configured with only `source_provenance` was handed the whole
+    number-annotation contract for a fence nothing would ever read — guidance
+    describing a check the project does not have, and output the generator pays
+    for every round. One FILE per check, so each can also be gated later."""
+    from crossaudit.scaffold import annotation_skill_tree
 
-    body = annotation_skill_tree(checks)[PROVENANCE_SKILL_PATH]
-    assert ("```crossaudit-numbers" in body) is numbers
-    assert ("```crossaudit-sources" in body) is sources
-    # The one rule is in every composition, whichever fragments were chosen.
-    assert "you name a location, you never say what is at it" in body.lower()
+    assert sorted(annotation_skill_tree(checks)) == sorted(files)
+    for path, body in annotation_skill_tree(checks).items():
+        assert ("```crossaudit-numbers" in body) is (path == NUMBERS_SKILL)
+        assert ("```crossaudit-sources" in body) is (path == SOURCES_SKILL)
+        assert "you name a location, you never say what is at it" in body.lower()
+
+
+def test_a_retained_skill_stops_being_delivered_when_its_check_is_turned_off():
+    """MUTATION: drop `requires_check` from the template, or drop the `checks=`
+    argument at `cli/build.py:794`.
+
+    Composition happens once, at scaffold time. Turn `number_source` off a month
+    later and the committed file is still in `skills/`, still selected, still in
+    every generator prompt — describing a fence nothing will read and charging
+    for it every round. The gate has to be read on every selection, so it lives
+    in the file's own front matter and `skills.select` honours it.
+
+    `checks=None` still selects everything: a person's own hand-written skill
+    has no `requires_check`, and an unknown answer must never remove guidance."""
+    from crossaudit import skills as skills_mod
+    from crossaudit.scaffold import annotation_skill_tree
+
+    tree = annotation_skill_tree(["number_source", "source_provenance"])
+    house = [skills_mod._parse(body, path.rsplit("/", 1)[-1][:-3], path)
+             for path, body in sorted(tree.items())]
+    assert [s.requires_check for s in house] == [("number_source",),
+                                                 ("source_provenance",)]
+
+    def names(checks):
+        return sorted(s.name for s in skills_mod.select(house, ["src"], checks=checks))
+
+    assert names(["number_source", "source_provenance"]) == ["provenance-numbers",
+                                                             "provenance-sources"]
+    assert names(["source_provenance"]) == ["provenance-sources"]
+    assert names(["parseable"]) == []
+    assert names(None) == ["provenance-numbers", "provenance-sources"]
+
+    # A skill a person wrote has no gate and is never dropped by one.
+    mine = skills_mod._parse("# house style\n", "house", "skills/house.md")
+    assert skills_mod.select([mine], ["src"], checks=[]) == [mine]
 
 
 # ------------------------------------------------- the review's five, and more
@@ -425,7 +463,7 @@ def test_the_skill_only_instructs_for_checks_the_project_actually_runs(
     ("0.50 m",             "0.5", "m",     [],             "trailing zeros are dropped"),
     ("05 m",               "5",   "m",     [],             "leading zeros are dropped"),
     ("1,000 rpm",          "1000", "rpm",  [],             "a grouped thousand"),
-    ("1,000 rpm",          "1",   "",      [],             "and its other reading"),
+    ("1,000 rpm",          "1",   "",      ["CA-NUM-002"], "and one is not a thousand"),
     ("cool to 25–106 °C",  "106", "°C",    [],             "an en-dash range"),
     ("range 5-10 m",       "10",  "m",     [],             "a hyphen range"),
     ("1 hour",             "1",   "hours", [],             "the synonym table, raw"),
@@ -631,15 +669,17 @@ def test_a_fresh_science_project_carries_the_skill_in_its_first_prompt(
     assert "number_source" in cfg.checks
 
     # Committed, so the receipt binds it and `verify` can re-derive the round.
-    assert (root / "skills" / "provenance.md").is_file()
-    tracked = subprocess.run(["git", "ls-files", "skills/provenance.md"], cwd=root,
+    assert (root / NUMBERS_SKILL).is_file()
+    tracked = subprocess.run(["git", "ls-files", NUMBERS_SKILL], cwd=root,
                              capture_output=True, text=True, check=True).stdout
-    assert tracked.strip() == "skills/provenance.md"
+    assert tracked.strip() == NUMBERS_SKILL
 
-    # The selection `cli/build.py` makes on round 1, when nothing is written yet.
+    # The selection `cli/build.py` makes on round 1, when nothing is written yet
+    # — including the live check gate it passes.
     house = skills_mod.load(root)
-    in_force = skills_mod.select(house, [] or cfg.scope_dirs)
-    assert [s.name for s in in_force] == ["provenance"]
+    in_force = skills_mod.select(house, [] or cfg.scope_dirs, checks=cfg.checks)
+    assert [s.name for s in in_force] == ["provenance-numbers"]
+    assert skills_mod.select(house, cfg.scope_dirs, checks=["parseable"]) == []
 
     prompt = generator.build_prompt(
         task="write the increment", constitution="# rules\n", current={},
@@ -661,8 +701,9 @@ def test_a_fresh_science_project_carries_the_skill_in_its_first_prompt(
     ("−5 °C",   "5",    "°C",    ["CA-NUM-002"], "and minus five is still not five"),
     ("5 mg/mL", "5",    "mg",    ["CA-NUM-002"], "a prefix of a compound unit"),
     ("5 cm-1",  "5",    "cm",    ["CA-NUM-002"], "a prefix of an exponent unit"),
-    ("5 °C",   "5",    "°C",    [],             "U+2003 EM SPACE"),
-    ("5 °C",   "5",    "°C",    [],             "U+202F NARROW NO-BREAK SPACE"),
+    ("5\u2003°C", "5",  "°C",    [],             "U+2003 EM SPACE"),
+    ("5\u202f°C", "5",  "°C",    [],             "U+202F NARROW NO-BREAK SPACE"),
+    ("5\u00a0°C", "5",  "°C",    [],             "U+00A0 NO-BREAK SPACE"),
     ("0.42 1",  "0.42", "1",     [],             "a dimensionless numeric unit"),
     ("5 m2",    "5",    "m2",    [],             "an exponent written as a digit"),
     ("about 950", "~950", "°C",  ["CA-NUM-001"], "a value that is not a number"),
@@ -860,3 +901,109 @@ def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
     files = {RECIPE_PATH: (span + "\n").encode(),
              DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
     assert [f.rule for f in findings(files)] == expected, why
+
+
+# ------------------------------------- the third review: a prefix never satisfies
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # Round three's P1 table: the annotation is a strict PREFIX of the token.
+    ("5 m-2s-1",      "5", "m",            ["CA-NUM-002"], "prefix of an exponent compound"),
+    ("5 m-2s-1",      "5", "m-2s-1",       [],             "and the whole token matches"),
+    ("5 m2s-1",       "5", "m",            ["CA-NUM-002"], "the same without the hyphen"),
+    ("10 kg-m",       "10", "kg",          ["CA-NUM-002"], "prefix of a hyphenated unit"),
+    ("10 kg-m",       "10", "kg-m",        [],             "and the whole token matches"),
+    ("5 g-equivalent", "5", "g",           ["CA-NUM-002"], "prefix of a hyphenated word"),
+    ("5 g-equivalent", "5", "g-equivalent", [],            "and the whole token matches"),
+    ("2 h-long",      "2", "h",            ["CA-NUM-002"], "prose is not a licence for a prefix"),
+    ("2 h-long",      "2", "h-long",       [],             "and the whole token matches"),
+    ("3 °C-1",        "3", "°C",           ["CA-NUM-002"], "prefix of a hyphen exponent"),
+    ("3 °C-1",        "3", "°C-1",         [],             "and the whole token matches"),
+    ("5 m-2 s-1",     "5", "m-2",          [],             "a space ends the token"),
+    # A range is split, and only where both halves are the same unit.
+    ("(20°C-25°C)",   "20", "°C",          [],             "a closed-up range names one unit"),
+    ("(20°C-25°C)",   "25", "°C",          [],             "from either end"),
+    ("(20°C-25°C)",   "20", "°C-25°C",     [],             "the whole token is a reading too"),
+    ("10 kg-2m",      "10", "kg",          ["CA-NUM-002"], "unequal halves are not a range"),
+    ("99-102 kPa",    "102", "kPa",        [],             "the half that carries the unit"),
+    ("99-102 kPa",    "99", "kPa",         ["CA-NUM-002"], "and the half that does not"),
+    # The exponent bound refuses; it never truncates.
+    ("1e10001 g",     "1e1000", "1",       ["CA-NUM-002"], "no leftover digit becomes a unit"),
+    ("1e10001 g",     "1e10001", "g",      [],             "and the real pair matches"),
+    ("1e100 g",       "1e100", "g",        [],             "an ordinary exponent"),
+    ("1e100 g",       "1e9999999", "g",    ["CA-NUM-001"], "past the bound is refused"),
+    # Extraction sees every form normalisation accepts.
+    (".5 g",          ".5", "g",           [],             "a leading-dot decimal"),
+    (".5 g",          "0.5", "g",          [],             "and the same number written out"),
+    ("mol/(L·s): 5 mol/(L·s)", "5", "mol/(L·s)", [],       "balanced brackets stay inside"),
+    ("at 5 K.",       "5", "K",            [],             "a sentence period ends the token"),
+    ("950 °C, then",  "950", "°C",         [],             "so does a comma"),
+])
+def test_a_prefix_of_the_unit_token_never_satisfies(span, v, u, expected, why):
+    """MUTATION: read the unit with a pattern that can return a shorter
+    alternative, or cap the exponent inside the SPAN scanner.
+
+    Both were the same defect wearing two hats — something shorter than what the
+    source wrote was accepted as what the source wrote. `5 m-2s-1` satisfied an
+    annotation of `m`, `10 kg-m` satisfied `kg`, `2 h-long` satisfied `h`; and
+    `1e10001` was read as the number `1e1000` followed by the unit `1`, which
+    passed 100 of 100 exponents swept from 10000 to 10099.
+
+    The rule is now one rule and it is the same for both halves of the pair: the
+    token is extracted whole, to a true boundary, and compared whole-to-whole. A
+    bound is a REFUSAL (CA-NUM-001), never a truncation. The only readings that
+    may be added are ones LONGER than the token — a range split and the `wt %`
+    percent split — so nothing can reintroduce a prefix."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_the_exponent_sweep_that_gave_a_hundred_false_passes():
+    """MUTATION: put a digit cap back in `_NUMBER`.
+
+    The review swept exponents 10000–10099 and every one of them was a false
+    pass: the scanner consumed four exponent digits and handed the fifth to the
+    unit reader. One case would have been a curiosity; a contiguous hundred is a
+    grammar defect, so the whole range is the guard."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    for exponent in range(10000, 10100):
+        digits = str(exponent)
+        assert not contains_pair(f"1e{exponent} g", f"1e{digits[:4]}", digits[4:]), exponent
+        assert contains_pair(f"1e{exponent} g", f"1e{exponent}", "g"), exponent
+
+
+@pytest.mark.parametrize("src,at,blocks", [
+    (f"{RECIPE_PATH}#L11", "#L3", False),
+    (f"{RECIPE_PATH}#L11\n", "#L3", True),
+    (f"{RECIPE_PATH}#L١١", "#L3", True),
+    (f" {RECIPE_PATH}#L11", "#L3", True),
+    (f"{RECIPE_PATH}#L11", "#L3\n", True),
+])
+def test_a_fenced_locator_is_ascii_and_exact(src, at, blocks):
+    """MUTATION: put `\\d` back in `_LINE`, or restore the `.strip()` on `src`
+    and `at`.
+
+    The ASCII/absolute-end discipline was applied to the `check_provenance`
+    membership test and to nothing else, so the FENCE parser still read `#L٢`
+    as line two and still discarded trailing whitespace inside a locator. A
+    locator is an address; `work/x.md#L11\\n` is not the address
+    `work/x.md#L11`."""
+    files = {RECIPE_PATH: RECIPE.encode(),
+             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at, "src": src}])}
+    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
+
+
+def test_the_contract_discloses_what_normalisation_does_to_a_number():
+    """MUTATION: go back to promising literal containment.
+
+    The contract is the sentence a person reads to decide whether to turn the
+    check on, and it is bound into the receipt. Saying "literally contains" while
+    treating `1.50` and `1.5` as one number overstates it: the check cannot tell
+    a reported precision from a rounded one, and a contract that hides its own
+    limit is the overclaim shape this whole line exists to remove."""
+    from crossaudit.dcl.framework import contracts
+
+    contract = contracts(["number_source"])["number_source"]
+    assert "1.50" in contract and "not significant" in contract
+    assert "WHOLE unit token" in contract and "prefix" in contract
+    assert "never coverage" in contract and "never judges whether a number is correct" in contract

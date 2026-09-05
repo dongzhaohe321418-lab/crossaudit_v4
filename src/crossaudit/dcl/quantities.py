@@ -34,16 +34,21 @@ import yaml
 
 RESULTS_SUFFIX = "results.json"
 
-#: A decimal or exponent literal. ASCII digits only — `\d` also matches Arabic-
-#: Indic and Devanagari digits, which `Decimal` and `int` do accept and which no
-#: transcription of a source's bytes would ever produce deliberately.
+#: A decimal or exponent literal, for validating a TRANSCRIPTION before
+#: comparing it. ASCII digits only — `\d` also matches Arabic-Indic and
+#: Devanagari digits, which `int()` accepts and which no transcription of a
+#: source's bytes would ever mean.
 #:
-#: The lengths are bounded because this text arrives from a generator: an
-#: unbounded coefficient is a 4300-digit `int()` refusal waiting to happen, and
-#: an unbounded exponent turns `format(Decimal("1e999999999"), "f")` into a
-#: gigabyte of zeros inside the deterministic layer.
+#: The lengths are bounded, and a literal outside the bound is REFUSED rather
+#: than truncated. The distinction is the whole finding: capping the exponent
+#: inside a scanning pattern let `1e10001` be read as the number `1e1000`
+#: followed by the unit `1`, so an annotation of `1e1000`/`1` passed against a
+#: span saying 1e10001 — and a contiguous sweep of exponents 10000–10099 gave
+#: 100 false passes out of 100. Here the pattern is used with `fullmatch`, so an
+#: over-long literal matches nothing, `normalise_number` returns None, and the
+#: caller raises CA-NUM-001.
 _DECIMAL = re.compile(r"[+-]?(?:[0-9]{1,512}(?:\.[0-9]{1,512})?|\.[0-9]{1,512})"
-                      r"(?:[eE][+-]?[0-9]{1,4})?")
+                      r"(?:[eE][+-]?[0-9]{1,6})?")
 #: U+2212 MINUS SIGN is what a typesetter, a spreadsheet export and half the
 #: scientific literature write for a negative number. It is a minus.
 _MINUS = "−"
@@ -73,32 +78,44 @@ def declared_inputs(files: Mapping[str, bytes]) -> list[tuple[str, str]]:
 
 
 def normalise_number(token) -> str | None:
-    """One canonical decimal string for a transcribed number, or None.
+    """One canonical key for a transcribed number, or None.
+
+    The key is `<significant digits>e<scale>`, so two literals are the same
+    number exactly when their keys are equal: `1e3` and `1000` both give
+    `1e3`, `0.50` and `.5` both give `5e-1`, and 9007199254740992 and
+    9007199254740993 differ. Built from the digits by hand rather than through
+    `float` — two integers 2**53 apart round to the same double, so a float
+    comparison would report a span containing one as containing the other, a
+    check saying it verified a number literally while accepting a different
+    one. Not through `Decimal` either: `format(Decimal("1e999999"), "f")` is a
+    megabyte of zeros inside the deterministic layer.
 
     Canonical means: a U+2212 minus folded onto `-`, thousands separators
-    dropped, exponent notation expanded (`1e3` and `1000` are one number), a
-    leading `+` dropped, leading zeros before the point dropped, trailing zeros
-    after the point dropped, and a negative zero folded onto zero.
+    dropped, exponent notation folded into the scale, a leading `+` dropped,
+    leading and trailing insignificant zeros dropped, and a negative zero
+    folded onto zero. **Trailing zeros are not significant here:** `1.50` and
+    `1.5` are one number, which the check's contract string says out loud
+    because it is a real limit — the check cannot tell a reported precision
+    from a rounded one.
 
     None means "this is not a number", and every caller must treat that as a
-    finding rather than falling back to something looser. A substring fallback
-    is what let source `1e3 K` satisfy an annotation of `1e3` with unit `g`.
+    finding. There is no looser fallback anywhere: the substring one that used
+    to exist ignored the unit entirely.
     """
     text = str(token).strip().replace(",", "").replace(_MINUS, "-")
     if not _DECIMAL.fullmatch(text):
         return None
-    try:
-        value = Decimal(text)
-    except InvalidOperation:                           # pragma: no cover
-        return None
-    plain = format(value, "f")
-    negative = plain.startswith("-")
-    digits = plain.lstrip("+-")
-    whole, _, frac = digits.partition(".")
-    frac = frac.rstrip("0")
-    whole = whole.lstrip("0") or "0"
-    out = whole + ("." + frac if frac else "")
-    return out if out == "0" else (("-" if negative else "") + out)
+    negative = text.startswith("-")
+    body = text.lstrip("+-")
+    mantissa, _, exponent = body.partition("e") if "e" in body else body.partition("E")
+    whole, _, frac = mantissa.partition(".")
+    digits = (whole + frac).lstrip("0")
+    if not digits:
+        return "0"
+    scale = (int(exponent) if exponent else 0) - len(frac)
+    stripped = digits.rstrip("0")
+    scale += len(digits) - len(stripped)
+    return f"{'-' if negative else ''}{stripped}e{scale}"
 
 
 def is_number_shape(value) -> bool:

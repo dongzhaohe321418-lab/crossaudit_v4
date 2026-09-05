@@ -1,4 +1,16 @@
-## Numbers
+---
+requires_check: number_source
+---
+
+# Saying where a number came from
+
+**The one rule: you name a location, you never say what is at it.** Code opens
+the file and looks for itself. Nothing here asks whether a number is right or
+what a line says — those are the auditor's questions, and an annotation that
+answers them is answering a question nobody asked. If you are not certain a
+value is at the line you would name, write `uncited`. That is a fact about your
+annotation, it never counts against the work, and it is always better than a
+guess.
 
 At the end of any artefact that states numbers, add one block:
 
@@ -11,11 +23,13 @@ At the end of any artefact that states numbers, add one block:
 All four fields, every row. A row with three cannot be checked and is refused.
 
 - `v` — the number **exactly as you wrote it in your own prose**, and nothing
-  else: no `~`, no range, no words. Transcribe the characters; do not convert or
-  re-render them. If what you wrote is not a single number, write `uncited`.
-- `u` — its unit, as you wrote it, in full: `mg/mL`, not `mg`. Use `""` when the
-  number has no unit.
-- `at` — the line of *this* artefact where you wrote it: `"#L14"`.
+  else: no `~`, no range, no words. If what you wrote is not a single number,
+  write `uncited`.
+- `u` — its unit, as you wrote it, **in full**: `°C/min`, not `°C`; `mg/mL`, not
+  `mg`. The whole unit is compared, so half of one does not match. Use `""` when
+  the number has no unit.
+- `at` — the line of *this* artefact where you wrote it: `"#L14"`. Exactly that,
+  with no spaces around it.
 - `src` — where you read it, as a **line**, never as a whole file:
   - `path/to/file.md#L11`, or `path/to/file.md#L11-L13` for a short range;
   - `uncited` when you did not read it anywhere — a constant you know, a value

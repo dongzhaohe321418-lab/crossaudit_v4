@@ -6,8 +6,12 @@ actually ships (`crossaudit.dcl.numbers.check_number_source`) over the same 16
 archived T03 drafts, with the annotations the probe derives, and reports the
 preregistered primary outcome:
 
-    the FALSE-BLOCKER RATE — of numbers that DO trace to the source, the
-    fraction the verifier fails. Kill condition: > 2%.
+    the BLOCK RATE ON PAIR-MATCHED CITATIONS — of numbers whose extracted
+    (value, unit) pair does occur on the line the harness names, the fraction
+    the verifier blocks. Kill condition: > 2%. Read it as an UPPER BOUND on the
+    verifier's false-blocker rate: the stratum contains annotations the probe
+    itself got wrong, and those are counted against the checker rather than
+    excused.
 
 No model is called, no key is read, nothing is written. ~2 seconds, $0.
 
@@ -19,10 +23,16 @@ names the first line that holds it, with the value and unit as the DRAFT wrote
 them, unnormalised. Three outcomes, reported separately because they are not the
 same claim:
 
-* **pair-matched** — the (value, unit) pair the draft wrote occurs on the named
-  line. These are correctly-annotated numbers by construction, so a blocker here
-  is a false blocker with nothing to argue about. **This is the primary
-  denominator and the one the >2% kill condition is read against.**
+* **pair-matched** — the pair the PROBE extracted from the draft occurs on the
+  named line. **This is the primary denominator and the one the >2% kill
+  condition is read against.** It is not "correct by construction", and calling
+  it that was the last thing wrong with this script: the probe's `NUM` has a
+  closed unit alternation, so on a ramp rate written `°C/min` it captures `°C`
+  and the annotation it derives is not what the draft wrote. Every block in this
+  stratum on the current corpus is one of those, and the count of them is
+  printed beside the rate. They stay in the numerator — the instrument's error
+  is not the checker's credit — but they are reported as what they are:
+  harness-annotation errors, not demonstrated verifier false blockers.
 * **value-only** — the value occurs on that line and no rendering of its unit
   does. The harness picked the line by value alone, so these are DERIVED
   annotations, not established literal-pair citations: finding the same number
@@ -200,32 +210,35 @@ def main() -> int:
     rate = exact_blocked / exact if exact else 0.0
     low, high = wilson(exact_blocked, exact)
     print(f"instances={instances} numbers={total}")
-    print(f"  pair-matched  {exact:4d}   the (value, unit) pair the draft wrote "
-          f"occurs on the named line")
+    print(f"  pair-matched  {exact:4d}   the pair the PROBE extracted occurs on "
+          f"the named line")
     print(f"  value-only    {derived:4d}   the value occurs there and no rendering "
           f"of the unit does — DERIVED")
     print(f"  uncited       {uncited:4d}   the value occurs nowhere in the source; "
           f"§3.4 routes these to the auditor")
     print()
-    print(f"PRIMARY — false blockers on pair-matched citations: "
+    print(f"PRIMARY — blocked, of pair-matched citations: "
           f"{exact_blocked}/{exact} = {100 * rate:.2f}%  "
           f"(95% Wilson {100 * low:.2f}–{100 * high:.2f}%)")
+    print("  An UPPER BOUND on the verifier's false-blocker rate, not a "
+          "measurement of it.")
     d_rate = derived_blocked / derived if derived else 0.0
     d_low, d_high = wilson(derived_blocked, derived)
-    print(f"SECONDARY — blockers on the DERIVED value-only stratum: "
+    print(f"SECONDARY — blocked, of the DERIVED value-only stratum: "
           f"{derived_blocked}/{derived} = {100 * d_rate:.2f}%  "
           f"(95% Wilson {100 * d_low:.2f}–{100 * d_high:.2f}%)")
-    print("  These are not established false blockers. The harness chose their "
-          "line by value alone,")
+    print("  Also not established false blockers. The harness chose their line "
+          "by value alone,")
     print("  so a block here can mean the citation was wrong, and each one below "
           "says which.")
-    print(f"  of those {exact_blocked}, {exact_truncated} annotate a number whose unit "
-          f"the DRAFT continues past")
-    print("  the probe's fixed alternation (a ramp rate written °C/min, captured "
-          "as °C): the harness's")
-    print("  transcription, not the draft's. Left in the numerator; correcting "
-          "it with the product's own")
-    print("  unit grammar would be feeding the checker its own reading.")
+    print(f"  of those {exact_blocked}, {exact_truncated} are HARNESS-ANNOTATION "
+          f"ERRORS: the draft's own text continues")
+    print("  the unit past the probe's fixed alternation (a ramp rate written "
+          "°C/min, captured as °C),")
+    print("  so the annotation is the harness's transcription and not the "
+          "draft's. Left in the numerator;")
+    print("  correcting it with the product's own unit grammar would be feeding "
+          "the checker its own reading.")
     if by_rule:
         print("  primary by rule: "
               + ", ".join(f"{r}×{n}" for r, n in sorted(by_rule.items())))

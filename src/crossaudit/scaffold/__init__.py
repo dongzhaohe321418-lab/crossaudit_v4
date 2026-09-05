@@ -24,34 +24,30 @@ DEFAULT_CHECKS = SCIENCE_CHECKS
 #: shipped channel and no other: a committed `skills/*.md`, loaded by
 #: `skills.load`, rendered into the generator prompt by `skills.render`, hashed
 #: into the receipt, and never shown to the auditor.
-PROVENANCE_SKILL_PATH = "skills/provenance.md"
-
-#: One fragment per check, because a fragment is instruction about a check that
-#: will run. A combined file told a project configured with only
-#: `source_provenance` to annotate every number in a fence nothing would ever
-#: read — guidance that describes a check the project does not have, and output
-#: the generator pays for on every round.
-ANNOTATION_SKILLS: dict[str, str] = {
-    "number_source": "PROVENANCE_NUMBERS_SKILL.md",
-    "source_provenance": "PROVENANCE_SOURCES_SKILL.md",
+#: One FILE per check, not one file per project. A single composed file could
+#: only be gated as a whole, and its composition is fixed at scaffold time —
+#: turn `number_source` off a month later and the number-annotation contract
+#: keeps arriving in every generator prompt, describing a fence nothing will
+#: ever read. Each file carries `requires_check:` in its front matter and
+#: `skills.select` reads it against the project's live `checks:` on every round.
+ANNOTATION_SKILLS: dict[str, tuple[str, str]] = {
+    "number_source": ("skills/provenance-numbers.md", "PROVENANCE_NUMBERS_SKILL.md"),
+    "source_provenance": ("skills/provenance-sources.md", "PROVENANCE_SOURCES_SKILL.md"),
 }
 ANNOTATION_CHECKS = tuple(ANNOTATION_SKILLS)
 
 
 def annotation_skill_tree(checks) -> dict[str, str]:
-    """The house skill a project's checks need, or nothing at all.
+    """The house skills a project's checks need, or nothing at all.
 
     Keyed off the resolved check list rather than the project type, so a project
     that composes its own mix is told exactly what its own checks will read —
     and a `general` project, which enables neither, gets no advice about
     annotating numbers it has no reason to annotate.
     """
-    enabled = [name for name in ANNOTATION_SKILLS if name in (checks or ())]
-    if not enabled:
-        return {}
-    parts = [read("PROVENANCE_SKILL_HEADER.md")]
-    parts.extend(read(ANNOTATION_SKILLS[name]) for name in enabled)
-    return {PROVENANCE_SKILL_PATH: "\n".join(parts)}
+    return {path: read(template)
+            for name, (path, template) in ANNOTATION_SKILLS.items()
+            if name in (checks or ())}
 
 
 def read(name: str) -> str:

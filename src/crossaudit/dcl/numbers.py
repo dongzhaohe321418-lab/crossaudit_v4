@@ -77,7 +77,12 @@ _TEXT_SUFFIXES = (".md", ".txt", ".rst", ".tex")
 #: malformed annotation into an uncaught ValueError escaping `run_checks`. A
 #: bounded pattern makes the same input fail the locator match and become an
 #: ordinary CA-NUM-001 finding, which is what a malformed annotation is.
-_LINE = r"\d{1,9}"
+#: `[0-9]` and not `\d`: `\d` matches Arabic-Indic and Devanagari digits, which
+#: `int()` accepts and which no transcription of committed bytes would ever
+#: mean, so `#L٢` was being read as line two. The same discipline the
+#: `check_provenance` fragment already had, applied to every locator parser
+#: rather than to one of them.
+_LINE = r"[0-9]{1,9}"
 #: ``<path>[@<sha256>]#L<start>[-L<end>]`` — a span, never a file and never a
 #: value. The sha is optional and may be a prefix of at least 8 hex characters,
 #: because a committed annotation abbreviates one the way git does.
@@ -86,7 +91,7 @@ _SPAN = re.compile(r"(?P<path>[^@#]+?)(?:@(?P<sha>[0-9a-fA-F]{8,64}))?"
 #: ``#L<n>`` — where in the enclosing artefact the number was written.
 _AT = re.compile(rf"#L(?P<line>{_LINE})(?:-L{_LINE})?")
 #: The same span fragment where it hangs off a `path@revision` results source.
-_SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?$")
+_SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?\Z")
 
 #: A bare number, sign and thousands separators included.
 #:
@@ -99,8 +104,26 @@ _SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?$")
 #: "1" that happens to be followed by a comma — and `contains_pair` tries both
 #: rather than picking one, because which reading a transcription meant is not
 #: something this layer can know and guessing wrong would block correct work.
-_NUMBER = re.compile(r"(?<![\w.])([+\-−]?[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?"
-                     r"(?:[eE][+\-−]?[0-9]{1,4})?)")
+#: A number as it appears IN A SPAN. One reading per occurrence, and it is the
+#: MAXIMAL one — `1,000` is a thousand, never a `1` that happens to be followed
+#: by a comma. The same rule as the unit token, for the same reason: a prefix of
+#: what the source wrote must not satisfy a transcription of it.
+#:
+#: Unbounded in every part, deliberately: a
+#: capped exponent here does not reject an over-long literal, it TRUNCATES one,
+#: and the leftover digits became a unit — `1e10001` read as the number `1e1000`
+#: followed by the unit `1`, which passed 100 of 100 exponents swept from 10000
+#: to 10099. `normalise_number` applies the bound with `fullmatch`, where the
+#: only two answers are "this number" and "not a number".
+#:
+#: The sign is not cosmetic either: without it `-5 °C` transcribed as `-5` was a
+#: non-overridable blocker on a correct citation, and transcribed as `5` it
+#: PASSED — a wrong number accepted and a right one refused, from one missing
+#: character class. A leading dot is accepted because `normalise_number` accepts
+#: `.5`, and an extractor that cannot see what the comparator accepts is a
+#: blocker on a form the contract permits.
+_NUMBER = re.compile(r"(?<![\w.])([+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?"
+                     r"|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 #: Any run of whitespace between a number and its unit, or none at all. Plain
 #: `\s`, because Python's `\s` on a str pattern is the Unicode definition and
 #: already covers U+00A0, U+2003 and U+202F — the three a copied table cell, a
@@ -109,35 +132,27 @@ _NUMBER = re.compile(r"(?<![\w.])([+\-−]?[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?"
 #: not.
 _GAP = r"\s*"
 
-#: What follows a number and counts as its unit. THE TOKEN IS MAXIMAL, and that
-#: is the whole point: taking a shorter reading as well let `5 mg/mL` satisfy an
-#: annotation of `mg` and `5 cm-1` satisfy `cm` — the check accepting a
-#: transcription of a different quantity, which is the direction that must never
-#: be permitted. One maximal token, plus exactly two alternates that are longer
-#: rather than shorter than it:
-#:
-#: * the word split from a percent sign (`wt %`), which the space would
-#:   otherwise cut short;
-#: * a purely numeric token, because `1` is a legitimate dimensionless marker
-#:   and `{"value": 0.42, "unit": "1"}` against a line reading `0.42 1` is a
-#:   correct citation that had no reading at all.
-_UNIT_BODY = r"A-Za-zµμ°ÅΩ%‰"
-_UNIT_TAIL = r"A-Za-zµμ°ÅΩ%‰0-9()⁻⁰¹²³⁴⁵⁶⁷⁸⁹+\-"
-#: Maximal: letters/symbols, then any number of connector-joined parts, then an
-#: optional exponent written as superscripts or as `-1` / `2`.
-#:
-#: The `-1` / `2` exponent tail is taken only where nothing unit-shaped follows
-#: it. Without that guard a range — `(20°C-25°C)`, which is how a source states
-#: an ambient window — read as the single unit `°C-25`, and a draft citing
-#: `20 °C` off that line was blocked for transcribing it correctly. A hyphen
-#: between two units is a range; a hyphen before the end of the token is an
-#: exponent; the lookahead is the only thing that can tell them apart.
-_EXPONENT_TAIL = rf"(?:[⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+|-?[0-9]{{1,3}}(?![0-9]*[{_UNIT_BODY}]))?"
-_UNIT_MAXIMAL = re.compile(
-    rf"[{_UNIT_BODY}]+(?:[/·⋅∙*^][{_UNIT_TAIL}]+)*{_EXPONENT_TAIL}")
-_UNIT_SPLIT_PERCENT = re.compile(rf"[A-Za-z]+{_GAP}[%‰]")
-#: A dimensionless numeric marker, and nothing that continues into a word.
-_UNIT_NUMERIC = re.compile(rf"[0-9]+(?:\.[0-9]+)?(?![{_UNIT_BODY}0-9.])")
+#: What may appear INSIDE a unit token. Everything a unit is written with, and
+#: nothing that ends one.
+_UNIT_INSIDE = set(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    "µμ°ÅΩ%‰/·⋅∙*^-+_$#&@!?~<>=\\|"
+    "⁻⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉"
+)
+#: What ENDS one, other than whitespace or the end of the text. A bracket closes
+#: the token only when nothing opened it inside the token.
+_UNIT_CLOSERS = set(")]}")
+_UNIT_OPENERS = set("([{")
+_UNIT_STOPS = set(",;:\"'«»…")
+
+#: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
+#: as the ambient window `(20°C-25°C)`. Whole-token comparison is what stops a
+#: prefix satisfying a compound unit, and it also means the `20` in that span
+#: carries the token `°C-25°C`, which no honest transcription would ever say. So
+#: a range is recognised and split, and only when the two halves are the same
+#: unit — `kg-m` and `h-long` are not ranges and keep their whole token.
+_RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
@@ -174,18 +189,65 @@ def normalise_unit(unit: str) -> str:
     return SYNONYMS.get(folded, folded)
 
 
-def _unit_candidates(rest: str) -> list[str]:
-    """Every reading of what follows a number, after any run of whitespace.
+def unit_token(rest: str) -> tuple[str, str]:
+    """The WHOLE unit token following a number, and whatever follows it.
 
-    The first is maximal, so a shorter prefix of a compound unit is never a
-    candidate. The other two are longer than it, not shorter.
+    Runs from the first non-space character to a true boundary: whitespace, the
+    end of the text, a closing bracket nothing opened, one of `,;:"'«»…`, or a
+    `.` that ends a sentence. Everything in between belongs to the token —
+    letters, digits, `°`, `µ`, `/`, `·`, `^`, `-`, superscripts and balanced
+    brackets.
+
+    **Whole token, because a prefix must never satisfy.** Reading the unit with
+    a pattern that could return a shorter alternative let `5 m-2s-1` satisfy an
+    annotation of `m`, `10 kg-m` satisfy `kg`, `5 g-equivalent` satisfy `g` and
+    `2 h-long` satisfy `h` — four different quantities accepted as one, under a
+    contract that says the pair is compared literally.
     """
-    tail = rest[re.match(_GAP, rest).end():]
-    out: list[str] = []
-    for pattern in (_UNIT_MAXIMAL, _UNIT_SPLIT_PERCENT, _UNIT_NUMERIC):
-        m = pattern.match(tail)
-        if m and m.group(0):
-            out.append(m.group(0))
+    i = len(rest) - len(rest.lstrip())
+    depth, start = 0, i
+    while i < len(rest):
+        ch = rest[i]
+        if ch.isspace():
+            break
+        if ch in _UNIT_OPENERS:
+            depth += 1
+        elif ch in _UNIT_CLOSERS:
+            if depth == 0:
+                break
+            depth -= 1
+        elif ch in _UNIT_STOPS:
+            break
+        elif ch == "." and (i + 1 == len(rest) or rest[i + 1].isspace()):
+            break
+        elif ch not in _UNIT_INSIDE:
+            break
+        i += 1
+    return rest[start:i], rest[i:]
+
+
+def _unit_candidates(rest: str) -> list[str]:
+    """Every reading of the unit following a number: the whole token, plus two
+    readings that are LONGER than it, never shorter.
+
+    * a range split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole
+      window — recognised only where both halves are the same unit;
+    * the word split from a percent sign (`wt %`), which the boundary rule would
+      otherwise cut at the space. It is in the synonym table for a measured
+      reason, and it can only ever extend a token, so it cannot bring back the
+      prefix defect.
+    """
+    token, after = unit_token(rest)
+    if not token:
+        return []
+    out = [token]
+    span = _RANGE.fullmatch(token)
+    if span and normalise_unit(span.group("u1")) == normalise_unit(span.group("u2")):
+        out.append(span.group("u1"))
+    if "%" not in token and "‰" not in token and token.isalpha():
+        tail = after.lstrip()
+        if tail[:1] in ("%", "‰"):
+            out.append(f"{token} {tail[0]}")
     return out
 
 
@@ -193,15 +255,15 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
     """Whether the transcribed (value, unit) pair occurs in this text.
 
     Exact, and deliberately so: the number must appear as a number, and where a
-    unit was transcribed it must be the whole of the unit token following that
+    unit was transcribed it must be the WHOLE unit token following that
     occurrence, under the synonym table. A value stated in words, converted, or
     read off a plot is not matched and must not be — that is what `uncited` is
     for.
 
-    A value that does not normalise as a number returns False, and the caller
-    turns that into CA-NUM-001. There is no substring fallback: the one that
-    used to be here ignored the unit entirely, so source `1e3 K` satisfied an
-    annotation of `1e3` with unit `g`.
+    A value that does not normalise returns False and the caller turns that into
+    CA-NUM-001. There is no substring fallback: the one that used to be here
+    ignored the unit entirely, so source `1e3 K` satisfied an annotation of `1e3`
+    with unit `g`.
     """
     wanted_unit = normalise_unit(unit)
     wanted_value = normalise_number(value)
@@ -209,17 +271,13 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
         return False
     for m in _NUMBER.finditer(span):
         token = m.group(1)
-        if normalise_number(token) == wanted_value:
-            if not wanted_unit:
-                return True
-            rest = span[m.end():]
-            if any(normalise_unit(c) == wanted_unit for c in _unit_candidates(rest)):
-                return True
-        if "," in token and not wanted_unit:
-            # The other reading of a grouped token: the digits before the
-            # separator, which are followed by a comma and so carry no unit.
-            if normalise_number(token.split(",")[0]) == wanted_value:
-                return True
+        if normalise_number(token) != wanted_value:
+            continue
+        if not wanted_unit:
+            return True
+        if any(normalise_unit(c) == wanted_unit
+               for c in _unit_candidates(span[m.end():])):
+            return True
     return False
 
 
@@ -252,7 +310,7 @@ def _span(text: str, start: int, end: int) -> str | None:
 
 
 def _at_line(at: str) -> str:
-    m = _AT.fullmatch(str(at or "").strip())
+    m = _AT.fullmatch(str(at or ""))
     return m.group("line") if m else ""
 
 
@@ -277,7 +335,11 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict) -> list[Find
                         f"a source annotation {detail}; each row names v, u, at "
                         f"and src, and a row that names fewer cannot be checked")]
     v, u = str(row["v"]), str(row["u"])
-    src = str(row["src"]).strip()
+    # Not stripped. A locator is an address, and `"work/x.md#L11\n"` is not the
+    # address `work/x.md#L11` — trailing whitespace was being silently discarded
+    # by the same `.strip()` that made `$` and `\Z` indistinguishable in the
+    # membership test next door.
+    src = str(row["src"])
     at = _at_line(row["at"])
     if not at or not v.strip() or not src:
         return [Finding(BLOCKER, "CA-NUM-001", path,
@@ -327,7 +389,7 @@ def _verify_locator(path: str, files: Mapping[str, bytes], locator: str,
                         f"{where} names {src!r} for {shown}, which is not a line in a "
                         f"file (expected path#L14 or path#L14-L16)")]
 
-    named, start = m.group("path").strip(), int(m.group("start"))
+    named, start = m.group("path"), int(m.group("start"))
     end = int(m.group("end") or start)
     lines = f"{named}:{start}" if end == start else f"{named}:{start}-{end}"
     key = _resolve(files, path, named)
@@ -481,9 +543,13 @@ register("number_source", check_number_source,
          "Opt-in: every number a text artefact declares in a ```crossaudit-numbers "
          "block, and every results.json quantity whose source carries a '#L14' span "
          "fragment, must name a span — a path and a line range inside the audited "
-         "scope — that resolves and literally contains the transcribed value and unit "
-         "(under a fixed unit-synonym table). A named span that does not resolve or "
-         "does not contain the pair is a blocker; 'uncited' is advisory and never "
-         "blocks; a number nobody annotated is not this check's business. It enforces "
-         "DECLARED provenance, never coverage, and never judges whether a number is "
-         "correct.")
+         "scope — that resolves and contains the transcribed value and unit. The "
+         "value is compared as a number and not as text (leading and trailing zeros "
+         "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
+         "number and a reported precision is not preserved); the unit must equal the "
+         "WHOLE unit token following that number, under a fixed synonym table, so a "
+         "prefix of a compound unit never satisfies it. A named span that does not "
+         "resolve or does not contain the pair is a blocker; 'uncited' is advisory "
+         "and never blocks; a number nobody annotated is not this check's business. "
+         "It enforces DECLARED provenance, never coverage, and never judges whether "
+         "a number is correct.")
