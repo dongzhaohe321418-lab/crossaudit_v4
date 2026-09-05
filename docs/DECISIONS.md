@@ -7229,3 +7229,10 @@ RULINGS:
 Recorded because the contract had documented a defect as a property. A
 sentence that says "this is the one place a partial unit passes" is a sentence
 that should have been a finding.
+
+*D159 ruling 1 landed 2026-09-06 (merge of `feat/provenance-slice-2`, three
+review rounds, suite 3541/4 on two hosts). The first build matched the quote in
+isolation and review showed cropping bypassed every line-level boundary rule —
+the prefix defect a third way; the shipped rule is "the quote selects a window,
+the line decides the pair". D160 ruling 1 (the narrowing + E4) is next in the
+same file; Arm 4 after it.*
