@@ -198,3 +198,15 @@ The simulation is written and committed before the labels are read.
 4. **The panel is not a random sample of wrong citations.** It is 5 drafts, and a
    `W` of 0 over 97 draws bounds the false-pass rate only loosely; the report
    quotes the Wilson interval for it rather than "zero".
+
+## Amendment 1 — 2026-09-06, after labelling (D160 ruling 4)
+
+Added after both label sets were frozen and the single disagreement was
+adjudicated; it changes no recorded label. The rule it sharpens is the one the
+disagreement turned on.
+
+**R6a. A basis qualifier is part of the unit expression.** `vol/vol`, `v/v`,
+`w/w`, `wt`, `mol/mol` and the like, whether written before or after the percent
+or unit symbol, belong to the unit; `5 vol %` and `5 %` are different units, as
+`5 wt %` and `5 %` already are under R6. Any extension measured against this
+gold from here on is measured under R6a.
