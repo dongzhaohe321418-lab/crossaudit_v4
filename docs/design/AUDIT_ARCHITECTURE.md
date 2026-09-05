@@ -59,7 +59,30 @@ precise arm at 82%. It simply refuses to stop the work. **The generator's own
 model is the better detector and the worse judge**, and today's architecture uses
 it as neither.
 
-## 3. The proposal: nothing blocks that was not executed
+## 3. The proposal as first written — withdrawn the same day
+
+*The section below is kept as written on the morning of 2026-09-05. Its
+load-bearing assumption was tested that afternoon and failed. Read it as the
+record of a proposal, then read §5a for what killed it and §6 for what stands.*
+
+**The kill condition fired.** Asked for executable checks on the 56 stratum-P
+solutions — code, the one domain where an expected value is exactly computable
+and the predicate is a single `assert` — the auditor produced a runnable,
+discriminating check on **13 of 56 (23.2%, CI 14.1–35.8%)** against a
+preregistered bar of 19; the replicate arm gave 11 of 56, and the union of both
+runs is still 13. Format was never the constraint: 288 of 288 checks compiled,
+96% ran clean, zero sandbox escapes. It fails at the only step that matters, and
+it fails **in the wrong direction**: its checks block the known-correct reference
+solution on **22 of 56** instances and the defective one they were written for on
+**18 of 56**. Inverted checks outnumber discriminating ones 26 to 19. It picks
+edge cases well, computes the expected value wrong, and invents specification the
+problem never stated and then asserts it. See `benchmarks/code/RESULTS-CHECKS.md`.
+
+Under this proposal each of those would have been a non-overridable BLOCKER on
+correct code with no prose for a person to disagree with — because the design
+removed the prose on purpose.
+
+### 3 (as written). Nothing blocks that was not executed
 
 Today one model call does two jobs — find things, and decide. The verdict
 therefore inherits the sampling noise of the finding step, which is why a 30%
@@ -131,11 +154,60 @@ latency and rate-limit failures.
 - Everything above about prose is one task, one 50-row corpus, one vendor pair,
   and a CLEAR reimplementation. See `benchmarks/CORRECTIONS.md`.
 
-## 6. If the pre-test kills it
+## 5a. The line that survives the kill
 
-The design degrades rather than collapsing. Without executable checks, what
-remains is still an improvement on today and is fully measured: union-of-K
-detection including the generator's own model, no agreement filter, the
-adjudicator model dropped, and the verdict routed to escalation rather than an
-unstable automatic stop. That buys recall and a stable disposition without
-requiring the model to produce anything it has not already been shown to produce.
+The pre-test drew a boundary sharper than the proposal it killed.
+
+The product already ships one place where a model's output becomes deterministic
+evidence: A4's `governed_source_ids` with `check_source_provenance`. There the
+model **names** a piece of evidence and code verifies that it **exists**. The
+model is never asked what the evidence will say. That boundary held; it is
+untouched by anything measured today.
+
+The withdrawn proposal crossed it. It asked the model to supply the predicate
+**and its expected value** — to state what the evidence will say — and that is
+the step it gets wrong a quarter of the time (25.4% of runnable checks, CI
+18.8–33.4%, fail on the known-correct solution). The same instinct that finds a
+good edge case invents a specification to go with it, and no prompt separates
+the two, because they are one act.
+
+So the rule is: **ask the model to name evidence, never to state its value.**
+A model may say "the claim on line 40 rests on source 7"; code checks that
+source 7 exists and is governed. A model may not say "`f('')` returns `False`"
+and have code enforce it. Every future proposal that turns a model's output into
+a non-overridable block is checked against this line first.
+
+One more thing the pre-test showed, which reframes D154: execution did not
+remove the resampling, it moved it. Zero of 56 replies were byte-identical
+across runs; the executed outcome agreed on 54 of 56, but *which correct code
+got blocked* flipped on 8 of 56. Determinism downstream of a sampled proposal is
+a stable answer to an unstable question.
+
+## 6. What stands
+
+Take the withdrawn proposal, remove the part that asked the model for a truth
+value, and what remains is measured and is the design:
+
+- **Detection is wide and unioned.** Every source that can look, including the
+  generator's own model, which is the best detector measured. Union; never
+  filter by agreement. The recall gain is real in both domains, at a
+  proportional false-positive cost — no free lunch, and the cost is the number
+  the exploration loop is now pricing under a preregistered constraint.
+- **The adjudicator model is dropped.** 130 of 130 agreements with the
+  deterministic mapping; it bought latency and rate-limit failures.
+- **A model-only finding does not stop work by itself.** It is ranked evidence,
+  and the existing `authority.lone_model_blocker` dial decides whether it drives
+  a revision or a person. That dial's default is the owner's call (D144, D154);
+  what engineering supplies is that the automatic stop it would replace is a
+  coin flip 30% of the time.
+- **The DCL is the only thing that blocks on its own**, exactly as today. The
+  invariant does not change; what changes is the recognition that the model
+  rung cannot be made to join it by handing it an `assert`.
+
+What this does not do is raise the ceiling on what the audit can *prove*. Every
+measured architecture is still an opinion about text, and the only measured way
+to move recall by more than a few points — telling the auditor what to look for,
++21.5 pp — is a referent, not a structure. The next architectural question is
+therefore not "how should the model look" but "what can be handed to it that is
+already known to be true", and that is a product question about what a project
+can supply, not an audit question.

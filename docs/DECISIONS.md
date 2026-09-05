@@ -6881,3 +6881,47 @@ declined to adopt on argument alone, now with a measurement attached.
 it is the number, which is above, and the statement that no configuration change
 will make it go away.
 
+
+## D155 — A model may name evidence; it may not state what the evidence will say
+
+The morning's design (`docs/design/AUDIT_ARCHITECTURE.md`) proposed that
+nothing blocks unless executed: the auditor emits check requests, the DCL runs
+them, only executed failures stop work. It would have solved D154's verdict
+instability by construction. Its load-bearing assumption — that the auditor can
+write a check that discriminates — was preregistered with a kill condition and
+tested the same afternoon on the 56 stratum-P code solutions, the best domain the
+idea could have.
+
+**The kill condition fired, and the failure is inverted rather than weak.**
+13 of 56 produced a runnable, discriminating check (23.2%, CI 14.1–35.8%) against
+a bar of 19; the replicate gave 11 of 56; the union of both is still 13. All 288
+checks compiled and 96% ran clean — format was never the constraint. But the
+checks block the known-correct solution on 22 of 56 instances and the defective
+one on 18 of 56. Inverted checks outnumber discriminating ones 26 to 19. The
+auditor chooses edge cases well, computes the expected value wrong, and invents
+specification the problem never stated. Cost $0.86.
+
+RULING: **a model's output may become a non-overridable block only where the
+model names evidence and code verifies that it exists.** It may never become one
+where the model states what the evidence will say. A4's `governed_source_ids`
+is on the right side of this line and is untouched. Every future proposal that
+turns a model output into an automatic stop is checked against it first.
+
+What stands from the design is what never crossed the line: union detection
+including the generator's own model, no agreement filter, the adjudicator model
+dropped (130 of 130 agreements with the deterministic mapping), and a model-only
+finding routed through the existing `lone_model_blocker` dial rather than
+stopping work alone. The exploration loop is pricing the detection side now
+under a preregistered false-positive constraint; the dial's default remains the
+owner's.
+
+Two further things the pre-test taught. Execution moves resampling rather than
+removing it — 0 of 56 replies were byte-identical across runs, and *which*
+correct code got blocked flipped on 8 of 56. And the sandbox was clean across
+576 executions from one benign model, which says nothing about a prompt-injected
+increment — an attack surface this architecture would have opened and the
+shipped audit does not have.
+
+The design document keeps the withdrawn section as written, marked, above the
+section that replaces it. A proposal that lasted one day and was killed by its
+own preregistered test is the record working, not the record failing.
