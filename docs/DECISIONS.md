@@ -7236,3 +7236,21 @@ isolation and review showed cropping bypassed every line-level boundary rule —
 the prefix defect a third way; the shipped rule is "the quote selects a window,
 the line decides the pair". D160 ruling 1 (the narrowing + E4) is next in the
 same file; Arm 4 after it.*
+
+*Rulings 1 and 2's first pair landed 2026-09-06 (`feat/provenance-slice-3`,
+preregistered at `benchmarks/expertlongbench/study9/PREREGISTRATION.md` before
+any line of `src/` was touched, measured in `study9/RESULTS.md`, suite 3605/4).
+Composed: R = 6, W = 0, R' = 11, W' = 0; all 10 gold-right blocks still block;
+the 97-draw panel is untouched. Two things the ruling did not survive intact.
+**The narrowing alone fails its own kill** (W' = 2: the shipped `wt %` percent
+split was the only reading of a spaced unit the matcher had, and taking the bare
+token away loses it until E4 gives it back) — which is ruling 2's "two halves of
+one rule" measured rather than asserted. And **the continuation set the ruling
+names cannot produce the block the ruling's own adversarial list demands**: "a
+member of the synonym table" does not contain `m`, so `5 kg m` would keep
+satisfying `kg`; what ships is a structural marker test first (superscript,
+exponent tail, solidus, middle dot, percent) and a small fixed unit-fragment
+table second, whose omissions fail toward today's behaviour and whose
+exclusions — function words, bare capitals, element symbols — are the argument.
+R' = 11 rather than 9 because R6a's basis qualifier reaches `20% vol/vol`. Arm 4
+next.*

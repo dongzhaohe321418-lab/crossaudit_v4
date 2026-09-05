@@ -306,6 +306,119 @@ SYNONYMS: dict[str, str] = {
     "µm": "μm",
 }
 
+#: **A SPACE IS NOT WHERE A UNIT ENDS.** D160 ruling 1, from the containment
+#: gold: `unit_token` stopped at whitespace, so a bare `°C` satisfied a source
+#: writing `°C min⁻¹`, `mg` satisfied `mg h⁻¹` and `K` satisfied `K min⁻¹` — 9 of
+#: the gold's 11 false passes (7.33%, `RESULTS-GOLD.md` §3). Slice 2's contract
+#: called that reading structural; the gold says it is D157 lesson 2 unfinished,
+#: and a prefix never satisfies whatever character precedes it.
+#:
+#: So a unit reading continues across whitespace while the next token is
+#: UNIT-SHAPED, and the two halves of that one rule are: the bare first token no
+#: longer satisfies when a continuation follows (a NARROWING — it can remove a
+#: pass and never add one), and the whole spaced expression becomes a candidate
+#: the annotation can name in full (E4 — a candidate at least as long as the
+#: whole token, never shorter).
+#:
+#: A continuation is recognised by a MARKER first, which is structure and needs
+#: no vocabulary: a superscript digit or sign, a letters-then-exponent tail
+#: (`s-1`, `min−1`, `m^2`; U+2212 counts as a minus), a solidus, a middle dot, or
+#: a percent sign. `min⁻¹`, `h⁻¹`, `L⁻¹`, `vol/vol` and `%` are all read off the
+#: bytes.
+_MARK_SUPER = set(_SUPER + "⁺⁻")
+_MARK_CHARS = set("/⁄·⋅%‰")
+#: A token that ends in an EXPLICIT exponent: something that is not a digit,
+#: then `^`, `-`, `−` or `+`, then digits. `s-1`, `°C-1`, `m^2`, `min−1`. The
+#: marker must be explicit — a bare letter-digit run (`S1`, `A2`, `Fig3`) is a
+#: sample label in exactly the place materials prose puts one, and reading it as
+#: a unit would block a correct annotation on every one of them.
+_EXPONENT_TOKEN = re.compile(r"[^\s0-9][^\s]*?[\^\-−+][0-9]+\Z")
+
+#: The second half of the continuation test, and the only part that needs a
+#: vocabulary: a plain unit symbol with no marker at all, so `5 kg m` reads the
+#: unit `kg m` and `kg` is the prefix it is.
+#:
+#: **This table is fixed, small, and knowingly incomplete, and its incompleteness
+#: is safe in a way a dictionary usually is not.** `CONTAINMENT_RULE.md` §2 warns
+#: that no unit dictionary is complete — but there the dictionary would have
+#: SHORTENED a token (`cm` out of `-cm`), where an omission fails toward a false
+#: PASS. Here it can only LENGTHEN one: a unit symbol this table does not name
+#: leaves the bare-token reading exactly as it shipped, so an omission is not a
+#: regression. The only harm is a wrong INCLUSION, which is a false blocker, so
+#: what is excluded is the argument:
+#:
+#: * **no English function word** — `of`, `in`, `at`, `a`, `and`, `or`, `per`,
+#:   `to`, `with`, `by`. Several are real unit symbols (`in` is an inch, `at` a
+#:   technical atmosphere, `a` an are) and every one of them would turn `10 g at
+#:   300 °C` and `5 mL in water` into blocks on a correct annotation;
+#: * **no bare capital and no element symbol** — `K`, `A`, `N`, `M`, `Ni`, `Ti`.
+#:   An element after a quantity is the commonest thing materials prose writes
+#:   (`5 wt % Ni`, `20 g Ti`), and `M` is that literature's generic metal. Where
+#:   a capital really is the unit it arrives with a marker anyway: `5 mol L⁻¹`,
+#:   `5 K min⁻¹`;
+#: * **no English word that is also a unit** — `bar`, because `a 5 g bar` is
+#:   prose and `5 bar` needs no continuation to be read.
+#:
+#: The synonym table's own single-token keys are in it, which is the part of the
+#: continuation set D160's sentence named.
+_UNIT_FRAGMENTS = frozenset("""
+    m cm mm nm pm km µm μm
+    g kg mg µg μg ng
+    s ms µs μs ns ps min h
+    mL µL μL nL
+    mol mmol µmol μmol nmol
+    Pa kPa MPa GPa hPa mbar atm Torr torr psi
+    Hz kHz MHz GHz rpm
+    eV keV MeV meV kJ mJ kW mW
+    mA µA μA mV kV
+    mM µM μM nM
+    wt vol
+    sccm ppm ppb
+    °C °F ° % ‰ Å
+    hours hour minutes minute
+""".split())
+#: How many tokens one unit expression may span. A bound, not a rule: it stops a
+#: pathological line from being rescanned without end, and no unit in the corpus
+#: is written in more than three.
+_MAX_UNIT_TOKENS = 6
+#: The longest a single continuation token may be. `min⁻¹` is 5 characters,
+#: `vol/vol` is 7, `mmol/L` is 6; `(heating/cooling` is 16 and is prose.
+_MAX_FRAGMENT = 12
+#: The run of whitespace a unit expression may cross. `_INLINE` and not `\s`:
+#: Python's `\s` already covers U+00A0, U+2003 and U+202F (a hand-written list of
+#: the ones somebody thought of is how the first two got in and the third did
+#: not), and excluding the newline is the rule that a continuation stays on its
+#: own line — a token on the next line of a multi-line span is the next line's
+#: prose, not this number's unit.
+_INLINE_GAP = re.compile(rf"{_INLINE}*")
+
+
+def _continues_unit(token: str) -> bool:
+    """Whether this token, separated from a unit reading by whitespace only,
+    is part of the same unit expression.
+
+    Marker first (structure, no vocabulary), then the fixed fragment table. A
+    word is not a unit fragment — which is the mirror the whole rule is judged
+    by: `5 g sample`, `5 g of powder` and `2 h later` must keep matching `g`,
+    `g` and `h`."""
+    if not token or len(token) > _MAX_FRAGMENT or token[0] in _OPENERS:
+        # Two guards, both measured against the gold rather than imagined. A
+        # token that OPENS A BRACKET is a parenthetical, not a unit: the gold
+        # row `… for 5 h (heating/cooling rate 5 °C min⁻¹)` scans
+        # `(heating/cooling` — a solidus inside a bracket — and reading it as a
+        # continuation turned a correct `(5, h)` into a block (W' = 1 on the
+        # first build of this rule). A token LONGER than any unit expression is
+        # prose for the same reason: `heating/cooling` carries a solidus and is
+        # not a unit. Both guards fail toward the shipped behaviour — an
+        # unrecognised continuation leaves the bare token matching as it does
+        # today — which is the only direction an incomplete rule may fail here.
+        return False
+    if any(ch in _MARK_SUPER or ch in _MARK_CHARS for ch in token):
+        return True
+    if _EXPONENT_TOKEN.match(token):
+        return True
+    return token in _UNIT_FRAGMENTS or normalise_unit(token) in _UNIT_FRAGMENTS
+
 
 def _text(data: bytes) -> str | None:
     try:
@@ -348,7 +461,13 @@ def _scan(text: str, skip_space: bool) -> tuple[str, str]:
 
 
 def unit_token(rest: str) -> tuple[str, str]:
-    """The WHOLE unit token following a number, and whatever follows it.
+    """One WHOLE unit token following a number, and whatever follows it.
+
+    **One token is no longer one unit.** Since D160 ruling 1 the unit reading
+    continues across whitespace while the next token is unit-shaped, so this is
+    the FIRST token of the expression `_spaced_unit` assembles, and a caller
+    that compares against this alone is reintroducing the prefix the gold
+    found. `_unit_candidates` is the reading; this is one step of it.
 
     Runs from the first non-space character to a boundary, and **every
     boundary is enumerated**: whitespace, the end of the text, a closing bracket
@@ -365,32 +484,67 @@ def unit_token(rest: str) -> tuple[str, str]:
     return _scan(rest, True)
 
 
-def _unit_candidates(rest: str) -> list[str]:
-    """Every reading of the unit following a number: the whole token, plus two
-    readings that are LONGER than it, never shorter.
+def _spaced_unit(rest: str) -> tuple[list[str], int]:
+    """The whole unit expression following a number, token by token, and where
+    it ends in `rest`.
 
-    * a range split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole
-      window — recognised only where both halves are the same unit;
-    * the word split from a percent sign (`wt %`), which the boundary rule would
-      otherwise cut at the space. **It continues past the percent to the next
-      boundary**, so `wt %/s` is one token and does not satisfy `wt %`; taking
-      the percent alone was the same prefix defect one more time. It is in the
-      synonym table for a measured reason, and because it can only ever extend a
-      token it cannot reintroduce a shorter reading.
+    The first token is `unit_token`'s. After it, whitespace is crossed for as
+    long as the next token is a continuation (`_continues_unit`) — and only
+    NON-NEWLINE whitespace, because a token on the next line of a multi-line span
+    is not this number's unit, it is the next line's prose.
+
+    One list, both halves of D160 ruling 1: more than one part means the source
+    wrote a spaced unit, so the bare first token stops being a reading (the
+    narrowing) and the join becomes one (E4).
     """
     token, after = unit_token(rest)
     if not token:
+        return [], 0
+    parts, end = [token], len(rest) - len(after)
+    while len(parts) < _MAX_UNIT_TOKENS:
+        gap = _INLINE_GAP.match(after).end()
+        if not gap:
+            break
+        nxt, remainder = _scan(after[gap:], False)
+        if not _continues_unit(nxt):
+            break
+        parts.append(nxt)
+        end += gap + len(nxt)
+        after = remainder
+    return parts, end
+
+
+def _unit_candidates(rest: str) -> list[tuple[str, int]]:
+    """Every reading of the unit following a number, each with where it ends in
+    `rest`: the whole unit expression, plus one reading of a range that is
+    shorter only in the sense that it re-reads a token the source glued
+    together. **No reading is ever a prefix of what the source wrote.**
+
+    * where the source writes the unit as ONE token, that token — plus a range
+      split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole window,
+      recognised only where both halves are the same unit;
+    * where the source writes it across whitespace (`°C min⁻¹`, `wt %`,
+      `kg m`), the WHOLE spaced expression and nothing shorter. That is D160
+      ruling 1 in one line: the bare first token is not offered, because the gold
+      found `°C` satisfying `°C min⁻¹` nine times in 150 passes, and the join is
+      offered, because `°C min⁻¹` is what the source says and an annotation must
+      be allowed to say it.
+
+    The percent split (`wt %`) that used to be a special case is now this rule:
+    `%` is a continuation like any other, and `wt %/s` is still one expression
+    that `wt %` does not satisfy.
+    """
+    parts, end = _spaced_unit(rest)
+    if not parts:
         return []
-    out = [token]
+    if len(parts) > 1:
+        return [(" ".join(parts), end)]
+    token = parts[0]
+    out = [(token, end)]
     span = _RANGE.fullmatch(token)
     if span and normalise_unit(span.group("u1")) == normalise_unit(span.group("u2")):
-        out.append(span.group("u1"))
-    if "%" not in token and "‰" not in token and token.isalpha():
-        gap = len(after) - len(after.lstrip())
-        sign = after[gap:gap + 1]
-        if sign in ("%", "‰"):
-            tail, _ = _scan(after[gap + 1:], False)
-            out.append(f"{token} {sign}{tail}")
+        head = span.group("u1")
+        out.append((head, end - len(token) + len(head)))
     return out
 
 
@@ -420,14 +574,14 @@ def pair_occurrences(span: str, value: str, unit: str):
         if not wanted_unit:
             yield m.start(1), m.end(1)
             continue
-        gap = len(rest) - len(rest.lstrip())
-        for candidate in _unit_candidates(rest):
+        for candidate, end in _unit_candidates(rest):
             if normalise_unit(candidate) == wanted_unit:
-                # Every candidate starts at the first non-space after the
-                # number and is either the token, a prefix of it, or the token
-                # plus a single-spaced percent tail — so its length is its
-                # extent in text whose whitespace has been folded.
-                yield m.start(1), m.end() + gap + len(candidate)
+                # `end` is the candidate's extent in `rest` as the source wrote
+                # it, not the length of the reading: a spaced expression joined
+                # with single spaces is shorter than the characters it covers,
+                # and the interval has to cover them or the quote containment
+                # test would accept a quotation that stops inside the unit.
+                yield m.start(1), m.end() + end
                 break
 
 
@@ -982,10 +1136,15 @@ register("number_source", check_number_source,
          "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
          "number and a reported precision is not preserved); the unit must equal the "
          "WHOLE unit token following that number, under a fixed synonym table, so a "
-         "prefix of a compound unit never satisfies it, except that a unit written "
-         "with a space inside it is read as its first token only, so 'm-2 s-1' in "
-         "a source is seen as 'm-2' and the rest is invisible to the check; write "
-         "such a unit joined, or annotate it 'uncited'. Punctuation ends a unit "
+         "prefix of a compound unit never satisfies it. A SPACE IS NOT WHERE A UNIT "
+         "ENDS: where the token after the number is followed by whitespace and a "
+         "unit-shaped continuation (a superscript, an exponent tail such as 's-1', "
+         "a solidus, a middle dot, a percent sign, or a known unit fragment), the "
+         "unit is the WHOLE spaced expression, so a source saying 'm-2 s-1' is not "
+         "satisfied by 'm-2' and is satisfied by 'm-2 s-1'. Write the unit exactly "
+         "as the source writes it, spaces included. A WORD is not a continuation, "
+         "so '5 g sample' still matches 'g' and '2 h later' still matches 'h'. "
+         "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "

@@ -28,13 +28,14 @@ All three fields, every row. A row with two cannot be checked and is refused.
 - `u` — its unit, as you wrote it, **in full**: `°C/min`, not `°C`; `mg/mL`, not
   `mg`. The whole unit is compared, so half of one does not match. Use `""` when
   the number has no unit.
-  - A unit written with a **space inside it** is read as its FIRST token only,
-    because a space is where a unit ends. Against a source saying `5 m-2 s-1`
-    the checker sees `m-2` and cannot see the rest: `m-2` is accepted, and
-    `m-2 s-1`, `m-2s-1` and `m-2·s-1` are all rejected, because none of them is
-    what is written at that spot. This is the one place a partial unit passes,
-    and it is structural. Write the unit joined in your own prose (`m-2s-1`,
-    `m-2·s-1`) so it is one token, or write `uncited`.
+  - **Write the unit exactly as the source writes it, spaces included.** A
+    space is not where a unit ends. Against a source saying `5 m-2 s-1` the unit
+    is `m-2 s-1`: write that and it matches, write `m-2` and it does not,
+    because half of a unit is still half of a unit. The same for `°C min⁻¹`,
+    `mg h⁻¹` and `wt %` — copy the whole thing, spacing and all, and do not
+    rewrite your own prose to make it one token.
+  - A word after a unit is not part of it. In `5 g sample` and `2 h later` the
+    units are `g` and `h`.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

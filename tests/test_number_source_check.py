@@ -1235,7 +1235,8 @@ def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
     ("2 h-long",      "2", "h-long",       [],             "and the whole token matches"),
     ("3 °C-1",        "3", "°C",           ["CA-NUM-002"], "prefix of a hyphen exponent"),
     ("3 °C-1",        "3", "°C-1",         [],             "and the whole token matches"),
-    ("5 m-2 s-1",     "5", "m-2",          [],             "a space ends the token"),
+    ("5 m-2 s-1",     "5", "m-2",          ["CA-NUM-002"], "nor does a space license one"),
+    ("5 m-2 s-1",     "5", "m-2 s-1",      [],             "the whole spaced expression does"),
     # A range is split, and only where both halves are the same unit.
     ("(20°C-25°C)",   "20", "°C",          [],             "a closed-up range names one unit"),
     ("(20°C-25°C)",   "25", "°C",          [],             "from either end"),
@@ -1508,21 +1509,24 @@ def test_an_unparsed_numeric_notation_is_not_a_match_for_any_unit(
 
 
 @pytest.mark.parametrize("unit,expected", [
-    ("m-2",      []),
-    ("m-2 s-1",  ["CA-NUM-002"]),
+    ("m-2",      ["CA-NUM-002"]),
+    ("m-2 s-1",  []),
     ("m-2s-1",   ["CA-NUM-002"]),
     ("m-2·s-1",  ["CA-NUM-002"]),
 ])
-def test_a_unit_containing_a_space_is_read_as_its_first_token(unit, expected):
+def test_a_unit_written_with_a_space_is_the_whole_spaced_expression(unit, expected):
     """MUTATION: change the shipped wording without changing this.
 
-    This asserts BEHAVIOUR, not strings, because the previous version of this
-    guard checked the instruction text and the instruction was wrong: it said
-    the checker refuses the first half of `m-2 s-1`, and in fact `m-2` PASSES.
-    Whitespace is a boundary, so against `5 m-2 s-1` the token is `m-2` and the
-    second half is invisible to the check. That is the one place a partial unit
-    satisfies, it is structural, and a documentation test could not have caught
-    the contradiction because it never ran the scanner.
+    **This table is inverted from the one that shipped in slice 2, and the
+    inversion is D160 ruling 1.** It used to assert that `m-2` PASSES against a
+    source writing `m-2 s-1` — a space being a boundary, the second half was
+    invisible — and slice 2's contract called that reading structural. The
+    containment gold says it is not structural: it is `unit_token` stopping at
+    whitespace, and it is 9 of the 11 false passes in 150
+    (`RESULTS-GOLD.md` §3), the same prefix defect D157 rounds 3-5 record being
+    fixed three times. So the first token no longer satisfies, the whole spaced
+    expression does, and neither `m-2s-1` nor `m-2·s-1` does, because those are
+    not what is written at that spot either.
 
     The skill and the contract must now describe exactly this table."""
     files = {RECIPE_PATH: b"5 m-2 s-1\n",
@@ -1543,15 +1547,22 @@ def test_the_shipped_words_say_what_the_scanner_does():
     from crossaudit.scaffold import annotation_skill_tree
 
     contract = contracts(["number_source"])["number_source"]
-    assert "first token only" in contract and "'m-2 s-1'" in contract
+    assert "A SPACE IS NOT WHERE A UNIT ENDS" in contract
+    assert "'m-2 s-1'" in contract and "WHOLE spaced expression" in contract
+    assert "exactly as the source writes it, spaces included" in contract
+    assert "first token only" not in contract       # D160 ruling 1 deleted it
+    assert "structural" not in contract
     assert "EMPTY unit imposes no unit constraint" in contract.replace("an EMPTY", "EMPTY")
     assert "never establish that it is unitless" in contract
     assert "'*' and '>'" in contract
     assert contract.count("does not resolve") == 1        # and it reads once
 
     body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
-    assert "first token only" in body.lower() or "FIRST token only" in body
-    assert "m-2s-1" in body and "uncited" in body
+    assert "exactly as the source writes it, spaces included" in body
+    assert "`m-2 s-1`" in body and "uncited" in body
+    assert "FIRST token only" not in body           # D160 ruling 1 deleted it
+    assert "structural" not in body
+    assert "so it is one token" not in body         # and the instruction with it
 
 
 def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
@@ -1567,6 +1578,152 @@ def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
         files = {RECIPE_PATH: (span + "\n").encode(),
                  DRAFT_PATH: draft([row(value="5", unit="", src=cite(span))])}
         assert findings(files) == [], span
+
+
+# ------------------- D160 ruling 1: a space is not where a unit ends
+#: Source text, the unit as annotated, and whether the check must block. The
+#: gold cannot supply this table — `RESULTS-GOLD.md` Amendment 2 says W = 0 is
+#: "no evidence against", not "no regression", and the 300 frozen rows contain
+#: exactly one shape of spaced unit (`°C min⁻¹` and its cousins) and no bare
+#: word after a unit at all. Every row here is a class the corpus lacks, so the
+#: cases live in the slice instead of in the study.
+SPACED_UNITS = [
+    # The nine false passes the gold found, in the shapes it found them.
+    ("5 °C min⁻¹",          "°C",        ["CA-NUM-002"], "a prefix across a space"),
+    ("5 °C min⁻¹",          "°C min⁻¹",  [],             "and the whole expression"),
+    ("5 °C min⁻¹",          "°C min",    ["CA-NUM-002"], "a truncated join is not it"),
+    ("5 mg h⁻¹",            "mg",        ["CA-NUM-002"], "the same for a rate"),
+    ("5 mg h⁻¹",            "mg h⁻¹",    [],             "and its whole expression"),
+    ("5 K min⁻¹",           "K",         ["CA-NUM-002"], "and for a ramp"),
+    ("5 K min⁻¹",           "K min⁻¹",   [],             "and its whole expression"),
+    ("5 m s⁻¹",             "m",         ["CA-NUM-002"], "a one-character prefix"),
+    ("5 m s⁻¹",             "m s⁻¹",     [],             "and its whole expression"),
+    ("5 mol L⁻¹",           "mol",       ["CA-NUM-002"], "a concentration prefix"),
+    ("5 mol L⁻¹",           "mol L⁻¹",   [],             "and its whole expression"),
+    ("5 °C min-1",          "°C",        ["CA-NUM-002"], "an ASCII exponent tail too"),
+    ("5 °C min-1",          "°C min-1",  [],             "and its whole expression"),
+    ("5 °C min−1",          "°C",        ["CA-NUM-002"], "and a U+2212 one"),
+    ("5 °C min−1",          "°C min−1",  [],             "and its whole expression"),
+    # A continuation with no exponent at all: the fragment table's one job.
+    ("5 kg m",              "kg",        ["CA-NUM-002"], "a plain unit symbol continues"),
+    ("5 kg m",              "kg m",      [],             "and the pair is one unit"),
+    # The percent split, which used to be a special case and is now this rule.
+    ("5 wt % Ni",           "wt %",      [],             "the basis qualifier is the unit"),
+    ("5 wt % Ni",           "wt",        ["CA-NUM-002"], "and its first token is not"),
+    ("5 wt % Ni",           "wt % Ni",   ["CA-NUM-002"], "an element is not part of it"),
+    ("20% vol/vol ethanol", "%",         ["CA-NUM-002"], "R6a: a basis qualifier is in"),
+    ("20% vol/vol ethanol", "% vol/vol", [],             "and naming it whole matches"),
+    # THE MIRRORS. A word is not a unit fragment, and this is the half of the
+    # rule that a stricter continuation test would break.
+    ("5 g sample",          "g",         [],             "a word does not continue a unit"),
+    ("5 g of powder",       "g",         [],             "nor does a preposition"),
+    ("2 h later",           "h",         [],             "nor does an adverb"),
+    ("10 g at 300 °C",      "g",         [],             "nor `at`, which IS a unit symbol"),
+    ("5 mL in water",       "mL",        [],             "nor `in`, which is an inch"),
+    ("5 g A2",              "g",         [],             "nor a sample label"),
+    ("5 h (heating/cooling rate)", "h",  [],             "nor a parenthetical"),
+    ("5 g heating/cooling", "g",         [],             "nor a long word with a solidus"),
+]
+
+
+@pytest.mark.parametrize("span,unit,expected,why", SPACED_UNITS)
+def test_a_spaced_unit_is_one_unit_through_the_fence(span, unit, expected, why):
+    """MUTATIONS, four, each with the row it reddens:
+
+    * *stop at whitespace again* — delete the continuation loop in
+      `_spaced_unit`, and every BLOCK row above goes green: that is the shipped
+      behaviour slice 2 called structural and the gold called 9 of 11 false
+      passes;
+    * *accept the bare first token when a continuation exists* — return
+      `[(parts[0], …)] + [(join, …)]` from `_unit_candidates`, and the same BLOCK
+      rows go green while the PASS rows stay green, which is exactly why E4
+      alone does not close the defect (`RESULTS-GOLD.md` §3);
+    * *drop the join* — return `[]` for a spaced expression, and every PASS row
+      whose unit holds a space reddens;
+    * *treat any word as a continuation* — make `_continues_unit` return True,
+      and the MIRRORS redden. That last one is the trade this rule is
+      constantly one edit away from: a continuation test loose enough to catch
+      every unit blocks `5 g sample` on a correct annotation.
+
+    Every fix here ships with its mirror, which is D157 lesson 3."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=span.split()[0].rstrip("%"), unit=unit,
+                                    src=cite(span))])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+@pytest.mark.parametrize("span,unit,expected,why", SPACED_UNITS)
+def test_a_spaced_unit_is_one_unit_through_results_json(span, unit, expected, why):
+    """The same table through the OTHER interface.
+
+    Both locators reach one `contains_pair`, and D157 lesson 3 is that a fix
+    asserted through one interface is a fix asserted once: the `1e+5` sign bug
+    survived 3,015 tests because no test compared a positive explicit exponent
+    with its negative through both. A rule about what a unit IS cannot be
+    allowed to hold for the fence and not for a `results.json` quantity."""
+    value = span.split()[0].rstrip("%")
+    files = {"experiments/e1/metadata.yml":
+             b"code_version: v3\ninputs:\n  - src.txt@v3\n",
+             "experiments/e1/src.txt": ("header\n" + span + "\n").encode(),
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "q", "value": value, "unit": unit,
+                                  "source": "src.txt@v3#L2"}],
+                  "convergence": {"converged": True}}).encode()}
+    got = [f.rule for f in run_checks(files, ["number_source"]).findings]
+    assert got == expected, why
+
+
+def test_the_continuation_test_is_read_off_the_bytes_before_any_vocabulary():
+    """MUTATION: delete the marker half of `_continues_unit` and keep only the
+    table.
+
+    The rule is structure first and vocabulary second, and the order matters
+    because the table is knowingly incomplete: a unit this project has never
+    seen still continues a unit expression if it carries a superscript, an
+    exponent tail, a solidus, a middle dot or a percent sign. Delete the marker
+    half and `°C mK⁻¹` — a unit nothing names — falls back to `°C`."""
+    from crossaudit.dcl.numbers import _continues_unit
+
+    for token in ("min⁻¹", "h⁻¹", "s-1", "min−1", "m^2", "vol/vol", "%", "·s",
+                  "mK⁻¹", "µΩ⁻¹"):
+        assert _continues_unit(token), token
+    for token in ("sample", "of", "later", "powder", "Ni", "at", "in", "bar",
+                  "S1", "A2", "(heating/cooling", "heating/cooling", ""):
+        assert not _continues_unit(token), token
+
+
+def test_a_continuation_never_crosses_a_line():
+    """MUTATION: use `\\s` instead of `_INLINE` for the gap in `_spaced_unit`.
+
+    A `results.json` locator still names a line RANGE, so the text this matcher
+    scans can hold several lines, and the token at the head of the next line is
+    that line's prose. Reading it as this number's unit would turn a correct
+    annotation into a non-overridable block for a line break — the same shape as
+    the footnote `_UNPARSED` refuses to read as an exponent (slice 2)."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair("held at 5 g\nmin⁻¹ was the ramp", "5", "g")
+    assert not contains_pair("held at 5 g min⁻¹", "5", "g")
+
+
+def test_the_pair_interval_covers_the_characters_the_source_wrote():
+    """MUTATION: yield `len(candidate)` instead of the candidate's extent.
+
+    A spaced expression joined with single spaces is SHORTER than the text it
+    covers when the source wrote two spaces, and the interval is what the quote
+    contract tests containment against (slice 2). An interval that stops inside
+    the unit would let a quotation ending mid-unit satisfy the row — the
+    cropping defect slice 2's review found, met one more time."""
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    line = "ramp 5 °C  min⁻¹ then"
+    (start, end), = pair_occurrences(line, "5", "°C min⁻¹")
+    assert line[start:end] == "5 °C  min⁻¹"
+
+    files = {RECIPE_PATH: (line + "\n").encode(),
+             DRAFT_PATH: draft([row(value="5", unit="°C min⁻¹",
+                                    src=cite("5 °C  min"))])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"], "a quote that stops inside the unit"
 
 
 LEGACY_FIXTURES = Path(__file__).parent / "fixtures" / "legacy_provenance_skills"
