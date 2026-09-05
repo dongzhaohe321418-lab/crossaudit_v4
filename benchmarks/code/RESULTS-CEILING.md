@@ -528,6 +528,19 @@ gate. Prompt bytes proved identical to the shipped auditor's (40 of 40).
 **11. The same-vendor bypass is inherited and used**, as in studies 1, 2 and 7. **`src/` is
 not touched by this study.**
 
+*How to verify that, correctly.* This branch was cut at `19bd161`, and
+`fusion/evidence-authority` has since advanced (the D156 skills slice). A diff against the
+branch **tip** therefore shows changes — they are the base branch's, not this study's, and
+reading them as this study's would be a false positive. The check that means what it says
+is against the **merge base**:
+
+```sh
+git diff --stat "$(git merge-base fusion/evidence-authority HEAD)"..HEAD -- src/   # empty
+git log --oneline "$(git merge-base fusion/evidence-authority HEAD)"..HEAD -- src/ # empty
+```
+
+Both are empty. This study's commits touch `benchmarks/` only.
+
 **12. Transient provider failures cost wall-clock throughout and changed no result.** Final
 coverage is **260 of 260 on all 20 draws**, and every ceiling-2 arm covers all 112 instances.
 
