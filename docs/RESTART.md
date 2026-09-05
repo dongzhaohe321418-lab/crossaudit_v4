@@ -231,7 +231,12 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    7/7 均为探针注释错误。构建者明言：**Arm 1 已到此语料能测的极限，分子全是仪器误差，真实
    假阻断率要靠 Arm 2 生成端注释。** 第六轮复核（`…-round6.md`）：其余全部确认、复核者同意
    Arm 1 已到极限；**唯一剩余是本轮新引入的一字之差**——指数符号 `+`/`-` 都映射成 `-`，
-   `1e+5 ≡ 1e-5`，1–100 扫描 100/100 假通过。第七轮修复中（双向扫描测试永久入表），预计合并。**
+   `1e+5 ≡ 1e-5`，1–100 扫描 100/100 假通过。第七轮修复已交并 **rebase 到 f91f8bb**（HEAD 6ea38ba，八个提交无冲突，全套 **3173** 通过）：
+   `+` 丢弃、只保留 `-`，1–100 双向扫描入表；两条创建路径统一为 `wizard.annotation_skills_owned`，
+   对真实 git 断言删除的暂存与提交序列；**rebase 时发现真缺陷**——旧技能清理按文件系统路径寻址，
+   在 `skills -> work/guidance` 下会删掉 `work/guidance/provenance.md`（git 视为工作），
+   正是 D156 的"两个目录身份"在迁移代码里重现，现改为经 `house_dir()`，别名即 ConfigDenial
+   而非删除。第七轮复核中，预计合并。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
