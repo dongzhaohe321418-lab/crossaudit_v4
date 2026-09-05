@@ -13,6 +13,10 @@ Concretely, and enforced here rather than merely asked for:
   against the committed Constitution. A skill that could speak to the auditor
   would be an unversioned rule — the exact thing P3 exists to prevent, since it
   would let the standards move without a dated amendment anybody agreed to.
+  This one is enforced in `cli/main.py` rather than in this module, because the
+  exposure was never the hand-off — it was the audited SCOPE, which read the
+  repository root and carried `skills/` into the increment. `_is_house_skill`
+  drops it there, unconditionally (D156).
 * **Skills cannot widen the generator's reach.** `scope.dirs` is read from
   configuration, and nothing in a skill file can add to it. A skill saying "also
   edit AUDIT_RULES.md" is a text file with an opinion; the path guard is what

@@ -273,6 +273,35 @@ def _is_scaffold_template(path: str) -> bool:
     return "TEMPLATE" in Path(path).parts
 
 
+def _is_house_skill(path: str) -> bool:
+    """Is this path one of the project's house skills? (D156)
+
+    `skills.py` states the invariant in its own docstring: **skills never reach
+    the auditor**, because a skill that could speak to the auditor would be an
+    unversioned rule — the exact thing P3 exists to prevent. Until this
+    predicate the invariant was real only in the hand-off (nothing passes a
+    skill to the auditor deliberately) and absent as an invariant: the scope
+    reader below takes every file under its prefixes — the repository root when
+    no scope is configured — so a root-scoped project fenced its own skills into
+    the auditor's prompt as increment data. Of every file class the auditor
+    could be shown, an instruction-shaped one is the worst.
+
+    Judged on the FIRST path component, and against `skills.SKILLS_DIR` rather
+    than a literal, so `work/skills-notes.md` is ordinary work product and is
+    still audited. No check reads skill bytes (nothing under `dcl/` or
+    `auditor/` mentions them), so this closes a boundary and removes nothing.
+    """
+    from .. import skills as skills_mod
+
+    parts = Path(path).parts
+    return bool(parts) and parts[0] == skills_mod.SKILLS_DIR
+
+
+def _outside_the_increment(path: str) -> bool:
+    """Paths the audited increment never carries, whatever the scope says."""
+    return _is_scaffold_template(path) or _is_house_skill(path)
+
+
 def _materialise_tree_scope(cfg: Config, sha: str,
                             explicit_scope: str | None
                             ) -> tuple[dict[str, bytes], list[str], str]:
@@ -284,9 +313,12 @@ def _materialise_tree_scope(cfg: Config, sha: str,
         scoped, scoped_notes = materialise(cfg.root, sha, prefix)
         files.update(scoped)
         notes.extend(scoped_notes)
-    files = {p: data for p, data in files.items() if not _is_scaffold_template(p)}
+    # Unconditional, and deliberately not in `cmd_check`'s `excluded` set below:
+    # that set is applied only `if not explicit`, so an explicit scope naming the
+    # repository root would still carry the skill.
+    files = {p: data for p, data in files.items() if not _outside_the_increment(p)}
     notes = [n for n in notes
-             if not _is_scaffold_template(n.partition(": ")[2])]
+             if not _outside_the_increment(n.partition(": ")[2])]
     scope_text = ", ".join(prefixes) if any(prefixes) else ""
     return files, notes, scope_text
 
@@ -1602,11 +1634,21 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     sha, tree = resolve(cfg.root, args.sha or "HEAD")
     subject = git("log", "-1", "--format=%s", cwd=cfg.root, check=False)
+    from .. import skills as skills_mod
+    skills_dir = skills_mod.SKILLS_DIR
 
     # The increment is what the commit changed, minus the loop's own artefacts.
+    # `skills/` is on that list for the same reason the ledger and the state dir
+    # are: it is the loop's own input, not work to be judged. D156 named only
+    # `_materialise_tree_scope`, but this is a SECOND door to the same prompt —
+    # a root-scoped project whose newest commit touched a skill handed that
+    # skill to the auditor as the whole increment (reproduced). A commit that
+    # touches nothing else now falls through to the existing "changed no science
+    # files" path, which is the honest answer: editing house guidance is not an
+    # increment.
     own = {cfg.constitution, "crossaudit.yml", ".gitignore"}
     prefix_own = (cfg.ledger_dir.rstrip("/") + "/", cfg.state_dir.rstrip("/") + "/",
-                  ".github/")
+                  ".github/", skills_dir + "/")
     def science_of(s: str) -> list[str]:
         picked = [f for f in changed_paths(cfg.root, s)
                   if f not in own and not f.startswith(prefix_own)]
