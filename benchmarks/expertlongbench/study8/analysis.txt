@@ -1,0 +1,146 @@
+
+==============================================================================
+ARM A — 24 drafts
+==============================================================================
+annotation rows written                 234
+  named a location (addressed)          209
+  blockable (advisory routing removed)  209
+  PASS / BLOCKER / ADVISORY             183 / 26 / 25
+  drafts with at least one blocker      11 of 24
+
+-- PRIMARY (§8g is read off this) ------------------------------
+Of the BLOCKABLE rows whose named location genuinely contains the transcribed
+pair (adjudicator A, deterministic re-read), the fraction this arm BLOCKS:
+  false-blocker rate: 0 of 183 = 0.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.00–2.06%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–0.00%
+  §8g DISPOSITION: PASS
+
+-- sensitivity, not a second objective -------------------------
+  over adjudicator B's denominator: 23 of 206 = 11.17%  (95% Wilson score interval for a binomial proportion of annotation rows: 7.56–16.20%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 5.26–17.11%
+  including advisory-routed ambiguous rows: 0 of 183 = 0.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.00–2.06%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–0.00%
+  A/B agreement on rows with a resolvable location: 186 of 209 (A+B+ 183, A+B- 0, A-B+ 23, A-B- 3)
+
+-- SECONDARY: rows the verifier resolves and the pair is in ----
+  over BLOCKABLE rows: 183 of 209 = 87.56%  (95% Wilson score interval for a binomial proportion of annotation rows: 82.40–91.37%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 81.78–93.62%
+      simulated ceiling 82.0%  (measured − predicted = +5.6 points)
+  over ADDRESSED rows: 183 of 209 = 87.56%  (95% Wilson score interval for a binomial proportion of annotation rows: 82.40–91.37%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 81.78–93.62%
+      simulated ceiling 82.0%  (measured − predicted = +5.6 points)
+
+-- SECONDARY: the generator's behaviour ------------------------
+  uncited rate (all rows): 25 of 234 = 10.68%  (95% Wilson score interval for a binomial proportion of annotation rows: 7.34–15.30%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 4.35–18.50%
+  unit written shorter than the source's: 1 of 209 = 0.48%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.08–2.66%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–1.58%
+  annotation rate: 234 / 577 = 40.6% pooled
+  outline-replaced source files: 0 over 24 drafts
+  drafts whose prompt carried a gutter: 24 of 24
+
+-- BLOCK CLASSIFICATION (preregistered §10) --------------------
+  verifier wrong                   0
+  malformed row                    0
+  outline-replaced file            0
+  unparsed notation                2
+  ambiguous                        0
+  paraphrase                       0
+  generator wrong file             24
+  generator wrong line/quote       0
+
+-- COST (the product's own usage ledger) -----------------------
+  per draft: mean $0.0606, median $0.0583, total $1.4541
+    generator $1.0676   auditor $0.3865
+  generator tokens: input mean 4578, output mean 2050
+  malformed-envelope re-ask: 1 of 24 drafts placed more than one generator call (total generator calls 25)
+  receipt manifest agrees with the reconstructed increment: 24 of 24
+
+==============================================================================
+ARM B — 24 drafts
+==============================================================================
+annotation rows written                 206
+  named a location (addressed)          192
+  blockable (advisory routing removed)  192
+  PASS / BLOCKER / ADVISORY             165 / 27 / 14
+  drafts with at least one blocker      14 of 24
+
+-- PRIMARY (§8g is read off this) ------------------------------
+Of the BLOCKABLE rows whose named location genuinely contains the transcribed
+pair (adjudicator A, deterministic re-read), the fraction this arm BLOCKS:
+  false-blocker rate: 2 of 167 = 1.20%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.33–4.26%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–2.98%
+  §8g DISPOSITION: PASS
+
+-- sensitivity, not a second objective -------------------------
+  over adjudicator B's denominator: 21 of 186 = 11.29%  (95% Wilson score interval for a binomial proportion of annotation rows: 7.50–16.64%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 6.21–16.48%
+  including advisory-routed ambiguous rows: 2 of 167 = 1.20%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.33–4.26%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–2.98%
+  A/B agreement on rows with a resolvable location: 173 of 192 (A+B+ 167, A+B- 0, A-B+ 19, A-B- 6)
+
+-- SECONDARY: rows the verifier resolves and the pair is in ----
+  over BLOCKABLE rows: 165 of 192 = 85.94%  (95% Wilson score interval for a binomial proportion of annotation rows: 80.31–90.15%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 80.72–90.86%
+      simulated ceiling 85.5%  (measured − predicted = +0.4 points)
+  over ADDRESSED rows: 165 of 192 = 85.94%  (95% Wilson score interval for a binomial proportion of annotation rows: 80.31–90.15%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 80.72–90.86%
+      simulated ceiling 77.6%  (measured − predicted = +8.3 points)
+
+-- SECONDARY: the generator's behaviour ------------------------
+  uncited rate (all rows): 14 of 206 = 6.80%  (95% Wilson score interval for a binomial proportion of annotation rows: 4.09–11.08%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 2.98–11.34%
+  ambiguous rate (addressed rows): 0 of 192 = 0.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.00–1.96%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–0.00%
+  paraphrase rate (addressed rows): 0 of 192 = 0.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.00–1.96%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–0.00%
+  quote absent AND pair not in the file: 0 of 192 = 0.00%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.00–1.96%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–0.00%
+  quote length: mean 36, median 36, max 104 (cap 80; 2 over)
+  unit written shorter than the source's: 1 of 192 = 0.52%  (95% Wilson score interval for a binomial proportion of annotation rows: 0.09–2.89%)
+    draft-clustered 95% percentile bootstrap for the same proportion, 10000 resamples of the 24 drafts: 0.00–1.67%
+  annotation rate: 206 / 553 = 37.3% pooled
+  outline-replaced source files: 0 over 24 drafts
+  drafts whose prompt carried a gutter: 0 of 24
+
+-- BLOCK CLASSIFICATION (preregistered §10) --------------------
+  verifier wrong                   2
+  malformed row                    0
+  outline-replaced file            0
+  unparsed notation                4
+  ambiguous                        0
+  paraphrase                       0
+  generator wrong file             21
+  generator wrong line/quote       0
+
+-- COST (the product's own usage ledger) -----------------------
+  per draft: mean $0.0651, median $0.0650, total $1.5620
+    generator $1.1652   auditor $0.3968
+  generator tokens: input mean 5493, output mean 2138
+  malformed-envelope re-ask: 6 of 24 drafts placed more than one generator call (total generator calls 30)
+  receipt manifest agrees with the reconstructed increment: 24 of 24
+
+==============================================================================
+A vs B — paired by instance
+==============================================================================
+complete pairs: 24
+
+resolved fraction over BLOCKABLE rows, 23 pairs
+  A mean 88.4%   B mean 85.9%
+  instances where A > B: 6; B > A: 2; tied: 15
+  exact McNemar on the discordant pair directions (identical to the exact paired sign test): p = 0.2891
+  draft-clustered sign-flip randomisation on the paired difference (A−B): mean +2.5 points, p = 0.2591
+  paired percentile bootstrap 95% interval for the mean paired difference (A−B), 10000 resamples of the 23 instances: -1.3 to +6.9 points
+
+resolved fraction over ADDRESSED rows, 23 pairs
+  A mean 88.4%   B mean 85.9%
+  instances where A > B: 6; B > A: 2; tied: 15
+  exact McNemar on the discordant pair directions (identical to the exact paired sign test): p = 0.2891
+  draft-clustered sign-flip randomisation on the paired difference (A−B): mean +2.5 points, p = 0.2591
+  paired percentile bootstrap 95% interval for the mean paired difference (A−B), 10000 resamples of the 23 instances: -1.3 to +6.9 points
+
+false-blocker rate, side by side (the §8g quantity)
+  arm A: 0 of 183 = 0.00%  (95% Wilson: 0.00–2.06%)  → PASS
+  arm B: 2 of 167 = 1.20%  (95% Wilson: 0.33–4.26%)  → PASS
+
+spend: arm A $1.4541, arm B $1.5620, total $3.0160
