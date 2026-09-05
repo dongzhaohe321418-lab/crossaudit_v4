@@ -1,0 +1,399 @@
+{
+  "plan": {
+    "study": "6-noise",
+    "role": "source directory for premise.py --rejudge; generated, not measured",
+    "built_utc": "2026-09-05T03:25:19.289297+00:00",
+    "archive": "/Users/ericdong/Documents/Crossaudit/study-data/wt-split-runs/armX-split",
+    "archive_run_id": "20260904T104827Z",
+    "archive_label": "X-split",
+    "task": "T03MaterialSEG",
+    "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+    "n": 20,
+    "seed": 20260930,
+    "round_replayed": 1,
+    "constitution_sha256": "9f1ee353ec4cb05e320a1a085b5b0c91f3888a17985b24331105af6ac5a0dc6d",
+    "sample_ids": [
+      "T03MaterialSEG-10.1002/adfm.202002249",
+      "T03MaterialSEG-10.1002/adfm.202209924",
+      "T03MaterialSEG-10.1002/adfm.202309656",
+      "T03MaterialSEG-10.1002/ange.202112688",
+      "T03MaterialSEG-10.1002/anie.201812472",
+      "T03MaterialSEG-10.1002/anie.202410016",
+      "T03MaterialSEG-10.1002/celc.202200984",
+      "T03MaterialSEG-10.1002/chem.201905217",
+      "T03MaterialSEG-10.1002/chem.202302565",
+      "T03MaterialSEG-10.1002/cjce.24030",
+      "T03MaterialSEG-10.1002/cnma.202200403",
+      "T03MaterialSEG-10.1002/cssc.201000245",
+      "T03MaterialSEG-10.1002/cssc.202300809",
+      "T03MaterialSEG-10.1002/ijch.201400157",
+      "T03MaterialSEG-10.1002/pssb.201900312",
+      "T03MaterialSEG-10.1002/smll.201800441",
+      "T03MaterialSEG-10.1002/smll.202408072",
+      "T03MaterialSEG-10.1002/zaac.201800357",
+      "T03MaterialSEG-10.1002/zaac.202200095",
+      "T03MaterialSEG-10.1126/sciadv.adp3309"
+    ],
+    "code_sha": "0a44fdbb21d4c1ae7ffd74daf8a1382041ed6a2b"
+  },
+  "instances": [
+    {
+      "sample_id": "T03MaterialSEG-10.1002/adfm.202002249",
+      "round": 1,
+      "draft_sha256": "750c276c09a966fa00d02e10abfb4a604ee532579678473878439f18a3bcdf76",
+      "draft_bytes": 7525,
+      "audit_prompt_sha256": "53f7f5e50d90300f4a9bba24dfa490010e11856039369cee251210177c531ddb",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.16666666666666666,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/adfm.202209924",
+      "round": 1,
+      "draft_sha256": "3b0b5d8592b800129b1759eb97a83ada92526893ef72826d67fde47813d24c09",
+      "draft_bytes": 8906,
+      "audit_prompt_sha256": "f2dba3458c7d75d1238022c1af9c0e09de4151f54a775b2d0d3a1016410b1c70",
+      "n_items": 6,
+      "n_items_wrong": 6,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.0,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/adfm.202309656",
+      "round": 1,
+      "draft_sha256": "ad15f9ba4fd0dddcb9309aa2a747f6c872a28b78f44e63818632fd55896bfa03",
+      "draft_bytes": 7153,
+      "audit_prompt_sha256": "3060c4aa8359c8573e50f63909732670c3dd8d76d7675644b4d0060ea203c4b0",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/ange.202112688",
+      "round": 1,
+      "draft_sha256": "4ab0d0aea8730820fbc9d996e9be417b42cde4028fb59fab0639efa27c45ccda",
+      "draft_bytes": 3592,
+      "audit_prompt_sha256": "b93523c490e6166127062e07cfe1054ba83cd0ddc58f1a1e442319fc0df28c47",
+      "n_items": 6,
+      "n_items_wrong": 2,
+      "items_wrong": [
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.7407407407407408,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/anie.201812472",
+      "round": 1,
+      "draft_sha256": "0e6cb152e6172b39ca40596e5131c9a55271282ea2c1392ce8cafdaafecf7a21",
+      "draft_bytes": 4602,
+      "audit_prompt_sha256": "682e6b509c0b18aaa9a076c311b8bb56dbc5a93c6efe6d70f57453ddaa8f39f1",
+      "n_items": 6,
+      "n_items_wrong": 3,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations"
+      ],
+      "clear_f1": 0.5,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/anie.202410016",
+      "round": 1,
+      "draft_sha256": "371063d3b0cf9d867efd8ba7d862c982c11f0b21ae8f6397f3c855269671b76b",
+      "draft_bytes": 5038,
+      "audit_prompt_sha256": "5998f3f89fe3fb30f4559aca4a8a534f566217a5293b4717b033accf4be3c518",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.25,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/celc.202200984",
+      "round": 1,
+      "draft_sha256": "23fcc463ad52b1ae5ab0613f3c2881859f0d13f3ba2e306ef85e4a8b2b9c1d20",
+      "draft_bytes": 6053,
+      "audit_prompt_sha256": "bb0a32278759c50fe05fda7df287951bf7920957a1acfb08029cfb01b7ec38a2",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.16666666666666666,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/chem.201905217",
+      "round": 1,
+      "draft_sha256": "e90bf575884a564b4e32b22159ddc8e3f47ed22331f3c3875378a61e2675e440",
+      "draft_bytes": 5156,
+      "audit_prompt_sha256": "45d67e679c44e07fdfa2d6eea3027d0ee66f335183ee1c297a59f64519cbc741",
+      "n_items": 6,
+      "n_items_wrong": 4,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration"
+      ],
+      "clear_f1": 0.3333333333333333,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/chem.202302565",
+      "round": 1,
+      "draft_sha256": "60a0934aa1d650b97e197f572954fa12db2ac207c59faa57dabbf4b49c31a303",
+      "draft_bytes": 7644,
+      "audit_prompt_sha256": "2a2f0350b26815ba8866974887167e39a3bddca6a777b8791b130866bdb25d68",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/cjce.24030",
+      "round": 1,
+      "draft_sha256": "919b455458d8ff4e01e2dfb75dadda12eebb7e5d1c6000a367d2e1107725e2a7",
+      "draft_bytes": 7406,
+      "audit_prompt_sha256": "581cf74a16cb43f8f2287318db5a8a27d661b18afac05228280a6bcb93f96e74",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/cnma.202200403",
+      "round": 1,
+      "draft_sha256": "11cd21a2bac94bd761f9d50d5e70060770ad176c902d55fa826c1d7506764a37",
+      "draft_bytes": 5052,
+      "audit_prompt_sha256": "3da87332b02413f0b8c7a5d74052dad893f2d34e2f233050c2a174d4565fb95e",
+      "n_items": 6,
+      "n_items_wrong": 6,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.0,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/cssc.201000245",
+      "round": 1,
+      "draft_sha256": "c53c73f89313d04e0ba0a5eff0ad181ee93073a8732dfe7de10a6b8d87ddd6ad",
+      "draft_bytes": 5780,
+      "audit_prompt_sha256": "46d62d042cb4a2cd406320395199a3c0a914add47e5b2e12e3921e77f28d7401",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/cssc.202300809",
+      "round": 1,
+      "draft_sha256": "1235b5ef88f9861a13320984a612a24122d9401dbcc7efd041a07c11a8be34da",
+      "draft_bytes": 7860,
+      "audit_prompt_sha256": "3671c71b437a225ccdf8dcaf5c4918ca61fa3285f821c139dac02c9316b85999",
+      "n_items": 6,
+      "n_items_wrong": 6,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.0,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/ijch.201400157",
+      "round": 1,
+      "draft_sha256": "5ae10c05faab641983a8a8f4cd41c483470b3132b02ad2f855688798965d8c1f",
+      "draft_bytes": 4017,
+      "audit_prompt_sha256": "2d4d9159c2410812b70d255a5e398b17ba05af1d4edf6ac36e9849b190f13309",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/pssb.201900312",
+      "round": 1,
+      "draft_sha256": "755e5ad888efd023154a45b091a862c8335408e52b9ed33d096dfccecec714e1",
+      "draft_bytes": 6778,
+      "audit_prompt_sha256": "e9cffdb330edc69bd9bbea7f841e4c64ed32632624559f6285ca28f04e75340e",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration"
+      ],
+      "clear_f1": 0.25,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/smll.201800441",
+      "round": 1,
+      "draft_sha256": "2b2ed88f5c9781640999b99016a109e7260fb9399d6f2905e60b50fd38d9ab0d",
+      "draft_bytes": 7530,
+      "audit_prompt_sha256": "24047d277768ef4c680cfab7134e4f8ba818acff8797e2dd3877ba257e5149be",
+      "n_items": 6,
+      "n_items_wrong": 6,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.0,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/smll.202408072",
+      "round": 1,
+      "draft_sha256": "f32a3abf1ee98dfd3bd739c2873fb9a42034e6b8a3b38d80f2321c09a57e1801",
+      "draft_bytes": 5390,
+      "audit_prompt_sha256": "0efc156ab81f1f7413a7d0757909a63a940c8a6313901c16b84728816aa4a2b7",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/zaac.201800357",
+      "round": 1,
+      "draft_sha256": "c7dfda82e09ca3a9e27c1d4567224812952fd429513ecd654e0de2a632fd0542",
+      "draft_bytes": 8894,
+      "audit_prompt_sha256": "9b452bb0a7551c370feb8b7cd102616115abfd6409ec45d897929853c6a119ce",
+      "n_items": 6,
+      "n_items_wrong": 6,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Selection of Precursors [level] Structural Considerations",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.0,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1002/zaac.202200095",
+      "round": 1,
+      "draft_sha256": "dada0cabc2164bdfa7c36393a80b08ce6ac9e2a6093c30c99c51c6eb18b6ae7b",
+      "draft_bytes": 7859,
+      "audit_prompt_sha256": "56af495125e518f0e163cd22b94e216a48c317d50fe090166371f7531b4c926e",
+      "n_items": 6,
+      "n_items_wrong": 5,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Synthesis Conditions [level] Atmosphere",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.2222222222222222,
+      "dcl_hard_failures": 0
+    },
+    {
+      "sample_id": "T03MaterialSEG-10.1126/sciadv.adp3309",
+      "round": 1,
+      "draft_sha256": "67493785f0b4f6f378de71928a2c6a2d1aa169780560134e85e6f8a42b55ff39",
+      "draft_bytes": 4067,
+      "audit_prompt_sha256": "c43fdc84f95be3ff26e53a71d6067159118ee680ef888362af416af01250a11c",
+      "n_items": 6,
+      "n_items_wrong": 4,
+      "items_wrong": [
+        "Selection of Precursors [level] Handling Precursor Reactivity",
+        "Selection of Precursors [level] Physical and Chemical Properties of Precursors",
+        "Synthesis Conditions [level] Duration",
+        "Synthesis Conditions [level] Temperature and Heating Method"
+      ],
+      "clear_f1": 0.4,
+      "dcl_hard_failures": 0
+    }
+  ]
+}
