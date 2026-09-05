@@ -1,0 +1,1963 @@
+{
+  "against_shipped": [
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": 12.16,
+      "delta_P_points": -7.27,
+      "inside_constraint": false,
+      "label": "holistic-self",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.34375,
+        "n": 55,
+        "only_shipped": 7,
+        "only_spec": 3
+      },
+      "spec_id": "hs",
+      "verdict": "does not beat it by more than the noise floor"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 8.11,
+      "delta_P_points": 7.27,
+      "inside_constraint": false,
+      "label": "decomposed-cross",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.454498,
+        "n": 55,
+        "only_shipped": 6,
+        "only_spec": 10
+      },
+      "spec_id": "dc",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 17.57,
+      "delta_P_points": 5.45,
+      "inside_constraint": false,
+      "label": "hc union hs",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.25,
+        "n": 55,
+        "only_shipped": 0,
+        "only_spec": 3
+      },
+      "spec_id": "hc_u_hs",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 10.81,
+      "delta_P_points": 18.18,
+      "inside_constraint": false,
+      "label": "hc union dc",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.001953,
+        "n": 55,
+        "only_shipped": 0,
+        "only_spec": 10
+      },
+      "spec_id": "hc_u_dc",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 24.32,
+      "delta_P_points": 14.55,
+      "inside_constraint": false,
+      "label": "hs union dc",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.076813,
+        "n": 55,
+        "only_shipped": 4,
+        "only_spec": 12
+      },
+      "spec_id": "hs_u_dc",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 27.03,
+      "delta_P_points": 21.82,
+      "inside_constraint": false,
+      "label": "hc union hs union dc",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.000488,
+        "n": 55,
+        "only_shipped": 0,
+        "only_spec": 12
+      },
+      "spec_id": "tri_union",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": -1.35,
+      "delta_P_points": -5.45,
+      "inside_constraint": true,
+      "label": "majority of {hc, hs, dc}",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.375,
+        "n": 55,
+        "only_shipped": 4,
+        "only_spec": 1
+      },
+      "spec_id": "tri_majority",
+      "verdict": "does not beat it by more than the noise floor"
+    },
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": -5.41,
+      "delta_P_points": -16.36,
+      "inside_constraint": true,
+      "label": "unanimous of {hc, hs, dc}",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.003906,
+        "n": 55,
+        "only_shipped": 9,
+        "only_spec": 0
+      },
+      "spec_id": "tri_unanimous",
+      "verdict": "does not beat it by more than the noise floor"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 1.35,
+      "delta_P_points": 1.82,
+      "inside_constraint": false,
+      "label": "holistic-cross x2 union",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 1.0,
+        "n": 55,
+        "only_shipped": 0,
+        "only_spec": 1
+      },
+      "spec_id": "hc_x2",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 4.05,
+      "delta_P_points": 3.64,
+      "inside_constraint": false,
+      "label": "holistic-cross x3 union",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.5,
+        "n": 55,
+        "only_shipped": 0,
+        "only_spec": 2
+      },
+      "spec_id": "hc_x3",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": -1.35,
+      "delta_P_points": -7.27,
+      "inside_constraint": true,
+      "label": "holistic-cross x3 majority",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.21875,
+        "n": 55,
+        "only_shipped": 5,
+        "only_spec": 1
+      },
+      "spec_id": "hc_x3_maj",
+      "verdict": "does not beat it by more than the noise floor"
+    },
+    {
+      "beats_noise_floor": true,
+      "delta_C_points": 10.81,
+      "delta_P_points": 10.91,
+      "inside_constraint": false,
+      "label": "decomposed-cross x2 union",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.210114,
+        "n": 55,
+        "only_shipped": 5,
+        "only_spec": 11
+      },
+      "spec_id": "dc_x2",
+      "verdict": "beats it, but only outside the constraint"
+    },
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": -1.35,
+      "delta_P_points": -9.09,
+      "inside_constraint": true,
+      "label": "cheap holistic-cross (luna) x1",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.179688,
+        "n": 55,
+        "only_shipped": 7,
+        "only_spec": 2
+      },
+      "spec_id": "cheap_hc",
+      "verdict": "does not beat it by more than the noise floor"
+    },
+    {
+      "beats_noise_floor": false,
+      "delta_C_points": 2.7,
+      "delta_P_points": -3.64,
+      "inside_constraint": false,
+      "label": "cheap holistic-cross x3 union",
+      "mcnemar_P_confirm": {
+        "mcnemar_exact_p": 0.726562,
+        "n": 55,
+        "only_shipped": 5,
+        "only_spec": 3
+      },
+      "spec_id": "cheap_hc_x3",
+      "verdict": "does not beat it by more than the noise floor"
+    }
+  ],
+  "leaderboard": [
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.01432,
+            0.07565
+          ],
+          "k": 5,
+          "n": 150,
+          "rate": 0.03333333333333333
+        },
+        "F": {
+          "ci95": [
+            0.74379,
+            0.9654
+          ],
+          "k": 27,
+          "n": 30,
+          "rate": 0.9
+        },
+        "P": {
+          "ci95": [
+            0.09156,
+            0.22328
+          ],
+          "k": 16,
+          "n": 110,
+          "rate": 0.14545454545454545
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.0292,
+            0.14861
+          ],
+          "k": 5,
+          "n": 74,
+          "rate": 0.06756756756756757
+        },
+        "F": {
+          "ci95": [
+            0.62118,
+            0.96264
+          ],
+          "k": 13,
+          "n": 15,
+          "rate": 0.8666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.11552,
+            0.32365
+          ],
+          "k": 11,
+          "n": 55,
+          "rate": 0.2
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.006906,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.0,
+            0.04811
+          ],
+          "k": 0,
+          "n": 76,
+          "rate": 0.0
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.03946,
+            0.19577
+          ],
+          "k": 5,
+          "n": 55,
+          "rate": 0.09090909090909091
+        }
+      },
+      "label": "holistic-cross (SHIPPED)",
+      "n_detectors": 1,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.16116,
+            0.29282
+          ],
+          "k": 33,
+          "n": 150,
+          "rate": 0.22
+        },
+        "F": {
+          "ci95": [
+            0.33154,
+            0.66846
+          ],
+          "k": 15,
+          "n": 30,
+          "rate": 0.5
+        },
+        "P": {
+          "ci95": [
+            0.09879,
+            0.23362
+          ],
+          "k": 17,
+          "n": 110,
+          "rate": 0.15454545454545454
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.11618,
+            0.29288
+          ],
+          "k": 14,
+          "n": 74,
+          "rate": 0.1891891891891892
+        },
+        "F": {
+          "ci95": [
+            0.4805,
+            0.89103
+          ],
+          "k": 11,
+          "n": 15,
+          "rate": 0.7333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.06304,
+            0.24017
+          ],
+          "k": 7,
+          "n": 55,
+          "rate": 0.12727272727272726
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.002842,
+      "coverage": 290,
+      "detector_specs": [
+        "anthropic:claude-haiku-4-5-20251001"
+      ],
+      "detectors": [
+        "holistic__self__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.16629,
+            0.35777
+          ],
+          "k": 19,
+          "n": 76,
+          "rate": 0.25
+        },
+        "F": {
+          "ci95": [
+            0.10897,
+            0.5195
+          ],
+          "k": 4,
+          "n": 15,
+          "rate": 0.26666666666666666
+        },
+        "P": {
+          "ci95": [
+            0.10188,
+            0.3033
+          ],
+          "k": 10,
+          "n": 55,
+          "rate": 0.18181818181818182
+        }
+      },
+      "label": "holistic-self",
+      "n_detectors": 1,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hs"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.07197,
+            0.174
+          ],
+          "k": 17,
+          "n": 150,
+          "rate": 0.11333333333333333
+        },
+        "F": {
+          "ci95": [
+            0.62694,
+            0.90495
+          ],
+          "k": 24,
+          "n": 30,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.16671,
+            0.32381
+          ],
+          "k": 26,
+          "n": 110,
+          "rate": 0.23636363636363636
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.08508,
+            0.24689
+          ],
+          "k": 11,
+          "n": 74,
+          "rate": 0.14864864864864866
+        },
+        "F": {
+          "ci95": [
+            0.54815,
+            0.92952
+          ],
+          "k": 12,
+          "n": 15,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.17281,
+            0.40232
+          ],
+          "k": 15,
+          "n": 55,
+          "rate": 0.2727272727272727
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.018601,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.03668,
+            0.16173
+          ],
+          "k": 6,
+          "n": 76,
+          "rate": 0.07894736842105263
+        },
+        "F": {
+          "ci95": [
+            0.54815,
+            0.92952
+          ],
+          "k": 12,
+          "n": 15,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.11552,
+            0.32365
+          ],
+          "k": 11,
+          "n": 55,
+          "rate": 0.2
+        }
+      },
+      "label": "decomposed-cross",
+      "n_detectors": 1,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "dc"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.18458,
+            0.3214
+          ],
+          "k": 37,
+          "n": 150,
+          "rate": 0.24666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.8333,
+            0.99409
+          ],
+          "k": 29,
+          "n": 30,
+          "rate": 0.9666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.17452,
+            0.33356
+          ],
+          "k": 27,
+          "n": 110,
+          "rate": 0.24545454545454545
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.15976,
+            0.35206
+          ],
+          "k": 18,
+          "n": 74,
+          "rate": 0.24324324324324326
+        },
+        "F": {
+          "ci95": [
+            0.79612,
+            1.0
+          ],
+          "k": 15,
+          "n": 15,
+          "rate": 1.0
+        },
+        "P": {
+          "ci95": [
+            0.15812,
+            0.38302
+          ],
+          "k": 14,
+          "n": 55,
+          "rate": 0.2545454545454545
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.009748,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "anthropic:claude-haiku-4-5-20251001"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__self__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.16629,
+            0.35777
+          ],
+          "k": 19,
+          "n": 76,
+          "rate": 0.25
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.14367,
+            0.36348
+          ],
+          "k": 13,
+          "n": 55,
+          "rate": 0.23636363636363636
+        }
+      },
+      "label": "hc union hs",
+      "n_detectors": 2,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc_u_hs"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.08261,
+            0.18937
+          ],
+          "k": 19,
+          "n": 150,
+          "rate": 0.12666666666666668
+        },
+        "F": {
+          "ci95": [
+            0.78677,
+            0.98152
+          ],
+          "k": 28,
+          "n": 30,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.2304,
+            0.40067
+          ],
+          "k": 34,
+          "n": 110,
+          "rate": 0.3090909090909091
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.10564,
+            0.27772
+          ],
+          "k": 13,
+          "n": 74,
+          "rate": 0.17567567567567569
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.26516,
+            0.51391
+          ],
+          "k": 21,
+          "n": 55,
+          "rate": 0.38181818181818183
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.025507,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.03668,
+            0.16173
+          ],
+          "k": 6,
+          "n": 76,
+          "rate": 0.07894736842105263
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.14367,
+            0.36348
+          ],
+          "k": 13,
+          "n": 55,
+          "rate": 0.23636363636363636
+        }
+      },
+      "label": "hc union dc",
+      "n_detectors": 2,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc_u_dc"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.23241,
+            0.37758
+          ],
+          "k": 45,
+          "n": 150,
+          "rate": 0.3
+        },
+        "F": {
+          "ci95": [
+            0.74379,
+            0.9654
+          ],
+          "k": 27,
+          "n": 30,
+          "rate": 0.9
+        },
+        "P": {
+          "ci95": [
+            0.24671,
+            0.41949
+          ],
+          "k": 36,
+          "n": 110,
+          "rate": 0.32727272727272727
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.21691,
+            0.42339
+          ],
+          "k": 23,
+          "n": 74,
+          "rate": 0.3108108108108108
+        },
+        "F": {
+          "ci95": [
+            0.79612,
+            1.0
+          ],
+          "k": 15,
+          "n": 15,
+          "rate": 1.0
+        },
+        "P": {
+          "ci95": [
+            0.23363,
+            0.47746
+          ],
+          "k": 19,
+          "n": 55,
+          "rate": 0.34545454545454546
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.021443,
+      "coverage": 290,
+      "detector_specs": [
+        "anthropic:claude-haiku-4-5-20251001",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__self__d1",
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.19961,
+            0.3996
+          ],
+          "k": 22,
+          "n": 76,
+          "rate": 0.2894736842105263
+        },
+        "F": {
+          "ci95": [
+            0.54815,
+            0.92952
+          ],
+          "k": 12,
+          "n": 15,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.20282,
+            0.44029
+          ],
+          "k": 17,
+          "n": 55,
+          "rate": 0.3090909090909091
+        }
+      },
+      "label": "hs union dc",
+      "n_detectors": 2,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hs_u_dc"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.24455,
+            0.39144
+          ],
+          "k": 47,
+          "n": 150,
+          "rate": 0.31333333333333335
+        },
+        "F": {
+          "ci95": [
+            0.8333,
+            0.99409
+          ],
+          "k": 29,
+          "n": 30,
+          "rate": 0.9666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.2881,
+            0.46595
+          ],
+          "k": 41,
+          "n": 110,
+          "rate": 0.37272727272727274
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.24047,
+            0.45121
+          ],
+          "k": 25,
+          "n": 74,
+          "rate": 0.33783783783783783
+        },
+        "F": {
+          "ci95": [
+            0.79612,
+            1.0
+          ],
+          "k": 15,
+          "n": 15,
+          "rate": 1.0
+        },
+        "P": {
+          "ci95": [
+            0.29738,
+            0.54967
+          ],
+          "k": 23,
+          "n": 55,
+          "rate": 0.41818181818181815
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.028349,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "anthropic:claude-haiku-4-5-20251001",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__self__d1",
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.19961,
+            0.3996
+          ],
+          "k": 22,
+          "n": 76,
+          "rate": 0.2894736842105263
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.21813,
+            0.45897
+          ],
+          "k": 18,
+          "n": 55,
+          "rate": 0.32727272727272727
+        }
+      },
+      "label": "hc union hs union dc",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "tri_union"
+    },
+    {
+      "aggregate": "majority",
+      "all": {
+        "C": {
+          "ci95": [
+            0.02279,
+            0.09319
+          ],
+          "k": 7,
+          "n": 150,
+          "rate": 0.04666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.70319,
+            0.9469
+          ],
+          "k": 26,
+          "n": 30,
+          "rate": 0.8666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.08441,
+            0.21286
+          ],
+          "k": 15,
+          "n": 110,
+          "rate": 0.13636363636363635
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.02122,
+            0.1309
+          ],
+          "k": 4,
+          "n": 74,
+          "rate": 0.05405405405405406
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.07559,
+            0.26161
+          ],
+          "k": 8,
+          "n": 55,
+          "rate": 0.14545454545454545
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.028349,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "anthropic:claude-haiku-4-5-20251001",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__self__d1",
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.01351,
+            0.10975
+          ],
+          "k": 3,
+          "n": 76,
+          "rate": 0.039473684210526314
+        },
+        "F": {
+          "ci95": [
+            0.54815,
+            0.92952
+          ],
+          "k": 12,
+          "n": 15,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.06304,
+            0.24017
+          ],
+          "k": 7,
+          "n": 55,
+          "rate": 0.12727272727272726
+        }
+      },
+      "label": "majority of {hc, hs, dc}",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "tri_majority"
+    },
+    {
+      "aggregate": "unanimous",
+      "all": {
+        "C": {
+          "ci95": [
+            0.00118,
+            0.03679
+          ],
+          "k": 1,
+          "n": 150,
+          "rate": 0.006666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.21874,
+            0.54486
+          ],
+          "k": 11,
+          "n": 30,
+          "rate": 0.36666666666666664
+        },
+        "P": {
+          "ci95": [
+            0.00932,
+            0.07713
+          ],
+          "k": 3,
+          "n": 110,
+          "rate": 0.02727272727272727
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.00239,
+            0.07265
+          ],
+          "k": 1,
+          "n": 74,
+          "rate": 0.013513513513513514
+        },
+        "F": {
+          "ci95": [
+            0.2481,
+            0.69883
+          ],
+          "k": 7,
+          "n": 15,
+          "rate": 0.4666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.01003,
+            0.12323
+          ],
+          "k": 2,
+          "n": 55,
+          "rate": 0.03636363636363636
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.028349,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "anthropic:claude-haiku-4-5-20251001",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__self__d1",
+        "decomposed__cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.0,
+            0.04811
+          ],
+          "k": 0,
+          "n": 76,
+          "rate": 0.0
+        },
+        "F": {
+          "ci95": [
+            0.10897,
+            0.5195
+          ],
+          "k": 4,
+          "n": 15,
+          "rate": 0.26666666666666666
+        },
+        "P": {
+          "ci95": [
+            0.00322,
+            0.09606
+          ],
+          "k": 1,
+          "n": 55,
+          "rate": 0.01818181818181818
+        }
+      },
+      "label": "unanimous of {hc, hs, dc}",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "tri_unanimous"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.02727,
+            0.1017
+          ],
+          "k": 8,
+          "n": 150,
+          "rate": 0.05333333333333334
+        },
+        "F": {
+          "ci95": [
+            0.78677,
+            0.98152
+          ],
+          "k": 28,
+          "n": 30,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.11346,
+            0.25408
+          ],
+          "k": 19,
+          "n": 110,
+          "rate": 0.17272727272727273
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.03769,
+            0.16582
+          ],
+          "k": 6,
+          "n": 74,
+          "rate": 0.08108108108108109
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.12946,
+            0.3437
+          ],
+          "k": 12,
+          "n": 55,
+          "rate": 0.21818181818181817
+        }
+      },
+      "cost_reconstructed_for": [
+        "holistic__cross__d2"
+      ],
+      "cost_usd_per_instance": 0.014027,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__cross__d2"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.00725,
+            0.09097
+          ],
+          "k": 2,
+          "n": 76,
+          "rate": 0.02631578947368421
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.06304,
+            0.24017
+          ],
+          "k": 7,
+          "n": 55,
+          "rate": 0.12727272727272726
+        }
+      },
+      "label": "holistic-cross x2 union",
+      "n_detectors": 2,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc_x2"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.04144,
+            0.12654
+          ],
+          "k": 11,
+          "n": 150,
+          "rate": 0.07333333333333333
+        },
+        "F": {
+          "ci95": [
+            0.78677,
+            0.98152
+          ],
+          "k": 28,
+          "n": 30,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.1209,
+            0.26421
+          ],
+          "k": 20,
+          "n": 110,
+          "rate": 0.18181818181818182
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.05581,
+            0.19909
+          ],
+          "k": 8,
+          "n": 74,
+          "rate": 0.10810810810810811
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.14367,
+            0.36348
+          ],
+          "k": 13,
+          "n": 55,
+          "rate": 0.23636363636363636
+        }
+      },
+      "cost_reconstructed_for": [
+        "holistic__cross__d2",
+        "holistic__cross__d3"
+      ],
+      "cost_usd_per_instance": 0.018636,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__cross__d2",
+        "holistic__cross__d3"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.01351,
+            0.10975
+          ],
+          "k": 3,
+          "n": 76,
+          "rate": 0.039473684210526314
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.06304,
+            0.24017
+          ],
+          "k": 7,
+          "n": 55,
+          "rate": 0.12727272727272726
+        }
+      },
+      "label": "holistic-cross x3 union",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc_x3"
+    },
+    {
+      "aggregate": "majority",
+      "all": {
+        "C": {
+          "ci95": [
+            0.01042,
+            0.06655
+          ],
+          "k": 4,
+          "n": 150,
+          "rate": 0.02666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.74379,
+            0.9654
+          ],
+          "k": 27,
+          "n": 30,
+          "rate": 0.9
+        },
+        "P": {
+          "ci95": [
+            0.05013,
+            0.1593
+          ],
+          "k": 10,
+          "n": 110,
+          "rate": 0.09090909090909091
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.02122,
+            0.1309
+          ],
+          "k": 4,
+          "n": 74,
+          "rate": 0.05405405405405406
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.06304,
+            0.24017
+          ],
+          "k": 7,
+          "n": 55,
+          "rate": 0.12727272727272726
+        }
+      },
+      "cost_reconstructed_for": [
+        "holistic__cross__d2",
+        "holistic__cross__d3"
+      ],
+      "cost_usd_per_instance": 0.018636,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "holistic__cross__d1",
+        "holistic__cross__d2",
+        "holistic__cross__d3"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.0,
+            0.04811
+          ],
+          "k": 0,
+          "n": 76,
+          "rate": 0.0
+        },
+        "F": {
+          "ci95": [
+            0.62118,
+            0.96264
+          ],
+          "k": 13,
+          "n": 15,
+          "rate": 0.8666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.01872,
+            0.14853
+          ],
+          "k": 3,
+          "n": 55,
+          "rate": 0.05454545454545454
+        }
+      },
+      "label": "holistic-cross x3 majority",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "hc_x3_maj"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.09889,
+            0.21208
+          ],
+          "k": 22,
+          "n": 150,
+          "rate": 0.14666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.74379,
+            0.9654
+          ],
+          "k": 27,
+          "n": 30,
+          "rate": 0.9
+        },
+        "P": {
+          "ci95": [
+            0.19823,
+            0.36257
+          ],
+          "k": 30,
+          "n": 110,
+          "rate": 0.2727272727272727
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.10564,
+            0.27772
+          ],
+          "k": 13,
+          "n": 74,
+          "rate": 0.17567567567567569
+        },
+        "F": {
+          "ci95": [
+            0.62118,
+            0.96264
+          ],
+          "k": 13,
+          "n": 15,
+          "rate": 0.8666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.20282,
+            0.44029
+          ],
+          "k": 17,
+          "n": 55,
+          "rate": 0.3090909090909091
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.033698,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-terra",
+        "openai:gpt-5.6-terra"
+      ],
+      "detectors": [
+        "decomposed__cross__d1",
+        "decomposed__cross__d2"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.06357,
+            0.20999
+          ],
+          "k": 9,
+          "n": 76,
+          "rate": 0.11842105263157894
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.14367,
+            0.36348
+          ],
+          "k": 13,
+          "n": 55,
+          "rate": 0.23636363636363636
+        }
+      },
+      "label": "decomposed-cross x2 union",
+      "n_detectors": 2,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "dc_x2"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.01846,
+            0.08451
+          ],
+          "k": 6,
+          "n": 150,
+          "rate": 0.04
+        },
+        "F": {
+          "ci95": [
+            0.59072,
+            0.88208
+          ],
+          "k": 23,
+          "n": 30,
+          "rate": 0.7666666666666667
+        },
+        "P": {
+          "ci95": [
+            0.07735,
+            0.20235
+          ],
+          "k": 14,
+          "n": 110,
+          "rate": 0.12727272727272726
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.02122,
+            0.1309
+          ],
+          "k": 4,
+          "n": 74,
+          "rate": 0.05405405405405406
+        },
+        "F": {
+          "ci95": [
+            0.4805,
+            0.89103
+          ],
+          "k": 11,
+          "n": 15,
+          "rate": 0.7333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.05097,
+            0.21826
+          ],
+          "k": 6,
+          "n": 55,
+          "rate": 0.10909090909090909
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.006624,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-luna"
+      ],
+      "detectors": [
+        "holistic__cheap-cross__d1"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.00725,
+            0.09097
+          ],
+          "k": 2,
+          "n": 76,
+          "rate": 0.02631578947368421
+        },
+        "F": {
+          "ci95": [
+            0.54815,
+            0.92952
+          ],
+          "k": 12,
+          "n": 15,
+          "rate": 0.8
+        },
+        "P": {
+          "ci95": [
+            0.07559,
+            0.26161
+          ],
+          "k": 8,
+          "n": 55,
+          "rate": 0.14545454545454545
+        }
+      },
+      "label": "cheap holistic-cross (luna) x1",
+      "n_detectors": 1,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "cheap_hc"
+    },
+    {
+      "aggregate": "union",
+      "all": {
+        "C": {
+          "ci95": [
+            0.05135,
+            0.14263
+          ],
+          "k": 13,
+          "n": 150,
+          "rate": 0.08666666666666667
+        },
+        "F": {
+          "ci95": [
+            0.78677,
+            0.98152
+          ],
+          "k": 28,
+          "n": 30,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.12839,
+            0.27428
+          ],
+          "k": 21,
+          "n": 110,
+          "rate": 0.19090909090909092
+        }
+      },
+      "audit_set_n": 290,
+      "confirm": {
+        "C": {
+          "ci95": [
+            0.04658,
+            0.18262
+          ],
+          "k": 7,
+          "n": 74,
+          "rate": 0.0945945945945946
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.08855,
+            0.28264
+          ],
+          "k": 9,
+          "n": 55,
+          "rate": 0.16363636363636364
+        }
+      },
+      "cost_reconstructed_for": [],
+      "cost_usd_per_instance": 0.012922,
+      "coverage": 290,
+      "detector_specs": [
+        "openai:gpt-5.6-luna",
+        "openai:gpt-5.6-luna",
+        "openai:gpt-5.6-luna"
+      ],
+      "detectors": [
+        "holistic__cheap-cross__d1",
+        "holistic__cheap-cross__d2",
+        "holistic__cheap-cross__d3"
+      ],
+      "explore": {
+        "C": {
+          "ci95": [
+            0.03668,
+            0.16173
+          ],
+          "k": 6,
+          "n": 76,
+          "rate": 0.07894736842105263
+        },
+        "F": {
+          "ci95": [
+            0.70183,
+            0.98813
+          ],
+          "k": 14,
+          "n": 15,
+          "rate": 0.9333333333333333
+        },
+        "P": {
+          "ci95": [
+            0.12946,
+            0.3437
+          ],
+          "k": 12,
+          "n": 55,
+          "rate": 0.21818181818181817
+        }
+      },
+      "label": "cheap holistic-cross x3 union",
+      "n_detectors": 3,
+      "scored_utc": "2026-09-05T07:35:52Z",
+      "spec_id": "cheap_hc_x3"
+    }
+  ],
+  "objective": {
+    "best_on_confirm": "tri_majority",
+    "eligible_on_confirm": [
+      "tri_majority",
+      "tri_unanimous",
+      "hc_x3_maj",
+      "cheap_hc"
+    ],
+    "fp_constraint": 0.067,
+    "noise_floor_points": {
+      "C": 0.7,
+      "P": 1.8
+    },
+    "rule": "highest confirm-half P-recall among specs with confirm-half C-false-positive rate <= 6.7%",
+    "selected_on_explore": "cheap_hc"
+  },
+  "pareto_confirm": [
+    "hc",
+    "hs",
+    "dc",
+    "hc_u_hs",
+    "hc_u_dc",
+    "hs_u_dc",
+    "tri_union",
+    "tri_majority",
+    "tri_unanimous",
+    "hc_x2",
+    "hc_x3",
+    "hc_x3_maj",
+    "cheap_hc"
+  ],
+  "pareto_explore": [
+    "hc",
+    "hs",
+    "hc_u_hs",
+    "hc_u_dc",
+    "hs_u_dc",
+    "tri_union",
+    "cheap_hc",
+    "cheap_hc_x3"
+  ],
+  "shipped": {
+    "aggregate": "union",
+    "all": {
+      "C": {
+        "ci95": [
+          0.01432,
+          0.07565
+        ],
+        "k": 5,
+        "n": 150,
+        "rate": 0.03333333333333333
+      },
+      "F": {
+        "ci95": [
+          0.74379,
+          0.9654
+        ],
+        "k": 27,
+        "n": 30,
+        "rate": 0.9
+      },
+      "P": {
+        "ci95": [
+          0.09156,
+          0.22328
+        ],
+        "k": 16,
+        "n": 110,
+        "rate": 0.14545454545454545
+      }
+    },
+    "audit_set_n": 290,
+    "confirm": {
+      "C": {
+        "ci95": [
+          0.0292,
+          0.14861
+        ],
+        "k": 5,
+        "n": 74,
+        "rate": 0.06756756756756757
+      },
+      "F": {
+        "ci95": [
+          0.62118,
+          0.96264
+        ],
+        "k": 13,
+        "n": 15,
+        "rate": 0.8666666666666667
+      },
+      "P": {
+        "ci95": [
+          0.11552,
+          0.32365
+        ],
+        "k": 11,
+        "n": 55,
+        "rate": 0.2
+      }
+    },
+    "cost_reconstructed_for": [],
+    "cost_usd_per_instance": 0.006906,
+    "coverage": 290,
+    "detector_specs": [
+      "openai:gpt-5.6-terra"
+    ],
+    "detectors": [
+      "holistic__cross__d1"
+    ],
+    "explore": {
+      "C": {
+        "ci95": [
+          0.0,
+          0.04811
+        ],
+        "k": 0,
+        "n": 76,
+        "rate": 0.0
+      },
+      "F": {
+        "ci95": [
+          0.70183,
+          0.98813
+        ],
+        "k": 14,
+        "n": 15,
+        "rate": 0.9333333333333333
+      },
+      "P": {
+        "ci95": [
+          0.03946,
+          0.19577
+        ],
+        "k": 5,
+        "n": 55,
+        "rate": 0.09090909090909091
+      }
+    },
+    "label": "holistic-cross (SHIPPED)",
+    "n_detectors": 1,
+    "scored_utc": "2026-09-05T07:35:52Z",
+    "spec_id": "hc"
+  }
+}

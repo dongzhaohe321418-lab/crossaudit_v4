@@ -1,0 +1,170 @@
+{
+  "code": {
+    "commit": "72c67a0ba4670cdbed642820ebf3f75ef4a77911",
+    "files": {
+      "benchmarks/code/explore.py": "e2f405dd083aa317f1ab727e1b15c93a8125d4a9db3f1dfb11f551dcdab3e40d",
+      "benchmarks/code/explore/GRID.json": "cdb6bc5cbe157e87e286cedda23ce6073ad7a687cc2e8c98e1e1c69621430f57",
+      "benchmarks/code/explore/PREREGISTRATION.md": "c9070b6118e1daa92cb403ffcfcbaa9c36614cc014edb66a9fc34708018bbf62",
+      "benchmarks/code/report_explore.py": "010f91ed551c3c13e6357ed915e32c24ae68036b39018b302fc91a531c740119"
+    },
+    "status_porcelain": " M benchmarks/code/explore.py\n M benchmarks/code/explore/GRID.json\n M benchmarks/code/records/explore/manifest.json\n?? benchmarks/code/data\n"
+  },
+  "data": {
+    "audit_set": "benchmarks/code/records/study2/audit_set.json",
+    "audit_set_sha256": "a52cda72f7cb243cfca53b101414f74a368cb27be275caddc3cae1b960353aeb",
+    "corpus": {
+      "datasets": {
+        "humaneval_base": {
+          "bytes": 214315,
+          "config": "openai_humaneval",
+          "dataset": "openai/openai_humaneval",
+          "homepage": "https://huggingface.co/datasets/openai/openai_humaneval",
+          "licence": "MIT",
+          "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+          "rows": 164,
+          "sha256": "b19293e42932e70278b8e5ed83f8c82879cf34e0d3a44cc580f060b7cdaba4f8",
+          "split": "test"
+        },
+        "humaneval_plus": {
+          "bytes": 10991704,
+          "config": "default",
+          "dataset": "evalplus/humanevalplus",
+          "homepage": "https://huggingface.co/datasets/evalplus/humanevalplus",
+          "licence": "Apache-2.0",
+          "revision": "d32357cf319e50e9c8d8dab5ea876c72b0fd321b",
+          "rows": 164,
+          "sha256": "8778f6f31e78d1630709eb36e296fe4705466e6aa2b50dea7db67959ae0ef158",
+          "split": "test"
+        },
+        "mbpp_plus": {
+          "bytes": 4887790,
+          "config": "default",
+          "dataset": "evalplus/mbppplus",
+          "homepage": "https://huggingface.co/datasets/evalplus/mbppplus",
+          "licence": "Apache-2.0",
+          "revision": "b2d74c91837c3f2a20c1299ae98133cbe7cfa077",
+          "rows": 378,
+          "sha256": "43dd5c25c4f976d6ca98f4475b08fcc2add43b6e480348a22a25d1a020fe5866",
+          "split": "test"
+        }
+      },
+      "fetched_via": "https://datasets-server.huggingface.co/rows"
+    },
+    "instances_sha256": "8cba02aa5fe4c1b8448ac14b772f4ef2d444536029047a97f480071d6a88d8b1"
+  },
+  "detectors": {
+    "decomposed__cross__d1": {
+      "records": 290,
+      "sources": [
+        "study2:decomposed-cross"
+      ]
+    },
+    "decomposed__cross__d2": {
+      "records": 290,
+      "sources": [
+        "study2:decomposed-replicate"
+      ]
+    },
+    "holistic__cheap-cross__d1": {
+      "records": 290,
+      "sources": [
+        "explore:cache"
+      ]
+    },
+    "holistic__cheap-cross__d2": {
+      "records": 290,
+      "sources": [
+        "explore:cache"
+      ]
+    },
+    "holistic__cheap-cross__d3": {
+      "records": 290,
+      "sources": [
+        "explore:cache"
+      ]
+    },
+    "holistic__cross__d1": {
+      "records": 290,
+      "sources": [
+        "study2:holistic-cross"
+      ]
+    },
+    "holistic__cross__d2": {
+      "records": 290,
+      "sources": [
+        "explore:cache",
+        "study1:cross"
+      ]
+    },
+    "holistic__cross__d3": {
+      "records": 290,
+      "sources": [
+        "explore:cache",
+        "study1:cross-replicate"
+      ]
+    },
+    "holistic__self__d1": {
+      "records": 290,
+      "sources": [
+        "study2:holistic-self"
+      ]
+    }
+  },
+  "environment": {
+    "platform": "darwin",
+    "python": "3.13.5"
+  },
+  "frozen_at": "54b3d5c \u2014 the commit that preregistered this grid, before any model call",
+  "grid_id": "explore-1",
+  "models": {
+    "generator": "anthropic:claude-haiku-4-5-20251001",
+    "roles": {
+      "detector": "auditor",
+      "judge": "none \u2014 ground truth is a hidden test suite"
+    },
+    "routes": {
+      "cheap-cross": "openai:gpt-5.6-luna",
+      "cross": "openai:gpt-5.6-terra",
+      "self": "anthropic:claude-haiku-4-5-20251001"
+    }
+  },
+  "seed": {
+    "method": "stratified on (stratum, batch); random.Random(seed).shuffle over sorted ids; alternate",
+    "split": 20260906
+  },
+  "specs_scored": [
+    "hc",
+    "hs",
+    "dc",
+    "hc_u_hs",
+    "hc_u_dc",
+    "hs_u_dc",
+    "tri_union",
+    "tri_majority",
+    "tri_unanimous",
+    "hc_x2",
+    "hc_x3",
+    "hc_x3_maj",
+    "dc_x2",
+    "cheap_hc",
+    "cheap_hc_x3"
+  ],
+  "spend_usd_study": {
+    "by_project": {
+      "project-holistic__cheap-cross__d0": 4.2e-05,
+      "project-holistic__cheap-cross__d1": 1.066778,
+      "project-holistic__cheap-cross__d2": 0.77022,
+      "project-holistic__cheap-cross__d3": 0.758552,
+      "project-holistic__cross__d0": 0.000105,
+      "project-holistic__cross__d2": 1.263846,
+      "project-holistic__cross__d3": 0.564497,
+      "project-holistic__self__d0": 4.6e-05
+    },
+    "calls": 1242,
+    "source": "/tmp/explore-arms",
+    "usd": 4.424081
+  },
+  "spend_usd_this_invocation": 0,
+  "study": "explore (study 7)",
+  "written_utc": "2026-09-05T07:45:22Z"
+}
