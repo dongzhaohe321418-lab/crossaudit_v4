@@ -421,3 +421,60 @@ the first `astra` call, because they were open in amendment 1:
 `codex exec` prints a token-usage line and a skills-budget warning around the reply; both
 are stripped before the finding parser sees anything, and the stripping rule is a fixed
 regular expression committed with the harness, not a judgement call made per reply.
+
+---
+
+## Amendment 3 — 2026-09-05 — reporting standard and the interval for paired binary contrasts
+
+Written **before the first model call of this study** (the credential probe had not yet
+run when this was committed). It changes no arm, no sample, no primary outcome and no kill
+condition. It fixes the reporting standard and corrects one preregistered interval method.
+
+**1. Unit of analysis, stated once and binding everywhere.** The independent unit is the
+**instance** — one `(batch, problem_id)` solution — and, where an interval is computed,
+the **problem cluster** (the 68 problems contributing two instances each move together).
+K draws over the same instances are **repeated measures on those instances, not K×n
+independent observations**. No `n` anywhere in the report means a row, a draw, or a
+detector-instance. Every table caption states its n in instances.
+
+**2. The interval for paired binary contrasts is exact-conditional, not bootstrap.**
+`CORRECTIONS.md` item 4 records that a percentile bootstrap over discordant pairs that all
+point one way cannot generate a resample of the opposite sign and therefore returns a
+one-signed interval that does not establish exclusion of zero. §2.4's percentile bootstrap
+is therefore **demoted to secondary** for every paired binary contrast (fixed/broken,
+flagged/not-flagged) and replaced as primary by:
+
+> Conditioning on the n_d = b + c discordant pairs, b ~ Binomial(n_d, π). A Clopper–Pearson
+> exact interval for π maps monotonically to an exact-conditional interval for the paired
+> difference δ = (b − c)/n. The test is **exact McNemar** (a two-sided binomial sign test
+> on the discordant pairs), which is the right test here because the pairs are the same
+> instances under two conditions and the discordant counts are small enough that the
+> asymptotic χ² is not licensed.
+
+Both b and c are printed wherever δ is. Where n_d = 0 the interval is reported as the
+count "0 of 0 discordant" and no rate is quoted (`EXPERIMENT_RECORD.md` §9).
+
+The bootstrap over problem clusters remains **primary for the difference of fitted
+asymptotes** (§1.3), which is a continuous statistic of the whole curve and has no
+discordant-pair structure.
+
+**3. Reporting standard.** The report is written to the Nature Portfolio reporting
+standard: a "Statistical analysis" subsection naming the unit of analysis, every test and
+why it fits, the correction policy, the software and versions, every exclusion, and a link
+to this file; every result sentence separating *what was measured* from *what unit was
+analysed* from *what inference is claimed*; exact p values, never thresholds and never
+"significant" as a synonym for large; effect sizes with intervals; every figure caption
+stating n in instances, what the error bars are, and the test behind any comparison drawn
+on it; no significance stars.
+
+**4. Missing facts are named, never filled.** Any design fact that cannot be recovered
+from the records — a seed, a model version the provider did not echo, a cost the ledger did
+not capture — is written in the report as `AUTHOR_INPUT_NEEDED: <fact>`. A blank is a
+finding; a plausible value is a defect.
+
+**5. Comparison count.** Amendment 1 and 2's `astra` family adds three planned
+comparisons to §3.2's nine: (10) A(astra) − A(cross); (11) A(astra) − A(self);
+(12) A(mixed-with-astra) − A(mixed-without). **Twelve planned comparisons.** The policy is
+unchanged: no correction on the two primaries, which were declared singly in advance;
+every secondary contrast carries its unadjusted exact p with the Bonferroni-over-twelve
+threshold (p = 0.00417) stated beside it.
