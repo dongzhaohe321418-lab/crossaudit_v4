@@ -8,8 +8,7 @@ GENERAL_CHECKS = ["parseable", "declared", "internal", "complete"]
 # Kept identical to dcl/profiles.py PROFILES["science"]: a project scaffolded
 # as "science" and a project that writes `checks: science` must mean the same
 # thing, or the profile name is documentation for a list nobody uses.
-SCIENCE_CHECKS = ["schema", "units", "convergence", "declared", "provenance",
-                  "number_source"]
+SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance", "number_source"]
 # The CLI keeps its established science-first scaffold for compatibility. The
 # browser project wizard chooses explicitly between GENERAL_CHECKS and
 # SCIENCE_CHECKS instead of silently applying a laboratory contract to prose.

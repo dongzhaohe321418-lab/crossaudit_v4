@@ -23,13 +23,13 @@ def test_off_profile_disables_all_checks():
 
 
 def test_science_profile_is_the_structured_science_pack():
-    # `declared` joined it because `provenance` alone checks membership in a list
-    # of names and never opens the file, so a science project could cite an input
-    # that does not exist and pass (PROVENANCE_CHECKS.md §1); `number_source`
-    # joined it with §2.1's span contract. Both are additive: `general` is
-    # untouched, so no existing default-profile project changes behaviour.
-    assert resolve("science") == ["schema", "units", "convergence", "declared",
-                                  "provenance", "number_source"]
+    # §1's existence gap is closed inside `check_provenance`, not by adding the
+    # neutral pack's `declared` here — that reads `sources`/`requires` as
+    # filenames too and blocked legitimate metadata. `number_source` joined with
+    # §2.1's span contract. `general` is untouched, so no existing
+    # default-profile project changes behaviour.
+    assert resolve("science") == ["schema", "units", "convergence", "provenance",
+                                  "number_source"]
 
 
 def test_research_profile_is_the_general_pack_plus_the_provenance_checks():

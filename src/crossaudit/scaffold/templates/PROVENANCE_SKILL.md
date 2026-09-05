@@ -1,7 +1,3 @@
----
-applies_to: work/, experiments/
----
-
 # Saying where a number or a source came from
 
 This project's deterministic checks read two fenced blocks. They are the only

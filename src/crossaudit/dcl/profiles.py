@@ -10,8 +10,8 @@ check names, a project can name a profile:
     general  the domain-neutral pack — the light default: parses, dangling
              declarations, broken links (advisory), leftover placeholders
              (advisory). Binds no data format; fits code, docs, web, contracts.
-    science  structured-science rigor: schema, units, convergence, declared
-             inputs that exist, provenance, and declared number sources.
+    science  structured-science rigor: schema, units, convergence, provenance
+             (inputs that exist and are cited exactly), declared number sources.
 
 An explicit list is still accepted verbatim, so a project can compose its own mix
 (e.g. the general pack plus ``complete-strict`` to make placeholders hard-fail).
@@ -25,16 +25,13 @@ from ..errors import ConfigDenial
 PROFILES: dict[str, list[str]] = {
     "off": [],
     "general": ["parseable", "declared", "internal", "complete"],
-    # `declared` sits before `provenance` deliberately. `provenance` checks that a
-    # quantity's source is an exact MEMBER of metadata inputs and never opens the
-    # file; `declared` checks that those inputs EXIST. Shipping the second without
-    # the first meant a science project could cite `data/runs.csv@v3`, list it in
-    # metadata.yml, not have the file at all, and pass — membership in a list of
-    # names that name nothing (PROVENANCE_CHECKS.md §1). Ordering them this way
-    # means the existence failure is reported before the membership one, so the
-    # reader meets the cause and not the symptom.
-    "science": ["schema", "units", "convergence", "declared", "provenance",
-                "number_source"],
+    # §1's gap — a quantity citing an input that is listed and does not exist —
+    # is closed INSIDE `check_provenance`, not by adding the neutral pack's
+    # `declared` here. `declared` reads every YAML's `sources`, `requires` and
+    # `depends_on` as filenames as well, so bringing it into science blocked
+    # legitimate metadata (`sources: [doi:10.1234/x]`); the profile stays as it
+    # was and the check got stronger, which is the direction that is allowed.
+    "science": ["schema", "units", "convergence", "provenance", "number_source"],
     # The general pack plus the opt-in, deterministic citation-provenance check:
     # a report may only cite sources it fetched through a governed research tool.
     "research": ["parseable", "declared", "internal", "complete", "source_provenance",

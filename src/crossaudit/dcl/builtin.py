@@ -6,6 +6,7 @@ here consults a model. Rule IDs match the shipped Constitution template.
 from __future__ import annotations
 
 import json
+import re
 from typing import Mapping
 
 import yaml
@@ -26,6 +27,30 @@ def _load_json(files: Mapping[str, bytes], name: str) -> tuple[dict | None, list
 
 def _results_files(files: Mapping[str, bytes]) -> list[str]:
     return [p for p in files if p.endswith("results.json")]
+
+
+#: The one source-locator fragment `check_provenance` will look past: a line
+#: span, anchored to the end. Digits are bounded because `int()` refuses a
+#: 4301-digit string, and an unbounded pattern is only ever matched here to be
+#: discarded. Nothing else containing `#` is treated as a fragment.
+_SPAN_FRAGMENT = re.compile(r"#L\d{1,9}(?:-L\d{1,9})?$")
+
+
+def _declared_inputs(files: Mapping[str, bytes]) -> list[tuple[str, str]]:
+    """Every `(metadata path, inputs entry)` pair, in file order."""
+    out: list[tuple[str, str]] = []
+    for m in sorted(p for p in files if p.endswith("metadata.yml")):
+        try:
+            doc = yaml.safe_load(files[m].decode("utf-8")) or {}
+        except Exception:                                  # reported by check_schema
+            continue
+        if not isinstance(doc, dict):
+            continue
+        raw = doc.get("inputs")
+        for item in (raw if isinstance(raw, list) else []):
+            if isinstance(item, str) and item.strip():
+                out.append((m, item.strip()))
+    return out
 
 
 def check_schema(files: Mapping[str, bytes]) -> list[Finding]:
@@ -125,8 +150,33 @@ def check_convergence(files: Mapping[str, bytes]) -> list[Finding]:
 
 
 def check_provenance(files: Mapping[str, bytes]) -> list[Finding]:
-    """CA-DATA-003: a quantity's source must be among the declared inputs."""
+    """CA-DATA-003: a declared input must exist, and a quantity's source must be
+    among the declared inputs.
+
+    The existence half closes PROVENANCE_CHECKS.md §1: membership alone let a
+    quantity cite `data/runs.csv@v3`, listed in metadata.yml, that nobody had
+    written — a name that names nothing, passing a check called provenance.
+
+    It lives HERE rather than by adding the neutral pack's `declared` to the
+    science profile, which is where this started. `check_declared` reads every
+    YAML's `sources`, `requires` and `depends_on` as filenames too, so turning
+    it on for science blocked legitimate metadata (`sources: [doi:10.1234/x]`,
+    `requires: [python>=3.11]`) — false non-overridable blockers on correct
+    work, which is the one failure this whole line exists to avoid. `inputs` is
+    the single key whose entries the schema already defines as `path@revision`
+    (`check_schema`), so it is the single key where existence is a fact and not
+    a guess.
+    """
     out: list[Finding] = []
+    for meta, item in _declared_inputs(files):
+        ref = item.rpartition("@")[0] or item
+        if ref.startswith(("http://", "https://")):
+            continue
+        if not any(p == ref or p.endswith("/" + ref) for p in files):
+            out.append(Finding(
+                BLOCKER, "CA-DATA-003", meta,
+                f"inputs declares {ref!r}, which is not in the audited scope; a "
+                f"quantity may not cite an input that was never committed"))
     declared: set[str] = set()
     code_versions: set[str] = set()
     for m in (p for p in files if p.endswith("metadata.yml")):
@@ -152,17 +202,26 @@ def check_provenance(files: Mapping[str, bytes]) -> list[Finding]:
             src = str(q.get("source") or "")
             if not src:
                 continue                                   # reported by check_units
-            # Additive widening (PROVENANCE_CHECKS.md §2.1): a source may now
-            # name a SPAN, `path@revision#L14`, so a number can be traced to the
-            # line that holds it and not merely to a file that was declared. The
-            # membership test is against the input the fragment hangs off, so
-            # every `path@revision` value written before this keeps passing
-            # unchanged, and a `#L…` fragment neither loosens nor tightens what
-            # `provenance` itself asserts — verifying the span is
-            # `number_source`'s job, and it is a separate check.
-            src, _, _fragment = src.partition("#")
-            path, sep, rev = src.rpartition("@")
-            if not sep or src not in declared:
+            # Additive widening (PROVENANCE_CHECKS.md §2.1): a source may name a
+            # SPAN, `path@revision#L14`, so a number can be traced to the line
+            # that holds it and not merely to a file that was declared.
+            #
+            # Narrow on purpose, and in this order. The exact-membership test on
+            # the WHOLE string runs first, so a committed file legitimately named
+            # `runs#raw.csv` keeps passing byte-for-byte. Only when that fails is
+            # a fragment considered, and only one that is exactly `#L<digits>`
+            # (optionally `-L<digits>`) at the very end. Splitting on the first
+            # `#` instead — which is what this line did in review — silently
+            # accepted `runs.csv@v3#garbage` and `runs.csv@v3#other@evil`, both
+            # of which used to block, and broke the hash-named file. Everything
+            # that is not that one shape keeps the old behaviour exactly.
+            candidate = src
+            if candidate not in declared:
+                fragment = _SPAN_FRAGMENT.search(candidate)
+                if fragment:
+                    candidate = candidate[:fragment.start()]
+            path, sep, rev = candidate.rpartition("@")
+            if not sep or candidate not in declared:
                 out.append(Finding(
                     BLOCKER, "CA-DATA-003", r,
                     f"quantities[{i}] source {src!r} is not an exact member of "
@@ -183,8 +242,10 @@ register("units", check_units, "Every entry in results.json quantities is a mapp
 register("convergence", check_convergence, "When results.json has convergence, it is a "
          "mapping whose converged field is true; numeric achieved must not exceed numeric "
          "threshold.")
-register("provenance", check_provenance, "Each quantity source exactly equals one "
-         "'path@revision' string in metadata.yml inputs, optionally followed by a "
-         "'#L14' span fragment that this check ignores and number_source verifies; a "
-         "matching source revision different from code_version is additionally "
-         "recorded as advisory.")
+register("provenance", check_provenance, "Every local path declared in metadata.yml "
+         "inputs exists in the audited scope (an input kept outside the configured "
+         "scope directories must be brought into it, or into the increment, to be "
+         "seen), and each quantity source exactly equals one 'path@revision' string "
+         "in those inputs, optionally followed by a '#L14' span fragment that this "
+         "check ignores and number_source verifies; a matching source revision "
+         "different from code_version is additionally recorded as advisory.")

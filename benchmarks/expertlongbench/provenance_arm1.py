@@ -11,22 +11,33 @@ preregistered primary outcome:
 
 No model is called, no key is read, nothing is written. ~2 seconds, $0.
 
-**How an annotation is derived, and why that is the honest input.** The design's
+**How an annotation is derived, and what the strata mean.** The design's
 contract asks the generator to transcribe a number it wrote and name the line it
-read it on. Here the probe plays the generator, perfectly: for every number in
-the draft whose value occurs somewhere in the instance's source procedure, the
-annotation names the first line that holds it, with the unit as the DRAFT
-rendered it. That is a correctly-annotated number by construction, so every
-blocker the verifier raises over this set is a false one — the failure mode a
-non-overridable check must not have. Numbers whose value occurs nowhere in the
-source (57 of 430; melting points and ionic radii — parametric recall) cannot be
-correctly annotated at all, are annotated `uncited`, and are excluded from the
-denominator, exactly as §3.4 routes them at run time.
+read it on. Here the probe plays the generator: for every number in the draft,
+the harness looks for the same number in the instance's source procedure and
+names the first line that holds it, with the value and unit as the DRAFT wrote
+them, unnormalised. Three outcomes, reported separately because they are not the
+same claim:
 
-The denominator is therefore the 373 TRACEABLE numbers: the 365 whose (value,
-unit) pair matches outright plus the 8 that name the right line and differ only
-in unit rendering — the eight the synonym table exists for, and the eight that
-made the naive matcher fire the kill condition at 2.1%.
+* **pair-matched** — the (value, unit) pair the draft wrote occurs on the named
+  line. These are correctly-annotated numbers by construction, so a blocker here
+  is a false blocker with nothing to argue about. **This is the primary
+  denominator and the one the >2% kill condition is read against.**
+* **value-only** — the value occurs on that line and no rendering of its unit
+  does. The harness picked the line by value alone, so these are DERIVED
+  annotations, not established literal-pair citations: finding the same number
+  somewhere does not establish that the unit merely reads differently. A blocker
+  here may well be correct, so they are reported as their own stratum with the
+  source line printed beside each one, never folded into the primary rate.
+* **uncited** — the value occurs nowhere in the source (57 of 430; melting
+  points and ionic radii, parametric recall). Excluded, exactly as §3.4 routes
+  them at run time.
+
+An earlier version of this script reported pair-matched and value-only together
+as "373 traceable" and called every block over them a false blocker. That
+overclaimed: it counted a `1 %` sodium excess cited against a source line stating
+a `1.01:1` molar ratio — a DERIVED percentage, which §3.1 says the check must not
+attempt and §3.4 routes to `uncited` — as evidence against the checker.
 
 Usage:  python3 benchmarks/expertlongbench/provenance_arm1.py
 """
@@ -35,6 +46,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.join(
@@ -52,11 +64,17 @@ DRAFT_PATH = "work/explanation.md"
 
 
 def draft_pairs(text: str):
-    """Every (value, unit, line) the probe's extractor sees in a draft."""
+    """Every (value, unit-as-written, line) the probe's extractor sees.
+
+    The unit is NOT folded through the synonym table here. The contract asks the
+    generator to transcribe the characters it wrote, so an annotation carrying
+    `"hours"` where the draft says hours is the input this measurement is about;
+    normalising first would test the harness's rendering rather than the
+    product's, and would quietly hide any asymmetry between the two tables.
+    """
     out = []
     for m in NUM.finditer(text):
-        unit = (m.group(2) or "").strip()
-        out.append((m.group(1), SYNONYM.get(unit, unit),
+        out.append((m.group(1), (m.group(2) or "").strip(),
                     text[:m.start()].count("\n") + 1))
     return out
 
@@ -91,10 +109,11 @@ def main() -> int:
     corpus = {r["id"]: r for r in map(json.loads, open(path))}
     runs = os.path.expanduser(RUNS)
 
-    instances = traceable = blocked = uncited = 0
-    exact = exact_blocked = 0
+    instances = uncited = 0
+    exact = exact_blocked = derived = derived_blocked = 0
     by_rule: dict[str, int] = {}
     examples: list[str] = []
+    derived_examples: list[str] = []
 
     for name in sorted(os.listdir(runs)):
         key = "T03MaterialSEG-" + name.replace("T03MaterialSEG-", "").replace("__", "/")
@@ -112,25 +131,29 @@ def main() -> int:
         source = "\n".join(lines) + "\n"
 
         draft = open(draft_file).read()
-        rows, strict_rows = [], []
+        pair_rows, value_rows = [], []
         for value, unit, at in draft_pairs(draft):
-            owners = [i for i, s in enumerate(per_line) if (value, unit) in s]
-            strict = bool(owners)
+            folded = SYNONYM.get(unit, unit)
+            owners = [i for i, s in enumerate(per_line) if (value, folded) in s]
+            stratum = "pair"
             if not owners and value in values:
-                # Right line, unit rendered differently: still a correct
-                # annotation, and the case the synonym table must absorb.
+                # The value is on the line and no rendering of the unit is. The
+                # harness picks the line by VALUE ALONE here, so these are
+                # DERIVED annotations, not established literal-pair citations,
+                # and they are reported as their own stratum rather than folded
+                # into the primary denominator. Finding the same number does not
+                # establish that the unit merely reads differently.
                 owners = [i for i, s in enumerate(per_line)
                           if any(v == value for v, _ in s)]
+                stratum = "value-only"
             if not owners:
                 uncited += 1
                 continue                     # §3.4 routes these to the auditor
             annotation = {"v": value, "u": unit, "at": f"#L{at}",
                           "src": f"{SOURCE_PATH}#L{owners[0] + 1}"}
-            rows.append(annotation)
-            if strict:
-                strict_rows.append(annotation)
-        traceable += len(rows)
-        exact += len(strict_rows)
+            (pair_rows if stratum == "pair" else value_rows).append(annotation)
+        exact += len(pair_rows)
+        derived += len(value_rows)
 
         def run(annotations: list[dict]) -> list:
             fence = ("\n\n```crossaudit-numbers\n"
@@ -139,30 +162,56 @@ def main() -> int:
                      DRAFT_PATH: (draft + fence).encode()}
             return [f for f in check_number_source(files) if f.severity == BLOCKER]
 
-        exact_blocked += len(run(strict_rows))
-        for f in run(rows):
-            blocked += 1
+        for f in run(pair_rows):
+            exact_blocked += 1
             by_rule[f.rule] = by_rule.get(f.rule, 0) + 1
             if len(examples) < 8:
-                examples.append(f"    {name}: {f.observation}")
+                examples.append(f"    [pair-matched] {name}: {f.observation}")
+        for f in run(value_rows):
+            derived_blocked += 1
+            if len(derived_examples) < 8:
+                # Print the line the harness named, so the reader can see what
+                # the block actually was rather than take "false blocker" on
+                # trust. Both shapes in this corpus are §3.1's "where
+                # determinism ends" — a source stating the value in another
+                # form — and the design routes them to `uncited`.
+                named = re.search(r":(\d+)", f.observation.split(" — ")[0])
+                cited = lines[int(named.group(1)) - 1][:96] if named else ""
+                derived_examples.append(
+                    f"    [value-only] {name}: {f.observation}\n"
+                    f"                 source line reads: {cited!r}")
 
-    total = traceable + uncited
-    rate = blocked / traceable if traceable else 0.0
-    low, high = wilson(blocked, traceable)
-    print(f"instances={instances} numbers={total} traceable={traceable} "
-          f"uncited={uncited}")
-    print(f"FALSE BLOCKERS {blocked}/{traceable} = {100 * rate:.2f}%  "
+    total = exact + derived + uncited
+    rate = exact_blocked / exact if exact else 0.0
+    low, high = wilson(exact_blocked, exact)
+    print(f"instances={instances} numbers={total}")
+    print(f"  pair-matched  {exact:4d}   the (value, unit) pair the draft wrote "
+          f"occurs on the named line")
+    print(f"  value-only    {derived:4d}   the value occurs there and no rendering "
+          f"of the unit does — DERIVED")
+    print(f"  uncited       {uncited:4d}   the value occurs nowhere in the source; "
+          f"§3.4 routes these to the auditor")
+    print()
+    print(f"PRIMARY — false blockers on pair-matched citations: "
+          f"{exact_blocked}/{exact} = {100 * rate:.2f}%  "
           f"(95% Wilson {100 * low:.2f}–{100 * high:.2f}%)")
+    d_rate = derived_blocked / derived if derived else 0.0
+    d_low, d_high = wilson(derived_blocked, derived)
+    print(f"SECONDARY — blockers on the DERIVED value-only stratum: "
+          f"{derived_blocked}/{derived} = {100 * d_rate:.2f}%  "
+          f"(95% Wilson {100 * d_low:.2f}–{100 * d_high:.2f}%)")
+    print("  These are not established false blockers. The harness chose their "
+          "line by value alone,")
+    print("  so a block here can mean the citation was wrong, and each one below "
+          "says which.")
     if by_rule:
-        print("  by rule: " + ", ".join(f"{r}×{n}" for r, n in sorted(by_rule.items())))
-    e_low, e_high = wilson(exact_blocked, exact)
-    print(f"  of the {exact} whose (value, unit) pair matches outright: "
-          f"{exact_blocked} blocked = {100 * exact_blocked / exact:.2f}% "
-          f"(95% Wilson {100 * e_low:.2f}–{100 * e_high:.2f}%)")
-    for line in examples:
+        print("  primary by rule: "
+              + ", ".join(f"{r}×{n}" for r, n in sorted(by_rule.items())))
+    for line in examples + derived_examples:
         print(line)
     killed = rate > 0.02
-    print(f"kill condition (>2%): {'FIRED' if killed else 'not fired'}")
+    print(f"kill condition (>2% on the primary denominator): "
+          f"{'FIRED' if killed else 'not fired'}")
     return 1 if killed else 0
 
 

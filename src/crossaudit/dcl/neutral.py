@@ -88,8 +88,27 @@ def check_declared(files: Mapping[str, bytes]) -> list[Finding]:
         if not isinstance(doc, dict):
             continue
         for key in ("inputs", "sources", "requires", "depends_on"):
-            for item in doc.get(key) or []:
-                ref = str(item).split("@")[0].strip()
+            raw = doc.get(key)
+            if raw is None:
+                continue
+            # A scalar is ONE entry, not a string to walk. `sources: runs.csv@v3`
+            # used to be iterated character by character and produced a BLOCKER
+            # per letter — "declares 'r', which is not in the audited scope" — and
+            # `requires: 3` raised TypeError straight out of `run_checks`. Both
+            # are in the pack every project runs by default.
+            items = raw if isinstance(raw, list) else [raw]
+            for item in items:
+                if not isinstance(item, str):
+                    # A shape this check cannot read is not a missing file. It is
+                    # advisory, so a mapping or a number under these keys is
+                    # visible without hard-failing work that may be perfectly
+                    # correct under a convention this check does not know.
+                    out.append(Finding(
+                        ADVISORY, "CA-FILE-002", path,
+                        f"{key} contains {type(item).__name__} {item!r}, which is "
+                        f"not a path this check can look for"))
+                    continue
+                ref = item.split("@")[0].strip()
                 if not ref or ref.startswith(("http://", "https://")):
                     continue
                 if not any(p == ref or p.endswith("/" + ref) for p in files):

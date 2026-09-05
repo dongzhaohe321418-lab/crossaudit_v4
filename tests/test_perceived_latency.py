@@ -455,6 +455,11 @@ GOOD_INCREMENT = {
         "convergence": {"converged": True, "achieved": 7.4e-07, "threshold": 1e-06},
     }, indent=1),
     "experiments/demo/SUMMARY.md": "attempt one\n",
+    # `check_provenance` verifies that a declared input EXISTS, not only that a
+    # quantity cites one (PROVENANCE_CHECKS.md §1), and SCIENCE_TREE's own README
+    # says an increment "must stand alone". This fixture declared a script nobody
+    # had committed, which is the gap and not the event order under test.
+    "experiments/demo/scripts/run_demo.py": "print('demo')\n",
 }
 def test_run_checks_tells_an_observer_and_decides_nothing_by_it():
     """L3: ``run_checks(on_check=...)`` is additive — started/finished per

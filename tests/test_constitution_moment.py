@@ -299,7 +299,7 @@ def test_no_placeholder_token_survives_into_a_committed_file(
 
 
 @pytest.mark.parametrize("profile,expected_checks,marker", [
-    ("science", "schema, units, convergence, declared, provenance, number_source",
+    ("science", "schema, units, convergence, provenance, number_source",
      "metadata.yml"),
     ("general", "parseable, declared, internal, complete", "TODO"),
 ])

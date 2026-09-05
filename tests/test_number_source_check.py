@@ -16,6 +16,8 @@ explanation.md citing `#L11`, and the wrong-line case citing `#L12`.
 from __future__ import annotations
 
 import json
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -107,8 +109,10 @@ def test_the_span_and_not_the_file_is_what_is_checked(monkeypatch):
     wrong *file* containing the claimed pair 27.7% of the time (596/2150) and a
     wrong *line* 0.0% (0/1825); if the check still blocked with `_span` widened,
     the span would not be what is doing the work and the whole contract could
-    have named files. RECIPE.md contains "950 °C" on both L11 and L12, so the
-    file-scoped reading cannot separate a careful citation from a careless one."""
+    have named files. The fixture cites L12, which holds "25 °C" and not the
+    pair; the pair is on L11, elsewhere in the same file. Span-scoped that is a
+    blocker, file-scoped it is a pass, and the difference between those two
+    readings is the entire contract."""
     wrong_line = increment(row(src=f"{RECIPE_PATH}#L12"))
     assert [f.rule for f in findings(wrong_line)] == ["CA-NUM-002"]
 
@@ -122,8 +126,11 @@ def test_the_span_and_not_the_file_is_what_is_checked(monkeypatch):
 # ------------------------------------------------------------- the seven (4/7)
 def test_a_locator_that_does_not_resolve_is_a_blocker():
     """MUTATION (§3.1): drop the existence half — stop requiring that the path
-    be a key of `files` and that the line range be inside it. All three fixtures
-    here go green, and a citation to a file nobody committed passes.
+    be a key of `files` and that the line range be inside it. Each fixture here
+    then stops raising CA-NUM-001: the unresolvable path reaches the mapping
+    lookup and raises `KeyError` out of `run_checks` rather than reporting, and
+    the out-of-range and non-span cases pass. Both are the same defect — a
+    citation to a location nobody committed stops being a finding.
 
     CA-NUM-001 is 'the location is not there'; CA-NUM-002 is 'the location is
     there and the number is not'. Keeping them apart is what lets the stream say
@@ -171,8 +178,8 @@ def test_the_science_and_research_profiles_name_the_check():
     memo has no numbers to trace."""
     from crossaudit.dcl.profiles import PROFILES, resolve
 
-    assert resolve("science") == ["schema", "units", "convergence", "declared",
-                                  "provenance", "number_source"]
+    assert resolve("science") == ["schema", "units", "convergence", "provenance",
+                                  "number_source"]
     assert resolve("research") == ["parseable", "declared", "internal", "complete",
                                    "source_provenance", "number_source"]
     assert "number_source" not in PROFILES["general"]
@@ -180,16 +187,19 @@ def test_the_science_and_research_profiles_name_the_check():
 
 # ------------------------------------------------------------- the seven (7/7)
 def test_a_science_project_citing_a_nonexistent_input_is_blocked():
-    """MUTATION (§1): remove `declared` from the `science` profile. A science
-    project whose metadata.yml names a missing input and whose results.json
-    cites it passes — `provenance` asserts only that the source is an exact
-    MEMBER of the inputs list and never opens the file, and no shipped profile
-    held both halves.
+    """MUTATION (§1): remove the existence loop at the head of `check_provenance`.
+    A science project whose metadata.yml names a missing input and whose
+    results.json cites it passes — membership alone asserts that the source is an
+    exact MEMBER of the inputs list and never opens the file, so a name that
+    names nothing satisfies a check called provenance.
 
-    Adding `declared` is safe for revisioned inputs because it strips the
-    revision before testing existence: `ref = str(item).split("@")[0].strip()`
-    (`dcl/neutral.py:92`). A `path@revision` input is looked up as `path`, so
-    turning it on does not flag every science project ever written."""
+    It lives in `check_provenance` rather than in the neutral pack's `declared`,
+    which was the first attempt and was wrong: `check_declared` reads every
+    YAML's `sources`, `requires` and `depends_on` as filenames too, so bringing
+    it into `science` turned `sources: [doi:10.1234/x]` and
+    `requires: [python>=3.11]` into non-overridable blockers on correct work.
+    `inputs` is the one key `check_schema` already defines as `path@revision`,
+    which is why existence is a fact there and a guess everywhere else."""
     from crossaudit.dcl.profiles import resolve
 
     meta = b"code_version: v3\ninputs:\n  - data/runs.csv@v3\n"
@@ -201,13 +211,21 @@ def test_a_science_project_citing_a_nonexistent_input_is_blocked():
                     "experiments/e1/results.json": results}
 
     blocked = run_checks(absent_input, resolve("science"))
-    assert blocked.hard_failures >= 1
-    assert [f.rule for f in blocked.findings if f.severity == BLOCKER] == ["CA-FILE-002"]
+    assert [(f.severity, f.rule) for f in blocked.findings] == [(BLOCKER, "CA-DATA-003")]
+    assert "not in the audited scope" in blocked.findings[0].observation
 
     # The same project with the input actually committed passes, so the guard is
-    # the missing file and not the revision suffix.
+    # the missing file and not the revision suffix — `path@revision` inputs must
+    # keep working, which is the whole reason this is scoped to `inputs`.
     present = dict(absent_input, **{"experiments/e1/data/runs.csv": b"yield\n0.42\n"})
     assert run_checks(present, resolve("science")).hard_failures == 0
+
+    # And the keys that are NOT filenames stay out of it: legitimate science
+    # metadata must not become a blocker for naming a DOI or a version range.
+    legitimate = dict(present, **{"experiments/e1/metadata.yml":
+                                  meta + b"sources:\n  - doi:10.1234/example\n"
+                                         b"requires:\n  - python>=3.11\n"})
+    assert run_checks(legitimate, resolve("science")).findings == []
 
 
 # ------------------------------------------------------- the rest of the shape
@@ -347,6 +365,261 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
     # And it is a legal skill: front matter parses, size is inside the bound,
     # and it renders into the generator block rather than anywhere else.
     skill = skills_mod._parse(body, "provenance", PROVENANCE_SKILL_PATH)
-    assert skill.applies_to == ("work/", "experiments/")
     assert len(body.encode()) < skills_mod.MAX_SKILL_BYTES
     assert "crossaudit-numbers" in skills_mod.render([skill])
+
+    # It carries NO `applies_to`, and that is the fix and not an oversight. A
+    # round that has written nothing yet selects skills against `cfg.scope_dirs`
+    # (`cli/build.py:794`), which is `["experiments"]` — a bare directory name
+    # that matches neither `experiments/` nor `work/`, so a freshly scaffolded
+    # project's FIRST generation carried no provenance instruction at all and
+    # every document passed `number_source` vacuously. Unconditional is right
+    # anyway: this is how to write down a number, not advice about a directory.
+    assert skill.applies_to == ()
+    for touched in (["experiments"], ["work"], [], ["experiments/demo/x.md"]):
+        assert skills_mod.select([skill], touched) == [skill], touched
+
+
+# ------------------------------------------------- the review's five, and more
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # The five the independent review reproduced against the first commit.
+    ("-5 °C",              "-5",  "°C",    [],             "a signed value is a value"),
+    ("-5 °C",              "5",   "°C",    ["CA-NUM-002"], "minus five is not five"),
+    ("9007199254740992 g", "9007199254740993", "g",
+                                           ["CA-NUM-002"], "two integers 2**53 apart"),
+    ("5  °C",              "5",   "°C",    [],             "two spaces is whitespace"),
+    ("5 mg/mL",            "5",   "mg/mL", [],             "a compound unit is a unit"),
+    # The neighbourhood around them, so the fix is a rule and not five patches.
+    ("9007199254740992 g", "9007199254740992", "g", [],    "and the true one passes"),
+    ("5 °C",          "5",   "°C",    [],             "a non-breaking space"),
+    ("5°C",                "5",   "°C",    [],             "no space at all"),
+    ("5 m·s^-1",           "5",   "m·s^-1", [],            "a middle-dot compound"),
+    ("5 cm-1",             "5",   "cm-1",  [],             "a hyphen exponent"),
+    ("5 cm⁻¹",             "5",   "cm⁻¹",  [],             "a superscript exponent"),
+    ("+5 g",               "5",   "g",     [],             "a leading plus is dropped"),
+    ("0.50 m",             "0.5", "m",     [],             "trailing zeros are dropped"),
+    ("05 m",               "5",   "m",     [],             "leading zeros are dropped"),
+    ("1,000 rpm",          "1000", "rpm",  [],             "a grouped thousand"),
+    ("1,000 rpm",          "1",   "",      [],             "and its other reading"),
+    ("cool to 25–106 °C",  "106", "°C",    [],             "an en-dash range"),
+    ("range 5-10 m",       "10",  "m",     [],             "a hyphen range"),
+    ("1 hour",             "1",   "hours", [],             "the synonym table, raw"),
+    ("10 wt % Ni",         "10",  "wt%",   [],             "the split percent"),
+    ("5 mm",               "5",   "m",     ["CA-NUM-002"], "a prefix is not the unit"),
+    ("5 °C",               "5",   "K",     ["CA-NUM-002"], "a different unit"),
+    ("50 °C",              "5",   "°C",    ["CA-NUM-002"], "a substring is not a value"),
+])
+def test_the_pair_comparison_is_literal_in_both_directions(span, v, u, expected, why):
+    """MUTATION: revert `normalise_number` to `float`, drop the sign from
+    `_NUMBER`, allow only one space before the unit, or take a single unit
+    reading. Each brings back one row of this table.
+
+    Two failure directions, and the table asserts both, because a check that
+    only avoided one of them would be worse than none: a BLOCKER on a correct
+    transcription is non-overridable damage to correct work, and a PASS on a
+    different number is the check saying it verified something it did not."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance():
+    """MUTATION: restore `numbers.py`'s skip of `results.json`, or widen
+    `check_provenance` to open the file.
+
+    §2.1 widens a quantity's `source` to `path@revision#L14`, and the review
+    found that after the widening NOBODY looked at the line: `check_provenance`
+    decides membership and never opens a file — that is its entire contract, and
+    changing it would put a second span implementation in a second module that
+    then has to agree with this one. So the fragment is verified here, where the
+    span logic already lives, with `wants_context=False` intact because this
+    reads committed bytes and nothing about the run."""
+    meta = b"code_version: v3\ninputs:\n  - runs.csv@v3\n"
+    csv = b"run,yield\n1,0.42\n2,0.51\n"
+
+    def project(source: str) -> dict[str, bytes]:
+        return {"experiments/e1/metadata.yml": meta,
+                "experiments/e1/runs.csv": csv,
+                "experiments/e1/results.json": json.dumps({
+                    "quantities": [{"name": "yield", "value": 0.42, "unit": "",
+                                    "source": source}],
+                    "convergence": {"converged": True}}).encode()}
+
+    # `provenance` alone answers membership and says nothing about the line.
+    assert run_checks(project("runs.csv@v3#L2"), ["provenance"]).findings == []
+    assert run_checks(project("runs.csv@v3#L3"), ["provenance"]).findings == []
+
+    # `number_source` is what opens the file, and both profiles carry the pair.
+    assert run_checks(project("runs.csv@v3#L2"), ["number_source"]).findings == []
+    wrong = run_checks(project("runs.csv@v3#L3"), ["number_source"])
+    assert [f.rule for f in wrong.findings] == ["CA-NUM-002"]
+    assert wrong.findings[0].observation.startswith("quantities[0] names runs.csv:3")
+    past = run_checks(project("runs.csv@v3#L99"), ["number_source"])
+    assert [f.rule for f in past.findings] == ["CA-NUM-001"]
+
+    # A source with no fragment is the world before the widening, untouched.
+    assert run_checks(project("runs.csv@v3"), ["number_source"]).findings == []
+    from crossaudit.dcl.profiles import PROFILES
+    assert {"provenance", "number_source"} <= set(PROFILES["science"])
+
+
+@pytest.mark.parametrize("locator,note", [
+    ("runs.csv@v3", "the shape every existing project already wrote"),
+    ("runs.csv@v3#L2", "the widened shape"),
+    ("runs.csv@v3#L2-L4", "the widened shape, as a range"),
+])
+def test_provenance_accepts_only_a_line_fragment_and_nothing_else(locator, note):
+    """MUTATION: go back to `src.partition('#')`. `runs.csv@v3#garbage`,
+    `runs.csv@v3#`, `runs.csv@v3#other@evil` and `runs.csv@v3#L999` all blocked
+    with CA-DATA-003 before the widening and silently passed after it, and a
+    committed file legitimately named `runs#raw.csv` — declared and cited
+    exactly — started blocking because its source became `runs`.
+
+    The order is the fix: exact membership on the WHOLE string first, then a
+    fragment only if that failed, and only `#L<digits>[-L<digits>]` anchored to
+    the end."""
+    meta = b"code_version: v3\ninputs:\n  - runs.csv@v3\n"
+    files = {"experiments/e1/metadata.yml": meta,
+             "experiments/e1/runs.csv": b"run,yield\n1,0.42\n2,0.51\n3,0.6\n4,0.7\n",
+             "experiments/e1/results.json": json.dumps({
+                 "quantities": [{"name": "y", "value": 0.42, "unit": "",
+                                 "source": locator}],
+                 "convergence": {"converged": True}}).encode()}
+    assert run_checks(files, ["provenance"]).findings == [], note
+
+
+@pytest.mark.parametrize("locator", [
+    "runs.csv@v3#garbage", "runs.csv@v3#", "runs.csv@v3#other@evil",
+    "runs.csv@v3#L2extra", "runs.csv@v3#l2", "runs.csv#L2",
+])
+def test_anything_that_is_not_a_line_fragment_still_fails_membership(locator):
+    """The other half of the same mutation: these blocked before the widening
+    and must still block."""
+    meta = b"code_version: v3\ninputs:\n  - runs.csv@v3\n"
+    files = {"experiments/e1/metadata.yml": meta,
+             "experiments/e1/runs.csv": b"run,yield\n1,0.42\n",
+             "experiments/e1/results.json": json.dumps({
+                 "quantities": [{"name": "y", "value": 0.42, "unit": "",
+                                 "source": locator}],
+                 "convergence": {"converged": True}}).encode()}
+    assert [f.rule for f in run_checks(files, ["provenance"]).findings] == ["CA-DATA-003"]
+
+
+def test_a_file_whose_name_contains_a_hash_keeps_passing():
+    """MUTATION: strip at the first `#` instead of at an anchored line fragment.
+    A committed `runs#raw.csv`, declared and cited byte-for-byte, becomes
+    CA-DATA-003 for a source of `runs` — a backward-compatibility break invented
+    by the widening, on a filename that was always legal."""
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs#raw.csv@v3\n",
+             "experiments/e1/runs#raw.csv": b"run,yield\n1,0.42\n",
+             "experiments/e1/results.json": json.dumps({
+                 "quantities": [{"name": "y", "value": 0.42, "unit": "",
+                                 "source": "runs#raw.csv@v3"}],
+                 "convergence": {"converged": True}}).encode()}
+    assert run_checks(files, ["provenance"]).findings == []
+
+
+# --------------------------------------------- malformed input never escapes
+def test_a_malformed_annotation_becomes_a_finding_and_never_an_exception():
+    """MUTATION: restore `\\d+` in `_LINE`, or catch only `JSONDecodeError`.
+
+    `int()` refuses a string of more than 4300 digits, so `#L` followed by five
+    thousand digits and a JSON integer of five thousand digits both raised an
+    uncaught `ValueError` out of `run_checks` — the deterministic layer, which
+    runs before any model and decides the verdict, crashing on text a generator
+    can emit. A malformed annotation is a finding; it is never an exception."""
+    huge = "9" * 5000
+    for body in (json.dumps([{"v": "1", "u": "", "at": "#L3",
+                              "src": f"{RECIPE_PATH}#L{huge}"}]),
+                 '[{"v": ' + huge + ', "u": "", "at": "#L3", '
+                 f'"src": "{RECIPE_PATH}#L1"}}]'):
+        files = {RECIPE_PATH: RECIPE.encode(),
+                 DRAFT_PATH: f"# E\n\n```crossaudit-numbers\n{body}\n```\n".encode()}
+        out = findings(files)
+        assert out and all(f.rule == "CA-NUM-001" for f in out)
+
+
+def test_an_unclosed_annotation_block_is_a_finding_not_silence():
+    """MUTATION: drop the `_FENCE_OPEN` count. A block that was opened and never
+    closed reads as 'this document annotated nothing' and passes vacuously —
+    indistinguishable from a document that never annotated, which is exactly the
+    silent-pass §5.4 says any slice shipping these checks must not have."""
+    unclosed = (f"# E\n\n```crossaudit-numbers\n"
+                f'[{{"v": "950", "u": "°C", "at": "#L3", "src": "{RECIPE_PATH}#L11"}}]\n')
+    out = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: unclosed.encode()})
+    assert [f.rule for f in out] == ["CA-NUM-001"]
+    assert "opened and never closed" in out[0].observation
+
+
+def test_a_row_that_omits_a_field_cannot_opt_out_of_the_check():
+    """MUTATION: go back to `row.get("u", "")`. A row with no `u` was read as
+    unitless, so a generator could skip the unit half of the comparison by not
+    writing the key — the contract has four fields, and a row with three is not
+    a row this check can verify.
+
+    A JSON number for `v` or `u` is still accepted: writing `"v": 950` is a
+    transcription, not a judgment, and refusing it would be a non-overridable
+    blocker on a well-formed annotation."""
+    no_unit = {"v": "950", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    out = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([no_unit])})
+    assert [f.rule for f in out] == ["CA-NUM-001"]
+    assert "is missing u" in out[0].observation
+
+    numeric = {"v": 950, "u": "°C", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    assert findings({RECIPE_PATH: RECIPE.encode(),
+                     DRAFT_PATH: draft([numeric])}) == []
+
+    nested = {"v": {"n": 950}, "u": "°C", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    bad = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([nested])})
+    assert [f.rule for f in bad] == ["CA-NUM-001"]
+    assert "non-text v" in bad[0].observation
+
+
+def test_a_fresh_science_project_carries_the_skill_in_its_first_prompt(
+        tmp_path, monkeypatch):
+    """MUTATION: put `applies_to` back on the shipped skill, or stop writing it
+    at scaffold time.
+
+    This is the end of the delivery path, asserted end to end because the middle
+    of it is where the review found the break. A newly scaffolded project has no
+    work yet, so `cli/build.py:794` selects skills against `cfg.scope_dirs` —
+    the bare string `"experiments"`, which matches neither `experiments/` nor
+    `work/`. Zero skills were selected, the first generation carried no
+    instruction to annotate, and `number_source` then passed every document
+    vacuously: a check that cannot fire, wearing the name of one that can.
+
+    The assertion is on the rendered generator prompt, not on the file, because
+    a committed file nobody reads is exactly the failure being guarded."""
+    from crossaudit import generator, skills as skills_mod
+    from crossaudit.config import load
+    from crossaudit.console import projects
+
+    monkeypatch.delenv("CROSSAUDIT_AUDITOR_KEY", raising=False)
+    root = Path(projects.create_project(
+        tmp_path,
+        {"name": "lab", "description": "Numbers need units and sources.",
+         "max_rounds": 3, "auditor_vendor": "openai", "auditor_model": "gpt-5.6-sol",
+         "generator_vendor": "anthropic", "generator_model": "claude-sonnet-4-6",
+         "github": False, "project_type": "science"},
+        lambda *_: None)["root"])
+    cfg = load(root / "crossaudit.yml")
+    assert "number_source" in cfg.checks
+
+    # Committed, so the receipt binds it and `verify` can re-derive the round.
+    assert (root / "skills" / "provenance.md").is_file()
+    tracked = subprocess.run(["git", "ls-files", "skills/provenance.md"], cwd=root,
+                             capture_output=True, text=True, check=True).stdout
+    assert tracked.strip() == "skills/provenance.md"
+
+    # The selection `cli/build.py` makes on round 1, when nothing is written yet.
+    house = skills_mod.load(root)
+    in_force = skills_mod.select(house, [] or cfg.scope_dirs)
+    assert [s.name for s in in_force] == ["provenance"]
+
+    prompt = generator.build_prompt(
+        task="write the increment", constitution="# rules\n", current={},
+        skills=skills_mod.render(in_force), allowed_dirs=cfg.scope_dirs)
+    assert "```crossaudit-numbers" in prompt
+    assert "you name a location, you never say what is at it" in prompt.lower()
+    # And it arrives as guidance, never as law.
+    assert "HOUSE SKILLS" in prompt
