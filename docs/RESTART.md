@@ -261,6 +261,10 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    前的列表、检查仍注册可显式选用；`uncited` 分支移到 `at` 校验**和**值阻断之前（构建者把
    "uncited 永不阻断"读作完整性质，超出字面指令，已交复核者评判）；新脚手架科研项目无数字技能
    与指令、显式启用则两者俱全。`src/` 仅三文件。复核 + 我的主机套件进行中。
+   **寻址重设计已合并**（`docs/design/PROVENANCE_ADDRESSING.md`）：A 行号渲染上限 150/183=82.0%
+   但 `shape_work` 大纲替换制造假行号；B 内容寻址上限 142/183=77.6%（可阻断行 142/166=85.5%）；
+   26 行结构性分歧。推荐 B（去 `at`、歧义提示级）。**A vs B 对照实验已按 §8g 派出**（同 24 实例，
+   每契约一份草稿，分母预登记为可阻断行）。
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
