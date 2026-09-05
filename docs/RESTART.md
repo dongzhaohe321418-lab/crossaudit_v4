@@ -158,7 +158,15 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    `number_source` 信任 `check_units` 校验 value 而后者从不校验（畸形量引用 `#L999` 整个
    science 配置零发现通过）、数值比较的子串兜底（`1e3 K` 标 `1e3/g` 通过）；外加**我第二轮
    指令自己造成的削弱**（非字符串条目降为 ADVISORY，`requires: [3]` 从 BLOCKER 变 ADVISORY），
-   已撤回：一律 `str()` 强转、保持基线严重度。第三轮修复进行中。**
+   已撤回：一律 `str()` 强转、保持基线严重度。第三轮修复已回（da8ddfe，全套 **2856** 通过，`PYTHONPATH=src .venv/bin/python -m pytest tests/ -q --timeout=60`）：
+   两个根因各设独立守卫（provenance 只在 value 为数字形且 unit 为字符串时越过 `#L`，
+   否则精确匹配；number_source 读不了的带片段行报 CA-NUM-001）；`results_files`/
+   `declared_inputs` 抽到 `dcl/quantities.py` 共享；子串兜底删除，Decimal 归一化、U+2212、
+   `\s*`、最长单位匹配 + 连字符区间/指数前瞻；`requires: [3]` 恢复 BLOCKER。
+   **Arm 1 如实报告：主分母 6/365 = 1.64%（Wilson 0.76–3.54%），点估计在杀线下、区间跨线；
+   六例全是探针注释把 `°C/min` 截成 `°C`（草稿自身单位延续），构建者拒绝用产品自己的
+   单位语法去"修正"它们——那是把检查器的读法喂回去。同义表消融 12/365 = 3.29%，过杀线。**
+   第三轮 astra 复核进行中。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
