@@ -289,7 +289,8 @@ class Spend:
 
 def run_detector(key: tuple[str, str, int], missing: list[str], *, instances, problems,
                  solutions, constitution, cfg_cache, scratch: Path, spend: Spend,
-                 budget_usd: float, workers: int, property_cache_path: Path) -> int:
+                 budget_usd: float, workers: int, property_cache_path: Path,
+                 max_passes: int = 6, cooldown_s: float = 75.0) -> int:
     """Run the instances this detector has no record for, caching each one as it lands.
 
     Each instance gets its own ``run_id`` so its cost is read back from the usage ledger
@@ -300,6 +301,7 @@ def run_detector(key: tuple[str, str, int], missing: list[str], *, instances, pr
 
     slug = detector_slug(key)
     cache_path = EXPLORE / "cache" / f"{slug}.jsonl"
+    failed_path = EXPLORE / "cache" / f"{slug}.failed.jsonl"
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     project = build_project(scratch, key, constitution)
     cfg = cfg_cache.setdefault(slug, load(project / "crossaudit.yml"))
@@ -321,6 +323,7 @@ def run_detector(key: tuple[str, str, int], missing: list[str], *, instances, pr
     handle_lock = threading.Lock()
     halted = threading.Event()
     written = 0
+    remaining = list(todo)
 
     def one(index_iid: tuple[int, str]) -> dict | None:
         index, iid = index_iid
@@ -343,21 +346,51 @@ def run_detector(key: tuple[str, str, int], missing: list[str], *, instances, pr
         row.pop("checks", None)
         return row
 
-    with ThreadPoolExecutor(max_workers=workers) as pool, \
-            cache_path.open("a", encoding="utf-8") as handle:
-        for done, row in enumerate(pool.map(one, list(enumerate(todo))), start=1):
-            if row is None:
-                continue
-            with handle_lock:
-                handle.write(json.dumps(row, sort_keys=True) + "\n")
-                handle.flush()
-                written += 1
-            if done % 10 == 0 or done == len(todo):
-                total = spend.total()
-                print(f"    {slug}: {done}/{len(todo)}  ${total:.3f}", flush=True)
-                if budget_usd and total >= budget_usd:
-                    print(f"    STOP: spend ${total:.3f} reached the ${budget_usd:.2f} cap")
-                    halted.set()
+    # The provider layer opens a circuit breaker after three consecutive route failures
+    # and cools down for 60 s, during which every queued instance fails immediately. One
+    # transient SSL EOF therefore takes a whole pass with it. A failed instance writes no
+    # cache record, so it is simply still missing; the loop re-attempts it in a later pass
+    # after the cooldown has expired. Passes are bounded, and what never lands is reported.
+    for attempt in range(1, max_passes + 1):
+        if not remaining or halted.is_set():
+            break
+        if attempt > 1:
+            print(f"    {slug}: pass {attempt}, {len(remaining)} still missing; "
+                  f"waiting {cooldown_s:.0f}s for the breaker to close", flush=True)
+            time.sleep(cooldown_s)
+        landed: set[str] = set()
+        with ThreadPoolExecutor(max_workers=workers) as pool, \
+                cache_path.open("a", encoding="utf-8") as handle, \
+                failed_path.open("a", encoding="utf-8") as failures:
+            for done, row in enumerate(pool.map(one, list(enumerate(remaining))), start=1):
+                if row is None:
+                    continue
+                with handle_lock:
+                    if row.get("ok"):
+                        handle.write(json.dumps(row, sort_keys=True) + "\n")
+                        handle.flush()
+                        written += 1
+                        landed.add(row["instance_id"])
+                    else:
+                        # An honest record of the failure, kept out of the cache so it
+                        # cannot be mistaken for a reading. The error is a provider
+                        # message; it quotes no corpus text and no model output.
+                        failures.write(json.dumps(
+                            {"instance_id": row["instance_id"], "detector": slug,
+                             "pass": attempt, "error": (row.get("error") or "")[:300]},
+                            sort_keys=True) + "\n")
+                        failures.flush()
+                if done % 25 == 0 or done == len(remaining):
+                    total = spend.total()
+                    print(f"    {slug}: {done}/{len(remaining)} pass {attempt}  "
+                          f"${total:.3f}  ok {len(landed)}", flush=True)
+                    if budget_usd and total >= budget_usd:
+                        print(f"    STOP: spend ${total:.3f} reached the ${budget_usd:.2f} cap")
+                        halted.set()
+        remaining = [i for i in remaining if i not in landed]
+    if remaining:
+        print(f"    {slug}: {len(remaining)} instances never landed after "
+              f"{max_passes} passes", flush=True)
 
     # Stamp each cached row with the cost the ledger actually recorded for its run_id.
     costs = spend.by_run_id()
@@ -410,19 +443,27 @@ def score_spec(spec: dict, detectors: dict[tuple, dict[str, dict]], audit_set: l
                 if instances[i]["stratum"] == stratum
                 and (half is None or split["halves"][i] == half)]
 
+    # Cost per instance is the sum of the detectors' mean per-instance costs. Study 2's
+    # and this loop's rows carry the figure the usage ledger recorded for that instance.
+    # Study 1's committed rows do not, so those instances are priced from study 1's arm
+    # total divided by its call count — a **reconstruction**, named per detector in
+    # ``cost_reconstructed_for`` and said at every figure it reaches (EXPERIMENT_RECORD §7).
     per_instance_cost = 0.0
     reconstructed: list[str] = []
     for k in keys:
-        recs = [r for r in detectors[k].values()]
-        costs = [r["cost_usd"] for r in recs if r.get("cost_usd") is not None]
-        if any(r.get("cost_reconstructed") for r in recs) or not costs:
-            label = FREE_SOURCES.get(k, ("", "", ""))[2]
-            arm = STUDY1_ARM_COST.get(label)
-            if arm:
-                per_instance_cost += study1_costs[arm[0]]["usd"] / arm[1]
-                reconstructed.append(detector_slug(k))
-                continue
-        per_instance_cost += sum(costs) / len(costs) if costs else 0.0
+        recs = list(detectors[k].values())
+        label = FREE_SOURCES.get(k, ("", "", ""))[2]
+        arm = STUDY1_ARM_COST.get(label)
+        fallback = (study1_costs[arm[0]]["usd"] / arm[1]) if arm else 0.0
+        values = []
+        for r in recs:
+            if r.get("cost_usd") is None:
+                values.append(fallback)
+                if detector_slug(k) not in reconstructed:
+                    reconstructed.append(detector_slug(k))
+            else:
+                values.append(float(r["cost_usd"]))
+        per_instance_cost += sum(values) / len(values) if values else 0.0
 
     entry = {
         "spec_id": spec["id"], "label": spec["label"], "aggregate": spec["aggregate"],
@@ -452,7 +493,10 @@ def main(argv: list[str] | None = None) -> int:
                         help="study 2's run dir: solutions and the property cache")
     parser.add_argument("--scratch", default="/tmp/explore-arms")
     parser.add_argument("--budget-usd", type=float, default=15.0)
-    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=3)
+    parser.add_argument("--max-passes", type=int, default=6,
+                        help="re-attempt passes for instances the provider layer failed; "
+                             "a pass waits out the circuit breaker's cooldown first")
     parser.add_argument("--force", action="store_true",
                         help="re-score specs already on the leaderboard (never re-runs a "
                              "detector that has a cached record)")
@@ -535,7 +579,8 @@ def main(argv: list[str] | None = None) -> int:
                          solutions=solutions, constitution=constitution,
                          cfg_cache=cfg_cache, scratch=scratch, spend=spend,
                          budget_usd=args.budget_usd, workers=args.workers,
-                         property_cache_path=run_dir / "properties.json")
+                         property_cache_path=run_dir / "properties.json",
+                         max_passes=args.max_passes)
             detectors[k] = load_detector(k, audit_ids)
         print(f"\nmodel spend this invocation: ${spend.total():.4f}", flush=True)
 
@@ -580,7 +625,7 @@ def main(argv: list[str] | None = None) -> int:
             handle.write(json.dumps({k: v for k, v in entry.items() if not k.startswith("_")},
                                     sort_keys=True) + "\n")
 
-    write_manifest(grid, split, detectors, entries, spend)
+    write_manifest(grid, split, detectors, entries, spend, Path(args.scratch))
     return 0
 
 
@@ -604,8 +649,31 @@ def probe(grid: dict, scratch: Path, constitution: str, cfg_cache: dict, spend: 
     print(f"probe spend ${spend.total():.6f}")
 
 
+def ledger_spend(scratch: Path) -> dict:
+    """Total model spend for this study, read from every project ledger under ``scratch``.
+
+    This is the study's spend, not this invocation's: the ledgers persist, so a later
+    free re-scoring reports the same figure rather than zeroing it. Where the scratch has
+    been cleared the figure is ``None`` and the manifest says so rather than guessing.
+    """
+    from crossaudit import usage
+    ledgers = sorted(scratch.glob("project-*/.crossaudit/usage.jsonl"))
+    if not ledgers:
+        return {"usd": None, "calls": None,
+                "note": f"scratch {scratch} not present; see the archived run directories"}
+    total, calls, per = 0.0, 0, {}
+    for led in ledgers:
+        events, _ = usage.read_events(led)
+        name = led.parent.parent.name
+        for event in events:
+            total += float(event.get("api_value_usd") or 0.0)
+            calls += 1
+            per[name] = round(per.get(name, 0.0) + float(event.get("api_value_usd") or 0.0), 6)
+    return {"usd": round(total, 6), "calls": calls, "by_project": per, "source": str(scratch)}
+
+
 def write_manifest(grid: dict, split: dict, detectors: dict, entries: list[dict],
-                   spend: Spend) -> None:
+                   spend: Spend, scratch: Path) -> None:
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True,
                           text=True).stdout.strip()
     porcelain = subprocess.run(["git", "status", "--porcelain"], cwd=REPO,
@@ -632,7 +700,9 @@ def write_manifest(grid: dict, split: dict, detectors: dict, entries: list[dict]
         "detectors": {detector_slug(k): {"records": len(v),
                                          "sources": sorted({r["source"] for r in v.values()})}
                       for k, v in sorted(detectors.items())},
-        "spend_usd_by_run_id_prefix": round(spend.total(), 6),
+        "frozen_at": grid.get("frozen_at", ""),
+        "spend_usd_this_invocation": round(spend.total(), 6),
+        "spend_usd_study": ledger_spend(scratch),
         "specs_scored": [e["spec_id"] for e in entries],
         "written_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
