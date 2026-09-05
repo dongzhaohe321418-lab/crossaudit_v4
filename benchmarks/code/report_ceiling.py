@@ -514,7 +514,7 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
     # the residual: stratum-P instances no draw of any family ever flagged
     residual: dict = {}
     all_families = [f for f in FAMILIES if out["families"].get(f, {}).get("k_max")]
-    for label, subset in (("three_families_all_P", [f for f in all_families if f != "astra"]),
+    for label, subset in (("broker_families_only", [f for f in all_families if f != "astra"]),
                           ("all_families", all_families)):
         if not subset:
             continue

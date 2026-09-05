@@ -294,3 +294,46 @@ on which the adoption constraint is written, is stable at 5, 5, 4 of 74. Every
 statement in this record that reads an effect against "1.8 points" should be
 re-read against 6.4 at n = 110; the ones in `RESULTS-2.md` (+9.1 recall) and
 `RESULTS-EXPLORE.md` (`tri_union`, `hc_u_dc`) survive it, the rest do not.
+
+**13. "The self-audit sees more than the stranger" — restated again, and now with a
+measured ceiling on the other side.**
+Item 11 withdrew "the cross-vendor auditor sees more" on the strength of a prose study at
+n = 30 in which the generator judging its own work recalled **31.7%** against the
+cross-vendor auditor's **19.8%**, and replaced it with "a stranger is less tolerant".
+
+Study 8 measures the same contrast on code, against model-free ground truth, with eight
+independent readings per family over 110 defective solutions, and the ordering at the
+ceiling is **the other way round**: the generator's own model reaches **17.3% (19/110)**
+union recall at eight readings, fitted asymptote **16.6%, 95% CI [8.1, 26.3]**; the
+cross-vendor auditor reaches **30.0% (33/110)**, fitted asymptote **31.5% [21.7, 45.6]**.
+The preregistered primary outcome **A(self) − A(cross) = −14.9 points, 95% bootstrap CI
+[−32.1, −2.3]** over problem clusters, and the model-free raw difference at eight readings
+is **−12.7 points [−25.0, −0.9]**.
+
+These two results are not in contradiction — different task, different ground truth, and a
+different estimand (a single-draw recall against an asymptote over eight draws). What must
+change is the summary sentence carried out of item 11. **The direction of the self/cross
+recall gap is task-dependent and has now gone both ways**, and neither direction should be
+quoted as a property of self-audit. The false-positive half has gone the same way every
+time and is not withdrawn: the self-auditor flags more correct work — **24.0% against
+16.0%** at eight readings in study 8, and **13 of 56 against 3 of 56** in its closed-loop
+arms (+17.9 points [3.6, 24.1], exact McNemar p = 0.0129).
+
+**14. "AI self-audit raises accuracy" was never measured until now, and it does not.**
+The programme has measured what auditors *notice* seven times and what the loop *achieves*
+once, in a study whose primary outcome was later withdrawn for conditioning on a
+post-treatment variable (item 9). Study 8 measures it unconditionally: over a frozen paired
+sample of 112 instances, the generator's own model auditing and then revising its own code
+changed the fraction passing a hidden test suite by **+0.89 points, 95% exact CI
+[−3.16, +3.99], exact McNemar p = 1.0000** — 3 of 56 wrong solutions repaired, 2 of 56
+correct ones broken. The preregistered kill condition fired. **No claim that self-audit
+raises accuracy is supported by this programme's evidence**, and any planning document that
+assumes it should be re-read against `benchmarks/code/RESULTS-CEILING.md`.
+
+What did move: adding one rule to the constitution telling the auditor to find what the
+visible tests do not cover raised flags on defective code from 10 of 56 to 25 of 56
+(**+26.8 points [12.9, 30.3], p = 0.0003**) and the loop's net accuracy to **+8.04 points
+[1.06, 11.16], p = 0.0225**. That is a **secondary** outcome that does not clear the
+study's own Bonferroni threshold over twelve planned comparisons (0.00417), and it costs 7
+additional false alarms on 56 correct solutions. It licenses a larger confirmatory run, not
+a default change.

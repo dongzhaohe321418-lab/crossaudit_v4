@@ -102,42 +102,54 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def witness_for(problem, solution: str, hidden: dict) -> dict:
-    """The first failing hidden input, with the expected and the actual value.
+    """The first failing hidden inputs, with the expected and the actual value.
+
+    Built by re-instrumenting the suite through ``execute.instrument_plus_suite`` with a
+    collector that records values instead of only indices. Instrumenting *inside* the
+    suite matters: HumanEval+ wraps its vectors in ``check(candidate)``, so ``inputs`` and
+    ``results`` are locals and code appended at module level cannot see them.
 
     Runs in ``execute.py``'s subprocess sandbox — candidate code is untrusted and is never
     imported into this interpreter. Where the suite is not the instrumented EvalPlus shape
-    (``mode == "binary"``) there is no per-input vector to recover and the witness says so
-    rather than inventing one.
+    there is no per-input vector to recover and the witness says so rather than inventing
+    one.
     """
-    failed = hidden.get("failed_indices") or []
     if hidden.get("timed_out"):
         return {"kind": "timeout", "detail": "the hidden suite did not terminate"}
-    if hidden.get("mode") != "vector" or not failed:
+    if hidden.get("mode") != "vector" or not (hidden.get("failed_indices") or []):
         return {"kind": "no_vector",
                 "detail": f"mode={hidden.get('mode')}, "
                           f"error={(hidden.get('error') or '')[:200]}"}
-    program, instrumented = problem.hidden_program(solution)
+
+    witness_collector = """
+{indent}__w = []
+{indent}for i, (inp, exp) in enumerate(zip(inputs, results)):
+{indent}    try:
+{indent}        {call}
+{indent}    except BaseException:
+{indent}        try:
+{indent}            __act = repr(CANDIDATE_EXPR)
+{indent}        except BaseException as __e:
+{indent}            __act = "<raised " + type(__e).__name__ + ": " + str(__e) + ">"
+{indent}        if len(__w) < 5:
+{indent}            __w.append({{"index": i, "input": repr(inp)[:400],
+{indent}                         "expected": repr(exp)[:400], "actual": __act[:400]}})
+{indent}import json as __json, sys as __sys
+{indent}__sys.stderr.write("__CROSSAUDIT_WITNESS__" + __json.dumps(__w) + "\\n")
+"""
+    call = ("assertion(candidate(*inp), exp, 0)" if problem.benchmark == "humaneval"
+            else f"assertion({problem.entry_point}(*inp), exp, 0)")
+    expr = call[len("assertion("):call.rindex(", exp, 0)")]
+    original = execute._COLLECTOR
+    try:
+        execute._COLLECTOR = witness_collector.replace("CANDIDATE_EXPR", expr)
+        program, instrumented = problem.hidden_program(solution)
+    finally:
+        execute._COLLECTOR = original
     if not instrumented:
         return {"kind": "no_vector", "detail": "suite is not the instrumented shape"}
-    probe = program + f"""
 
-import json as __j, sys as __s
-__w = []
-for __i in {failed[:5]!r}:
-    try:
-        __inp = inputs[__i]
-        __exp = results[__i]
-        try:
-            __act = {problem.entry_point}(*__inp)
-        except BaseException as __e:
-            __act = f"<raised {{type(__e).__name__}}: {{__e}}>"
-        __w.append({{"index": __i, "input": repr(__inp)[:400],
-                     "expected": repr(__exp)[:400], "actual": repr(__act)[:400]}})
-    except BaseException as __e:
-        __w.append({{"index": __i, "error": f"{{type(__e).__name__}}: {{__e}}"}})
-__s.stderr.write("__CROSSAUDIT_WITNESS__" + __j.dumps(__w) + "\\n")
-"""
-    code, _out, err, timed = execute._run(probe, execute.DEFAULT_TIMEOUT)
+    _code, _out, err, timed = execute._run(program, execute.DEFAULT_TIMEOUT)
     if timed:
         return {"kind": "timeout", "detail": "witness probe timed out"}
     for line in err.splitlines():

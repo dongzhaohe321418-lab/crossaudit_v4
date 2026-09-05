@@ -6,34 +6,58 @@ Unit of analysis: the instance. n = 110 stratum-P instances (recall) and 150 str
 
 | family | K_max | union recall on P at K=1 | at K_max | fitted asymptote A [95% bootstrap CI over problems] | union FP on C at K=1 | at K_max | last-step gain on P |
 |---|---:|---:|---:|---|---:|---:|---:|
-| `cross` | 3 | 11.2% | **18.2%** (20/110) | **19.6%** [11.3, 31.8] | 3.8% | **7.3%** | 3.03% |
-| `self` | 1 | 15.5% | **15.5%** (17/110) | **—** — | 22.0% | **22.0%** | — |
-| `astra` | 1 | 28.2% | **28.2%** (31/110) | **—** — | 9.3% | **9.3%** | — |
+| `cross` | 8 | 10.7% | **30.0%** (33/110) | **31.5%** [21.7, 45.6] | 4.5% | **16.0%** | 1.93% |
+| `self` | 8 | 15.5% | **17.3%** (19/110) | **16.6%** [8.1, 26.3] | 21.9% | **24.0%** | 0.23% |
+| `astra` | 4 | 30.2% | **32.7%** (36/110) | **32.5%** [20.5, 44.8] | 9.7% | **10.7%** | 0.23% |
 
 ### Table 2 — union recall and union false positives at every K
 
 Unit of analysis: the instance; the same instances at every K, so the columns are repeated measures and not independent samples.
 
 
-**`cross`** (K_max = 3, n = 110 P instances, 150 C instances)
+**`cross`** (K_max = 8, n = 110 P instances, 150 C instances)
 
 | K | union recall on P | union FP on C | recall per FP point |
 |---:|---:|---:|---:|
-| 1 | 11.2% | 3.8% | — |
-| 2 | 15.2% | 5.8% | 1.97 |
-| 3 | 18.2% | 7.3% | 1.96 |
+| 1 | 10.7% | 4.5% | — |
+| 2 | 15.0% | 7.1% | 1.67 |
+| 3 | 18.3% | 9.2% | 1.63 |
+| 4 | 21.2% | 10.9% | 1.64 |
+| 5 | 23.8% | 12.4% | 1.65 |
+| 6 | 26.0% | 13.7% | 1.66 |
+| 7 | 28.1% | 14.9% | 1.67 |
+| 8 | 30.0% | 16.0% | 1.68 |
 
-**`self`** (K_max = 1, n = 110 P instances, 150 C instances)
+**`self`** (K_max = 8, n = 110 P instances, 150 C instances)
 
 | K | union recall on P | union FP on C | recall per FP point |
 |---:|---:|---:|---:|
-| 1 | 15.5% | 22.0% | — |
+| 1 | 15.5% | 21.9% | — |
+| 2 | 15.9% | 22.6% | 0.62 |
+| 3 | 16.1% | 22.9% | 0.67 |
+| 4 | 16.4% | 23.2% | 0.71 |
+| 5 | 16.6% | 23.4% | 0.75 |
+| 6 | 16.8% | 23.6% | 0.79 |
+| 7 | 17.0% | 23.8% | 0.83 |
+| 8 | 17.3% | 24.0% | 0.87 |
 
-**`astra`** (K_max = 1, n = 110 P instances, 150 C instances)
+**`astra`** (K_max = 4, n = 110 P instances, 150 C instances)
 
 | K | union recall on P | union FP on C | recall per FP point |
 |---:|---:|---:|---:|
-| 1 | 28.2% | 9.3% | — |
+| 1 | 30.2% | 9.7% | — |
+| 2 | 32.0% | 10.2% | 3.14 |
+| 3 | 32.5% | 10.5% | 2.73 |
+| 4 | 32.7% | 10.7% | 2.50 |
+
+### Table 3 — primary outcome, ceiling 1: A(self) − A(cross)
+
+K_common = 8 draws per family. Positive means the generator's own model can ultimately see more of its own defects than a stranger can. Interval: 95% percentile bootstrap over problem clusters, both curves resampled together.
+
+| stratum | n instances | A(cross) | A(self) | A(self) − A(cross) [95% CI] | raw union difference at K_common [95% CI] |
+|---|---:|---:|---:|---|---|
+| P | 110 | 31.5% | 16.6% | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
+| C | 150 | 18.6% | 23.4% | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
 
 ### Table 4 — mixed families at matched total draws
 
@@ -41,17 +65,46 @@ Unit of analysis: the instance. Each row spends the same total number of reading
 
 | combination | total draws | per family | union recall on P | union FP on C | same total inside one family (recall) |
 |---|---:|---:|---:|---:|---|
-| `cross+self` | 2 | 1 | 21.5% | 24.4% | `cross` 15.2% |
-| `cross+self+astra` | 3 | 1 | 34.5% | 30.0% | `cross` 18.2% |
-| `cross+astra` | 2 | 1 | 29.1% | 10.9% | `cross` 15.2% |
-| `self+astra` | 2 | 1 | 33.6% | 28.7% | — |
+| `cross+self` | 2 | 1 | 21.3% | 24.6% | `cross` 15.0%; `self` 15.9% |
+| `cross+self` | 4 | 2 | 25.1% | 26.9% | `cross` 21.2%; `self` 16.4% |
+| `cross+self` | 6 | 3 | 28.2% | 28.5% | `cross` 26.0%; `self` 16.8% |
+| `cross+self` | 8 | 4 | 30.7% | 29.9% | `cross` 30.0%; `self` 17.3% |
+| `cross+self` | 10 | 5 | 32.9% | 31.1% | — |
+| `cross+self` | 12 | 6 | 34.8% | 32.2% | — |
+| `cross+self` | 14 | 7 | 36.6% | 33.2% | — |
+| `cross+self` | 16 | 8 | 38.2% | 34.0% | — |
+| `cross+self+astra` | 3 | 1 | 37.5% | 29.7% | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
+| `cross+self+astra` | 6 | 2 | 40.6% | 31.3% | `cross` 26.0%; `self` 16.8% |
+| `cross+self+astra` | 9 | 3 | 42.3% | 32.4% | — |
+| `cross+self+astra` | 12 | 4 | 43.6% | 33.4% | — |
+| `cross+astra` | 2 | 1 | 31.3% | 11.2% | `cross` 15.0%; `astra` 32.0% |
+| `cross+astra` | 4 | 2 | 34.0% | 12.6% | `cross` 21.2%; `astra` 32.7% |
+| `cross+astra` | 6 | 3 | 35.6% | 13.7% | `cross` 26.0% |
+| `cross+astra` | 8 | 4 | 36.8% | 14.7% | `cross` 30.0% |
+| `self+astra` | 2 | 1 | 36.5% | 28.3% | `self` 15.9%; `astra` 32.0% |
+| `self+astra` | 4 | 2 | 38.5% | 29.5% | `self` 16.4%; `astra` 32.7% |
+| `self+astra` | 6 | 3 | 39.2% | 30.1% | `self` 16.8% |
+| `self+astra` | 8 | 4 | 39.5% | 30.5% | `self` 17.3% |
 
 ### Table 5 — the residual: stratum-P defects no draw ever flagged
 
 | population | families | total draws | n P instances | never flagged | share [95% Wilson] |
 |---|---|---:|---:|---:|---|
-| three_families_all_P | cross, self | 4 | 110 | **80** | 72.7% [63.7, 80.2] |
-| all_families | cross, self, astra | 5 | 110 | **70** | 63.6% [54.3, 72.0] |
+| broker_families_only | cross, self | 16 | 110 | **68** | 61.8% [52.5, 70.4] |
+| all_families | cross, self, astra | 20 | 110 | **57** | 51.8% [42.6, 60.9] |
+
+### Table 5b — what the residual defects are
+
+Categories and their order were fixed in the preregistration (§1.5) before the first residual instance was read; each instance takes the first category that applies. Unit: the instance. Intervals are 95% Wilson on the residual denominator.
+
+| population | n residual | category | count | share [95% Wilson] |
+|---|---:|---|---:|---|
+| broker_families_only | 68 | `unexercised-edge` | 55 | 80.9% [70.0, 88.5] |
+| broker_families_only | 68 | `spec-misreading` | 8 | 11.8% [6.1, 21.5] |
+| broker_families_only | 68 | `timeout` | 5 | 7.4% [3.2, 16.1] |
+| all_families | 57 | `unexercised-edge` | 46 | 80.7% [68.7, 88.9] |
+| all_families | 57 | `spec-misreading` | 8 | 14.0% [7.3, 25.3] |
+| all_families | 57 | `timeout` | 3 | 5.3% [1.8, 14.4] |
 
 ### Table 6 — ceiling 2: the closed loop, per arm
 
@@ -93,6 +146,6 @@ From the product's own usage ledgers, per call, not reconstructed. The `astra` r
 
 | part | model spend | astra tokens |
 |---|---:|---:|
-| ceiling1 | $0.0000 | 1,223,456 |
+| ceiling1 | $9.5238 | 4,427,530 |
 | ceiling2 | $3.7083 | — |
-| **total** | **$3.7083** | 1,223,456 |
+| **total** | **$13.2321** | 4,427,530 |

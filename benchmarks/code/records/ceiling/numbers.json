@@ -1,337 +1,583 @@
 {
-  "bootstrap_reps": 500,
+  "bootstrap_reps": 10000,
   "bootstrap_seed": 20260908,
   "ceiling1": {
     "families": {
       "astra": {
         "C": {
           "asymptote_is_extrapolation": false,
-          "bootstrap_reps": 0,
+          "bootstrap_reps": 10000,
           "counts_k": {
-            "0": 136,
-            "1": 14
+            "0": 134,
+            "1": 1,
+            "2": 1,
+            "3": 1,
+            "4": 13
           },
           "curve": [
-            0.093333
+            0.096667,
+            0.102222,
+            0.105,
+            0.106667
           ],
-          "draw1_rate": 0.09333333333333334,
+          "draw1_rate": 0.09666666666666666,
           "fit": {
-            "A": null,
-            "max_resid": null,
-            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
-            "r2": null,
-            "tau": null
+            "A": 0.10499627288697193,
+            "max_resid": 0.002059057197366987,
+            "r2": 0.8757395115114234,
+            "sse": 7.162236489272131e-06,
+            "tau": 0.40084926120567665
           },
           "fit_A_ci95": [
-            null,
-            null
+            0.05811844357515701,
+            0.1586344771133157
           ],
-          "marginal_gain_last_step": null,
+          "marginal_gain_last_step": 0.0016666666666666774,
           "n_instances": 150,
           "raw_kmax_ci95": [
-            null,
-            null
+            0.05921052631578947,
+            0.1610738255033557
           ],
-          "union_at_kmax": 0.09333333333333334,
-          "union_at_kmax_count": 14,
+          "union_at_kmax": 0.10666666666666667,
+          "union_at_kmax_count": 16,
           "union_at_kmax_wilson95": [
-            0.05641186747708652,
-            0.1505639312756158
+            0.06673036965207342,
+            0.16624622258414684
           ],
           "zibb_secondary": {
-            "a": 0.8112278558620899,
-            "b": 4.221832096833852,
-            "nll": 46.527427039721275,
-            "pi": 0.5790632553901922
+            "a": 0.10309844124729674,
+            "b": 0.06618949431107556,
+            "nll": 61.96104815966062,
+            "pi": 0.1588538749066046
           }
         },
         "P": {
           "asymptote_is_extrapolation": false,
-          "bootstrap_reps": 0,
+          "bootstrap_reps": 10000,
           "counts_k": {
-            "0": 79,
-            "1": 31
-          },
-          "curve": [
-            0.281818
-          ],
-          "draw1_rate": 0.2818181818181818,
-          "fit": {
-            "A": null,
-            "max_resid": null,
-            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
-            "r2": null,
-            "tau": null
-          },
-          "fit_A_ci95": [
-            null,
-            null
-          ],
-          "marginal_gain_last_step": null,
-          "n_instances": 110,
-          "raw_kmax_ci95": [
-            null,
-            null
-          ],
-          "union_at_kmax": 0.2818181818181818,
-          "union_at_kmax_count": 31,
-          "union_at_kmax_wilson95": [
-            0.2062114368310301,
-            0.37214955311725967
-          ],
-          "zibb_secondary": {
-            "a": 3.441117286749982,
-            "b": 1.9328448980525477,
-            "nll": 65.41285655323136,
-            "pi": 0.440112920596413
-          }
-        },
-        "draws_used": [
-          1
-        ],
-        "exchange_rate_recall_per_fp": null,
-        "k_max": 1,
-        "partial_draws": [
-          "partial-2"
-        ]
-      },
-      "cross": {
-        "C": {
-          "asymptote_is_extrapolation": true,
-          "bootstrap_reps": 500,
-          "counts_k": {
-            "0": 139,
-            "1": 7,
+            "0": 74,
+            "1": 1,
             "2": 2,
-            "3": 2
+            "3": 4,
+            "4": 29
           },
           "curve": [
-            0.037778,
-            0.057778,
-            0.073333
+            0.302273,
+            0.319697,
+            0.325,
+            0.327273
           ],
-          "draw1_rate": 0.03777777777777778,
+          "draw1_rate": 0.30227272727272725,
           "fit": {
-            "A": 0.09369542950442128,
-            "max_resid": 0.0013681412194071832,
-            "r2": 0.9949475743574325,
-            "sse": 3.210265511162234e-06,
-            "tau": 2.004698958956282
+            "A": 0.3247215757780721,
+            "max_resid": 0.0034067870286805246,
+            "r2": 0.9517332026816013,
+            "sse": 1.853218974174059e-05,
+            "tau": 0.3772240317668224
           },
           "fit_A_ci95": [
-            0.043909969561118145,
-            0.22274142061108573
+            0.2050496673502665,
+            0.4482775310972902
           ],
-          "marginal_gain_last_step": 0.015555555555555559,
-          "n_instances": 150,
-          "raw_kmax_ci95": [
-            0.0338929490715205,
-            0.11764705882352941
-          ],
-          "union_at_kmax": 0.07333333333333333,
-          "union_at_kmax_count": 11,
-          "union_at_kmax_wilson95": [
-            0.041438815160384994,
-            0.12653579336704038
-          ],
-          "zibb_secondary": {
-            "a": 0.04910118706142356,
-            "b": 1.2301004254734642,
-            "nll": 49.55941973527307,
-            "pi": 0.999999999989178
-          }
-        },
-        "P": {
-          "asymptote_is_extrapolation": true,
-          "bootstrap_reps": 500,
-          "counts_k": {
-            "0": 90,
-            "1": 10,
-            "2": 3,
-            "3": 7
-          },
-          "curve": [
-            0.112121,
-            0.151515,
-            0.181818
-          ],
-          "draw1_rate": 0.11212121212121215,
-          "fit": {
-            "A": 0.19605629386077678,
-            "max_resid": 0.005728347536428036,
-            "r2": 0.9783535657880177,
-            "sse": 5.287375115139854e-05,
-            "tau": 1.2348332560964916
-          },
-          "fit_A_ci95": [
-            0.11260770823873427,
-            0.3178432822054505
-          ],
-          "marginal_gain_last_step": 0.03030303030303033,
+          "marginal_gain_last_step": 0.0022727272727272596,
           "n_instances": 110,
           "raw_kmax_ci95": [
-            0.10714285714285714,
-            0.2740408673894912
+            0.2072072072072072,
+            0.45045045045045046
           ],
-          "union_at_kmax": 0.18181818181818182,
-          "union_at_kmax_count": 20,
+          "union_at_kmax": 0.32727272727272727,
+          "union_at_kmax_count": 36,
           "union_at_kmax_wilson95": [
-            0.12089572411843909,
-            0.2642140528894836
+            0.24671132610522006,
+            0.4194911242705093
           ],
           "zibb_secondary": {
-            "a": 0.07763009802012649,
-            "b": 0.5956011100654416,
-            "nll": 73.03367116035511,
-            "pi": 0.9999999999986873
+            "a": 1.6831209606733928,
+            "b": 0.16360467048369315,
+            "nll": 93.97145269411574,
+            "pi": 0.331682286079194
           }
         },
         "draws_used": [
           1,
           2,
-          3
+          3,
+          4
         ],
-        "exchange_rate_recall_per_fp": 1.960227272727272,
-        "k_max": 3,
+        "exchange_rate_recall_per_fp": 2.5,
+        "k_max": 4,
+        "partial_draws": []
+      },
+      "cross": {
+        "C": {
+          "asymptote_is_extrapolation": true,
+          "bootstrap_reps": 10000,
+          "counts_k": {
+            "0": 126,
+            "1": 13,
+            "2": 4,
+            "3": 3,
+            "4": 2,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 2
+          },
+          "curve": [
+            0.045,
+            0.070714,
+            0.091786,
+            0.109333,
+            0.124286,
+            0.137381,
+            0.149167,
+            0.16
+          ],
+          "draw1_rate": 0.045,
+          "fit": {
+            "A": 0.18587633177057525,
+            "max_resid": 0.006744382040602653,
+            "r2": 0.9926185170115088,
+            "sse": 8.179458750948903e-05,
+            "tau": 4.339612336037277
+          },
+          "fit_A_ci95": [
+            0.11639547470008643,
+            0.2909437575184991
+          ],
+          "marginal_gain_last_step": 0.010833333333333334,
+          "n_instances": 150,
+          "raw_kmax_ci95": [
+            0.10135135135135136,
+            0.22297297297297297
+          ],
+          "union_at_kmax": 0.16,
+          "union_at_kmax_count": 24,
+          "union_at_kmax_wilson95": [
+            0.10994008412845499,
+            0.22703968204183714
+          ],
+          "zibb_secondary": {
+            "a": 0.0838214272164603,
+            "b": 1.606957165073118,
+            "nll": 102.75967269211013,
+            "pi": 0.9999999999972446
+          }
+        },
+        "P": {
+          "asymptote_is_extrapolation": true,
+          "bootstrap_reps": 10000,
+          "counts_k": {
+            "0": 77,
+            "1": 17,
+            "2": 4,
+            "3": 4,
+            "4": 1,
+            "5": 0,
+            "6": 0,
+            "7": 3,
+            "8": 4
+          },
+          "curve": [
+            0.106818,
+            0.149675,
+            0.183279,
+            0.212208,
+            0.2375,
+            0.260065,
+            0.280682,
+            0.3
+          ],
+          "draw1_rate": 0.10681818181818181,
+          "fit": {
+            "A": 0.3150017278630176,
+            "max_resid": 0.023733145400592362,
+            "r2": 0.9678071689121078,
+            "sse": 0.0009995149142273277,
+            "tau": 3.2658403285217634
+          },
+          "fit_A_ci95": [
+            0.2174275833403333,
+            0.4561104306257212
+          ],
+          "marginal_gain_last_step": 0.01931818181818179,
+          "n_instances": 110,
+          "raw_kmax_ci95": [
+            0.2,
+            0.4074074074074074
+          ],
+          "union_at_kmax": 0.3,
+          "union_at_kmax_count": 33,
+          "union_at_kmax_wilson95": [
+            0.22229896444649316,
+            0.39119860967277237
+          ],
+          "zibb_secondary": {
+            "a": 0.1207745877171915,
+            "b": 0.8701208748206488,
+            "nll": 123.78075760518679,
+            "pi": 0.9999999999989448
+          }
+        },
+        "draws_used": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "exchange_rate_recall_per_fp": 1.6798418972332014,
+        "k_max": 8,
         "partial_draws": []
       },
       "self": {
         "C": {
           "asymptote_is_extrapolation": false,
-          "bootstrap_reps": 0,
+          "bootstrap_reps": 10000,
           "counts_k": {
-            "0": 117,
-            "1": 33
+            "0": 114,
+            "1": 2,
+            "2": 1,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 2,
+            "7": 1,
+            "8": 30
           },
           "curve": [
-            0.22
+            0.219167,
+            0.225952,
+            0.229286,
+            0.231905,
+            0.234286,
+            0.236429,
+            0.238333,
+            0.24
           ],
-          "draw1_rate": 0.22,
+          "draw1_rate": 0.21916666666666668,
           "fit": {
-            "A": null,
-            "max_resid": null,
-            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
-            "r2": null,
-            "tau": null
+            "A": 0.23404786199571884,
+            "max_resid": 0.0070150436176375786,
+            "r2": 0.5961182225266113,
+            "sse": 0.0001363265562480372,
+            "tau": 0.3718744199081986
           },
           "fit_A_ci95": [
-            null,
-            null
+            0.16802687127635893,
+            0.3057749358299764
           ],
-          "marginal_gain_last_step": null,
+          "marginal_gain_last_step": 0.0016666666666666496,
           "n_instances": 150,
           "raw_kmax_ci95": [
-            null,
-            null
+            0.17218543046357615,
+            0.3125
           ],
-          "union_at_kmax": 0.22,
-          "union_at_kmax_count": 33,
+          "union_at_kmax": 0.24,
+          "union_at_kmax_count": 36,
           "union_at_kmax_wilson95": [
-            0.16116023701753923,
-            0.29282309982858373
+            0.17869313331595332,
+            0.31429139375544646
           ],
           "zibb_secondary": {
-            "a": 1.7764519488004658,
-            "b": 2.5111081830192536,
-            "nll": 79.03619421470668,
-            "pi": 0.5309815397046671
+            "a": 0.01037570035623573,
+            "b": 0.03684871755138915,
+            "nll": 109.58104066265052,
+            "pi": 0.9999999999448763
           }
         },
         "P": {
           "asymptote_is_extrapolation": false,
-          "bootstrap_reps": 0,
+          "bootstrap_reps": 10000,
           "counts_k": {
-            "0": 93,
-            "1": 17
+            "0": 91,
+            "1": 2,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 1,
+            "7": 0,
+            "8": 16
           },
           "curve": [
-            0.154545
+            0.154545,
+            0.158766,
+            0.161364,
+            0.163636,
+            0.165909,
+            0.168182,
+            0.170455,
+            0.172727
           ],
           "draw1_rate": 0.15454545454545454,
           "fit": {
-            "A": null,
-            "max_resid": null,
-            "note": "AUTHOR_INPUT_NEEDED: fewer than two K points",
-            "r2": null,
-            "tau": null
+            "A": 0.16615893362033843,
+            "max_resid": 0.006568339298184678,
+            "r2": 0.4763120322512945,
+            "sse": 0.0001367957058611582,
+            "tau": 0.38867730328325045
           },
           "fit_A_ci95": [
-            null,
-            null
+            0.08108020051112538,
+            0.26279588988529573
           ],
-          "marginal_gain_last_step": null,
+          "marginal_gain_last_step": 0.0022727272727272874,
           "n_instances": 110,
           "raw_kmax_ci95": [
-            null,
-            null
+            0.08256880733944955,
+            0.2727272727272727
           ],
-          "union_at_kmax": 0.15454545454545454,
-          "union_at_kmax_count": 17,
+          "union_at_kmax": 0.17272727272727273,
+          "union_at_kmax_count": 19,
           "union_at_kmax_wilson95": [
-            0.09878652361939873,
-            0.23361837713206013
+            0.11345918160580955,
+            0.2540823033166252
           ],
           "zibb_secondary": {
-            "a": 1.146674819606424,
-            "b": 3.0791079149976115,
-            "nll": 47.3564605249571,
-            "pi": 0.5695385668862869
+            "a": 0.006594150104707378,
+            "b": 0.03497140372245276,
+            "nll": 63.951799233321815,
+            "pi": 0.9999999999921649
           }
         },
         "draws_used": [
-          1
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
         ],
-        "exchange_rate_recall_per_fp": null,
-        "k_max": 1,
-        "partial_draws": [
-          "partial-2"
-        ]
+        "exchange_rate_recall_per_fp": 0.8727272727272738,
+        "k_max": 8,
+        "partial_draws": []
       }
     },
-    "k_common": 1,
+    "k_common": 8,
     "mixed": {
       "cross+astra": {
         "2": {
-          "C": 0.10888888888888891,
-          "C_cross_alone_at_2": 0.057777777777777775,
-          "P": 0.2909090909090909,
-          "P_cross_alone_at_2": 0.1515151515151515,
+          "C": 0.1125,
+          "C_astra_alone_at_2": 0.10222222222222223,
+          "C_cross_alone_at_2": 0.0707142857142857,
+          "P": 0.31278409090909093,
+          "P_astra_alone_at_2": 0.31969696969696976,
+          "P_cross_alone_at_2": 0.14967532467532468,
           "per_family": 1,
           "total_draws": 2
+        },
+        "4": {
+          "C": 0.12583333333333332,
+          "C_astra_alone_at_4": 0.10666666666666667,
+          "C_cross_alone_at_4": 0.10933333333333335,
+          "P": 0.3401515151515152,
+          "P_astra_alone_at_4": 0.32727272727272727,
+          "P_cross_alone_at_4": 0.21220779220779215,
+          "per_family": 2,
+          "total_draws": 4
+        },
+        "6": {
+          "C": 0.13666666666666666,
+          "C_cross_alone_at_6": 0.13738095238095238,
+          "P": 0.35568181818181815,
+          "P_cross_alone_at_6": 0.26006493506493505,
+          "per_family": 3,
+          "total_draws": 6
+        },
+        "8": {
+          "C": 0.14666666666666667,
+          "C_cross_alone_at_8": 0.16,
+          "P": 0.36818181818181817,
+          "P_cross_alone_at_8": 0.3,
+          "per_family": 4,
+          "total_draws": 8
         }
       },
       "cross+self": {
+        "10": {
+          "C": 0.3112053571428572,
+          "P": 0.32924107142857134,
+          "per_family": 5,
+          "total_draws": 10
+        },
+        "12": {
+          "C": 0.32196428571428576,
+          "P": 0.3484577922077922,
+          "per_family": 6,
+          "total_draws": 12
+        },
+        "14": {
+          "C": 0.3315625,
+          "P": 0.36576704545454547,
+          "per_family": 7,
+          "total_draws": 14
+        },
+        "16": {
+          "C": 0.34,
+          "P": 0.38181818181818183,
+          "per_family": 8,
+          "total_draws": 16
+        },
         "2": {
-          "C": 0.24444444444444444,
-          "C_cross_alone_at_2": 0.057777777777777775,
-          "P": 0.21515151515151512,
-          "P_cross_alone_at_2": 0.1515151515151515,
+          "C": 0.24604166666666666,
+          "C_cross_alone_at_2": 0.0707142857142857,
+          "C_self_alone_at_2": 0.22595238095238096,
+          "P": 0.2134943181818182,
+          "P_cross_alone_at_2": 0.14967532467532468,
+          "P_self_alone_at_2": 0.15876623376623378,
           "per_family": 1,
           "total_draws": 2
+        },
+        "4": {
+          "C": 0.2686309523809524,
+          "C_cross_alone_at_4": 0.10933333333333335,
+          "C_self_alone_at_4": 0.2319047619047619,
+          "P": 0.2513798701298701,
+          "P_cross_alone_at_4": 0.21220779220779215,
+          "P_self_alone_at_4": 0.16363636363636364,
+          "per_family": 2,
+          "total_draws": 4
+        },
+        "6": {
+          "C": 0.2852529761904762,
+          "C_cross_alone_at_6": 0.13738095238095238,
+          "C_self_alone_at_6": 0.23642857142857143,
+          "P": 0.28183847402597406,
+          "P_cross_alone_at_6": 0.26006493506493505,
+          "P_self_alone_at_6": 0.16818181818181818,
+          "per_family": 3,
+          "total_draws": 6
+        },
+        "8": {
+          "C": 0.2990952380952381,
+          "C_cross_alone_at_8": 0.16,
+          "C_self_alone_at_8": 0.24,
+          "P": 0.30733766233766235,
+          "P_cross_alone_at_8": 0.3,
+          "P_self_alone_at_8": 0.17272727272727273,
+          "per_family": 4,
+          "total_draws": 8
         }
       },
       "cross+self+astra": {
+        "12": {
+          "C": 0.3335714285714286,
+          "P": 0.43636363636363634,
+          "per_family": 4,
+          "total_draws": 12
+        },
         "3": {
-          "C": 0.3,
-          "C_cross_alone_at_3": 0.07333333333333333,
-          "P": 0.34545454545454546,
-          "P_cross_alone_at_3": 0.18181818181818182,
+          "C": 0.2965625,
+          "C_astra_alone_at_3": 0.105,
+          "C_cross_alone_at_3": 0.09178571428571428,
+          "C_self_alone_at_3": 0.22928571428571426,
+          "P": 0.37528409090909093,
+          "P_astra_alone_at_3": 0.325,
+          "P_cross_alone_at_3": 0.18327922077922076,
+          "P_self_alone_at_3": 0.16136363636363638,
           "per_family": 1,
           "total_draws": 3
+        },
+        "6": {
+          "C": 0.3130357142857143,
+          "C_cross_alone_at_6": 0.13738095238095238,
+          "C_self_alone_at_6": 0.23642857142857143,
+          "P": 0.4057359307359307,
+          "P_cross_alone_at_6": 0.26006493506493505,
+          "P_self_alone_at_6": 0.16818181818181818,
+          "per_family": 2,
+          "total_draws": 6
+        },
+        "9": {
+          "C": 0.32418154761904766,
+          "P": 0.42272727272727273,
+          "per_family": 3,
+          "total_draws": 9
         }
       },
       "self+astra": {
         "2": {
-          "C": 0.2866666666666667,
-          "P": 0.33636363636363636,
+          "C": 0.2833333333333333,
+          "C_astra_alone_at_2": 0.10222222222222223,
+          "C_self_alone_at_2": 0.22595238095238096,
+          "P": 0.36477272727272725,
+          "P_astra_alone_at_2": 0.31969696969696976,
+          "P_self_alone_at_2": 0.15876623376623378,
           "per_family": 1,
           "total_draws": 2
+        },
+        "4": {
+          "C": 0.2948412698412699,
+          "C_astra_alone_at_4": 0.10666666666666667,
+          "C_self_alone_at_4": 0.2319047619047619,
+          "P": 0.3852813852813853,
+          "P_astra_alone_at_4": 0.32727272727272727,
+          "P_self_alone_at_4": 0.16363636363636364,
+          "per_family": 2,
+          "total_draws": 4
+        },
+        "6": {
+          "C": 0.30095238095238097,
+          "C_self_alone_at_6": 0.23642857142857143,
+          "P": 0.39204545454545453,
+          "P_self_alone_at_6": 0.16818181818181818,
+          "per_family": 3,
+          "total_draws": 6
+        },
+        "8": {
+          "C": 0.30523809523809525,
+          "C_self_alone_at_8": 0.24,
+          "P": 0.39545454545454545,
+          "P_self_alone_at_8": 0.17272727272727273,
+          "per_family": 4,
+          "total_draws": 8
         }
       }
     },
     "n_C": 150,
     "n_P": 110,
-    "primary_ceiling1_status": "AUTHOR_INPUT_NEEDED: fewer than two complete draws in one of the two families (K_common = 1); the asymptote is not estimable yet",
+    "primary_ceiling1": {
+      "C": {
+        "A_cross": 0.18587633176817728,
+        "A_self": 0.23404786199571884,
+        "A_self_minus_cross": 0.04817153022754156,
+        "bootstrap_reps": 10000,
+        "ci95": [
+          -0.0755943553122135,
+          0.14296088886127903
+        ],
+        "k_common": 8,
+        "n_instances": 150,
+        "raw_diff_ci95": [
+          -0.006756756756756743,
+          0.16778523489932884
+        ],
+        "raw_union_diff_at_k_common": 0.07999999999999999
+      },
+      "P": {
+        "A_cross": 0.31500172713372,
+        "A_self": 0.16615893362033843,
+        "A_self_minus_cross": -0.14884279351338156,
+        "bootstrap_reps": 10000,
+        "ci95": [
+          -0.32061352998151793,
+          -0.022872661642172613
+        ],
+        "k_common": 8,
+        "n_instances": 110,
+        "raw_diff_ci95": [
+          -0.25,
+          -0.009009009009009
+        ],
+        "raw_union_diff_at_k_common": -0.12727272727272726
+      }
+    },
     "residual": {
       "all_families": {
         "families": [
@@ -345,13 +591,10 @@
           "b1:Mbpp/103",
           "b1:Mbpp/109",
           "b1:Mbpp/113",
-          "b1:Mbpp/119",
           "b1:Mbpp/137",
-          "b1:Mbpp/142",
           "b1:Mbpp/267",
           "b1:Mbpp/278",
           "b1:Mbpp/294",
-          "b1:Mbpp/300",
           "b1:Mbpp/305",
           "b1:Mbpp/391",
           "b1:Mbpp/398",
@@ -362,31 +605,22 @@
           "b1:Mbpp/558",
           "b1:Mbpp/559",
           "b1:Mbpp/576",
-          "b1:Mbpp/577",
           "b1:Mbpp/594",
-          "b1:Mbpp/597",
           "b1:Mbpp/630",
-          "b1:Mbpp/7",
           "b1:Mbpp/735",
-          "b1:Mbpp/74",
           "b1:Mbpp/748",
-          "b1:Mbpp/765",
           "b1:Mbpp/771",
           "b1:Mbpp/790",
           "b1:Mbpp/792",
           "b1:Mbpp/806",
           "b1:Mbpp/99",
           "b2:HumanEval/151",
-          "b2:Mbpp/102",
           "b2:Mbpp/103",
-          "b2:Mbpp/113",
-          "b2:Mbpp/119",
           "b2:Mbpp/137",
           "b2:Mbpp/142",
           "b2:Mbpp/267",
           "b2:Mbpp/278",
           "b2:Mbpp/294",
-          "b2:Mbpp/300",
           "b2:Mbpp/305",
           "b2:Mbpp/391",
           "b2:Mbpp/398",
@@ -396,7 +630,6 @@
           "b2:Mbpp/558",
           "b2:Mbpp/559",
           "b2:Mbpp/576",
-          "b2:Mbpp/594",
           "b2:Mbpp/597",
           "b2:Mbpp/630",
           "b2:Mbpp/7",
@@ -412,15 +645,15 @@
           "b2:Mbpp/99"
         ],
         "n_P": 110,
-        "n_never_flagged": 70,
-        "share": 0.6363636363636364,
+        "n_never_flagged": 57,
+        "share": 0.5181818181818182,
         "share_wilson95": [
-          0.5432766706052174,
-          0.7202477106771015
+          0.4257793754404014,
+          0.6093572087305745
         ],
-        "total_draws": 5
+        "total_draws": 20
       },
-      "three_families_all_P": {
+      "broker_families_only": {
         "families": [
           "cross",
           "self"
@@ -434,8 +667,6 @@
           "b1:Mbpp/113",
           "b1:Mbpp/119",
           "b1:Mbpp/137",
-          "b1:Mbpp/142",
-          "b1:Mbpp/161",
           "b1:Mbpp/244",
           "b1:Mbpp/267",
           "b1:Mbpp/278",
@@ -451,17 +682,11 @@
           "b1:Mbpp/558",
           "b1:Mbpp/559",
           "b1:Mbpp/576",
-          "b1:Mbpp/577",
           "b1:Mbpp/589",
           "b1:Mbpp/594",
-          "b1:Mbpp/597",
           "b1:Mbpp/630",
-          "b1:Mbpp/7",
           "b1:Mbpp/735",
-          "b1:Mbpp/74",
           "b1:Mbpp/748",
-          "b1:Mbpp/757",
-          "b1:Mbpp/765",
           "b1:Mbpp/771",
           "b1:Mbpp/790",
           "b1:Mbpp/792",
@@ -469,10 +694,7 @@
           "b1:Mbpp/99",
           "b2:HumanEval/151",
           "b2:HumanEval/154",
-          "b2:Mbpp/102",
           "b2:Mbpp/103",
-          "b2:Mbpp/109",
-          "b2:Mbpp/113",
           "b2:Mbpp/119",
           "b2:Mbpp/137",
           "b2:Mbpp/142",
@@ -491,7 +713,6 @@
           "b2:Mbpp/559",
           "b2:Mbpp/576",
           "b2:Mbpp/589",
-          "b2:Mbpp/594",
           "b2:Mbpp/597",
           "b2:Mbpp/630",
           "b2:Mbpp/7",
@@ -508,17 +729,74 @@
           "b2:Mbpp/99"
         ],
         "n_P": 110,
-        "n_never_flagged": 80,
-        "share": 0.7272727272727273,
+        "n_never_flagged": 68,
+        "share": 0.6181818181818182,
         "share_wilson95": [
-          0.6374341513147903,
-          0.8017731508224077
+          0.5248597632248548,
+          0.7035280338864882
         ],
-        "total_draws": 4
+        "total_draws": 16
       }
     },
     "residual_classified": {
-      "status": "AUTHOR_INPUT_NEEDED: records/ceiling/residual_classification.json has not been written yet"
+      "all_families": {
+        "counts": {
+          "spec-misreading": 8,
+          "timeout": 3,
+          "unexercised-edge": 46
+        },
+        "n": 57,
+        "rule_version": "PREREGISTRATION.md \u00a71.5, committed at d96cdaf before the first residual instance was read",
+        "shares": {
+          "spec-misreading": 0.14035087719298245,
+          "timeout": 0.05263157894736842,
+          "unexercised-edge": 0.8070175438596491
+        },
+        "unclassified": [],
+        "wilson95": {
+          "spec-misreading": [
+            0.07287276143238601,
+            0.2532446460934409
+          ],
+          "timeout": [
+            0.01806029563366167,
+            0.14369550397163527
+          ],
+          "unexercised-edge": [
+            0.6865930975223603,
+            0.8886725301994945
+          ]
+        }
+      },
+      "broker_families_only": {
+        "counts": {
+          "spec-misreading": 8,
+          "timeout": 5,
+          "unexercised-edge": 55
+        },
+        "n": 68,
+        "rule_version": "PREREGISTRATION.md \u00a71.5, committed at d96cdaf before the first residual instance was read",
+        "shares": {
+          "spec-misreading": 0.11764705882352941,
+          "timeout": 0.07352941176470588,
+          "unexercised-edge": 0.8088235294117647
+        },
+        "unclassified": [],
+        "wilson95": {
+          "spec-misreading": [
+            0.06083492602331342,
+            0.21534903719791698
+          ],
+          "timeout": [
+            0.031814844251117996,
+            0.16085188395717748
+          ],
+          "unexercised-edge": [
+            0.699893585399794,
+            0.8847270596907507
+          ]
+        }
+      }
     },
     "unit_of_analysis": "instance (batch, problem_id); intervals resample problem clusters"
   },
@@ -567,7 +845,7 @@
         "n_revised": 13,
         "net_bootstrap_secondary_ci95": [
           0.0,
-          0.07117117117117112
+          0.07142857142857142
         ],
         "net_primary": {
           "b": 3,
@@ -634,8 +912,8 @@
         "n_returned_non_solution": 0,
         "n_revised": 35,
         "net_bootstrap_secondary_ci95": [
-          0.018775348263092927,
-          0.13995726495726482
+          0.017699115044247787,
+          0.15178571428571427
         ],
         "net_primary": {
           "b": 11,
@@ -702,8 +980,8 @@
         "n_returned_non_solution": 4,
         "n_revised": 23,
         "net_bootstrap_secondary_ci95": [
-          -0.036036036036036036,
-          0.05555555555555555
+          -0.03571428571428571,
+          0.058823529411764705
         ],
         "net_primary": {
           "b": 3,
@@ -770,8 +1048,8 @@
         "n_returned_non_solution": 4,
         "n_revised": 23,
         "net_bootstrap_secondary_ci95": [
-          -0.036036036036036036,
-          0.05555555555555555
+          -0.03571428571428571,
+          0.058823529411764705
         ],
         "net_primary": {
           "b": 3,
@@ -983,10 +1261,10 @@
   "preregistration": "benchmarks/code/ceiling/PREREGISTRATION.md",
   "spend": {
     "ceiling1": {
-      "astra_tokens": 1223456,
+      "astra_tokens": 4427530,
       "calls": null,
       "note": "the product's provider broker, its metered usage ledger and its same-vendor heterogeneity guard; a measurement of a model, not of the product path",
-      "spend_usd": 0
+      "spend_usd": 9.52378
     },
     "ceiling2": {
       "astra_tokens": null,

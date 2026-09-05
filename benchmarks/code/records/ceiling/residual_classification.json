@@ -1,0 +1,633 @@
+{
+  "assignment": "the first category in the order above that applies",
+  "categories_in_order": [
+    "timeout",
+    "unexercised-edge",
+    "spec-misreading",
+    "wrong-algorithm",
+    "ambiguous-oracle",
+    "other"
+  ],
+  "classification": {
+    "b1:HumanEval/151": {
+      "benchmark": "humaneval",
+      "category": "unexercised-edge",
+      "failing_input_class": "booleans in the list, which the oracle counts as odd integers",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 1005,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:HumanEval/154": {
+      "benchmark": "humaneval",
+      "category": "unexercised-edge",
+      "failing_input_class": "an empty second word, whose rotation the oracle treats as present",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 3,
+      "hidden_total": 1006,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/102": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "leading, doubled or trailing underscores",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 100,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/103": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "n = 0",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 101,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/109": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a rotation count smaller than the string length",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 48,
+      "hidden_total": 105,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/113": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty and whitespace-only string",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 4,
+      "hidden_total": 124,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/119": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty array and all-duplicate arrays, raising IndexError",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 66,
+      "hidden_total": 110,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/137": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "an array with no non-zero element (division by zero)",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 114,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/244": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "negative inputs, raising ValueError from math.sqrt",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 12,
+      "hidden_total": 112,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/267": {
+      "benchmark": "mbpp",
+      "category": "timeout",
+      "failing_input_class": "the hidden suite did not terminate inside the harness timeout",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/278": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a tuple containing no nested tuple at all",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 6,
+      "hidden_total": 124,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/294": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "booleans and floats mixed into the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 111,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/300": {
+      "benchmark": "mbpp",
+      "category": "timeout",
+      "failing_input_class": "the hidden suite did not terminate inside the harness timeout",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/305": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "an empty list, and lists with no word starting with p",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 90,
+      "hidden_total": 110,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/391": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "input lists of unequal length, raising IndexError",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 34,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/398": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "floats in the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 3,
+      "hidden_total": 108,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/410": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "floats in the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 8,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/427": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "malformed date strings",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 100,
+      "hidden_total": 115,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/459": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "punctuation characters, which the oracle also strips",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 78,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/556": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a count argument smaller than the list length, which the candidate ignores",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 61,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/558": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "operands with different digit counts",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 69,
+      "hidden_total": 140,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/559": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty list, raising IndexError, and all-negative lists",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 74,
+      "hidden_total": 112,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/576": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "'sublist' read as contiguous where the oracle means subsequence",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 4,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/589": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a wholly negative range, raising TypeError from a complex root",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 86,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/594": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "absolute difference taken where the oracle means a signed one",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 29,
+      "hidden_total": 109,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/630": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "coordinate tuples longer than two, raising ValueError",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/735": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "numbers of one or two bits",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 111,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/748": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "consecutive capital letters",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 85,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/771": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty expression",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/790": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "even indices only, where the oracle also constrains odd indices",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 16,
+      "hidden_total": 114,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/792": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "every element counted where the oracle counts only the elements that are lists",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 16,
+      "hidden_total": 118,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b1:Mbpp/806": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a maximal uppercase run of length one",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 48,
+      "hidden_total": 105,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b1:Mbpp/99": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "negative inputs; bin()'s sign prefix is mis-sliced",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 51,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:HumanEval/151": {
+      "benchmark": "humaneval",
+      "category": "unexercised-edge",
+      "failing_input_class": "booleans in the list, which the oracle counts as odd integers",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 1005,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:HumanEval/154": {
+      "benchmark": "humaneval",
+      "category": "unexercised-edge",
+      "failing_input_class": "an empty second word, whose rotation the oracle treats as present",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 3,
+      "hidden_total": 1006,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/103": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "n = 0",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 101,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/119": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty array and all-duplicate arrays, raising IndexError",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 66,
+      "hidden_total": 110,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/137": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "an array with no non-zero element (division by zero)",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 114,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/142": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "lists of unequal length, raising IndexError",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 48,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/244": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "negative inputs, raising ValueError from math.sqrt",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 12,
+      "hidden_total": 112,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/267": {
+      "benchmark": "mbpp",
+      "category": "timeout",
+      "failing_input_class": "the hidden suite did not terminate inside the harness timeout",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/278": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a tuple containing no nested tuple at all",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 6,
+      "hidden_total": 124,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/294": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "booleans and floats mixed into the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 111,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/300": {
+      "benchmark": "mbpp",
+      "category": "timeout",
+      "failing_input_class": "the hidden suite did not terminate inside the harness timeout",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/305": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "an empty list, and lists with no word starting with p",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 90,
+      "hidden_total": 110,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/391": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "input lists of unequal length, raising IndexError",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 34,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/398": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "floats in the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 3,
+      "hidden_total": 108,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/410": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "floats in the list",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 8,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/459": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "punctuation characters, which the oracle also strips",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 78,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/556": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a count argument smaller than the list length, which the candidate ignores",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 61,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/558": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "operands with different digit counts",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 69,
+      "hidden_total": 140,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/559": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty list, raising IndexError, and all-negative lists",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 74,
+      "hidden_total": 112,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/576": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "'sublist' read as contiguous where the oracle means subsequence",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 4,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/589": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a wholly negative range, raising TypeError from a complex root",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 86,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/597": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "an empty second array, and input that is not sorted",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 65,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/630": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "coordinate tuples longer than two, raising ValueError",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/7": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "words followed by punctuation, which the oracle strips",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 36,
+      "hidden_total": 105,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/735": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "numbers of one or two bits",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 111,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/739": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "large n, where the float square root is off by one",
+      "found_by_astra_only": true,
+      "hidden_failed_n": 2,
+      "hidden_total": 103,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/74": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "a bijection required where the oracle checks one direction only",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 2,
+      "hidden_total": 120,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/748": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "consecutive capital letters",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 85,
+      "hidden_total": 113,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/765": {
+      "benchmark": "mbpp",
+      "category": "timeout",
+      "failing_input_class": "the hidden suite did not terminate inside the harness timeout",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 0,
+      "hidden_total": 0,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/771": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "the empty expression",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 1,
+      "hidden_total": 106,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/790": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "even indices only, where the oracle also constrains odd indices",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 16,
+      "hidden_total": 114,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/792": {
+      "benchmark": "mbpp",
+      "category": "spec-misreading",
+      "failing_input_class": "every element counted where the oracle counts only the elements that are lists",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 16,
+      "hidden_total": 118,
+      "oracle_disputable_EXPLORATORY": false
+    },
+    "b2:Mbpp/806": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "a maximal uppercase run of length one",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 48,
+      "hidden_total": 105,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/92": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "two-digit numbers",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 69,
+      "hidden_total": 104,
+      "oracle_disputable_EXPLORATORY": true
+    },
+    "b2:Mbpp/99": {
+      "benchmark": "mbpp",
+      "category": "unexercised-edge",
+      "failing_input_class": "negative inputs; bin()'s sign prefix is mis-sliced",
+      "found_by_astra_only": false,
+      "hidden_failed_n": 51,
+      "hidden_total": 107,
+      "oracle_disputable_EXPLORATORY": false
+    }
+  },
+  "exploratory_flag": {
+    "definition": "would a competent reader defend the candidate against the specification's prose as written? Not part of the preregistered rule; recorded because the rule's ordering places `unexercised-edge` ahead of `ambiguous-oracle` and therefore absorbs instances whose oracle is itself arguable. Reported as exploratory wherever it appears.",
+    "name": "oracle_disputable_EXPLORATORY"
+  },
+  "n_distinct_problems": 40,
+  "n_instances": 68,
+  "population": "both residual populations: broker_families_only (cross K=8 + self K=8, 16 readings) and all_families (plus astra K=4, 20 readings)",
+  "rule_version": "PREREGISTRATION.md \u00a71.5, committed at d96cdaf before the first residual instance was read"
+}
