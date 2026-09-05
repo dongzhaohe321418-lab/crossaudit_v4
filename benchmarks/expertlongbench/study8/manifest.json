@@ -1,0 +1,76 @@
+{
+  "study": "study8 / Arm 3",
+  "preregistration": "benchmarks/expertlongbench/study8/PREREGISTRATION-ARM3.md",
+  "code_sha": "785bd9e7c428e4a908ce337081a343f393d6082e",
+  "git_status_at_freeze": "",
+  "corpus": {
+    "name": "T03MaterialSEG.jsonl",
+    "sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+    "rows": 50,
+    "licence": "CC BY-NC-SA 4.0, not redistributed"
+  },
+  "seed": 20261104,
+  "models": {
+    "generator": "anthropic:claude-sonnet-4-6",
+    "auditor": "openai:gpt-5.6-terra"
+  },
+  "settings": {
+    "max_rounds": 1,
+    "checks": [
+      "number_source"
+    ],
+    "audit_rules": "general",
+    "scope": "work",
+    "increment_dir": "work/synthesis",
+    "output": "work/synthesis/explanation.md",
+    "recipe": "work/synthesis/RECIPE.md",
+    "gutter": "{:>5}| ",
+    "quote_max": 80
+  },
+  "skills_sha256": {
+    "A": "91ca16a30612ca077c263c54d8c44f899add4153b07aa73bd3bd06f04fec0cf0",
+    "B": "cb608fd856c52f60888e9f0d4660a63b4f73789b6feebcf5f8534426ed2c1fff"
+  },
+  "contract_sha256": {
+    "A": "aa8d049f1c020913331b014b34700b31b6d12ff7bb635fb71c77817e10df198b",
+    "B": "93b5ad1962f3fd89d814ddbfe9b124eba43664a3263cd72216323da676ddc183"
+  },
+  "instance_ids": [
+    "T03MaterialSEG-10.1002/adfm.201000591",
+    "T03MaterialSEG-10.1002/adfm.202002249",
+    "T03MaterialSEG-10.1002/adfm.202402444",
+    "T03MaterialSEG-10.1002/aic.18378",
+    "T03MaterialSEG-10.1002/ange.202112688",
+    "T03MaterialSEG-10.1002/asia.202100022",
+    "T03MaterialSEG-10.1002/batt.202200056",
+    "T03MaterialSEG-10.1002/celc.202200772",
+    "T03MaterialSEG-10.1002/cjce.24030",
+    "T03MaterialSEG-10.1002/cnma.202200403",
+    "T03MaterialSEG-10.1002/cssc.202300809",
+    "T03MaterialSEG-10.1002/jbm.a.36681",
+    "T03MaterialSEG-10.1002/smll.201800441",
+    "T03MaterialSEG-10.1002/smll.202408072",
+    "T03MaterialSEG-10.1002/zaac.202200095",
+    "T03MaterialSEG-10.1126/sciadv.adj5431",
+    "T03MaterialSEG-10.1002/adfm.202209924",
+    "T03MaterialSEG-10.1002/advs.202406453",
+    "T03MaterialSEG-10.1002/anie.201812472",
+    "T03MaterialSEG-10.1002/anie.201913331",
+    "T03MaterialSEG-10.1002/batt.202100174",
+    "T03MaterialSEG-10.1002/chem.201905217",
+    "T03MaterialSEG-10.1002/cjce.23950",
+    "T03MaterialSEG-10.1002/cssc.201700885"
+  ],
+  "python": "3.13.5",
+  "platform": "darwin",
+  "started_utc": {
+    "batch1": "2026-09-05T18:26:39.252432+00:00",
+    "batch2": "2026-09-05T18:54:51.832672+00:00"
+  },
+  "rows_recorded": 440,
+  "drafts_recorded": 48,
+  "records_sha256": {
+    "rows.jsonl": "6f2b43e9a044e0bebdb77dc2fa6af508e574266b001802f6b54c76fe1024e6fc",
+    "drafts.jsonl": "cafffe8ce5f0528d5ad4338d006dafca36192ebaffe79973da664d57ef895733"
+  }
+}
