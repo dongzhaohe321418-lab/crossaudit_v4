@@ -6,8 +6,9 @@ never written into a receipt.
 """
 from __future__ import annotations
 
+import posixpath
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import yaml
 
@@ -281,6 +282,61 @@ def load(path: Path | None = None) -> Config:
     for req in ("science_repo", "constitution", "auditor"):
         if not raw.get(req):
             raise ConfigDenial(f"{req} is required", file=str(p))
+    # D156. The two roles a markdown file can hold here are exclusive. A skill
+    # is the owner's guidance to the GENERATOR and is deliberately kept out of
+    # the audited increment; the Constitution is the standard the AUDITOR judges
+    # against and is read separately, by commit, whatever the scope says. Point
+    # `constitution:` inside the guidance directory and the same bytes are both
+    # — the increment filter drops the file and `_committed_constitution` hands
+    # it to the auditor as law. That is not an audit boundary anyone can reason
+    # about, so it is refused at configuration time rather than qualified in a
+    # docstring. Requires deliberate owner configuration; it is refused because
+    # it is incoherent, not because it is an attack.
+    #
+    # NORMALISE FIRST. The first version compared `PurePosixPath(value).parts`
+    # raw, which neither folds case nor collapses `..`: `SKILLS/house.md` and
+    # `work/../skills/house.md` both walked past it. Neither reached the auditor
+    # — the committed-file reader denies them later — but a guard that a
+    # different spelling of the same path steps over is not a guard.
+    # Case is folded on EVERY host, not only case-insensitive ones: a
+    # constitution spelled `SKILLS/...` is never legitimate, and a rule that
+    # depends on the developer's filesystem is not a rule.
+    from .skills import SKILLS_DIR as _skills_dir
+    const_raw = str(raw["constitution"])
+    const_norm = posixpath.normpath(const_raw)
+    # ABSOLUTE FIRST, before anything reasons about components. `/abs/skills/x`
+    # has `/` as its first component, so the guidance comparison below misses it
+    # and the traversal check below never looked at it either — an absolute path
+    # walked past both. A Constitution is always a path INSIDE the tree, cited
+    # by commit; an absolute one names a file on somebody's disk, which no
+    # receipt can bind and no verifier can re-read.
+    if posixpath.isabs(const_norm) or PureWindowsPath(const_raw).drive:
+        raise ConfigDenial(
+            f"constitution {const_raw!r} is an absolute path. The Constitution "
+            f"is a file committed in this repository and cited by commit, so it "
+            f"is written as a path inside the project — not a location on one "
+            f"machine's disk.", file=str(p))
+    if const_norm == ".." or const_norm.startswith("../"):
+        raise ConfigDenial(
+            f"constitution {const_raw!r} points outside the project. The "
+            f"Constitution is a committed file in this repository, cited by "
+            f"commit; a path that leaves the project cannot be.", file=str(p))
+    const_parts = PurePosixPath(const_norm).parts
+    if const_parts and const_parts[0].lower() == _skills_dir.lower():
+        raise ConfigDenial(
+            f"constitution {const_raw!r} is inside {_skills_dir!r}. "
+            f"Guidance shapes how the generator writes; the Constitution is what "
+            f"the auditor judges against. One file cannot be both — move the "
+            f"rules out of {_skills_dir!r}.", file=str(p))
+    # STORE THE NORMALISED PATH. The guard is about where the file is, not how
+    # the path was typed — so `skills/../AUDIT_RULES.md` passes it. But the
+    # committed reader is strict (`does not identify exactly one file`), so
+    # keeping the raw spelling left a value that passed configuration and failed
+    # the auditor: accepted and unusable. `normpath` is a no-op on a canonical
+    # path, so nothing that works today changes; what it fixes is every
+    # equivalent spelling of a legitimate location, `./AUDIT_RULES.md` included.
+    # Downstream — the receipt's `constitution_path`, the git pathspec, the
+    # console — all then see the one canonical tree path.
 
     auditor = _role(raw["auditor"] or {}, "auditor", p)
     gen = raw.get("generator") or {}
@@ -449,7 +505,7 @@ def load(path: Path | None = None) -> Config:
         path=p,
         science_repo=raw["science_repo"],
         audit_repo=raw.get("audit_repo"),
-        constitution=raw["constitution"],
+        constitution=const_norm,
         max_rounds=rounds,
         auditor=auditor,
         generator_vendor=generator_vendor,

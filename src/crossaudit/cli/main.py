@@ -273,6 +273,50 @@ def _is_scaffold_template(path: str) -> bool:
     return "TEMPLATE" in Path(path).parts
 
 
+def _is_house_skill(path: str) -> bool:
+    """Is this path one of the project's house skills? (D156)
+
+    `skills.py` states the invariant in its own docstring: **skills never reach
+    the auditor**, because a skill that could speak to the auditor would be an
+    unversioned rule — the exact thing P3 exists to prevent. Until this
+    predicate the invariant was real only in the hand-off (nothing passes a
+    skill to the auditor deliberately) and absent as an invariant: the scope
+    reader below takes every file under its prefixes — the repository root when
+    no scope is configured — so a root-scoped project fenced its own skills into
+    the auditor's prompt as increment data. Of every file class the auditor
+    could be shown, an instruction-shaped one is the worst.
+
+    Judged on the FIRST path component, and against `skills.SKILLS_DIR` rather
+    than a literal, so `work/skills-notes.md` is ordinary work product and is
+    still audited. The directory's IDENTITY — a real directory, that exact name,
+    directly in the project — is settled once in `skills.house_dir`, so the
+    loader and this filter cannot disagree about which files are guidance.
+
+    What this costs, stated exactly, because an earlier version of this
+    docstring got it wrong. It is NOT true that "no check reads skill bytes":
+    hand `internal` or `complete-strict` a skill body and they report a broken
+    relative link and a `TODO`. What is true is that guidance is not work
+    product, so those findings were never wanted — a house style file is not
+    incomplete for saying `TODO`, and the auditor's verdict is about the
+    increment. This removes an INPUT no check should have been given, not a
+    check. `test_no_check_reports_a_finding_against_house_guidance` pins the
+    property that is actually true.
+    """
+    from .. import skills as skills_mod
+
+    parts = Path(path).parts
+    # More than one component: a path UNDER the directory, never the entry
+    # itself. A stray FILE named `skills` is work, not guidance, and `cmd_run`
+    # audits it as work; excluding it here made the two audit routes disagree
+    # about the same file. Real guidance is always `skills/<something>`.
+    return len(parts) > 1 and parts[0] == skills_mod.SKILLS_DIR
+
+
+def _outside_the_increment(path: str) -> bool:
+    """Paths the audited increment never carries, whatever the scope says."""
+    return _is_scaffold_template(path) or _is_house_skill(path)
+
+
 def _materialise_tree_scope(cfg: Config, sha: str,
                             explicit_scope: str | None
                             ) -> tuple[dict[str, bytes], list[str], str]:
@@ -284,9 +328,12 @@ def _materialise_tree_scope(cfg: Config, sha: str,
         scoped, scoped_notes = materialise(cfg.root, sha, prefix)
         files.update(scoped)
         notes.extend(scoped_notes)
-    files = {p: data for p, data in files.items() if not _is_scaffold_template(p)}
+    # Unconditional, and deliberately not in `cmd_check`'s `excluded` set below:
+    # that set is applied only `if not explicit`, so an explicit scope naming the
+    # repository root would still carry the skill.
+    files = {p: data for p, data in files.items() if not _outside_the_increment(p)}
     notes = [n for n in notes
-             if not _is_scaffold_template(n.partition(": ")[2])]
+             if not _outside_the_increment(n.partition(": ")[2])]
     scope_text = ", ".join(prefixes) if any(prefixes) else ""
     return files, notes, scope_text
 
@@ -1587,6 +1634,26 @@ def cmd_run(args: argparse.Namespace) -> int:
     """The guided verb: audit the latest commit, narrate every step, decide
     nothing the commit itself cannot decide. `audit` remains the precise tool;
     `run` is the one you can give a colleague with no explanation."""
+    # `crossaudit --lang zh run` narrated the walk-back line in English, because
+    # `run` never selected a language at all. It now selects one the same way
+    # every other speaking command does.
+    #
+    # An earlier version of this honoured the EXPLICIT flag only, on the grounds
+    # that `run` is 31 raw `print()` calls to 2 catalogue calls and nobody
+    # should be opted into that by their locale. The lead overruled it, and the
+    # review showed why: `_language_for` resolves flag -> environment -> English,
+    # and `cmd_init`, `cmd_doctor` and the central denial handler all call it
+    # unconditionally. So under `LANG=zh_CN.UTF-8` a plain `run` already printed
+    # a Chinese REFUSAL; keeping the narration English made one screen answer in
+    # two languages, which is a sharper version of the same defect. (The parser
+    # comment on `init --lang` that the earlier version cited says the
+    # environment is not consulted; `_language_for` consults it. The executable
+    # behaviour is what counts, and the comment is stale.)
+    #
+    # The wider gap — `run`'s 31 untranslated prints — is real and is filed for
+    # a slice of its own. It is not made better by this line staying English.
+    _speak(args)
+
     try:
         cfg = load()
     except ConfigDenial:
@@ -1602,11 +1669,21 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     sha, tree = resolve(cfg.root, args.sha or "HEAD")
     subject = git("log", "-1", "--format=%s", cwd=cfg.root, check=False)
+    from .. import skills as skills_mod
+    skills_dir = skills_mod.SKILLS_DIR
 
     # The increment is what the commit changed, minus the loop's own artefacts.
+    # `skills/` is on that list for the same reason the ledger and the state dir
+    # are: it is the loop's own input, not work to be judged. D156 named only
+    # `_materialise_tree_scope`, but this is a SECOND door to the same prompt —
+    # a root-scoped project whose newest commit touched a skill handed that
+    # skill to the auditor as the whole increment (reproduced). A commit that
+    # touches nothing else now falls through to the existing "changed no science
+    # files" path, which is the honest answer: editing house guidance is not an
+    # increment.
     own = {cfg.constitution, "crossaudit.yml", ".gitignore"}
     prefix_own = (cfg.ledger_dir.rstrip("/") + "/", cfg.state_dir.rstrip("/") + "/",
-                  ".github/")
+                  ".github/", skills_dir + "/")
     def science_of(s: str) -> list[str]:
         picked = [f for f in changed_paths(cfg.root, s)
                   if f not in own and not f.startswith(prefix_own)]
@@ -1650,17 +1727,34 @@ def cmd_run(args: argparse.Namespace) -> int:
                 sha, tree = resolve(cfg.root, cand)
                 subject = git("log", "-1", "--format=%s", sha, cwd=cfg.root, check=False)
                 science = found
-                print(f"  (HEAD is ledger bookkeeping; auditing the newest science "
-                      f"commit instead: {sha[:12]})")
+                # Through the catalogue: this line was printed in raw English
+                # under `zh`, and "ledger bookkeeping" was wrong besides — a
+                # guidance commit is not the ledger. The key names both.
+                print("  " + i18n.t("run.walked_back", sha=sha[:12]))
                 break
     if not science:
         # D149: the sentence a person reads names the commit by its subject.
         # The sha is not gone — it is the cycle's own `active_sha`, which the
         # decision card carries in its collapsed details, and it is untouched
         # in --json, in receipts and in the ledger.
-        reason = (f"Your last commit ({subject!r}) changed no science files — "
-                  f"only rules, configuration or ledger. Commit your "
-                  f"experiment, then run again.")
+        #
+        # D156: when the commit changed guidance and nothing else, say THAT.
+        # The generic sentence enumerates "rules, configuration or ledger",
+        # none of which is true here, and a refusal that misdescribes what the
+        # person just did sends them looking in the wrong place. The generic
+        # sentence is unchanged for the cases it does describe — including its
+        # two historic wordings, which older ledgers still carry.
+        guidance_only = bool(changed_paths(cfg.root, sha)) and all(
+            f.startswith(skills_dir + "/") for f in changed_paths(cfg.root, sha))
+        if guidance_only:
+            reason = (f"Your last commit ({subject!r}) changed only house "
+                      f"guidance under {skills_dir}/ — guidance shapes how the "
+                      f"generator writes and is never judged as work. Commit "
+                      f"your experiment, then run again.")
+        else:
+            reason = (f"Your last commit ({subject!r}) changed no science files — "
+                      f"only rules, configuration or ledger. Commit your "
+                      f"experiment, then run again.")
         # This is a SETUP mistake, not an audit dispute: nothing was audited
         # and nothing is contested. The decision object is minted here — the
         # only place that knows which branch this is — with its structured

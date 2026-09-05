@@ -13,6 +13,19 @@ Concretely, and enforced here rather than merely asked for:
   against the committed Constitution. A skill that could speak to the auditor
   would be an unversioned rule — the exact thing P3 exists to prevent, since it
   would let the standards move without a dated amendment anybody agreed to.
+  Precisely (D156): a skill is never part of the audited **increment** and can
+  never be the configured **Constitution** — the two inputs a file could reach
+  the auditor by. The increment side is enforced in `cli/main.py`
+  (`_is_house_skill`, and `cmd_run`'s `prefix_own`), because the exposure was
+  never the hand-off but the audited SCOPE, which read the repository root and
+  carried `skills/` into the increment; the Constitution side is refused in
+  `config.py` at load. Both compare git tree paths, and `house_dir` below makes
+  this module's notion of the directory identical to theirs, so a case variant
+  or a symlink cannot make one file guidance to one of them and work to the
+  other. Beyond those two inputs the claim is not enforced and is not made:
+  `auditor.prompt.build` is a public function that will fence whatever mapping
+  it is handed, so this is an ingress rule at the CLI seam, not a property of
+  the prompt API.
 * **Skills cannot widen the generator's reach.** `scope.dirs` is read from
   configuration, and nothing in a skill file can add to it. A skill saying "also
   edit AUDIT_RULES.md" is a text file with an opinion; the path guard is what
@@ -28,6 +41,7 @@ Concretely, and enforced here rather than merely asked for:
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -74,10 +88,82 @@ def _parse(text: str, name: str, rel: str) -> Skill:
     return Skill(name=name, path=rel, body=body.strip(), applies_to=applies)
 
 
+def house_dir(root: Path, directory: str = SKILLS_DIR) -> Path | None:
+    """The project's guidance directory, or ``None`` when it has none.
+
+    ONE IDENTITY, resolved here so the whole system shares it. The audited-scope
+    filters (`cli/main.py:_is_house_skill`, `cmd_run`'s `prefix_own`) and the
+    receipt writers compare literal **git tree paths**: first component exactly
+    ``skills``. This loader used to resolve through the **filesystem**, and the
+    two notions disagreed in two reproducible ways:
+
+    * On a case-insensitive host (macOS, Windows) ``root / "skills"`` opens a
+      directory git records as ``SKILLS/``. The loader took `SKILLS/house.md` as
+      guidance; every filter compared ``"SKILLS" == "skills"`` and let it into
+      the increment. The same bytes were guidance AND work.
+    * ``skills -> work/guidance`` made ``work/guidance/house.md`` guidance to the
+      loader and ordinary work to git. The old symlink check tested each .md
+      FILE, never the directory it walked, so it saw nothing.
+
+    Rather than teach every filter about aliases, the ambiguity is refused where
+    it starts: this directory must be a real directory, named exactly
+    ``directory``, sitting directly in ``root``. Anything else is a
+    ``ConfigDenial`` naming what to rename — never a silent empty load, which
+    would answer "you have no guidance" to someone looking at a folder full of
+    it.
+
+    A case-insensitive host cannot be detected from `Path.resolve()`: on macOS it
+    returns the path as spelled, not as stored (measured). So the real entry name
+    comes from scanning ``root``'s own directory entries, which is exact on every
+    filesystem and is one syscall at one level.
+    """
+    try:
+        entries = {e.name for e in os.scandir(root)}
+    except OSError:
+        return None
+    if directory not in entries:
+        # Case-insensitive hosts open `root/"skills"` when the entry is
+        # `SKILLS`. Absent entirely is not an error; present under another
+        # spelling is, because git keeps the spelling and the filters compare it.
+        alias = sorted(n for n in entries if n.lower() == directory.lower())
+        if alias:
+            raise ConfigDenial(
+                f"the guidance directory must be named exactly {directory!r}; this "
+                f"project has {alias[0]!r}. Git keeps the spelling, so {alias[0]!r} "
+                f"would be loaded as guidance and audited as work at the same "
+                f"time. Rename it to {directory!r}.")
+        return None
+    base = root / directory
+    if base.is_symlink():
+        raise ConfigDenial(
+            f"{directory!r} is a symlink. Guidance must be a real directory in "
+            f"the project: through a link the same file is guidance here and "
+            f"ordinary work to git, and the audit boundary cannot hold both. "
+            f"Replace the link with a real {directory!r} directory.")
+    if not base.is_dir():
+        # The sentence used to say such a file "would be invisible". It is not:
+        # `cmd_run` audits it as ordinary work, and the increment filter now
+        # agrees (it excludes paths UNDER the directory, never the entry). So
+        # the refusal says the true thing — nothing is loaded as guidance, and
+        # the file is judged as what it is.
+        raise ConfigDenial(
+            f"{directory!r} is a file, not a directory. Guidance lives in a "
+            f"real {directory!r} directory, so nothing here is loaded as "
+            f"guidance; the file itself is audited as ordinary work. Make "
+            f"{directory!r} a directory, or rename the file.")
+    if base.resolve() != (root.resolve() / directory):
+        raise ConfigDenial(
+            f"{directory!r} resolves to {base.resolve()}, outside the project's "
+            f"own {directory!r}. Guidance must be a real directory in the "
+            f"project, so that what is loaded as guidance is exactly what the "
+            f"audit boundary excludes.")
+    return base
+
+
 def load(root: Path, directory: str = SKILLS_DIR) -> list[Skill]:
     """Read every skill in the project. Absent directory is not an error."""
-    base = root / directory
-    if not base.is_dir():
+    base = house_dir(root, directory)
+    if base is None:
         return []
     out: list[Skill] = []
     total = 0

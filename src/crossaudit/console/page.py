@@ -3761,7 +3761,7 @@ const ZH={
   ,"Technical details":"技术细节"
   ,"Nothing to audit yet":"没有可审计的改动"
   ,"That commit had no experiment in it":"这次提交里没有实验文件"
-  ,"Your last commit changed only rules, configuration or the ledger — no file the auditor watches. Nothing was audited, nothing was admitted, and nothing is in dispute.":"你的上一次提交只改动了规则、配置或账本——没有任何审计者关注的文件。没有审计任何内容，没有准入任何内容，也没有任何争议。"
+  ,"Your last commit changed only rules, configuration, house guidance or the ledger — no file the auditor watches. Nothing was audited, nothing was admitted, and nothing is in dispute.":"你的上一次提交只改动了规则、配置、指导或账本——没有任何审计者关注的文件。没有审计任何内容，没有准入任何内容，也没有任何争议。"
   ,"Commit your experiment, then run again.":"把你的实验文件提交后再运行一次。"
   ,"I have committed it — try again":"我已提交，重试"
   ,"Commit the files your experiment produced, then unlock one more audited round.":"提交你的实验产出的文件，然后再解锁一轮受审轮次。"
@@ -5003,7 +5003,7 @@ const CAUSE_COPY={
   // No `empty` copy: the stop reason above already names the commit and what
   // it did change, so a findings section here would only point back at it.
   no_science_commit:{flag:'Nothing to audit yet',title:'That commit had no experiment in it',
-    summary:'Your last commit changed only rules, configuration or the ledger — no file the auditor watches. Nothing was audited, nothing was admitted, and nothing is in dispute.',
+    summary:'Your last commit changed only rules, configuration, house guidance or the ledger — no file the auditor watches. Nothing was audited, nothing was admitted, and nothing is in dispute.',
     limitTitle:'What happened',
     request:'Commit your experiment, then run again.',
     reopenTitle:'I have committed it — try again',
