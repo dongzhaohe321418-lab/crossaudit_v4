@@ -436,3 +436,19 @@ The one rule sharpening this report said was owed is now written into the
 labelling rule as R6a (a basis qualifier — `vol/vol`, `w/w`, `wt` — is part of
 the unit expression), dated and after the fact; no recorded label changes. Every
 extension measured against this gold from here on is measured under R6a.
+
+## Amendment 2 (2026-09-06) — what W = 0 does and does not say
+
+The first narrowing measured against this gold (slice 2's `_UNPARSED`
+whitespace fix) returned W = 0, R = 0 — and so did the **rejected first draft**
+of the same fix, which the slice-2 review had shown to introduce a footnote
+false blocker (`Participants: 5 ¹`). The corpus contains no separated-superscript
+footnote, so it could not distinguish the two.
+
+Therefore: **W = 0 on this gold means "no evidence against", not "no
+regression".** The gold is a kill screen for the classes it contains — the
+six in `CONTAINMENT_RULE.md` §1 and the wrong-location panel — and is silent
+about any class it does not. A change that touches a mechanism the corpus never
+exercises must bring its own adversarial cases (as the footnote case now does in
+the slice's tests), and a report that quotes W = 0 for such a change says which
+classes the gold covers in the same sentence.
