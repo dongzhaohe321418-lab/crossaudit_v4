@@ -117,6 +117,16 @@ README 里两处相反的说法已改（官网中英两版原本就是对的，�
 **唯一让召回动过几个点以上的是"告诉审计员看什么"（+21.5 pp）——参照物，不是
 结构。下一个架构问题是产品问题：项目能提供什么已知为真的东西。**
 
+## 论文支线（2026-09-05 晚）——AI 审计的上限
+
+owner 开了一条支线：AI 审计的上限在哪，能否自审提高准确性。目标 ICML 级；
+可复现、精确、真实优先。私有仓库 `dongzhaohe321418-lab/audit-ceiling-paper`
+（本地 `~/Documents/Crossaudit/audit-ceiling-paper`）。研究在跑：两个上限分开量
+——"看"的饱和曲线（跨厂商 / 自审 / 混合 / astra 四个家族，K 到 8）与"改"的闭环
+（自审→修订后隐藏测试通过率的净变化，预登记证伪条件：自审净变化 ≤ 0 即为标题）。
+写作与统计审查用 `~/Documents/Crossaudit/nature-skills`（只读，不装全局）。
+astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoning_effort="high"' --sandbox read-only --skip-git-repo-check -`。
+
 ## 留给你定的两件事
 
 1. **"跨厂商"是不是正确的分割轴。** `sibling − self = −22.2 pp`（p≈2×10⁻⁵）——
