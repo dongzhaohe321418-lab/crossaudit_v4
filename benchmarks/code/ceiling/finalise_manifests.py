@@ -56,7 +56,12 @@ def windows_by_prefix(run_dir: Path, split) -> dict:
             key = split(str(row.get("run_id") or ""))
             if key and row.get("t"):
                 groups.setdefault(key, []).append(float(row["t"]))
-    return {k: {"utc_start": utc(min(v)), "utc_end": utc(max(v)), "calls": len(v)}
+    return {k: {"utc_first_completion": utc(min(v)), "utc_last_completion": utc(max(v)),
+                "calls": len(v),
+                "field_note": "these are the ledger's first and last recorded COMPLETION "
+                              "timestamps, not the invocation's start and end; the "
+                              "harness records a completion per call and nothing at "
+                              "launch"}
             for k, v in sorted(groups.items())}
 
 
@@ -64,6 +69,10 @@ def package_versions() -> dict:
     """Versions of everything a measurement here depends on."""
     import importlib.metadata as md
     out: dict = {"python": sys.version.split()[0],
+                 "collected": "RETROSPECTIVELY, from the installed environment after the "
+                              "runs finished — not captured at run time. A package "
+                              "upgraded between the run and this collection would be "
+                              "recorded at its later version.",
                  "note": "the analysis uses only the standard library; these are the "
                          "packages the RUN depended on (provider transport, and numpy "
                          "inside the sandboxed test subprocesses, which is EvalPlus's "
@@ -114,8 +123,11 @@ def route_metadata() -> dict:
         }
     out["astra"] = {
         "spec": "codex:gpt-6-astra", "vendor": "openai (via Codex CLI)",
-        "model": "gpt-6-astra", "base_url": "not applicable — the Codex CLI holds its "
-                                            "own session; CrossAudit's broker is bypassed",
+        "model": "gpt-6-astra",
+        "base_url": "AUTHOR_INPUT_NEEDED: `codex exec` exposes no endpoint on stdout, "
+                    "stderr or `codex --version`, and this study did not intercept its "
+                    "network layer, so the endpoint it used is unrecorded. What is known: "
+                    "the CLI holds its own session and CrossAudit's broker is bypassed.",
         "temperature_sent": None,
         "temperature_note": "not settable through `codex exec`; reasoning effort is the "
                             "only sampling control exposed and it was set to high",
@@ -133,9 +145,37 @@ def main(argv: list[str] | None = None) -> int:
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True,
                           text=True).stdout.strip()
     shared = {
+        "analysis_seeds": {
+            "bootstrap": 20260908,
+            "derived": "report_ceiling.py offsets BOOT_SEED per quantity; the residual "
+                       "share uses BOOT_SEED + 4 = 20260912, residual categories "
+                       "BOOT_SEED + 11, the timeout sensitivity BOOT_SEED + 12 and + 13, "
+                       "the union curves BOOT_SEED + 20 + K, the mixed families "
+                       "BOOT_SEED + 30 + per_family",
+            "loop_sample": 20260907,
+            "note": "recorded here as well as in numbers.json and the preregistration, "
+                    "so the manifest alone is sufficient to reproduce every interval",
+        },
         "package_versions": package_versions(),
         "routes_detail": route_metadata(),
-        "finalised_at_commit": head,
+        "finalised_on_parent_commit": head,
+        "analysis_freeze": {
+            "what_it_is": "the ANALYSIS freeze is the commit that CONTAINS this manifest, "
+                          "which by construction cannot be named from inside it. The "
+                          "hashes in code.files are of the working tree at finalisation "
+                          "and are what a reader should verify against; the parent commit "
+                          "above is recorded only to locate that commit's child.",
+            "verify": "git log --oneline -1 -- benchmarks/code/records/ceiling/"
+                      "manifest_ceiling1.json  ->  that commit's tree is the analysis "
+                      "freeze, and `shasum -a 256` on each file in code.files must match.",
+            "plan_freeze": "d96cdaf (preregistration) and 87939d2 (amendment 3), both "
+                           "clean and both before the first model call. Amendment 4 is "
+                           "post-hoc and says so.",
+            "correction": "the first finalisation named its parent commit as the analysis "
+                          "freeze; that commit's report_ceiling.py hash did not match the "
+                          "file the numbers came from. Found by the second cross-vendor "
+                          "review.",
+        },
         "finalised_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "provenance_note":
             "Completed after the runs finished, from the ledgers' own timestamps, the "
@@ -156,6 +196,30 @@ def main(argv: list[str] | None = None) -> int:
     m1["draw_windows_utc"] = windows_by_prefix(
         run_dir, lambda r: r.split("-holistic__")[1].rsplit("-", 1)[0]
         if "-holistic__" in r else None)
+    astra_times = []
+    for slug in ("holistic__astra__d1", "holistic__astra__d2", "holistic__astra__d3",
+                 "holistic__astra__d4"):
+        path = CEILING / "cache" / f"{slug}.jsonl"
+        if path.exists():
+            astra_times.append((slug, sum(1 for l in path.read_text(encoding="utf-8")
+                                          .splitlines() if l.strip())))
+    m1["draw_windows_coverage"] = {
+        "covered": "the draws this study ran through the metered broker",
+        "not_covered_astra": {
+            "draws": dict(astra_times),
+            "why": "the Codex CLI keeps its own session and writes nothing to the "
+                   "product's usage ledger, so no per-call timestamp exists for astra. "
+                   "Per-reading wall-clock IS recorded in each cached row's `wall_s`.",
+        },
+        "not_covered_inherited": {
+            "detectors": ["holistic__cross__d1 (study 2)", "holistic__cross__d2 (study 1 "
+                          "batch 1 + study 7)", "holistic__cross__d3 (same)",
+                          "holistic__self__d1 (study 2)",
+                          "holistic__self__d2 (study 1 batch 1, completed here)"],
+            "why": "these readings were taken by studies 1, 2 and 7; their timestamps "
+                   "belong to those studies' manifests, not this one.",
+        },
+    }
     m1["sampling"] = {
         "per_route": {k: {"temperature_sent": v["temperature_sent"],
                           "reasoning_effort": v["reasoning_effort"]}
@@ -193,6 +257,21 @@ def main(argv: list[str] | None = None) -> int:
         return None
 
     windows = windows_by_prefix(run_dir, arm_and_stamp)
+    # Count what the grouping does NOT cover, and say so rather than let a reader assume
+    # the windows account for every call. Unstamped run_ids come from the pilots, which
+    # predate the per-invocation stamp (deviation 6).
+    unmatched: dict[str, int] = {}
+    for ledger in sorted(run_dir.glob("projects/*/.crossaudit/usage.jsonl")):
+        for line in ledger.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rid = str(json.loads(line).get("run_id") or "")
+            except json.JSONDecodeError:
+                continue
+            if rid.startswith("ceiling-loop-") and arm_and_stamp(rid) is None:
+                unmatched[rid.rsplit("-", 1)[0]] = unmatched.get(rid.rsplit("-", 1)[0], 0) + 1
+    m2_unmatched = unmatched
     reported = {}
     for arm in ("self-loop", "self-loop-rep", "cross-loop", "referent-loop"):
         path = CEILING / "loop" / f"{arm}.jsonl"
@@ -222,6 +301,13 @@ def main(argv: list[str] | None = None) -> int:
         windows[key]["supplied_the_committed_rows"] = supplied
         windows[key]["role"] = role
     m2["arm_windows_utc"] = windows
+    m2["arm_ledger_events_not_in_any_window"] = {
+        "by_run_id_prefix": m2_unmatched,
+        "total": sum(m2_unmatched.values()),
+        "why": "run_ids minted before the per-invocation stamp was introduced "
+               "(deviation 6) — the discarded pilots. Their spend IS counted in the "
+               "ledger totals; they simply have no invocation stamp to group by.",
+    }
     m2["arm_windows_note"] = (
         "One window per invocation. Windows with supplied_the_committed_rows = false are "
         "the discarded pilots and the run the provider's circuit breaker destroyed; their "
@@ -237,7 +323,8 @@ def main(argv: list[str] | None = None) -> int:
     print("draw windows:", len(m1["draw_windows_utc"]), "| arm windows:",
           len(m2["arm_windows_utc"]))
     for k, v in list(m2["arm_windows_utc"].items()):
-        print(f"  {k}: {v['utc_start']} -> {v['utc_end']}  ({v['calls']} calls)")
+        print(f"  {k}: {v['utc_first_completion']} -> {v['utc_last_completion']}  "
+              f"({v['calls']} calls, used={v['supplied_the_committed_rows']})")
     return 0
 
 

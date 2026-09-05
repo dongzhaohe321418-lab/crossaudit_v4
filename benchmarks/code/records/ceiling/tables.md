@@ -19,38 +19,38 @@ Unit of analysis: the instance; the same instances at every K, so the columns ar
 
 **`cross`** (K_max = 8, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 10.7% | 4.5% | — |
-| 2 | 15.0% | 7.1% | 1.67 |
-| 3 | 18.3% | 9.2% | 1.63 |
-| 4 | 21.2% | 10.9% | 1.64 |
-| 5 | 23.8% | 12.4% | 1.65 |
-| 6 | 26.0% | 13.7% | 1.66 |
-| 7 | 28.1% | 14.9% | 1.67 |
-| 8 | 30.0% | 16.0% | 1.68 |
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 10.7% [5.2, 17.2] | 4.5% [2.4, 7.1] | — |
+| 2 | 15.0% [8.3, 22.6] | 7.1% [4.2, 10.3] | 1.67 |
+| 3 | 18.3% [11.0, 26.6] | 9.2% [5.7, 13.2] | 1.63 |
+| 4 | 21.2% [13.0, 30.0] | 10.9% [6.9, 15.5] | 1.64 |
+| 5 | 23.8% [15.1, 33.2] | 12.4% [7.8, 17.6] | 1.65 |
+| 6 | 26.0% [17.0, 35.7] | 13.7% [8.7, 19.3] | 1.66 |
+| 7 | 28.1% [18.3, 38.4] | 14.9% [9.5, 20.7] | 1.67 |
+| 8 | 30.0% [19.8, 40.7] | 16.0% [10.1, 22.1] | 1.68 |
 
 **`self`** (K_max = 8, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 15.5% | 21.9% | — |
-| 2 | 15.9% | 22.6% | 0.62 |
-| 3 | 16.1% | 22.9% | 0.67 |
-| 4 | 16.4% | 23.2% | 0.71 |
-| 5 | 16.6% | 23.4% | 0.75 |
-| 6 | 16.8% | 23.6% | 0.79 |
-| 7 | 17.0% | 23.8% | 0.83 |
-| 8 | 17.3% | 24.0% | 0.87 |
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 15.5% [7.2, 25.1] | 21.9% [15.4, 28.9] | — |
+| 2 | 15.9% [7.4, 25.8] | 22.6% [15.9, 29.7] | 0.62 |
+| 3 | 16.1% [7.5, 25.7] | 22.9% [16.3, 29.8] | 0.67 |
+| 4 | 16.4% [7.6, 26.1] | 23.2% [16.5, 30.2] | 0.71 |
+| 5 | 16.6% [7.8, 26.2] | 23.4% [16.6, 30.5] | 0.75 |
+| 6 | 16.8% [8.0, 26.6] | 23.6% [16.9, 30.9] | 0.79 |
+| 7 | 17.0% [8.1, 27.3] | 23.8% [17.1, 31.0] | 0.83 |
+| 8 | 17.3% [8.3, 27.4] | 24.0% [17.3, 31.3] | 0.87 |
 
 **`astra`** (K_max = 4, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 30.2% | 9.7% | — |
-| 2 | 32.0% | 10.2% | 3.14 |
-| 3 | 32.5% | 10.5% | 2.73 |
-| 4 | 32.7% | 10.7% | 2.50 |
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 30.2% [19.1, 42.0] | 9.7% [5.3, 14.6] | — |
+| 2 | 32.0% [20.2, 44.2] | 10.2% [5.4, 15.4] | 3.14 |
+| 3 | 32.5% [21.1, 45.0] | 10.5% [5.8, 16.0] | 2.73 |
+| 4 | 32.7% [20.7, 45.0] | 10.7% [5.9, 16.2] | 2.50 |
 
 ### Table 3 — primary outcome, ceiling 1: A(self) − A(cross)
 
@@ -65,28 +65,28 @@ K_common = 8 draws per family. Positive means the generator's own model can ulti
 
 Unit of analysis: the instance. Each row spends the same total number of readings; the question is whether spreading them across families beats spending them all inside one.
 
-| combination | total draws | per family | union recall on P | union FP on C | same total inside one family (recall) |
-|---|---:|---:|---:|---:|---|
-| `cross+self` | 2 | 1 | 21.3% | 24.6% | `cross` 15.0%; `self` 15.9% |
-| `cross+self` | 4 | 2 | 25.1% | 26.9% | `cross` 21.2%; `self` 16.4% |
-| `cross+self` | 6 | 3 | 28.2% | 28.5% | `cross` 26.0%; `self` 16.8% |
-| `cross+self` | 8 | 4 | 30.7% | 29.9% | `cross` 30.0%; `self` 17.3% |
-| `cross+self` | 10 | 5 | 32.9% | 31.1% | — |
-| `cross+self` | 12 | 6 | 34.8% | 32.2% | — |
-| `cross+self` | 14 | 7 | 36.6% | 33.2% | — |
-| `cross+self` | 16 | 8 | 38.2% | 34.0% | — |
-| `cross+self+astra` | 3 | 1 | 37.5% | 29.7% | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
-| `cross+self+astra` | 6 | 2 | 40.6% | 31.3% | `cross` 26.0%; `self` 16.8% |
-| `cross+self+astra` | 9 | 3 | 42.3% | 32.4% | — |
-| `cross+self+astra` | 12 | 4 | 43.6% | 33.4% | — |
-| `cross+astra` | 2 | 1 | 31.3% | 11.2% | `cross` 15.0%; `astra` 32.0% |
-| `cross+astra` | 4 | 2 | 34.0% | 12.6% | `cross` 21.2%; `astra` 32.7% |
-| `cross+astra` | 6 | 3 | 35.6% | 13.7% | `cross` 26.0% |
-| `cross+astra` | 8 | 4 | 36.8% | 14.7% | `cross` 30.0% |
-| `self+astra` | 2 | 1 | 36.5% | 28.3% | `self` 15.9%; `astra` 32.0% |
-| `self+astra` | 4 | 2 | 38.5% | 29.5% | `self` 16.4%; `astra` 32.7% |
-| `self+astra` | 6 | 3 | 39.2% | 30.1% | `self` 16.8% |
-| `self+astra` | 8 | 4 | 39.5% | 30.5% | `self` 17.3% |
+| combination | total draws | per family | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | same total inside one family (recall) |
+|---|---:|---:|---|---|---|
+| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0%; `self` 15.9% |
+| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2%; `self` 16.4% |
+| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0%; `self` 16.8% |
+| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0%; `self` 17.3% |
+| `cross+self` | 10 | 5 | 32.9% [22.5, 43.8] | 31.1% [23.9, 38.5] | — |
+| `cross+self` | 12 | 6 | 34.8% [24.3, 45.9] | 32.2% [24.9, 39.8] | — |
+| `cross+self` | 14 | 7 | 36.6% [25.8, 47.9] | 33.2% [25.7, 41.1] | — |
+| `cross+self` | 16 | 8 | 38.2% [27.3, 49.5] | 34.0% [26.3, 42.0] | — |
+| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
+| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0%; `self` 16.8% |
+| `cross+self+astra` | 9 | 3 | 42.3% [30.4, 54.5] | 32.4% [25.0, 40.3] | — |
+| `cross+self+astra` | 12 | 4 | 43.6% [31.7, 55.6] | 33.4% [26.1, 41.2] | — |
+| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0%; `astra` 32.0% |
+| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2%; `astra` 32.7% |
+| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% |
+| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% |
+| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9%; `astra` 32.0% |
+| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4%; `astra` 32.7% |
+| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% |
+| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% |
 
 ### Table 5 — the residual: stratum-P defects no draw ever flagged
 
@@ -97,22 +97,24 @@ Unit of analysis: the instance. Each row spends the same total number of reading
 
 ### Table 5b — what the residual defects are
 
-Categories and their order were fixed in the preregistration (§1.5) before the first residual instance was read; each instance takes the first category that applies. Unit: the instance. Intervals are 95% Wilson on the residual denominator.
+Categories and their order were fixed in the preregistration (§1.5) before the first residual instance was read; each instance takes the first category that applies. Unit: the instance; the primary interval is the problem-cluster bootstrap, with Wilson shown beside it for comparison only.
 
-| population | n residual | category | count | share [95% Wilson] |
-|---|---:|---|---:|---|
-| broker_families_only | 68 | `unexercised-edge` | 55 | 80.9% [70.0, 88.5] |
-| broker_families_only | 68 | `spec-misreading` | 8 | 11.8% [6.1, 21.5] |
-| broker_families_only | 68 | `timeout` | 5 | 7.4% [3.2, 16.1] |
-| all_families | 57 | `unexercised-edge` | 46 | 80.7% [68.7, 88.9] |
-| all_families | 57 | `spec-misreading` | 8 | 14.0% [7.3, 25.3] |
-| all_families | 57 | `timeout` | 3 | 5.3% [1.8, 14.4] |
+| population | n residual (problems) | category | count | share [95% cluster CI] | [95% Wilson, too narrow] |
+|---|---:|---|---:|---|---|
+| broker_families_only | 68 (40) | `unexercised-edge` | 55 | **80.9%** [67.6, 92.5] | [70.0, 88.5] |
+| broker_families_only | 68 (40) | `spec-misreading` | 8 | **11.8%** [2.9, 23.0] | [6.1, 21.5] |
+| broker_families_only | 68 (40) | `timeout` | 5 | **7.4%** [0.0, 16.7] | [3.2, 16.1] |
+| all_families | 57 (34) | `unexercised-edge` | 46 | **80.7%** [66.1, 93.1] | [68.7, 88.9] |
+| all_families | 57 (34) | `spec-misreading` | 8 | **14.0%** [3.4, 26.9] | [7.3, 25.3] |
+| all_families | 57 (34) | `timeout` | 3 | **5.3%** [0.0, 14.0] | [1.8, 14.4] |
 
 ### Table 6 — ceiling 2: the closed loop, per arm
 
 Unit of analysis: the instance, paired before/after on the same instance; the resampling unit is the problem. Net is unconditional on whether a revision occurred.
 
 The primary interval is the **problem-cluster bootstrap**; Tango's unconditional score interval and the exact unconditional interval (Berger-Boos restricted) are checks that ignore clustering. `p` is exact McNemar (instances independent); `p_clu` is a cluster-level sign-flip permutation test beside it. 112 instances come from **96 problems**.
+
+A rate of **0/56** carries a bootstrap interval of [0.0, 0.0] for the same reason: with no positive instance to resample, the bootstrap cannot move. Read it as the count **0 of 56**, and its Wilson bound [0.0, 6.4] for a rate.
 
 **†** — every discordant pair points the same way, so the percentile bootstrap cannot produce a resample of the opposite sign and its bound at zero is an artefact of the method. Read the Tango or exact unconditional interval on that row. This is `CORRECTIONS.md` item 4 applying to the replacement as it applied to what it replaced.
 
@@ -127,11 +129,11 @@ The primary interval is the **problem-cluster bootstrap**; Tango's unconditional
 
 Outcome: whether the instance passes the hidden suite after one round. Unit: the instance, paired across arms; resampled by problem. Both discordant counts shown.
 
-| contrast | n (problems) | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu | Bonferroni/16 |
-|---|---:|---:|---|---|---:|---:|---:|
-| self-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 3 / 5 | -1.79 pp [-7.83, 4.39] | [-7.79, 3.81] | 0.7266 | 0.7812 | 0.00313 |
-| referent-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 9 / 3 | +5.36 pp [-0.89, 12.07] | [-0.82, 12.36] | 0.1460 | 0.1826 | 0.00313 |
-| self-loop minus self-loop-rep, hidden-test pass after one round | 112 (96) | 0 / 0 | +0.00 pp [0.00, 0.00] | [-3.32, 3.32] | 1.0000 | 1.0000 | 0.00313 |
+| contrast | n (problems) | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu |
+|---|---:|---:|---|---|---:|---:|
+| self-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 3 / 5 | -1.79 pp [-7.83, 4.39] | [-7.79, 3.81] | 0.7266 | 0.7812 |
+| referent-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 9 / 3 | +5.36 pp [-0.89, 12.07] | [-0.82, 12.36] | 0.1460 | 0.1826 |
+| self-loop minus self-loop-rep, hidden-test pass after one round | 112 (96) | 0 / 0 | +0.00 pp [0.00, 0.00] | [-3.32, 3.32] | 1.0000 | 1.0000 |
 
 ### Table 7b — what the arms flag, paired and split by stratum
 
@@ -139,14 +141,14 @@ The mechanism behind any net effect. On stratum P a flag is a defect caught; on 
 
 **Every row here is EXPLORATORY**: the preregistered twelve named outcome contrasts, not flag contrasts. They are reported because the mechanism matters, and they are labelled at every occurrence.
 
-| contrast | stratum | n (problems) | flagged by each | discordant (b / c) | difference [95% cluster CI] | p | p_clu | Bonferroni/16 |
-|---|---|---:|---|---:|---|---:|---:|---:|
-| `self-loop` vs `cross-loop` | P | 56 (41) | 10 vs 10 | 7 / 7 | +0.00 pp [-15.52, 16.07] | 1.0000 | 1.0000 | 0.00313 |
-| `self-loop` vs `cross-loop` | C | 56 (55) | 13 vs 3 | 12 / 2 | +17.86 pp [5.45, 30.36] | 0.0129 | 0.0129 | 0.00313 |
-| `referent-loop` vs `cross-loop` | P | 56 (41) | 25 vs 10 | 16 / 1 | +26.79 pp [13.56, 40.35] | 0.0003 | 0.0009 | 0.00313 |
-| `referent-loop` vs `cross-loop` | C | 56 (55) | 10 vs 3 | 7 / 0 | +12.50 pp [5.17, 21.82] † | 0.0156 | 0.0156 | 0.00313 |
-| `self-loop` vs `self-loop-rep` | P | 56 (41) | 10 vs 10 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
-| `self-loop` vs `self-loop-rep` | C | 56 (55) | 13 vs 13 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
+| contrast | stratum | n (problems) | flagged by each | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu |
+|---|---|---:|---|---:|---|---|---:|---:|
+| `self-loop` vs `cross-loop` | P | 56 (41) | 10 vs 10 | 7 / 7 | +0.00 pp [-15.52, 16.07] | [-13.83, 13.83] | 1.0000 | 1.0000 |
+| `self-loop` vs `cross-loop` | C | 56 (55) | 13 vs 3 | 12 / 2 | +17.86 pp [5.45, 30.36] | [5.47, 31.13] | 0.0129 | 0.0129 |
+| `referent-loop` vs `cross-loop` | P | 56 (41) | 25 vs 10 | 16 / 1 | +26.79 pp [13.56, 40.35] | [14.45, 40.17] | 0.0003 | 0.0009 |
+| `referent-loop` vs `cross-loop` | C | 56 (55) | 10 vs 3 | 7 / 0 | +12.50 pp [5.17, 21.82] † | [5.28, 23.63] | 0.0156 | 0.0156 |
+| `self-loop` vs `self-loop-rep` | P | 56 (41) | 10 vs 10 | 0 / 0 | +0.00 pp [0.00, 0.00] | [-6.42, 6.42] | 1.0000 | 1.0000 |
+| `self-loop` vs `self-loop-rep` | C | 56 (55) | 13 vs 13 | 0 / 0 | +0.00 pp [0.00, 0.00] | [-6.42, 6.42] | 1.0000 | 1.0000 |
 
 ### Table 9 — sensitivity: stratum P without the timeouts
 
@@ -154,10 +156,10 @@ The registered population is every hidden-suite non-pass, which **includes 7 ins
 
 | family | union recall, registered P (n = 110) | union recall, assertion-failure P only (n = 103) [95% Wilson] |
 |---|---:|---|
-| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [22.9, 40.5] |
-| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [11.3, 25.9] |
-| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [24.7, 42.6] |
-| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [42.9, 61.8] |
+| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [20.4, 42.2] |
+| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [7.8, 27.9] |
+| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [20.4, 45.6] |
+| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [40.4, 64.4] |
 
 The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
 

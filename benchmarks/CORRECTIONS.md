@@ -372,7 +372,7 @@ accepted:
   the mixed and `astra` asymptote contrasts — were never delivered and are unmeasured.**
 - **"The referent raises accuracy" was overstated.** +8.04 pp is the referent arm against its
   own baseline; its exact unconditional interval contains zero. The contrast that isolates
-  the referent, against `cross-loop`, is **+5.36 pp, CI [−0.88, +12.08], p = 0.146**. What
+  the referent, against `cross-loop`, is **+5.36 pp, CI [−0.89, +12.07], p = 0.146**. What
   survives is that the referent **moved what the auditor flagged** (+26.8 points on
   stratum-P flags, exploratory), not that it raised accuracy.
 
@@ -383,3 +383,43 @@ headline interval as **[+3.16, −1.93]**, committed at 18:46:39; the fix landed
 An erroneous number was in a committed results artefact for that interval. It never reached
 prose — the report was first committed at 20:55:51 — but the claim as written was wrong and
 is corrected in that report's deviations.
+
+**17. Study 8's replacement intervals were also wrong — the nuisance bound — and its
+coverage claims were overstated in both directions.**
+Item 15 recorded the withdrawal of a 0.416-coverage interval and its replacement. A second
+independent cross-vendor review found the replacements defective in turn.
+
+Both `tango_score_interval` and `exact_unconditional_interval` bounded the nuisance
+`q = p_c` above by `(1 − |δ|)/2`; the feasible bound is `(1 − δ)/2`. Correct for a
+non-negative difference, wrong for a negative one. Measured coverage: **0.960 in the
+beneficial direction, 0.0752249063 in the detrimental direction** — reproduced to ten
+digits before the fix was made. Corrected; detrimental coverage is now 0.953 and 0.984, and
+a sign-symmetry test plus a two-directional coverage enumeration are in the suite.
+
+Separately, item 15's replacement claims were too generous. Measured at n = 112: the
+primary problem-cluster bootstrap covers **0.924**, not 0.95 — the committed simulation
+gives 0.933 independent and 0.897 clustered — and the exact unconditional check is
+**grid-approximated** over 41 nuisance points with no bound on the missed supremum, so
+"never under-covers" is withdrawn. **Every interval published from study 8 should be read
+as roughly 2 to 5 percentage points optimistic**, and `RESULTS-CEILING.md` says so at the
+coverage table.
+
+**No point estimate changed, and no conclusion changed.** No result in study 8 is affected
+by the nuisance-bound defect: every paired difference in it has b ≥ c except one, whose
+interval is unchanged to the displayed precision.
+
+**18. "Exactly one contrast clears the corrected threshold" — false, twice.**
+Item 15 corrected the first version's multiplicity claim and then repeated the error in the
+correction itself. **Two** contrasts clear Bonferroni over the family of sixteen, and they
+are the same effect measured two ways: `referent-loop` − `cross-loop` on stratum-P flags
+(+26.8 points, exact McNemar p = 2.7 × 10⁻⁴, cluster sign-flip p = 8.5 × 10⁻⁴) and on
+pooled P + C flags (+19.6 points [11.7, 27.8], p = 3.0 × 10⁻⁶, cluster p = 1.0 × 10⁻⁵).
+Both are exploratory: the preregistration named outcome contrasts, not flag contrasts.
+
+**19. Study 8's "self-audit did not raise accuracy" — restated.**
+The measured net change was +0.89 points with every interval containing zero **on both
+sides**. That licenses "no improvement was established", not "did not raise accuracy". At
+n = 112 the study's power was **0.32 against a true +5-point improvement, 0.60 against
++7.5, and 0.81 against +10** (two-sided exact McNemar, worsening rate held at the observed
+2/112). An improvement smaller than about 7 points would probably have been missed. The
+title and opening of `RESULTS-CEILING.md` are corrected accordingly.

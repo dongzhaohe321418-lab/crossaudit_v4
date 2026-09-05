@@ -1,4 +1,16 @@
 {
+  "analysis_freeze": {
+    "correction": "the first finalisation named its parent commit as the analysis freeze; that commit's report_ceiling.py hash did not match the file the numbers came from. Found by the second cross-vendor review.",
+    "plan_freeze": "d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. Amendment 4 is post-hoc and says so.",
+    "verify": "git log --oneline -1 -- benchmarks/code/records/ceiling/manifest_ceiling1.json  ->  that commit's tree is the analysis freeze, and `shasum -a 256` on each file in code.files must match.",
+    "what_it_is": "the ANALYSIS freeze is the commit that CONTAINS this manifest, which by construction cannot be named from inside it. The hashes in code.files are of the working tree at finalisation and are what a reader should verify against; the parent commit above is recorded only to locate that commit's child."
+  },
+  "analysis_seeds": {
+    "bootstrap": 20260908,
+    "derived": "report_ceiling.py offsets BOOT_SEED per quantity; the residual share uses BOOT_SEED + 4 = 20260912, residual categories BOOT_SEED + 11, the timeout sensitivity BOOT_SEED + 12 and + 13, the union curves BOOT_SEED + 20 + K, the mixed families BOOT_SEED + 30 + per_family",
+    "loop_sample": 20260907,
+    "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval"
+  },
   "astra": {
     "bypasses": "the product's provider broker, its metered usage ledger and its same-vendor heterogeneity guard; a measurement of a model, not of the product path",
     "codex_version": "codex-cli 0.153.4",
@@ -12,12 +24,12 @@
     "commit": "296cfd72ca9d29123648e3dc896981b3815e3831",
     "files": {
       "benchmarks/code/ceiling.py": "11443515ee3651a4233e71de9a4304da81a53047ec8332c726bf6046075501ff",
-      "benchmarks/code/ceiling/PREREGISTRATION.md": "5c324f68020cffd2d4fa665ca76ec66b1a72cfc122421d2bb4fb9beea5d5258e",
+      "benchmarks/code/ceiling/PREREGISTRATION.md": "c137a686b4dd7c16b76e3a400c491cd79aa6cfb3af12b919cbb1df143b95a518",
       "benchmarks/code/explore.py": "e2f405dd083aa317f1ab727e1b15c93a8125d4a9db3f1dfb11f551dcdab3e40d",
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
-      "benchmarks/code/report_ceiling.py": "f2d50516cf7ad4dbbb2919d1dacea3b17c57e300bc2111a7a6991722441e90f6",
+      "benchmarks/code/report_ceiling.py": "ed4460a84741017c046dd9f8d7db480177041e9a347f5e2f76a7d13b3e08029b",
       "benchmarks/code/residual_dump.py": "9e7018afa2153679b5440808aad5f8b128bb73db8db8f703f65a598dd71e7e1c",
-      "benchmarks/code/tests/test_ceiling_stats.py": "9beaffed643574da1d2bc57a474db81b17c517b59da5509612d5f6b35c3d6623"
+      "benchmarks/code/tests/test_ceiling_stats.py": "2aaa5c5c8d909d945aea475d0c77dadc4b6100536968bec8fa024ee1cece996a"
     },
     "files_note": "re-hashed at finalisation; the first version's report_ceiling.py hash predated the analysis file",
     "status_porcelain": " M benchmarks/code/records/ceiling/cache/holistic__astra__d2.jsonl\n M benchmarks/code/records/ceiling/cache/holistic__self__d2.jsonl\n M benchmarks/code/records/ceiling/manifest_ceiling1.json\n M benchmarks/code/records/ceiling/numbers.json\n M benchmarks/code/records/ceiling/tables.md\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.jsonl\n"
@@ -218,66 +230,100 @@
     "the order the ladder ran in",
     "the scratch directory path"
   ],
+  "draw_windows_coverage": {
+    "covered": "the draws this study ran through the metered broker",
+    "not_covered_astra": {
+      "draws": {
+        "holistic__astra__d1": 260,
+        "holistic__astra__d2": 260,
+        "holistic__astra__d3": 260,
+        "holistic__astra__d4": 260
+      },
+      "why": "the Codex CLI keeps its own session and writes nothing to the product's usage ledger, so no per-call timestamp exists for astra. Per-reading wall-clock IS recorded in each cached row's `wall_s`."
+    },
+    "not_covered_inherited": {
+      "detectors": [
+        "holistic__cross__d1 (study 2)",
+        "holistic__cross__d2 (study 1 batch 1 + study 7)",
+        "holistic__cross__d3 (same)",
+        "holistic__self__d1 (study 2)",
+        "holistic__self__d2 (study 1 batch 1, completed here)"
+      ],
+      "why": "these readings were taken by studies 1, 2 and 7; their timestamps belong to those studies' manifests, not this one."
+    }
+  },
   "draw_windows_utc": {
     "cross__d4": {
       "calls": 260,
-      "utc_end": "2026-09-05T10:56:34Z",
-      "utc_start": "2026-09-05T10:51:38Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T10:51:38Z",
+      "utc_last_completion": "2026-09-05T10:56:34Z"
     },
     "cross__d5": {
       "calls": 260,
-      "utc_end": "2026-09-05T11:03:10Z",
-      "utc_start": "2026-09-05T10:56:38Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T10:56:38Z",
+      "utc_last_completion": "2026-09-05T11:03:10Z"
     },
     "cross__d6": {
       "calls": 260,
-      "utc_end": "2026-09-05T11:33:14Z",
-      "utc_start": "2026-09-05T11:26:59Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:26:59Z",
+      "utc_last_completion": "2026-09-05T11:33:14Z"
     },
     "cross__d7": {
       "calls": 260,
-      "utc_end": "2026-09-05T11:51:15Z",
-      "utc_start": "2026-09-05T11:44:49Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:44:49Z",
+      "utc_last_completion": "2026-09-05T11:51:15Z"
     },
     "cross__d8": {
       "calls": 260,
-      "utc_end": "2026-09-05T12:08:12Z",
-      "utc_start": "2026-09-05T11:59:08Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:59:08Z",
+      "utc_last_completion": "2026-09-05T12:08:12Z"
     },
     "self__d2": {
       "calls": 177,
-      "utc_end": "2026-09-05T10:51:34Z",
-      "utc_start": "2026-09-05T10:46:25Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T10:46:25Z",
+      "utc_last_completion": "2026-09-05T10:51:34Z"
     },
     "self__d3": {
       "calls": 271,
-      "utc_end": "2026-09-05T11:11:35Z",
-      "utc_start": "2026-09-05T11:03:12Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:03:12Z",
+      "utc_last_completion": "2026-09-05T11:11:35Z"
     },
     "self__d4": {
       "calls": 271,
-      "utc_end": "2026-09-05T11:18:51Z",
-      "utc_start": "2026-09-05T11:11:37Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:11:37Z",
+      "utc_last_completion": "2026-09-05T11:18:51Z"
     },
     "self__d5": {
       "calls": 271,
-      "utc_end": "2026-09-05T11:26:54Z",
-      "utc_start": "2026-09-05T11:18:52Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:18:52Z",
+      "utc_last_completion": "2026-09-05T11:26:54Z"
     },
     "self__d6": {
       "calls": 269,
-      "utc_end": "2026-09-05T11:44:43Z",
-      "utc_start": "2026-09-05T11:33:21Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:33:21Z",
+      "utc_last_completion": "2026-09-05T11:44:43Z"
     },
     "self__d7": {
       "calls": 269,
-      "utc_end": "2026-09-05T11:59:06Z",
-      "utc_start": "2026-09-05T11:51:17Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T11:51:17Z",
+      "utc_last_completion": "2026-09-05T11:59:06Z"
     },
     "self__d8": {
       "calls": 268,
-      "utc_end": "2026-09-05T12:17:15Z",
-      "utc_start": "2026-09-05T12:08:14Z"
+      "field_note": "these are the ledger's first and last recorded COMPLETION timestamps, not the invocation's start and end; the harness records a completion per call and nothing at launch",
+      "utc_first_completion": "2026-09-05T12:08:14Z",
+      "utc_last_completion": "2026-09-05T12:17:15Z"
     }
   },
   "environment": {
@@ -285,7 +331,8 @@
     "python": "3.13.5"
   },
   "finalised_at_commit": "f7f515ef848c4443e7a40588cb592094b6c2ea01",
-  "finalised_utc": "2026-09-05T15:04:24Z",
+  "finalised_on_parent_commit": "4657e7fe7aa5ea62dc02f84070828ba9f8cb7d7e",
+  "finalised_utc": "2026-09-05T15:56:17Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",
@@ -298,6 +345,7 @@
   "package_versions": {
     "anthropic": "not installed",
     "certifi": "2026.7.22",
+    "collected": "RETROSPECTIVELY, from the installed environment after the runs finished \u2014 not captured at run time. A package upgraded between the run and this collection would be recorded at its later version.",
     "executor_python": "3.13.5",
     "httpx": "0.28.1",
     "note": "the analysis uses only the standard library; these are the packages the RUN depended on (provider transport, and numpy inside the sandboxed test subprocesses, which is EvalPlus's own dependency)",
@@ -322,7 +370,7 @@
   },
   "routes_detail": {
     "astra": {
-      "base_url": "not applicable \u2014 the Codex CLI holds its own session; CrossAudit's broker is bypassed",
+      "base_url": "AUTHOR_INPUT_NEEDED: `codex exec` exposes no endpoint on stdout, stderr or `codex --version`, and this study did not intercept its network layer, so the endpoint it used is unrecorded. What is known: the CLI holds its own session and CrossAudit's broker is bypassed.",
       "model": "gpt-6-astra",
       "reasoning_effort": "high",
       "spec": "codex:gpt-6-astra",

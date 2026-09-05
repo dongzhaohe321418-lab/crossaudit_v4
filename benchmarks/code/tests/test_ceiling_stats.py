@@ -169,20 +169,26 @@ def test_wilson_matches_an_independent_implementation():
 # Coverage. The defect these exist to prevent from recurring silently.
 # ---------------------------------------------------------------------------------
 
-def _scenario_coverage(interval_fn, n=112, q=0.1, tol=None):
-    """Exact coverage in the cross-vendor review's scenario.
+def _scenario_coverage(interval_fn, n=112, q=0.1, beneficial=True):
+    """Exact coverage in the cross-vendor review's scenario, either direction.
 
-    D ~ Binomial(n, q); every discordance is beneficial, so b = D, c = 0 and the true
-    population risk difference is delta = q(2*1 - 1) = q. Coverage is summed exactly over
-    the binomial, not simulated, so the number is reproducible to machine precision.
+    D ~ Binomial(n, q); every discordance points the same way. Beneficial means b = D,
+    c = 0 and the true difference is +q; detrimental means b = 0, c = D and it is -q.
+    Summed exactly over the binomial, not simulated.
+
+    **Both directions are checked** because the first replacement covered 0.96 going one
+    way and 0.075 going the other: it bounded the nuisance by (1 - |delta|)/2 instead of
+    (1 - delta)/2, which is only correct for a non-negative difference.
     """
+    truth = q if beneficial else -q
     covered = 0.0
     for D in range(n + 1):
         weight = math.comb(n, D) * q ** D * (1 - q) ** (n - D)
         if weight < 1e-15:
             continue
-        lo, hi = interval_fn(D, 0, n)
-        if lo is not None and lo <= q <= hi:
+        b, c = (D, 0) if beneficial else (0, D)
+        lo, hi = interval_fn(b, c, n)
+        if lo is not None and lo <= truth <= hi:
             covered += weight
     return covered
 
@@ -207,24 +213,69 @@ def test_withdrawn_conditional_interval_undercovers_as_the_review_found():
     assert coverage < 0.5
 
 
-def test_replacement_intervals_have_their_advertised_coverage():
-    """Tango's unconditional score interval reaches nominal coverage where the
-    withdrawn construction reached 0.416. Exact, summed over the binomial."""
-    coverage = _scenario_coverage(lambda b, c, n: rc.tango_score_interval(b, c, n))
-    assert coverage >= 0.93, coverage
-    # and it is not achieved by being uselessly wide
+def test_replacement_intervals_cover_in_BOTH_directions():
+    """Coverage at the study's own n, going both ways, pinned to measured values."""
+    tango = lambda b, c, n: rc.tango_score_interval(b, c, n)          # noqa: E731
+    exact = lambda b, c, n: rc.exact_unconditional_interval(b, c, n)  # noqa: E731
+
+    beneficial_tango = _scenario_coverage(tango)
+    detrimental_tango = _scenario_coverage(tango, q=0.5, beneficial=False)
+    assert abs(beneficial_tango - 0.9603704095) < 1e-6, beneficial_tango
+    assert detrimental_tango >= 0.94, detrimental_tango
+
+    beneficial_exact = _scenario_coverage(exact)
+    detrimental_exact = _scenario_coverage(exact, q=0.5, beneficial=False)
+    assert abs(beneficial_exact - 0.9968790922) < 1e-6, beneficial_exact
+    # before the nuisance-bound fix this was 0.0752249063
+    assert detrimental_exact >= 0.95, detrimental_exact
+    # and neither is achieved by being uselessly wide
     lo, hi = rc.tango_score_interval(3, 2, 112)
     assert (hi - lo) < 0.25
 
 
-def test_exact_unconditional_interval_is_conservative_and_contains_the_point():
-    """The exact unconditional check never under-covers. Run at n = 40 to stay fast."""
-    coverage = _scenario_coverage(
-        lambda b, c, n: rc.exact_unconditional_interval(b, c, n, grid=20), n=40, q=0.15)
-    assert coverage >= 0.95, coverage
-    for b, c, n in ((3, 2, 40), (0, 4, 40), (6, 0, 40)):
-        lo, hi = rc.exact_unconditional_interval(b, c, n, grid=20)
-        assert lo <= (b - c) / n <= hi
+def test_paired_interval_is_sign_symmetric():
+    """Swapping b and c must negate and reverse every interval.
+
+    This exposes a wrong nuisance bound in one line: the defect was invisible in the
+    beneficial direction and catastrophic in the other, and asymmetry is its fingerprint.
+    """
+    for b, c, n in ((20, 70, 112), (3, 2, 112), (11, 2, 112), (0, 4, 56), (16, 1, 56)):
+        for fn in (rc.tango_score_interval,
+                   lambda x, y, m: rc.exact_unconditional_interval(x, y, m, grid=20)):
+            lo, hi = fn(b, c, n)
+            rlo, rhi = fn(c, b, n)
+            assert abs(lo - (-rhi)) < 1e-6, (b, c, lo, rhi)
+            assert abs(hi - (-rlo)) < 1e-6, (b, c, hi, rlo)
+
+
+def test_the_known_nuisance_bound_counterexamples():
+    """The two counterexamples the second review supplied, pinned."""
+    lo, hi = rc.tango_score_interval(20, 70, 112)
+    assert abs(lo - (-0.576935)) < 1e-5 and abs(hi - (-0.290872)) < 1e-5, (lo, hi)
+    lo, hi = rc.exact_unconditional_interval(0, 40, 40, grid=20)
+    assert abs(lo - (-1.0)) < 1e-9 and abs(hi - (-0.8)) < 1e-6, (lo, hi)
+
+
+def test_ideal_bootstrap_coverage_is_measured_not_assumed():
+    """The PRIMARY interval under-covers at this n, and the number is pinned.
+
+    An infinite-resample percentile bootstrap in the review's scenario covers 0.924, not
+    0.95. The report states that; this test stops the claim drifting back up.
+    """
+    def ideal(b, c, n, alpha=0.05):
+        p = (b + c) / n
+        cum, lo, hi = 0.0, None, None
+        for k in range(n + 1):
+            cum += math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+            if lo is None and cum >= alpha / 2:
+                lo = k
+            if hi is None and cum >= 1 - alpha / 2:
+                hi = k
+        return (lo / n, (hi if hi is not None else n) / n)
+
+    coverage = _scenario_coverage(ideal)
+    assert abs(coverage - 0.9237318945) < 1e-6, coverage
+    assert coverage < 0.95, "the bootstrap under-covers here; the report must say so"
 
 
 def test_cluster_bootstrap_covers_and_widens_with_clustering():
@@ -252,7 +303,9 @@ def test_cluster_bootstrap_covers_and_widens_with_clustering():
             if lo <= 0.10 <= hi:
                 covered += 1
         rate = covered / reps
-        assert rate >= 0.88, (clustered, rate)
+        # Measured, not nominal: about 0.93 independent and 0.90 clustered here. The
+        # report quotes these as measured and says the bootstrap under-covers.
+        assert 0.88 <= rate <= 0.99, (clustered, rate)
         if clustered:
             assert sum(widths) / len(widths) > independent_width * 1.2
         else:

@@ -529,3 +529,44 @@ demonstrated coverage failure found by someone else, not chosen because of what 
 any result, and its direction was to make every interval **wider**. A reader who wishes to
 discount it entirely can: the withdrawn interval is retained in `numbers.json` as
 `withdrawn_conditional_ci95`, and the study's conclusions are the same under it.
+
+---
+
+## Amendment 5 — 2026-09-05, after the second review — the replacement methods are corrected
+
+Amendment 4 replaced a demonstrably under-covering interval. A second independent
+cross-vendor review found that **the replacements were themselves defective**, and that
+amendment 4's coverage claims were overstated in the opposite direction. Both findings
+reproduced before anything was changed.
+
+**The defect.** `tango_score_interval` and `exact_unconditional_interval` both bounded the
+nuisance parameter `q = p_c` above by `(1 − |δ|)/2`. The feasible region is
+`max(0, −δ) ≤ q ≤ (1 − δ)/2`. The two agree for `δ ≥ 0` and diverge for `δ < 0`, so the
+implementations were correct in the direction this study's own results happen to point and
+wrong in the other: measured coverage **0.960 beneficial, 0.075 detrimental**. Corrected;
+detrimental coverage is now 0.953 and 0.984.
+
+**The overstatement.** Amendment 4 said the primary bootstrap had 0.95 nominal coverage and
+that the exact check "never under-covers". Measured at this study's own n = 112:
+
+| method | beneficial | detrimental |
+|---|---:|---:|
+| withdrawn conditional | 0.416 | — |
+| **primary: problem-cluster bootstrap** | **0.924** | 0.924 |
+| Tango score | 0.960 | 0.953 |
+| exact unconditional, grid-approximated | 0.997 | 0.984 |
+
+**Every interval in this study is therefore about 2 to 5 points optimistic**, and the report
+says so. The exact check is grid-approximated over 41 nuisance points with no bound on the
+missed supremum; it is not a proven exact interval and is no longer described as one.
+
+**What does not change.** No arm, no sample, no draw, no primary outcome, no kill condition,
+**and no point estimate**. No result in this study is affected by the nuisance-bound defect:
+every paired difference here has `b ≥ c` except one, whose interval is unchanged to the
+displayed precision.
+
+**Standing.** Two rounds of independent review have now found a defect in this study's
+interval method, and both were found by someone else. That is the strongest evidence in this
+programme for the thesis the programme exists to test, and it is recorded here rather than
+in a summary: **the author's own checks did not find either defect; a reader who did not
+share the author's assumptions found both.**

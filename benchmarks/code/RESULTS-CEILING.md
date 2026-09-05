@@ -1,15 +1,19 @@
-# The ceiling of AI audit — self-audit did not raise accuracy; naming the gap did the most
+# The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Second version.** An independent cross-vendor review reproduced every headline number
-> and then refused quotation approval, because the headline's "95% exact" interval did not
-> have 95% coverage. It was right. **Every point estimate in this report is unchanged;
-> every interval and every p-value has been recomputed**, the overclaims it identified are
-> gone, and its findings are answered one by one in *What the review changed*. The
-> withdrawn interval, its measured coverage, and a test that pins it are all kept in the
+> **Third version.** Two independent cross-vendor reviews have read this study and both
+> refused quotation approval. Round 1 found that the headline's "95% exact" interval had
+> 0.416 coverage. Round 2 found that **its replacement was also wrong** — both check
+> intervals bounded the nuisance parameter by `(1 − |δ|)/2` instead of `(1 − δ)/2`, which
+> is correct only for a non-negative difference and gave 0.075 coverage in the other
+> direction — and that the coverage claims made for the replacements were overstated in
+> the other direction. Both were right. **No point estimate has changed across any
+> version.** Every finding from both rounds is reproduced and answered below, and the
+> superseded methods, their measured coverage, and tests that pin them are kept in the
 > record.
 
 **The owner's question was: as AI-generated data grows, can AI audit itself to raise
-accuracy, and where is the limit? On this evidence the answer to the first half is no.**
+accuracy, and where is the limit? On this evidence, no improvement was established — and
+the study was not powered to rule out a small one.**
 
 A generator's own model, auditing its own code and then revising it, changed the fraction
 of solutions passing a hidden test suite by **+0.89 percentage points (95% problem-cluster
@@ -18,6 +22,15 @@ exact McNemar p = 1.0000; cluster sign-flip p = 1.0000; n = 112 instances from 9
 problems)**. It repaired 3 of 56 wrong solutions and broke 2 of 56 correct ones. **The
 preregistered kill condition fires under every one of those intervals**: all four contain
 zero.
+
+**What that does and does not mean.** The intervals contain zero on *both* sides, so this
+is an inconclusive result, not a demonstration of no effect. At n = 112, with the
+worsening rate held at the observed 2/112, the two-sided exact McNemar test had power
+**0.32 against a true +5-point improvement, 0.60 against +7.5, and 0.81 against +10**. So
+the study could have detected a large effect and did not; it could not have detected a
+small one either way. **"Self-audit does not raise accuracy" is not what these data
+support. "No improvement was established, and an improvement below about 7 points would
+probably have been missed" is.**
 
 Four further results, in the order they matter.
 
@@ -53,16 +66,19 @@ The largest effect measured anywhere in this study came from changing what the a
 told to look for. One added constitution rule — *find what the visible tests do not cover* —
 moved flags on the defect population from 10 of 56 to 25 of 56: **+26.8 points, cluster CI
 [13.6, 40.4], exact unconditional [+6.3, +43.8], McNemar p = 0.0003, cluster sign-flip
-p = 0.0009** — the only contrast in this study that clears a Bonferroni threshold over the
-sixteen comparisons actually computed (0.00313). **It is nevertheless an exploratory
-contrast**: the preregistration named outcome contrasts, not flag contrasts.
+p = 0.0009**. **Two contrasts in this study clear the Bonferroni threshold over the sixteen
+comparisons actually computed, and both are this same effect seen two ways**: referent
+against cross on stratum-P flags (+26.8 points, p = 2.7 × 10⁻⁴, cluster p = 8.5 × 10⁻⁴) and
+on the pooled P + C flags (+19.6 points [11.7, 27.8], p = 3.0 × 10⁻⁶, cluster
+p = 1.0 × 10⁻⁵). **Both are exploratory**: the preregistration named outcome contrasts, not
+flag contrasts.
 
 **On accuracy rather than flags, the referent's advantage is not established.** Against its
 own baseline the referent arm nets **+8.04 pp, cluster CI [1.77, 15.26], Tango [2.03,
 15.27], p = 0.0225, cluster p = 0.0469** — but the exact unconditional interval, the most
 conservative of the three, is **[−1.79, +17.41] and contains zero**. And the contrast that
 actually isolates the referent, **referent-loop minus cross-loop, is +5.36 pp, cluster CI
-[−0.88, +12.08], p = 0.1460** — it does not exclude zero. **The referent demonstrably moves
+[−0.89, +12.07], p = 0.1460** — it does not exclude zero. **The referent demonstrably moves
 what the auditor flags; whether that converts into accuracy is not established here.** The
 title says "did the most", not "works".
 
@@ -73,9 +89,11 @@ fixed before the first was opened, **46 of those 57 (80.7% [68.7, 88.9]) fail on
 input class the visible test suite never constructs**: the empty list, the negative number,
 the two-digit case, the ragged input, the punctuation character. **That is the shape of what
 was missed.** A model shown a specification and a test suite has no evidence in front of it
-that those classes exist. **This does not establish that such defects cannot be found** —
-it establishes that these detectors did not find them, and that the one intervention that
-named the gap moved flags more than anything else tried.
+that those classes never appear in what the readers were shown. **This is a statement about the
+evidence in front of a reader, not about what a model can or cannot infer**: nothing here
+measures whether a model could deduce the missing classes from the specification alone.
+What is measured is that these detectors did not flag them over 20 readings, and that the
+one intervention that named the gap moved flags more than anything else tried.
 
 **4. The population is hidden-suite non-passes, not confirmed assertion failures.** Seven of
 the 110 stratum-P instances fail because the hidden suite **did not terminate**. The
@@ -110,6 +128,17 @@ corrected report.
 **What did not change: any point estimate.** The asymptotes, the union curves, the primary
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
+
+### What the second review changed
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | **Both replacement check intervals used the wrong nuisance upper bound** — `(1 − \|δ\|)/2` instead of `(1 − δ)/2` — and the coverage assurances were overstated | `tango(20,70,112)` returned [−0.539, −0.358] not [−0.577, −0.291]; `exact(0,40,40)` returned [−1, −1] not [−1, −0.8]; detrimental-direction coverage **0.0752249063**, matching the reviewer to ten digits | Bound corrected in both estimators. Detrimental coverage now 0.953 (Tango) and 0.984 (exact). A **sign-symmetry test** and a **detrimental-direction coverage enumeration** are now in the suite. The coverage table is rewritten with measured values in both directions, and states that **the primary bootstrap under-covers by ~2–5 points**; "0.95 nominal by simulation" and "never under-covers" are withdrawn |
+| 2 | Clustering unfinished: Table 5b, Table 9 and the opening still used Wilson; Table 7b's † lacked its unconditional interval; Table 6's 0/56 needed a degeneracy note | 46/57 clustered is [66.1, 93.1] against Wilson [68.7, 88.9] | Every rate in Tables 2, 4, 5b and 9 now carries a problem-cluster interval, with Wilson shown beside it for comparison. Table 7b gains a Tango column. Table 6 gains the 0/56 note |
+| 3 | Title and opening asserted "did not raise accuracy"; mechanism sentence unsupported | interval contains zero on both sides | Title and opening now say **no improvement was established**, with a **power curve**: 0.32 against +5 points, 0.60 against +7.5, 0.81 against +10. The mechanism sentence is replaced by a statement about the corpus, with an explicit disclaimer that nothing here measures what a model could infer |
+| 4 | "Exactly one contrast clears" still false — **two** do | referent−cross P flags (2.7 × 10⁻⁴) and pooled flags (3.0 × 10⁻⁶) | Both named, both labelled exploratory. The threshold is stated once in the statistical-analysis subsection and removed from every table |
+| 5 | Provenance: `finalised_at_commit` named a commit whose analysis-file hash did not match; windows omitted astra, inherited draws and 22 unstamped events; "start" was first completion; seeds absent from manifests | verified | Field renamed to `finalised_on_parent_commit` with an `analysis_freeze` block explaining how to locate the real freeze; coverage gaps enumerated; timestamps renamed `utc_first_completion` / `utc_last_completion`; unmatched ledger events counted; all seeds recorded; astra's endpoint recorded as unavailable; package versions marked retrospective |
+| 6 | Tables 2 and 4 lacked intervals; prose quoted a stale `[−0.88, +12.08]` | regeneration gives [−0.89, +12.07] | Intervals added; every stale quotation corrected; **a new test greps the report for every bracketed interval and requires it to exist in `numbers.json`** |
 
 ---
 
@@ -160,7 +189,6 @@ Every rate carries a 95% **problem-cluster bootstrap** interval; the P populatio
 | `cross` | 8 | 10.7% [5.1, 17.4] | **30.0%** (33/110) [20.0, 40.7] | 31.5% [21.7, 45.6] *(extrapolation)* | 4.5% [2.4, 7.0] | **16.0%** [10.1, 22.3] | 1.93% | **no** |
 | `self` | 8 | 15.5% [7.1, 24.9] | **17.3%** (19/110) [8.3, 27.3] | **16.6%** [8.1, 26.3] | 21.9% [15.5, 28.9] | **24.0%** [17.2, 31.2] | 0.23% | yes |
 | `astra` | 4 | 30.2% [19.3, 42.0] | **32.7%** (36/110) [20.7, 45.0] | **32.5%** [20.5, 44.8] | 9.7% [5.3, 14.5] | **10.7%** [5.9, 16.1] | 0.23% | yes |
-
 ### Table 2 — union recall and union false positives at every K
 
 Unit of analysis: the instance; the same instances at every K, so the columns are repeated measures and not independent samples.
@@ -168,39 +196,38 @@ Unit of analysis: the instance; the same instances at every K, so the columns ar
 
 **`cross`** (K_max = 8, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 10.7% | 4.5% | — |
-| 2 | 15.0% | 7.1% | 1.67 |
-| 3 | 18.3% | 9.2% | 1.63 |
-| 4 | 21.2% | 10.9% | 1.64 |
-| 5 | 23.8% | 12.4% | 1.65 |
-| 6 | 26.0% | 13.7% | 1.66 |
-| 7 | 28.1% | 14.9% | 1.67 |
-| 8 | 30.0% | 16.0% | 1.68 |
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 10.7% [5.2, 17.2] | 4.5% [2.4, 7.1] | — |
+| 2 | 15.0% [8.3, 22.6] | 7.1% [4.2, 10.3] | 1.67 |
+| 3 | 18.3% [11.0, 26.6] | 9.2% [5.7, 13.2] | 1.63 |
+| 4 | 21.2% [13.0, 30.0] | 10.9% [6.9, 15.5] | 1.64 |
+| 5 | 23.8% [15.1, 33.2] | 12.4% [7.8, 17.6] | 1.65 |
+| 6 | 26.0% [17.0, 35.7] | 13.7% [8.7, 19.3] | 1.66 |
+| 7 | 28.1% [18.3, 38.4] | 14.9% [9.5, 20.7] | 1.67 |
+| 8 | 30.0% [19.8, 40.7] | 16.0% [10.1, 22.1] | 1.68 |
 
 **`self`** (K_max = 8, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 15.5% | 21.9% | — |
-| 2 | 15.9% | 22.6% | 0.62 |
-| 3 | 16.1% | 22.9% | 0.67 |
-| 4 | 16.4% | 23.2% | 0.71 |
-| 5 | 16.6% | 23.4% | 0.75 |
-| 6 | 16.8% | 23.6% | 0.79 |
-| 7 | 17.0% | 23.8% | 0.83 |
-| 8 | 17.3% | 24.0% | 0.87 |
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 15.5% [7.2, 25.1] | 21.9% [15.4, 28.9] | — |
+| 2 | 15.9% [7.4, 25.8] | 22.6% [15.9, 29.7] | 0.62 |
+| 3 | 16.1% [7.5, 25.7] | 22.9% [16.3, 29.8] | 0.67 |
+| 4 | 16.4% [7.6, 26.1] | 23.2% [16.5, 30.2] | 0.71 |
+| 5 | 16.6% [7.8, 26.2] | 23.4% [16.6, 30.5] | 0.75 |
+| 6 | 16.8% [8.0, 26.6] | 23.6% [16.9, 30.9] | 0.79 |
+| 7 | 17.0% [8.1, 27.3] | 23.8% [17.1, 31.0] | 0.83 |
+| 8 | 17.3% [8.3, 27.4] | 24.0% [17.3, 31.3] | 0.87 |
 
 **`astra`** (K_max = 4, n = 110 P instances, 150 C instances)
 
-| K | union recall on P | union FP on C | recall per FP point |
-|---:|---:|---:|---:|
-| 1 | 30.2% | 9.7% | — |
-| 2 | 32.0% | 10.2% | 3.14 |
-| 3 | 32.5% | 10.5% | 2.73 |
-| 4 | 32.7% | 10.7% | 2.50 |
-
+| K | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | recall per FP point |
+|---:|---|---|---:|
+| 1 | 30.2% [19.1, 42.0] | 9.7% [5.3, 14.6] | — |
+| 2 | 32.0% [20.2, 44.2] | 10.2% [5.4, 15.4] | 3.14 |
+| 3 | 32.5% [21.1, 45.0] | 10.5% [5.8, 16.0] | 2.73 |
+| 4 | 32.7% [20.7, 45.0] | 10.7% [5.9, 16.2] | 2.50 |
 ### Table 3 — primary outcome, ceiling 1: A(self) − A(cross)
 
 K_common = 8 draws per family. Positive means the generator's own model can ultimately see more of its own defects than a stranger can. Interval: 95% percentile bootstrap over problem clusters, both curves resampled together.
@@ -209,100 +236,32 @@ K_common = 8 draws per family. Positive means the generator's own model can ulti
 |---|---:|---:|---:|---|---|
 | P | 110 | 31.5% | 16.6% | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
 | C | 150 | 18.6% | 23.4% | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
-
-
-### Reading the fit honestly
-
-The saturation form `recall(K) = A(1 − e^{−K/τ})` was preregistered with its assumptions:
-exchangeable draws, a per-instance detection probability constant across draws, and a single
-exponential — exact only when the detectable instances are homogeneous, and **conservative
-under heterogeneity**, which for an asymptote is the direction to err in. `A` is now
-constrained to [0, 1] **inside the objective**, so the point fit and every bootstrap path
-treat the boundary identically; no quoted estimate moved when that was fixed.
-
-**`cross`'s asymptote is an extrapolation, and the report says so wherever it appears.**
-Its marginal gain from seven to eight draws is **1.93 points**, above the preregistered
-1.0-point bar. R² is 0.968 with a maximum residual of 2.37 points. **The number to quote for
-`cross` is the raw union at K = 8: 30.0% (33 of 110), cluster CI [20.0, 40.7].** 31.5% is
-what one particular functional form says lies beyond the readings taken, and an
-*under*estimating fit is a lower bound on eventual recall, not evidence of a low upper
-ceiling.
-
-**`self`'s and `astra`'s asymptotes are not extrapolations.** Both gain 0.23 points on their
-last step, and for both the fitted asymptote and the raw union at K_max agree to within a
-point. `self`'s low R² (0.476) reflects a nearly flat curve with almost no variance to
-explain; its residuals are at most 0.66 points.
-
-**The preregistered secondary estimator failed exactly as predicted.** The zero-inflated
-beta-binomial returned **π = 1.000** for both `cross` and `self` — "everything is findable
-eventually" — which is what an unidentifiable mixture returns when a Beta component with
-a → 0 can imitate the zero-inflated mass. §1.2 said in advance that π would be unstable
-upward from eight draws. It is, it is uninformative, and it is reported rather than dropped.
-
-### Repetition is not the lever
-
-Every pair of this study's own complete draws, over the same 260 instances, on the same
-basis — the number of instances on which two draws of one family disagree:
-
-| family | pairwise disagreement, of 260 instances | what K readings add over the best single draw |
-|---|---|---|
-| `cross` (draws 4–8, 10 pairs) | **15 to 21** | 33 of 110 unioned, against 16 for the best draw |
-| `astra` (draws 1–4, 6 pairs) | **4 to 7** | 36, against 35 |
-| `self` (draws 3–8, 15 pairs) | **0 to 3** | 19, against 17 |
-
-The mechanism is in the manifests: the `self` route's capability card permits temperature,
-so the provider layer sends **temperature = 0**; the `cross` route's card carries
-`temperature: False`, so nothing is sent and the route samples. Corroborated outside this
-study's draws: `self` disagrees with study 1's `self` arm on **1 of 106** shared instances
-across a day and a commit, and the `self-loop` / `self-loop-rep` replicate produced
-**identical final solutions, flags and outcomes on all 112 instances** (one audit report
-differs in bytes, on `b1:HumanEval/35`, without changing its findings).
-
-**Buying recall by re-reading only works where the route samples, and it is the expensive
-way to buy it.** Eight `cross` readings reach 30.0% at 16.0% false positives; one `astra`
-reading reaches 30.2% at 9.7%.
-
-### Mixing families at matched total readings
-
 ### Table 4 — mixed families at matched total draws
 
 Unit of analysis: the instance. Each row spends the same total number of readings; the question is whether spreading them across families beats spending them all inside one.
 
-| combination | total draws | per family | union recall on P | union FP on C | same total inside one family (recall) |
-|---|---:|---:|---:|---:|---|
-| `cross+self` | 2 | 1 | 21.3% | 24.6% | `cross` 15.0%; `self` 15.9% |
-| `cross+self` | 4 | 2 | 25.1% | 26.9% | `cross` 21.2%; `self` 16.4% |
-| `cross+self` | 6 | 3 | 28.2% | 28.5% | `cross` 26.0%; `self` 16.8% |
-| `cross+self` | 8 | 4 | 30.7% | 29.9% | `cross` 30.0%; `self` 17.3% |
-| `cross+self` | 10 | 5 | 32.9% | 31.1% | — |
-| `cross+self` | 12 | 6 | 34.8% | 32.2% | — |
-| `cross+self` | 14 | 7 | 36.6% | 33.2% | — |
-| `cross+self` | 16 | 8 | 38.2% | 34.0% | — |
-| `cross+self+astra` | 3 | 1 | 37.5% | 29.7% | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
-| `cross+self+astra` | 6 | 2 | 40.6% | 31.3% | `cross` 26.0%; `self` 16.8% |
-| `cross+self+astra` | 9 | 3 | 42.3% | 32.4% | — |
-| `cross+self+astra` | 12 | 4 | 43.6% | 33.4% | — |
-| `cross+astra` | 2 | 1 | 31.3% | 11.2% | `cross` 15.0%; `astra` 32.0% |
-| `cross+astra` | 4 | 2 | 34.0% | 12.6% | `cross` 21.2%; `astra` 32.7% |
-| `cross+astra` | 6 | 3 | 35.6% | 13.7% | `cross` 26.0% |
-| `cross+astra` | 8 | 4 | 36.8% | 14.7% | `cross` 30.0% |
-| `self+astra` | 2 | 1 | 36.5% | 28.3% | `self` 15.9%; `astra` 32.0% |
-| `self+astra` | 4 | 2 | 38.5% | 29.5% | `self` 16.4%; `astra` 32.7% |
-| `self+astra` | 6 | 3 | 39.2% | 30.1% | `self` 16.8% |
-| `self+astra` | 8 | 4 | 39.5% | 30.5% | `self` 17.3% |
-
-
-At 8 total readings, `cross+astra` (4 each) reaches **36.8% recall at 14.7% false
-positives**, against `cross` alone at 8 readings on **30.0% at 16.0%** — the only place here
-where both axes improve together. Every combination containing `self` carries a
-false-positive rate near or above 28%, because a union inherits every member's false alarms
-and `self`'s own rate is 24.0%.
-
-**These mixed-family rows are raw union rates, not the fitted asymptote contrasts the
-preregistration named** (deviation 15). Five planned comparisons — the mixed and `astra`
-asymptote differences — were **not delivered as specified and are unmeasured in this
-study**. The rows below are descriptive and exploratory.
-
+| combination | total draws | per family | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | same total inside one family (recall) |
+|---|---:|---:|---|---|---|
+| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0%; `self` 15.9% |
+| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2%; `self` 16.4% |
+| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0%; `self` 16.8% |
+| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0%; `self` 17.3% |
+| `cross+self` | 10 | 5 | 32.9% [22.5, 43.8] | 31.1% [23.9, 38.5] | — |
+| `cross+self` | 12 | 6 | 34.8% [24.3, 45.9] | 32.2% [24.9, 39.8] | — |
+| `cross+self` | 14 | 7 | 36.6% [25.8, 47.9] | 33.2% [25.7, 41.1] | — |
+| `cross+self` | 16 | 8 | 38.2% [27.3, 49.5] | 34.0% [26.3, 42.0] | — |
+| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
+| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0%; `self` 16.8% |
+| `cross+self+astra` | 9 | 3 | 42.3% [30.4, 54.5] | 32.4% [25.0, 40.3] | — |
+| `cross+self+astra` | 12 | 4 | 43.6% [31.7, 55.6] | 33.4% [26.1, 41.2] | — |
+| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0%; `astra` 32.0% |
+| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2%; `astra` 32.7% |
+| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% |
+| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% |
+| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9%; `astra` 32.0% |
+| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4%; `astra` 32.7% |
+| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% |
+| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% |
 ---
 
 ## What no reading flagged
@@ -313,66 +272,18 @@ study**. The rows below are descriptive and exploratory.
 |---|---|---:|---:|---:|---|---|
 | broker_families_only | cross, self | 16 | 110 (56) | **68** | **61.8%** [50.9, 72.7] | [52.5, 70.4] |
 | all_families | cross, self, astra | 20 | 110 (56) | **57** | **51.8%** [40.0, 63.3] | [42.6, 60.9] |
-
 ### Table 5b — what the residual defects are
 
-Categories and their order were fixed in the preregistration (§1.5) before the first residual instance was read; each instance takes the first category that applies. Unit: the instance. Intervals are 95% Wilson on the residual denominator.
+Categories and their order were fixed in the preregistration (§1.5) before the first residual instance was read; each instance takes the first category that applies. Unit: the instance; the primary interval is the problem-cluster bootstrap, with Wilson shown beside it for comparison only.
 
-| population | n residual | category | count | share [95% Wilson] |
-|---|---:|---|---:|---|
-| broker_families_only | 68 | `unexercised-edge` | 55 | 80.9% [70.0, 88.5] |
-| broker_families_only | 68 | `spec-misreading` | 8 | 11.8% [6.1, 21.5] |
-| broker_families_only | 68 | `timeout` | 5 | 7.4% [3.2, 16.1] |
-| all_families | 57 | `unexercised-edge` | 46 | 80.7% [68.7, 88.9] |
-| all_families | 57 | `spec-misreading` | 8 | 14.0% [7.3, 25.3] |
-| all_families | 57 | `timeout` | 3 | 5.3% [1.8, 14.4] |
-
-
-Under a rule fixed in the preregistration before the first residual instance was opened, and
-applied by taking the first category that fits:
-
-- **`unexercised-edge` — 46 of 57 (80.7% [68.7, 88.9])**, over 27 distinct problems. The
-  candidate is correct on every input class the visible suite constructs and fails only on
-  a class it never constructs: the empty list (`Mbpp/305`, `Mbpp/559`), a zero-length string
-  (`Mbpp/113`, `Mbpp/771`), a negative number (`Mbpp/99`, `Mbpp/244`), ragged inputs
-  (`Mbpp/142`, `Mbpp/391`), floats where the oracle counts only integers (`Mbpp/294`,
-  `Mbpp/410`), punctuation (`Mbpp/7`, `Mbpp/459`), a two-digit number (`Mbpp/92`).
-- **`spec-misreading` — 8 of 57 (14.0% [7.3, 25.3])**, over 5 problems: the candidate
-  computes a self-consistent but different function from the one the prose states, and the
-  visible tests do not separate the two readings.
-- **`timeout` — 3 of 57 (5.3% [1.8, 14.4])**: the suite did not terminate, so no assertion
-  evidence exists. These sit **inside** the residual and inside stratum P; Table 9 is the
-  sensitivity analysis that removes them.
-- **`wrong-algorithm` — 0. `ambiguous-oracle` — 0.**
-
-**Two of the six preregistered categories were never used, and that is a defect in the rule,
-not a fact about the world.** The ordering puts `unexercised-edge` second and
-`ambiguous-oracle` fifth, so any instance whose oracle is arguable *and* whose failure is
-confined to an unexercised input class lands in `unexercised-edge`. The rule was applied as
-written; the consequence is recorded so no reader concludes that every EvalPlus expectation
-was found defensible.
-
-**Exploratory, and labelled exploratory: in 40 of the 57 residual instances a competent
-reader could defend the candidate against the specification's prose as written.** This flag
-is not part of the preregistered rule, it was added after the categories were assigned, and
-it is a judgement of the author's.
-
-**What the frontier model added.** Eleven instances sit in the broker-only residual but not
-the all-family residual — `astra` flagged them and 16 readings by two broker models did not.
-**Six of those eleven are crashes**: `IndexError` on an empty array, `ValueError` from
-`math.sqrt` on a negative, `TypeError` from a complex square root, a `ValueError` unpacking
-an over-long tuple. The strongest model was disproportionately better at the most
-mechanically checkable defect there is — *this input makes the program raise* — and not
-disproportionately better at the rest.
-
-**The sentence this study supports.** The defects no reader here flagged are not subtle
-reasoning failures; they are ordinary defects on inputs nobody wrote a test for. **A model
-shown a specification and a test suite has no evidence in front of it that the omitted input
-classes exist**, and eight more readings did not manufacture that evidence. Whether such
-evidence can be supplied is a separate question, and the one manipulation in this study that
-supplied it moved flags by 26.8 points. **That is a demonstration about instructions, not a
-proof about what models can reason about.**
-
+| population | n residual (problems) | category | count | share [95% cluster CI] | [95% Wilson, too narrow] |
+|---|---:|---|---:|---|---|
+| broker_families_only | 68 (40) | `unexercised-edge` | 55 | **80.9%** [67.6, 92.5] | [70.0, 88.5] |
+| broker_families_only | 68 (40) | `spec-misreading` | 8 | **11.8%** [2.9, 23.0] | [6.1, 21.5] |
+| broker_families_only | 68 (40) | `timeout` | 5 | **7.4%** [0.0, 16.7] | [3.2, 16.1] |
+| all_families | 57 (34) | `unexercised-edge` | 46 | **80.7%** [66.1, 93.1] | [68.7, 88.9] |
+| all_families | 57 (34) | `spec-misreading` | 8 | **14.0%** [3.4, 26.9] | [7.3, 25.3] |
+| all_families | 57 (34) | `timeout` | 3 | **5.3%** [0.0, 14.0] | [1.8, 14.4] |
 ---
 
 ## Ceiling 2 — whether the loop raised accuracy
@@ -391,6 +302,8 @@ Unit of analysis: the instance, paired before/after on the same instance; the re
 
 The primary interval is the **problem-cluster bootstrap**; Tango's unconditional score interval and the exact unconditional interval (Berger-Boos restricted) are checks that ignore clustering. `p` is exact McNemar (instances independent); `p_clu` is a cluster-level sign-flip permutation test beside it. 112 instances come from **96 problems**.
 
+A rate of **0/56** carries a bootstrap interval of [0.0, 0.0] for the same reason: with no positive instance to resample, the bootstrap cannot move. Read it as the count **0 of 56**, and its Wilson bound [0.0, 6.4] for a rate.
+
 **†** — every discordant pair points the same way, so the percentile bootstrap cannot produce a resample of the opposite sign and its bound at zero is an artefact of the method. Read the Tango or exact unconditional interval on that row. This is `CORRECTIONS.md` item 4 applying to the replacement as it applied to what it replaced.
 
 | arm | n (problems) | BLOCKED (P / C) | changed | fixed on P | broken on C | **net change** [95% cluster CI] | Tango CI | exact-unc. CI | p | p_clu |
@@ -399,85 +312,29 @@ The primary interval is the **problem-cluster bootstrap**; Tango's unconditional
 | `self-loop-rep` | 112 (96) | 10 / 13 | 19 | 3/56 [0.0, 14.5] | 2/56 [0.0, 9.1] | **+0.89 pp** [-3.54, 5.88] (b=3, c=2) | [-3.98, 6.06] | [-6.70, 8.48] | 1.0000 | 1.0000 |
 | `cross-loop` | 112 (96) | 10 / 3 | 12 | 3/56 [0.0, 13.8] | 0/56 [0.0, 0.0] | **+2.68 pp** [0.00, 7.14] † (b=3, c=0) | [-0.73, 7.58] | [-4.46, 9.64] | 0.2500 | 0.5000 |
 | `referent-loop` | 112 (96) | 25 / 10 | 35 | 11/56 [8.9, 31.7] | 2/56 [0.0, 9.1] | **+8.04 pp** [1.77, 15.26] (b=11, c=2) | [2.03, 15.27] | [-1.79, 17.41] | 0.0225 | 0.0469 |
-
-
-**The kill condition fires.** `self-loop`'s net change is **+0.89 pp**, and every interval
-contains zero: cluster bootstrap **[−3.54, +5.88]**, Tango **[−3.98, +6.06]**, exact
-unconditional **[−6.70, +8.48]**; McNemar p = 1.0000, cluster sign-flip p = 1.0000. On this
-evidence, **AI self-audit did not raise accuracy.**
-
-`cross-loop` is also not distinguishable from zero: **+2.68 pp**, Tango **[−0.73, +7.58]**,
-exact unconditional **[−4.46, +9.64]**, p = 0.2500. Its cluster-bootstrap interval reads
-[0.00, 7.14], but all three of its discordant instances point the same way, so a percentile
-bootstrap **cannot** produce a negative resample and that lower bound at zero is an artefact
-of the method — the same pathology `CORRECTIONS.md` item 4 records, now applying to the
-replacement. The unconditional intervals are the ones to read on that row.
-
-**`referent-loop` is the only arm whose primary interval excludes zero**: **+8.04 pp,
-cluster CI [1.77, 15.26]**, Tango [2.03, 15.27], p = 0.0225, cluster sign-flip p = 0.0469.
-**But its exact unconditional interval, [−1.79, +17.41], contains zero**, it is a
-**secondary** outcome, and it does not clear the correction threshold over the sixteen
-comparisons computed. Against the arm it should be compared with — `cross-loop`, which holds
-the vendor fixed and changes only the constitution — the contrast is **+5.36 pp, cluster CI
-[−0.88, +12.08], p = 0.1460**, which does not exclude zero.
-
-### What the loop's reach is
-
 ### Table 7 — paired contrasts between arms
 
 Outcome: whether the instance passes the hidden suite after one round. Unit: the instance, paired across arms; resampled by problem. Both discordant counts shown.
 
-| contrast | n (problems) | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu | Bonferroni/16 |
-|---|---:|---:|---|---|---:|---:|---:|
-| self-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 3 / 5 | -1.79 pp [-7.83, 4.39] | [-7.79, 3.81] | 0.7266 | 0.7812 | 0.00313 |
-| referent-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 9 / 3 | +5.36 pp [-0.89, 12.07] | [-0.82, 12.36] | 0.1460 | 0.1826 | 0.00313 |
-| self-loop minus self-loop-rep, hidden-test pass after one round | 112 (96) | 0 / 0 | +0.00 pp [0.00, 0.00] | [-3.32, 3.32] | 1.0000 | 1.0000 | 0.00313 |
-
+| contrast | n (problems) | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu |
+|---|---:|---:|---|---|---:|---:|
+| self-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 3 / 5 | -1.79 pp [-7.83, 4.39] | [-7.79, 3.81] | 0.7266 | 0.7812 |
+| referent-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 9 / 3 | +5.36 pp [-0.89, 12.07] | [-0.82, 12.36] | 0.1460 | 0.1826 |
+| self-loop minus self-loop-rep, hidden-test pass after one round | 112 (96) | 0 / 0 | +0.00 pp [0.00, 0.00] | [-3.32, 3.32] | 1.0000 | 1.0000 |
 ### Table 7b — what the arms flag, paired and split by stratum
 
 The mechanism behind any net effect. On stratum P a flag is a defect caught; on stratum C it is a false alarm. Unit: the instance, paired across arms; resampled by problem.
 
 **Every row here is EXPLORATORY**: the preregistered twelve named outcome contrasts, not flag contrasts. They are reported because the mechanism matters, and they are labelled at every occurrence.
 
-| contrast | stratum | n (problems) | flagged by each | discordant (b / c) | difference [95% cluster CI] | p | p_clu | Bonferroni/16 |
-|---|---|---:|---|---:|---|---:|---:|---:|
-| `self-loop` vs `cross-loop` | P | 56 (41) | 10 vs 10 | 7 / 7 | +0.00 pp [-15.52, 16.07] | 1.0000 | 1.0000 | 0.00313 |
-| `self-loop` vs `cross-loop` | C | 56 (55) | 13 vs 3 | 12 / 2 | +17.86 pp [5.45, 30.36] | 0.0129 | 0.0129 | 0.00313 |
-| `referent-loop` vs `cross-loop` | P | 56 (41) | 25 vs 10 | 16 / 1 | +26.79 pp [13.56, 40.35] | 0.0003 | 0.0009 | 0.00313 |
-| `referent-loop` vs `cross-loop` | C | 56 (55) | 10 vs 3 | 7 / 0 | +12.50 pp [5.17, 21.82] † | 0.0156 | 0.0156 | 0.00313 |
-| `self-loop` vs `self-loop-rep` | P | 56 (41) | 10 vs 10 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
-| `self-loop` vs `self-loop-rep` | C | 56 (55) | 13 vs 13 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
-
-
-The mechanism is in the flag columns, and **every row of Table 7b is exploratory**: the
-preregistration named outcome contrasts, not flag contrasts.
-
-`referent-loop` flags **25 of 56** defective solutions where `cross-loop` flags **10** — 16
-instances it catches that the shipped configuration misses against 1 the other way, **+26.8
-points, cluster CI [13.6, 40.4], p = 0.0003, cluster sign-flip p = 0.0009**, the only
-contrast here that clears Bonferroni over 16 (0.00313). It pays **7 additional false alarms
-on correct code against 0 the other way, +12.5 points [5.2, 21.8], p = 0.0156**. That is the
-trade, and it is the same trade ceiling 1 measures.
-
-`self-loop` and `cross-loop` flag the **same number** of defects (10 of 56 each) and not the
-same ones: 7 discordant instances each way. **The self-auditor was not blind; it was
-noisy** — on correct code it flags 13 of 56 against `cross`'s 3, **+17.9 points [5.5, 30.4],
-p = 0.0129**.
-
-### The loop's replicate, and what it does not bound
-
-`EXPERIMENT_RECORD.md` §9 forbids "inside the noise floor" without a replicate on the same
-estimand. The replicate was run and produced something more informative than a spread:
-`self-loop` and `self-loop-rep` returned **identical final solutions, flags and hidden-test
-outcomes on all 112 instances**, 0 discordant pairs on both strata. (One audit *report*
-differs in bytes, on `b1:HumanEval/35`, without changing its findings — so "byte-identical
-output", as the first version said, was too strong.)
-
-**That zero must not be read as "the loop is stable to 0.00 pp."** It says the `anthropic`
-route at temperature 0 returns the same bytes for the same prompt within minutes. It bounds
-nothing about a different day, a different route version, or a sampling route. **Run-to-run
-variation of the closed loop across time remains unmeasured.**
-
+| contrast | stratum | n (problems) | flagged by each | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu |
+|---|---|---:|---|---:|---|---|---:|---:|
+| `self-loop` vs `cross-loop` | P | 56 (41) | 10 vs 10 | 7 / 7 | +0.00 pp [-15.52, 16.07] | [-13.83, 13.83] | 1.0000 | 1.0000 |
+| `self-loop` vs `cross-loop` | C | 56 (55) | 13 vs 3 | 12 / 2 | +17.86 pp [5.45, 30.36] | [5.47, 31.13] | 0.0129 | 0.0129 |
+| `referent-loop` vs `cross-loop` | P | 56 (41) | 25 vs 10 | 16 / 1 | +26.79 pp [13.56, 40.35] | [14.45, 40.17] | 0.0003 | 0.0009 |
+| `referent-loop` vs `cross-loop` | C | 56 (55) | 10 vs 3 | 7 / 0 | +12.50 pp [5.17, 21.82] † | [5.28, 23.63] | 0.0156 | 0.0156 |
+| `self-loop` vs `self-loop-rep` | P | 56 (41) | 10 vs 10 | 0 / 0 | +0.00 pp [0.00, 0.00] | [-6.42, 6.42] | 1.0000 | 1.0000 |
+| `self-loop` vs `self-loop-rep` | C | 56 (55) | 13 vs 13 | 0 / 0 | +0.00 pp [0.00, 0.00] | [-6.42, 6.42] | 1.0000 | 1.0000 |
 ---
 
 ## Statistical analysis
@@ -499,14 +356,41 @@ discordance beneficial gives that construction a coverage of **0.4162688657** wh
 claimed. It is retained in `numbers.json` as `withdrawn_conditional_ci95` with that number
 attached, and `tests/test_ceiling_stats.py` pins it so the method cannot return silently.
 
-**What replaced it, with measured coverage in the same scenario:**
+**What replaced it, and what its coverage actually is.** Every figure below is measured at
+**this study's own n = 112**, by exact enumeration over the binomial rather than by
+simulation, in both directions: `D ~ Binomial(112, 0.1)` with all discordances beneficial
+(true difference +0.10), and `C ~ Binomial(112, 0.5)` with all discordances detrimental
+(true difference −0.50).
 
-| method | role | measured coverage |
-|---|---|---|
-| conditional × observed D/n | **withdrawn** | **0.416** |
-| problem-cluster percentile bootstrap | **primary** | 0.95 nominal by simulation; widens under clustering, as it must |
-| Tango's unconditional score interval | check | **0.960** |
-| exact unconditional, Berger–Boos restricted (γ = 10⁻⁴) | check | **0.998** (conservative by construction) |
+| method | role | coverage, beneficial | coverage, detrimental |
+|---|---|---:|---:|
+| conditional × observed D/n | **withdrawn** | **0.416** | — |
+| problem-cluster percentile bootstrap | **primary** | **0.924** | 0.924 |
+| Tango's unconditional score interval | check | **0.960** | **0.953** |
+| exact unconditional, Berger–Boos restricted (γ = 10⁻⁴), grid-approximated | check | **0.997** | **0.984** |
+
+**The primary interval under-covers, and by how much is stated rather than glossed.** The
+bootstrap figure above is the *idealised* infinite-resample bootstrap, enumerated exactly;
+it reaches **0.924**, about 2.6 points below nominal at this n. The committed finite
+simulation gives **0.933 with 112 independent instances and 0.897 with 56 perfectly
+correlated pairs** — so **expect roughly 2 to 5 points of under-coverage on the primary
+intervals in this report**, more where clustering is strong. A previous version of this
+table said "0.95 nominal by simulation". That was false, and it is withdrawn.
+
+**The exact unconditional check is grid-approximated, not guaranteed.** Its supremum over
+the nuisance is taken on a 41-point grid with no bound on what a finer grid would add, so
+it is not a proven exact interval and no claim that it "never under-covers" is made. Its
+measured coverage is above nominal in both directions, which is evidence, not a proof.
+
+**Both check intervals carried a nuisance-bound defect until the second review found it.**
+They bounded the nuisance `q = p_c` by `(1 − |δ|)/2` where the feasible bound is
+`(1 − δ)/2`. The two are equal for a non-negative difference and diverge sharply for a
+negative one, so coverage was 0.96 going one way and **0.075** going the other, and
+`tango_score_interval(20, 70, 112)` returned [−0.539, −0.358] instead of [−0.577, −0.291].
+Fixed; detrimental-direction coverage is now 0.953 and 0.984. A **sign-symmetry test** —
+swapping b and c must negate and reverse the interval — now pins it, because that asymmetry
+is the defect's fingerprint and was invisible in the direction this study's own results
+happen to point.
 
 **One caveat travels with the bootstrap.** Where every discordant pair points the same way,
 a percentile bootstrap cannot generate a resample of the opposite sign, so a bound at zero
@@ -532,8 +416,9 @@ everywhere. **Five planned comparisons — the mixed and `astra` asymptote contr
 delivered as specified** and are recorded as unmeasured (deviation 15). Every flag contrast
 is **exploratory**, because the plan named outcome contrasts. The full
 planned / performed / exploratory inventory is machine-readable in
-`numbers.json → comparison_inventory`. Exactly one contrast clears the corrected threshold:
-`referent-loop` − `cross-loop` on stratum-P flags, p = 0.0003, and it is exploratory.
+`numbers.json → comparison_inventory`. **Two** contrasts clear the corrected threshold, and they are the same effect measured two
+ways: `referent-loop` − `cross-loop` on stratum-P flags (p = 2.7 × 10⁻⁴, cluster
+8.5 × 10⁻⁴) and on pooled flags (p = 3.0 × 10⁻⁶, cluster 1.0 × 10⁻⁵). Both are exploratory.
 
 **Software.** No SciPy or NumPy is used for any inferential quantity; the regularised
 incomplete beta, the Clopper–Pearson inversion, the exact McNemar tail, Tango's score
@@ -557,14 +442,12 @@ The registered population is every hidden-suite non-pass, which **includes 7 ins
 
 | family | union recall, registered P (n = 110) | union recall, assertion-failure P only (n = 103) [95% Wilson] |
 |---|---:|---|
-| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [22.9, 40.5] |
-| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [11.3, 25.9] |
-| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [24.7, 42.6] |
-| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [42.9, 61.8] |
+| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [20.4, 42.2] |
+| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [7.8, 27.9] |
+| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [20.4, 45.6] |
+| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [40.4, 64.4] |
 
 The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
-
-
 ---
 
 ## What it cost
@@ -578,19 +461,6 @@ From the product's own usage ledgers, per call, not reconstructed. The `astra` r
 | ceiling1 | $9.5238 | 4,427,530 |
 | ceiling2 | $3.7083 | — |
 | **total** | **$13.2321** | 4,427,530 |
-
-
-`astra` bills a subscription and reports only a token count, so it consumes none of the
-dollar budget: **4,427,530 tokens over 1,040 readings**, a mean of 4,257 per audit. No
-dollar equivalent is stated.
-
-The ceiling-2 figure **includes the discarded work** — two 8-instance pilots and one full
-four-arm run destroyed by the provider's circuit breaker (deviations 3 and 4). That money
-was spent. Of a $20 budget, **$13.23 spent**; the ceiling-1 ladder stopped because it
-exhausted its preregistered K = 8, not because it hit its $13.00 cap ($9.52 used). Per-run
-UTC windows, marked with which invocation supplied the committed rows, are in
-`manifest_loop.json → arm_windows_utc` and `manifest_ceiling1.json → draw_windows_utc`.
-
 ---
 
 ## Deviations from the plan, numbered, with the direction of each bias
@@ -678,6 +548,34 @@ mixed-family rows are descriptive and exploratory. Found by the cross-vendor rev
 version of this report used a conditional-times-observed-D construction with 0.416 coverage.
 It was found by the cross-vendor review, reproduced, withdrawn, and replaced. All point
 estimates are unchanged. **Erroneous numbers did enter a committed artefact**: see below.
+
+**18. The replacement interval methods were themselves defective, and were fixed after the
+second review.** Both `tango_score_interval` and `exact_unconditional_interval` bounded the
+nuisance `q = p_c` by `(1 − |δ|)/2` where the feasible bound is `(1 − δ)/2`. Equal for a
+non-negative difference; badly wrong for a negative one. Measured consequence: coverage
+0.960 in the beneficial direction and **0.075** in the detrimental direction, and
+`tango_score_interval(20, 70, 112)` off by nearly 4 points at each end. **No number in this
+study was affected** — every paired difference here has b ≥ c except `self-loop − cross-loop`
+(b = 3, c = 5), whose Tango interval was recomputed and is unchanged to the displayed
+precision — but the method was wrong and would have been wrong for anyone reusing it.
+Fixed, with a sign-symmetry test and a two-directional coverage enumeration added.
+*Direction of bias on this study's results: none detectable; on a future study with
+predominantly detrimental discordances: severe.*
+
+**19. Coverage claims for the replacements were overstated, in the opposite direction to
+deviation 16.** The second version said the primary bootstrap was "0.95 nominal by
+simulation" and that the exact unconditional check "never under-covers". Neither is true:
+the idealised bootstrap covers **0.924** at this n, the committed simulation gives 0.933
+and 0.897, and the exact check is **grid-approximated** with no bound on the missed
+supremum. Both claims are withdrawn and replaced by measured numbers in both directions.
+**Every interval in this report should be read as approximately 2 to 5 points optimistic.**
+
+**20. The report's tables were re-spliced after the second review.** Between the second and
+third versions the prose was edited but the tables were not re-generated into the document,
+so for a period the committed report carried round-1 tables beside round-2 prose. Caught
+while answering the review; every table in this version is the current generated output, and
+`tests/test_report_consistency.py` now fails the build if any interval quoted in prose is
+absent from `numbers.json`.
 
 **17. Provenance was completed after the runs.** Package versions, per-invocation UTC
 windows, provider base URLs, corrected sampling metadata and re-hashed analysis files were

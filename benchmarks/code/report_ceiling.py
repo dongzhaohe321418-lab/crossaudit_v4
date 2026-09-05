@@ -151,7 +151,13 @@ def tango_score_interval(b: int, c: int, n: int, alpha: float = 0.05) -> tuple[f
     z = 1.959963984540054 if abs(alpha - 0.05) < 1e-12 else _z_for(alpha)
 
     def q_hat(d: float) -> float:
-        lo, hi = max(0.0, -d) + 1e-12, (1.0 - abs(d)) / 2 - 1e-12
+        # q = p_c, so the feasible set is q >= 0, q >= -d, and 2q + d <= 1, i.e.
+        #     max(0, -d) <= q <= (1 - d)/2.
+        # The upper bound is (1 - d)/2, NOT (1 - |d|)/2: for d < 0 the latter is far too
+        # tight and truncates the nuisance range on exactly the side where p_c is large.
+        # That defect made the interval wrong for detrimental differences and broke the
+        # sign symmetry that test_paired_interval_is_sign_symmetric now pins.
+        lo, hi = max(0.0, -d) + 1e-12, (1.0 - d) / 2 - 1e-12
         if hi <= lo:
             return max(lo, 0.0)
 
@@ -212,13 +218,15 @@ def exact_unconditional_interval(b: int, c: int, n: int, alpha: float = 0.05,
     For each candidate delta the p-value is **maximised over the nuisance parameter**
     p_c on a grid, using the exact multinomial distribution of (b, c) rather than any
     normal approximation; delta is retained when that maximised p-value exceeds alpha.
-    This is the standard exact-unconditional construction, and it is conservative by
-    design — it never under-covers, which is the property the withdrawn interval lacked.
+    This is the standard exact-unconditional construction, **grid-approximated**: the
+    supremum is taken over a finite nuisance grid (41 points) without a bound on what a
+    finer grid could add, so it is not a guaranteed exact interval and this report does
+    not claim it never under-covers. Its measured coverage is reported at the study's own
+    n and scenario, in both the beneficial and the detrimental direction.
 
     Cost is bounded by pruning the (b, c) lattice to cells whose log-probability can
-    matter, and the nuisance grid is coarse (40 points) because the maximised p-value is
-    smooth in the nuisance. Reported as a **check** on the primary clustered bootstrap,
-    never as the primary interval, and it ignores clustering exactly as Tango's does.
+    matter. Reported as a **check** on the primary clustered bootstrap, never as the
+    primary interval, and it ignores clustering exactly as Tango's does.
     """
     logfac = [0.0] * (n + 1)
     for i in range(1, n + 1):
@@ -236,8 +244,12 @@ def exact_unconditional_interval(b: int, c: int, n: int, alpha: float = 0.05,
     s_lo, s_hi = clopper_pearson(d_obs, n, alpha=gamma)      # for p_b + p_c = 2q + d
 
     def maximised_p(d: float) -> float:
+        # q = p_c: feasible set max(0, -d) <= q <= (1 - d)/2, intersected with the
+        # Berger-Boos confidence set for s = p_b + p_c = 2q + d. The upper bound is
+        # (1 - d)/2; using (1 - |d|)/2 truncated it for negative d and drove coverage in
+        # the detrimental direction to 0.075.
         lo_q = max(0.0, -d, (s_lo - d) / 2)
-        hi_q = min((1.0 - abs(d)) / 2, (s_hi - d) / 2)
+        hi_q = min((1.0 - d) / 2, (s_hi - d) / 2)
         if hi_q < lo_q:
             return 0.0
         best = 0.0
@@ -620,6 +632,24 @@ def percentile(values: list[float], q: float) -> float | None:
     return ordered[low] + (ordered[high] - ordered[low]) * (index - low)
 
 
+def mixed_instance_values(draws, families, ids, per_family) -> dict | None:
+    """Per-instance probability that a matched mixed subset flags it — the quantity
+    ``mixed_curve`` averages, exposed so it can be bootstrapped over problem clusters."""
+    ks_avail = {f: sorted(d for d in draws[f] if isinstance(d, int)) for f in families}
+    if any(len(ks_avail[f]) < per_family for f in families):
+        return None
+    out = {}
+    for i in ids:
+        miss = 1.0
+        for f in families:
+            total = len(ks_avail[f])
+            hits = sum(1 for d in ks_avail[f] if draws[f][d].get(i))
+            miss *= (math.comb(total - hits, per_family) / math.comb(total, per_family)
+                     if total - hits >= per_family else 0.0)
+        out[i] = 1.0 - miss
+    return out
+
+
 def mixed_curve(draws: dict[str, dict[int, dict[str, bool]]], families: list[str],
                 ids: list[str], per_family: int) -> float | None:
     """Union rate for a subset taking ``per_family`` draws from each named family.
@@ -716,6 +746,19 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
                 # The K = 1 point of the curve is the mean single-draw rate over ALL
                 # K_max draws, so its per-instance value is k_i/K_max — not draw 1's
                 # indicator, which would be a different quantity with a different mean.
+                # An interval at every K, not only the endpoints: the per-instance
+                # quantity at K is the probability a random K-subset flags it, which is
+                # exactly what union_curve averages.
+                "curve_ci95": [
+                    clustered_mean(
+                        {i: 1.0 - (math.comb(len(complete) - sum(
+                            1 for d in complete if draws[family][d].get(i)), K)
+                            / math.comb(len(complete), K)
+                            if len(complete) - sum(1 for d in complete
+                                                   if draws[family][d].get(i)) >= K
+                            else 0.0) for i in ids},
+                        ids, instances, BOOTSTRAP, BOOT_SEED + 20 + K)["cluster_ci95"]
+                    for K in range(1, len(complete) + 1)],
                 "draw1_block": clustered_mean(
                     {i: sum(1 for d in complete if draws[family][d].get(i)) / len(complete)
                      for i in ids}, ids, instances, BOOTSTRAP, BOOT_SEED + 3),
@@ -804,6 +847,11 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
             entry = {"total_draws": total, "per_family": per}
             for label, ids in (("P", P), ("C", C)):
                 entry[label] = mixed_curve(draws, list(combo), ids, per)
+                vals = mixed_instance_values(draws, list(combo), ids, per)
+                if vals is not None:
+                    entry[f"{label}_ci95"] = clustered_mean(
+                        vals, ids, instances, BOOTSTRAP,
+                        BOOT_SEED + 30 + per)["cluster_ci95"]
                 # the same total K spent inside one family, for the comparison that matters
                 for f in combo:
                     if out["families"][f]["k_max"] >= total:
@@ -858,12 +906,23 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
                     missing.append(iid)
                 else:
                     counts[cat] = counts.get(cat, 0) + 1
+            ids = r["instance_ids"]
+            # The residual's own problems repeat across batches too, so a category share
+            # gets the same cluster bootstrap as every other rate in this report.
+            cluster = {}
+            for cat in counts:
+                flags = {i: ((table.get("classification", {}).get(i) or {}).get("category")
+                             == cat) for i in ids}
+                cluster[cat] = clustered_rate(flags, ids, instances, BOOTSTRAP,
+                                              BOOT_SEED + 11)["cluster_ci95"]
             by_pop[label] = {
                 "n": r["n_never_flagged"], "counts": counts,
+                "n_problems": len({instances[i]["problem_id"] for i in ids}),
                 "shares": {k: v / r["n_never_flagged"] for k, v in counts.items()}
                 if r["n_never_flagged"] else {},
                 "wilson95": {k: list(wilson(v, r["n_never_flagged"]))
                              for k, v in counts.items()},
+                "cluster_ci95": cluster,
                 "unclassified": missing,
                 "rule_version": table.get("rule_version", "AUTHOR_INPUT_NEEDED"),
             }
@@ -875,7 +934,8 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
     return out
 
 
-def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path) -> dict:
+def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path,
+                        reps: int = None) -> dict:
     """Stratum P without the timeouts, as a sensitivity analysis.
 
     The preregistered population is "passes every visible test, fails a hidden one".
@@ -918,11 +978,12 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path) ->
             continue
         union_reg = sum(1 for i in P if any(draws[family][d].get(i) for d in complete))
         union_sub = sum(1 for i in keep if any(draws[family][d].get(i) for d in complete))
+        flags_sub = {i: any(draws[family][d].get(i) for d in complete) for i in keep}
         out["families"][family] = {
             "k_max": len(complete),
             "union_registered": {"k": union_reg, "n": len(P)},
-            "union_assertion_only": {"k": union_sub, "n": len(keep),
-                                     "wilson95": list(wilson(union_sub, len(keep)))},
+            "union_assertion_only": clustered_rate(flags_sub, keep, instances,
+                                                   reps or BOOTSTRAP, BOOT_SEED + 12),
         }
     all_fams = [f for f in FAMILIES if any(isinstance(d, int) for d in draws[f])]
     never_reg = [i for i in P if not any(draws[f][d].get(i)
@@ -930,10 +991,54 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path) ->
                                          if isinstance(d, int))]
     never_sub = [i for i in keep if i in set(never_reg)]
     out["residual_registered"] = {"k": len(never_reg), "n": len(P)}
-    out["residual_assertion_only"] = {"k": len(never_sub), "n": len(keep),
-                                      "wilson95": list(wilson(len(never_sub), len(keep)))}
+    out["residual_assertion_only"] = clustered_rate(
+        {i: (i in set(never_reg)) for i in keep}, keep, instances,
+        reps or BOOTSTRAP, BOOT_SEED + 13)
     out["timeouts_in_residual"] = sorted(set(never_reg) & set(timeouts))
     return out
+
+
+def power_curve(n: int, p_c: float, alpha: float = 0.05,
+                deltas=(0.02, 0.05, 0.075, 0.10, 0.125, 0.15, 0.20)) -> dict:
+    """Exact power of the two-sided exact McNemar test at this study's n.
+
+    Model, stated because a power figure without its model is meaningless: the pair
+    outcomes are multinomial over (improved, worsened, unchanged) with the worsening rate
+    held at ``p_c`` — the value actually observed in the primary arm — and the improving
+    rate set to ``p_c + delta``. Power is summed exactly over the joint distribution of
+    (b, c); no simulation and no normal approximation.
+
+    This says what the study could and could not have detected. It is computed after the
+    fact and is descriptive: it is NOT a retrospective power calculation conditioned on
+    the observed effect, which would be uninformative.
+    """
+    logfac = [0.0] * (n + 1)
+    for i in range(1, n + 1):
+        logfac[i] = logfac[i - 1] + math.log(i)
+    out = {}
+    for delta in deltas:
+        p_b = p_c + delta
+        if p_b + p_c >= 1:
+            continue
+        rest = 1 - p_b - p_c
+        total = 0.0
+        for b in range(n + 1):
+            for c in range(n + 1 - b):
+                if mcnemar_exact(b, c) > alpha:
+                    continue
+                lp = (logfac[n] - logfac[b] - logfac[c] - logfac[n - b - c]
+                      + (b * math.log(p_b) if b else 0.0)
+                      + (c * math.log(p_c) if c else 0.0)
+                      + ((n - b - c) * math.log(rest) if (n - b - c) else 0.0))
+                if lp > -60:
+                    total += math.exp(lp)
+        out[f"{delta:.3f}"] = total
+    return {"n": n, "p_c_assumed": p_c, "alpha": alpha,
+            "test": "two-sided exact McNemar",
+            "power_by_true_difference": out,
+            "note": "the improving rate is p_c + delta; the worsening rate is held at the "
+                    "value observed in the primary arm. Descriptive, computed after the "
+                    "fact, and not conditioned on the observed effect."}
 
 
 #: Every comparison this study computed, reconciled against the plan. The correction
@@ -1201,12 +1306,15 @@ def tables(numbers: dict) -> str:
         lines.append(f"\n**`{family}`** (K_max = {f['k_max']}, "
                      f"n = {f['P']['n_instances']} P instances, "
                      f"{f['C']['n_instances']} C instances)\n")
-        lines.append("| K | union recall on P | union FP on C | recall per FP point |")
-        lines.append("|---:|---:|---:|---:|")
+        lines.append("| K | union recall on P [95% cluster CI] | union FP on C "
+                     "[95% cluster CI] | recall per FP point |")
+        lines.append("|---:|---|---|---:|")
         for index, (r, fp) in enumerate(zip(f["P"]["curve"], f["C"]["curve"]), start=1):
             ratio = ((r - f["P"]["curve"][0]) / (fp - f["C"]["curve"][0])
                      if index > 1 and fp > f["C"]["curve"][0] else None)
-            lines.append(f"| {index} | {pct(r)} | {pct(fp)} | "
+            rci = f["P"]["curve_ci95"][index - 1]
+            fci = f["C"]["curve_ci95"][index - 1]
+            lines.append(f"| {index} | {pct(r)} {ci(rci)} | {pct(fp)} {ci(fci)} | "
                          f"{'—' if ratio is None else f'{ratio:.2f}'} |")
     if "primary_ceiling1" in c1:
         lines.append("\n### Table 3 — primary outcome, ceiling 1: A(self) − A(cross)\n")
@@ -1229,16 +1337,18 @@ def tables(numbers: dict) -> str:
         lines.append("Unit of analysis: the instance. Each row spends the same total "
                      "number of readings; the question is whether spreading them across "
                      "families beats spending them all inside one.\n")
-        lines.append("| combination | total draws | per family | union recall on P | "
-                     "union FP on C | same total inside one family (recall) |")
-        lines.append("|---|---:|---:|---:|---:|---|")
+        lines.append("| combination | total draws | per family | union recall on P "
+                     "[95% cluster CI] | union FP on C [95% cluster CI] | same total "
+                     "inside one family (recall) |")
+        lines.append("|---|---:|---:|---|---|---|")
         for combo, rows in c1["mixed"].items():
             for total, row in sorted(rows.items(), key=lambda kv: int(kv[0])):
                 alone = "; ".join(
                     f"`{f}` {pct(row[k])}" for f in FAMILIES
                     for k in [f"P_{f}_alone_at_{total}"] if k in row)
                 lines.append(f"| `{combo}` | {total} | {row['per_family']} | "
-                             f"{pct(row['P'])} | {pct(row['C'])} | {alone or '—'} |")
+                             f"{pct(row['P'])} {ci(row.get('P_ci95'))} | "
+                             f"{pct(row['C'])} {ci(row.get('C_ci95'))} | {alone or '—'} |")
     if c1.get("residual"):
         lines.append("\n### Table 5 — the residual: stratum-P defects no draw ever flagged\n")
         lines.append("| population | families | total draws | n P instances "
@@ -1257,14 +1367,17 @@ def tables(numbers: dict) -> str:
         lines.append("\n### Table 5b — what the residual defects are\n")
         lines.append("Categories and their order were fixed in the preregistration "
                      "(§1.5) before the first residual instance was read; each instance "
-                     "takes the first category that applies. Unit: the instance. "
-                     "Intervals are 95% Wilson on the residual denominator.\n")
-        lines.append("| population | n residual | category | count | share [95% Wilson] |")
-        lines.append("|---|---:|---|---:|---|")
+                     "takes the first category that applies. Unit: the instance; the "
+                     "primary interval is the problem-cluster bootstrap, with Wilson "
+                     "shown beside it for comparison only.\n")
+        lines.append("| population | n residual (problems) | category | count | share "
+                     "[95% cluster CI] | [95% Wilson, too narrow] |")
+        lines.append("|---|---:|---|---:|---|---|")
         for label, r in rcl.items():
             for cat, count in sorted(r["counts"].items(), key=lambda kv: -kv[1]):
-                lines.append(f"| {label} | {r['n']} | `{cat}` | {count} | "
-                             f"{pct(r['shares'][cat])} {ci(r['wilson95'][cat])} |")
+                lines.append(f"| {label} | {r['n']} ({r.get('n_problems','?')}) | "
+                             f"`{cat}` | {count} | **{pct(r['shares'][cat])}** "
+                             f"{ci(r['cluster_ci95'][cat])} | {ci(r['wilson95'][cat])} |")
             if r["unclassified"]:
                 lines.append(f"| {label} | {r['n']} | **unclassified** | "
                              f"{len(r['unclassified'])} | AUTHOR_INPUT_NEEDED |")
@@ -1280,6 +1393,10 @@ def tables(numbers: dict) -> str:
                  "exact McNemar (instances independent); `p_clu` is a cluster-level "
                  "sign-flip permutation test beside it. 112 instances come from **96 "
                  "problems**.\n")
+    lines.append("A rate of **0/56** carries a bootstrap interval of [0.0, 0.0] for the "
+                 "same reason: with no positive instance to resample, the bootstrap "
+                 "cannot move. Read it as the count **0 of 56**, and its Wilson bound "
+                 "[0.0, 6.4] for a rate.\n")
     lines.append("**†** — every discordant pair points the same way, so the percentile "
                  "bootstrap cannot produce a resample of the opposite sign and its bound "
                  "at zero is an artefact of the method. Read the Tango or exact "
@@ -1312,17 +1429,16 @@ def tables(numbers: dict) -> str:
         lines.append("Outcome: whether the instance passes the hidden suite after one "
                      "round. Unit: the instance, paired across arms; resampled by "
                      "problem. Both discordant counts shown.\n")
-        thr = numbers["comparison_inventory"]["bonferroni_threshold"]
         lines.append("| contrast | n (problems) | discordant (b / c) | difference "
-                     "[95% cluster CI] | Tango CI | p | p_clu | Bonferroni/16 |")
-        lines.append("|---|---:|---:|---|---|---:|---:|---:|")
+                     "[95% cluster CI] | Tango CI | p | p_clu |")
+        lines.append("|---|---:|---:|---|---|---:|---:|")
         for key, d in c2["contrasts"].items():
             lines.append(f"| {d['label']} | {d['n']} ({d['n_clusters']}) | "
                          f"{d['b']} / {d['c']} | "
                          f"{d['delta'] * 100:+.2f} pp {ci(d['ci95'], 2)}"
                          f"{' †' if d.get('one_signed_discordance') else ''} | "
                          f"{ci(d['tango_ci95'], 2)} | {d['p_exact']:.4f} | "
-                         f"{d['p_signflip_cluster']['p']:.4f} | {thr:.5f} |")
+                         f"{d['p_signflip_cluster']['p']:.4f} |")
         lines.append("\n### Table 7b — what the arms flag, paired and split by stratum\n")
         lines.append("The mechanism behind any net effect. On stratum P a flag is a "
                      "defect caught; on stratum C it is a false alarm. Unit: the "
@@ -1331,9 +1447,8 @@ def tables(numbers: dict) -> str:
                      "outcome contrasts, not flag contrasts. They are reported because "
                      "the mechanism matters, and they are labelled at every occurrence.\n")
         lines.append("| contrast | stratum | n (problems) | flagged by each | discordant "
-                     "(b / c) | difference [95% cluster CI] | p | p_clu | Bonferroni/16 |")
-        lines.append("|---|---|---:|---|---:|---|---:|---:|---:|")
-        thr = numbers["comparison_inventory"]["bonferroni_threshold"]
+                     "(b / c) | difference [95% cluster CI] | Tango CI | p | p_clu |")
+        lines.append("|---|---|---:|---|---:|---|---|---:|---:|")
         for key, d in c2["contrasts"].items():
             a, b = d["arms"]
             for stratum in ("P", "C"):
@@ -1344,8 +1459,8 @@ def tables(numbers: dict) -> str:
                     f"{f['only_' + a]} / {f['only_' + b]} | "
                     f"{f['difference'] * 100:+.2f} pp {ci(f['ci95'], 2)}"
                     f"{' †' if f.get('one_signed_discordance') else ''} | "
-                    f"{f['p_exact']:.4f} | {f['p_signflip_cluster']['p']:.4f} | "
-                    f"{thr:.5f} |")
+                    f"{ci(f['tango_ci95'], 2)} | "
+                    f"{f['p_exact']:.4f} | {f['p_signflip_cluster']['p']:.4f} |")
     ts = numbers.get("timeout_sensitivity", {})
     if ts and "families" in ts:
         lines.append("\n### Table 9 — sensitivity: stratum P without the timeouts\n")
@@ -1362,11 +1477,11 @@ def tables(numbers: dict) -> str:
             u, s = v["union_registered"], v["union_assertion_only"]
             lines.append(f"| `{fam}` (K = {v['k_max']}) | {u['k']}/{u['n']} "
                          f"({100*u['k']/u['n']:.1f}%) | **{s['k']}/{s['n']}** "
-                         f"({100*s['k']/s['n']:.1f}%) {ci(s['wilson95'])} |")
+                         f"({100*s['rate']:.1f}%) {ci(s['cluster_ci95'])} |")
         rr, rs = ts["residual_registered"], ts["residual_assertion_only"]
         lines.append(f"| **residual (never flagged)** | {rr['k']}/{rr['n']} "
                      f"({100*rr['k']/rr['n']:.1f}%) | **{rs['k']}/{rs['n']}** "
-                     f"({100*rs['k']/rs['n']:.1f}%) {ci(rs['wilson95'])} |")
+                     f"({100*rs['rate']:.1f}%) {ci(rs['cluster_ci95'])} |")
         lines.append(f"\nThe {len(ts['timeouts_in_residual'])} timeouts that sit inside "
                      f"the residual are `{'`, `'.join(ts['timeouts_in_residual'])}`.")
 
@@ -1412,6 +1527,7 @@ def main(argv: list[str] | None = None) -> int:
         "ceiling1": analyse_ceiling1(instances, audit_set),
         "ceiling2": analyse_ceiling2(instances),
         "timeout_sensitivity": timeout_sensitivity(instances, audit_set, Path(args.run)),
+        "power": power_curve(112, 2 / 112),
         "comparison_inventory": COMPARISON_INVENTORY,
         "spend": load_spend(),
     }
