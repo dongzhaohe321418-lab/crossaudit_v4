@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Ninth version.** Eight independent cross-vendor reviews have read this study. Rounds 1
+> **Tenth version.** Nine independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2, and no
 > point estimate has changed since the first version. Round 5's corrections included one
@@ -150,6 +150,21 @@ corrected report.
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
 
+### What the ninth review changed
+
+Round 9 confirmed the numbers byte-identical, 42 tests, the 312 mutations non-vacuous (39
+rules × 8 subjects, 168 distinct mutated reports, none surviving), both protective
+assertions firing, and deviations 1–35. Its finding was not a defect in the guard but in
+**what the guard was claimed to do**: the claim exceeded what a lexical check can enforce.
+Its instruction — *narrow the claim; do not widen the guard* — is the right one, and this
+round follows it.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | The guard's stated scope overreached. Four attacks survive it: a two-family sentence that moves ownership by grammar while every token is present; an interval claimed with no numeral beside it (membership-checked only); a rate written in words; and anything outside the opening and conclusion | all four reproduced green | The scope is now stated exactly, in the module docstring and in the report: **a lexical editing guard for registered numeral templates in the opening and conclusion — every registered rate must carry its bound interval adjacent and its sentence must name its family; it does not parse grammatical ownership, does not read rates written in words, and applies membership checks only outside those sections.** The four attacks are committed **green** in `test_documented_uncovered_cases_are_green_and_that_is_the_boundary`, with a docstring explaining each, plus a fifth case asserting what the guard *does* catch. The declaration test now says it checks vocabulary membership, not semantic specificity |
+| 2 | Deviation 34's "no published number was ever wrong" is **false as a history** | verified against rounds 2, 3 and 6 | Struck and replaced with a table of the four published numbers that were wrong and corrected. What survives is the narrow true claim: the round 6–8 re-attribution attacks were synthetic and never appeared in a published version, and no *estimate* has changed since version one |
+| 3 | "Seven sentences" was miscounted | verified | **Seven failing rule matches across four sentences** |
+
 ### What the eighth review changed
 
 Round 8 confirmed hashes equal to round 7, derived seed status, zero duplicates, 37 tests
@@ -164,7 +179,7 @@ The fix is structural, not another instance.
 
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
-| 1 | Family binding was example-driven: 11 of 23 bound arrays had **no** subject requirement, and several others accepted generic words | all three edits green | **Every** bound array now declares a family/arm subject, enforced by `test_every_bound_rule_declares_a_subject`, which fails on an absent or generic declaration. A **generated** test rewrites each rule's sentence subject to every other family in turn — **312 mutations** — and requires each to redden; it also asserts the unmutated report is clean and that no rule is unmutatable, so a too-generic subject cannot hide. Seven report sentences could not name their own subject and **were rewritten**, which the test identified. The three counterexamples are committed as named tests as well |
+| 1 | Family binding was example-driven: 11 of 23 bound arrays had **no** subject requirement, and several others accepted generic words | all three edits green | **Every** bound array now declares a family/arm subject, enforced by `test_every_bound_rule_declares_a_subject`, which fails on an absent or generic declaration. A **generated** test rewrites each rule's sentence subject to every other family in turn — **312 mutations** — and requires each to redden; it also asserts the unmutated report is clean and that no rule is unmutatable, so a too-generic subject cannot hide. **Seven failing rule matches across four sentences** could not name their own subject; those four sentences were rewritten, and the test identified every match. The three counterexamples are committed as named tests as well |
 | 2 | The AST duplicate check existed only at review time | duplicating `_pairs` left the suite green | Committed as `test_the_analysis_files_contain_no_duplicate_definitions`, covering eight analysis files; verified to redden on a duplicated `_pairs` |
 | 3 | The attribution table lists ten rows; the sentence said nine and "the single exception" | verified | Sentence rewritten to "eight of the nine numbered corrections, plus the author-found beta-tail defect fixed before round 1", and **a test derives those counts from the table** so they cannot drift |
 
@@ -738,8 +753,14 @@ the only coverage claims this study makes.
 third versions the prose was edited but the tables were not re-generated into the document,
 so for a period the committed report carried round-1 tables beside round-2 prose. Caught
 while answering the review; every table in this version is the current generated output, and
-`tests/test_report_consistency.py` now fails the build if any interval quoted in prose is
-absent from `numbers.json`.
+`tests/test_report_consistency.py` now checks the numbers in prose. **What that check is,
+exactly:** a lexical editing guard for registered numeral templates in the opening and
+conclusion — every registered rate must carry its bound interval adjacent, and its sentence
+must name its family; it does not parse grammatical ownership, does not read rates written
+in words, and applies membership checks only outside those two sections. Four attacks it
+cannot see are committed green and explained in
+`test_documented_uncovered_cases_are_green_and_that_is_the_boundary`, so the boundary lives
+in the tests.
 
 **21. Coverage figures were mislabelled by scenario, and generalised beyond what was
 measured.** The third version gave the detrimental-direction bootstrap coverage as 0.924,
@@ -852,15 +873,43 @@ fixed as an instance. Round 8 established the pattern: **11 of 23 bound arrays h
 subject requirement at all**, and the asymptote rules accepted generic words, so three
 further re-attributions were green. Every bound array now declares a family or arm subject,
 a test fails on an absent or generic declaration, and **a generated test produces 312
-re-attribution mutations from the rule table and requires every one to redden**. Seven
-report sentences that could not name their own subject were rewritten — the test named
-them. *No published number was ever wrong at any point in this sequence; what was wrong,
-three times, was the strength of the guarantee claimed for them.*
+re-attribution mutations from the rule table and requires every one to redden**. **Seven
+failing rule matches across four sentences** could not name their own subject and those
+sentences were rewritten — the test named every one.
+
+*The scope of this deviation, stated precisely because an earlier version of it overreached.*
+The synthetic re-attribution counterexamples in rounds 6–8 did not change the committed
+estimates; earlier numerical and reporting corrections remain documented. **"No published
+number was ever wrong" — which this deviation previously asserted — is false as a history**,
+and the ninth review was right to strike it. Published numbers that were wrong and were
+corrected:
+
+| what was published | what regeneration gives | corrected in |
+|---|---|---|
+| `referent−cross` net interval `[−0.88, +12.08]` | `[−0.89, +12.07]` | round 2 |
+| referent P-flag exact interval upper bound `+43.8` | `+43.7` | round 3, `CORRECTIONS.md` #21 |
+| detrimental bootstrap coverage quoted as `0.924` | `0.953` for that scenario | round 3, #20 |
+| residual share interval `[40.4, 63.6]` and `[40.0, 63.3]` for the same quantity | `[40.0, 63.3]` | round 6, #24 |
+
+What is true, and is all that was meant: **the re-attribution attacks of rounds 6 to 8 were
+synthetic edits that never appeared in a published version, and no *estimate* — no
+asymptote, union, net, count or classification — has changed since the first version.**
 
 **35. A check that only ran at review time is not a check.** The AST duplicate scan that
 found deviation 33's eleven duplicates was run by hand and never committed, so the suite
 stayed green when a function was duplicated. It is now a test over eight analysis files,
 verified to redden on a duplicated helper.
+
+**36. The guard's claim exceeded what it enforces, and the claim — not the guard — was
+wrong.** Nine rounds of review had steadily widened this study's consistency checks; the
+ninth found that the accompanying description had outrun them. A lexical guard cannot parse
+grammatical ownership, cannot read a rate written in words, cannot see a claim that carries
+an interval but no numeral, and does not police text outside the opening and conclusion.
+The scope is now stated in exactly those terms wherever the guard is described, and the four
+surviving attacks are committed as **passing** tests with an explanation of why each is out
+of reach — so the boundary is discoverable from the suite rather than from a review report.
+*This is the first round in which the correct response was to make a claim smaller rather
+than a mechanism larger, and it took a reader to see it.*
 
 ### The beta-tail defect, stated exactly
 

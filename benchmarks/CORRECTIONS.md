@@ -580,3 +580,35 @@ than the random-number constructor. It now wraps `random.Random` itself, so ever
 is counted whatever path builds it: **34 distinct seeds over 205 constructions**, against
 the 32 over 196 the narrower instrument had reported. Found by the sixth cross-vendor
 review.
+
+**28. "No published number was ever wrong" — false, and withdrawn.**
+Deviation 34 of `RESULTS-CEILING.md` asserted that no published number had ever been wrong
+across the review sequence, and that only the strength of the guarantee had been. **The
+first half is false**, as the ninth cross-vendor review pointed out. Published numbers that
+were wrong and were corrected:
+
+| published | regenerated | corrected in |
+|---|---|---|
+| `referent−cross` net interval `[−0.88, +12.08]` | `[−0.89, +12.07]` | round 2 |
+| referent P-flag exact interval upper bound `+43.8` | `+43.7` | round 3, item 21 |
+| detrimental bootstrap coverage quoted as `0.924` | `0.953` for that scenario | round 3, item 20 |
+| residual share published as both `[40.4, 63.6]` and `[40.0, 63.3]` | `[40.0, 63.3]` | round 6, item 24 |
+
+The narrow claim that survives: **the synthetic re-attribution counterexamples in rounds 6
+to 8 never appeared in a published version, and no estimate — no asymptote, union, net,
+count or classification — has changed since the first version.** The sentence as written
+generalised that into a claim about the whole history, which the record above contradicts.
+
+**29. The consistency guard's stated scope exceeded what a lexical check can enforce.**
+`RESULTS-CEILING.md` described its guard as failing the build "if any interval quoted in
+prose is absent from `numbers.json`". Four edits pass it: a sentence naming two families,
+which moves ownership by grammar while every token the guard wants is present; a claim
+carrying an interval but no numeral, which is only membership-checked; a rate written in
+words; and anything outside the opening and conclusion. None is fixable lexically.
+
+The description is now exact — *a lexical editing guard for registered numeral templates in
+the opening and conclusion: every registered rate must carry its bound interval adjacent and
+its sentence must name its family; it does not parse grammatical ownership, does not read
+rates written in words, and applies membership checks only outside those sections* — and the
+four attacks are committed as passing tests that document the boundary. Found by the ninth
+cross-vendor review, whose instruction was to narrow the claim rather than widen the guard.

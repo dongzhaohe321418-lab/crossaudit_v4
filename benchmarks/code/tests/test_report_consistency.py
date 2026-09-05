@@ -1,23 +1,34 @@
-"""Every interval quoted in RESULTS-CEILING.md must exist in numbers.json, exactly.
+"""A lexical editing guard for the numbers in RESULTS-CEILING.md.
 
-The second cross-vendor review found the report quoting `[-0.88, +12.08]` where
-regeneration gives `[-0.89, +12.07]`. The first version of this guard was written to catch
-that and **did not**: the third review showed that mutating a prose interval by 0.01 left it
-green, and that replacing the headline with `[-99.99, +99.99]` also passed. It rounded
-candidates to one decimal, allowed 0.051 of slack, ignored the Unicode minus and the leading
-`+`, and accepted any interval in the file regardless of which quantity the sentence was
-about.
+**What it is, exactly.** A lexical editing guard for registered numeral templates in the
+opening and conclusion: every registered rate must carry its bound interval adjacent, and
+its sentence must name its family. It does **not** parse grammatical ownership, does **not**
+read rates written in words, and applies membership checks only outside those two sections.
 
-This version:
+That sentence is the whole claim. It is deliberately narrower than "the report's numbers are
+checked", because nine rounds of review established that the wider claim was not true and
+that a lexical guard cannot make it true. The four attacks it cannot see are committed, green
+and explained, in `test_documented_uncovered_cases_are_green_and_that_is_the_boundary` —
+the boundary belongs in the tests, not in a review report.
 
-* parses `−` (U+2212) and `-` alike, and a leading `+`;
-* compares **at the precision the report displays**, with **zero tolerance** — an interval
-  written to two decimals must equal the stored value rounded to two decimals;
-* **ties an interval to its estimand** where the sentence names one, so a number that is
-  real but belongs to a different quantity is still a failure;
-* is itself tested, by mutating the report in memory and requiring the check to go red.
+**What it does enforce**, and each is a committed regression test:
 
-    python benchmarks/code/tests/test_report_consistency.py
+* every quoted interval exists in `numbers.json` at displayed precision, with zero tolerance
+  (`test_every_quoted_interval_is_in_numbers_json`);
+* in the opening and conclusion, every registered numeral is bound to the specific array its
+  interval must come from, and its sentence must contain its family's vocabulary
+  (`test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys`);
+* no bound array may omit or genericise its subject declaration
+  (`test_every_bound_rule_declares_a_subject`);
+* re-attributing any rule's sentence to any other family reddens — 312 mutations generated
+  from the rule table (`test_generated_reattribution_mutations_all_redden`);
+* no rule may match twice, so new prose cannot slip under an existing anchor;
+* the analysis files contain no duplicate top-level definitions.
+
+**History.** The first version of this guard passed when a quoted interval was mutated by
+0.01 and when the headline was replaced with `[-99.99, +99.99]`. Each subsequent round of
+review found a further class it did not cover. The guard is now believed sound within the
+scope stated above and unsound outside it, and the tests say which is which.
 """
 
 from __future__ import annotations
@@ -823,11 +834,19 @@ def test_the_analysis_files_contain_no_duplicate_definitions():
 
 
 def test_every_bound_rule_declares_a_subject():
-    """No bound array may omit its subject tokens, and none may be generic.
+    """No bound array may omit its subject tokens, and none may name an unknown family.
 
     Eight rounds of review each found a rate that could be re-attributed by editing prose,
-    and each was fixed as an instance. This is the rule that closes the class: a binding
-    without a declared, family-specific subject is a defect in the guard itself.
+    and each was fixed as an instance. This closes that class within the guard's lexical
+    scope: a binding without a declared family is a defect in the guard itself.
+
+    **Limit, stated because the test's name overpromises**: this checks *vocabulary
+    membership* — that the declared family exists in `FAMILY_VOCAB` and has at least one
+    token — not *semantic specificity*. A family whose vocabulary contained only a weak
+    word such as `asymptote` would satisfy this test while discriminating almost nothing.
+    What catches that is `test_generated_reattribution_mutations_all_redden`, because a
+    weak vocabulary produces mutations that fail to redden. The two tests are complementary
+    and neither alone is sufficient.
     """
     undeclared, generic = [], []
     for _pattern, value_path, interval_path, _why in RATE_RULES:
@@ -1025,6 +1044,78 @@ def test_the_attribution_counts_match_the_attribution_table():
     assert len(author) == 2, f"{len(author)} author rows (item 24 and the beta tail)"
     assert "Eight of the nine numbered corrections" in section, \
         "the sentence no longer states the count the table shows"
+
+
+# ---------------------------------------------------------------------------------
+# The boundary of the guard, recorded as executable fact.
+# ---------------------------------------------------------------------------------
+
+def test_documented_uncovered_cases_are_green_and_that_is_the_boundary():
+    """Four edits this guard CANNOT catch, asserted green, with why.
+
+    This test passes on purpose. It exists so that a reader finds the guard's boundary in
+    the test suite rather than in a review report, and so that a future change which
+    accidentally starts catching one of these is noticed and the docstring updated rather
+    than the scope quietly growing in people's heads.
+
+    The guard is **lexical**. It matches registered numeral templates, checks the interval
+    beside each against a specific `numbers.json` array, and requires the sentence to
+    contain its family's vocabulary. It does not parse sentences. Therefore:
+
+    1. **Grammatical ownership is invisible.** A sentence naming two families satisfies
+       both vocabularies, so a clause like "The shipped cross-vendor auditor, unlike the
+       generator's own model, does flatten" can move rates between them while every token
+       the guard wants is present.
+    2. **A claim with no numeral is invisible.** "The self model's fitted asymptote has
+       interval [21.7, 45.6]" carries no rate, so no binding applies; the interval itself
+       is only checked for membership in `numbers.json`, and it is a member.
+    3. **A rate written in words is invisible.** "thirty percent" is not a numeral.
+    4. **Outside the opening and conclusion, only membership is checked.** Captions,
+       footnotes and the audit trail get `test_every_quoted_interval_is_in_numbers_json`
+       and nothing more, by design: those sections quote withdrawn and historical values
+       deliberately.
+
+    What the guard *does* catch, recorded for contrast: a new numeral inserted into the
+    opening or conclusion is UNBOUND and reddens, even when its interval is real and its
+    sentence names a family. Case 5 below asserts that.
+    """
+    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
+    report = REPORT.read_text(encoding="utf-8")
+    anchor = "The generator's own model does flatten, and far lower:"
+    assert anchor in report, "the opening changed shape; re-derive these cases"
+
+    uncovered = {
+        "1. two families in one sentence, ownership moved by grammar":
+            report.replace(anchor, "The shipped cross-vendor auditor, unlike the "
+                                   "generator's own model, does flatten, and far lower:",
+                           1),
+        "2. an interval claimed with no numeral beside it":
+            report.replace(anchor, "The self model's fitted asymptote has interval "
+                                   "[21.7, 45.6]. " + anchor, 1),
+        "3. a rate written in words":
+            report.replace(anchor, "The self model reached thirty percent union recall. "
+                           + anchor, 1),
+        "4. a caption outside the opening and conclusion":
+            report.replace("### Table 1 — the saturation curve, per family",
+                           "### Table 1 — the saturation curve, per family (astra's "
+                           "one-reading recall is 16.0% [10.1, 22.3])", 1),
+    }
+    still_green = []
+    for label, mutated in uncovered.items():
+        assert mutated != report, f"{label}: the anchor changed; re-derive this case"
+        if check_rate_bindings(mutated, numbers) or check_report(mutated, numbers):
+            still_green.append(label)
+    assert not still_green, (
+        "These cases are documented as OUTSIDE the guard's reach, but the guard now "
+        "catches them. That is good news: widen the docstring and the report's "
+        "description of the guard's scope, then move them to the covered set.\n  "
+        + "\n  ".join(still_green))
+
+    # 5. the covered contrast: a new numeral inside the sections is caught
+    covered = report.replace(anchor, "The shipped auditor's one-reading false-positive "
+                                     "cost was 9.7% [5.3, 14.5]. " + anchor, 1)
+    assert check_rate_bindings(covered, numbers), \
+        "a new unbound numeral in the opening must redden; the guard's core claim failed"
 
 
 if __name__ == "__main__":

@@ -531,8 +531,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "b887bb8ad1303ccad9e7b3dc14cdb408e8a9a0a5",
-  "finalised_utc": "2026-09-05T20:26:24Z",
+  "finalised_on_parent_commit": "4bea383a70ac656d3bb7b1d4f9df67d000df302f",
+  "finalised_utc": "2026-09-05T20:59:06Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",
