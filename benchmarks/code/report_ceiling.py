@@ -856,8 +856,18 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
                 for f in combo:
                     if out["families"][f]["k_max"] >= total:
                         ks = counts_per_instance(draws[f], ids)
+                        kmax_f = out["families"][f]["k_max"]
                         entry[f"{label}_{f}_alone_at_{total}"] = union_curve(
-                            ks, out["families"][f]["k_max"])[total - 1]
+                            ks, kmax_f)[total - 1]
+                        # the same comparator, with the same cluster interval as
+                        # everything else it is being compared against
+                        entry[f"{label}_{f}_alone_at_{total}_ci95"] = clustered_mean(
+                            {i: 1.0 - (math.comb(kmax_f - k, total) /
+                                       math.comb(kmax_f, total)
+                                       if kmax_f - k >= total else 0.0)
+                             for i, k in zip(ids, ks)},
+                            ids, instances, BOOTSTRAP,
+                            BOOT_SEED + 50 + total)["cluster_ci95"]
             rows[str(total)] = entry
         mixed["+".join(combo)] = rows
     out["mixed"] = mixed
@@ -979,9 +989,11 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path,
         union_reg = sum(1 for i in P if any(draws[family][d].get(i) for d in complete))
         union_sub = sum(1 for i in keep if any(draws[family][d].get(i) for d in complete))
         flags_sub = {i: any(draws[family][d].get(i) for d in complete) for i in keep}
+        flags_reg = {i: any(draws[family][d].get(i) for d in complete) for i in P}
         out["families"][family] = {
             "k_max": len(complete),
-            "union_registered": {"k": union_reg, "n": len(P)},
+            "union_registered": clustered_rate(flags_reg, P, instances,
+                                               reps or BOOTSTRAP, BOOT_SEED + 14),
             "union_assertion_only": clustered_rate(flags_sub, keep, instances,
                                                    reps or BOOTSTRAP, BOOT_SEED + 12),
         }
@@ -990,7 +1002,9 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path,
                                          for f in all_fams for d in draws[f]
                                          if isinstance(d, int))]
     never_sub = [i for i in keep if i in set(never_reg)]
-    out["residual_registered"] = {"k": len(never_reg), "n": len(P)}
+    out["residual_registered"] = clustered_rate(
+        {i: (i in set(never_reg)) for i in P}, P, instances,
+        reps or BOOTSTRAP, BOOT_SEED + 15)
     out["residual_assertion_only"] = clustered_rate(
         {i: (i in set(never_reg)) for i in keep}, keep, instances,
         reps or BOOTSTRAP, BOOT_SEED + 13)
@@ -1219,7 +1233,7 @@ def analyse_ceiling2(instances: dict) -> dict:
                 fc.setdefault(arm_rows[a][i]["problem_id"], []).append(
                     int(bool(arm_rows[a][i].get("flagged")))
                     - int(bool(arm_rows[b][i].get("flagged"))))
-            block = paired_difference(fc)
+            block = paired_difference(fc, exact_unconditional=EXACT_UNCONDITIONAL)
             block.update({
                 "flagged_" + a: sum(1 for i in ids if arm_rows[a][i].get("flagged")),
                 "flagged_" + b: sum(1 for i in ids if arm_rows[b][i].get("flagged")),
@@ -1322,14 +1336,17 @@ def tables(numbers: dict) -> str:
                      "generator's own model can ultimately see more of its own defects "
                      "than a stranger can. Interval: 95% percentile bootstrap over "
                      "problem clusters, both curves resampled together.\n")
-        lines.append("| stratum | n instances | A(cross) | A(self) | A(self) − A(cross) "
-                     "[95% CI] | raw union difference at K_common [95% CI] |")
-        lines.append("|---|---:|---:|---:|---|---|")
+        lines.append("| stratum | n instances | A(cross) [95% CI] | A(self) [95% CI] | "
+                     "A(self) − A(cross) [95% CI] | raw union difference at K_common "
+                     "[95% CI] |")
+        lines.append("|---|---:|---|---|---|---|")
         for label in ("P", "C"):
             d = c1["primary_ceiling1"][label]
+            fc = c1["families"]["cross"][label]["fit_A_ci95"]
+            fs = c1["families"]["self"][label]["fit_A_ci95"]
             lines.append(
-                f"| {label} | {d['n_instances']} | {pct(d['A_cross'])} | "
-                f"{pct(d['A_self'])} | **{pct(d['A_self_minus_cross'])}** "
+                f"| {label} | {d['n_instances']} | {pct(d['A_cross'])} {ci(fc)} | "
+                f"{pct(d['A_self'])} {ci(fs)} | **{pct(d['A_self_minus_cross'])}** "
                 f"{ci(d['ci95'])} | {pct(d['raw_union_diff_at_k_common'])} "
                 f"{ci(d['raw_diff_ci95'])} |")
     if c1.get("mixed"):
@@ -1344,7 +1361,7 @@ def tables(numbers: dict) -> str:
         for combo, rows in c1["mixed"].items():
             for total, row in sorted(rows.items(), key=lambda kv: int(kv[0])):
                 alone = "; ".join(
-                    f"`{f}` {pct(row[k])}" for f in FAMILIES
+                    f"`{f}` {pct(row[k])} {ci(row.get(k + '_ci95'))}" for f in FAMILIES
                     for k in [f"P_{f}_alone_at_{total}"] if k in row)
                 lines.append(f"| `{combo}` | {total} | {row['per_family']} | "
                              f"{pct(row['P'])} {ci(row.get('P_ci95'))} | "
@@ -1375,9 +1392,14 @@ def tables(numbers: dict) -> str:
         lines.append("|---|---:|---|---:|---|---|")
         for label, r in rcl.items():
             for cat, count in sorted(r["counts"].items(), key=lambda kv: -kv[1]):
+                # A count small enough that its interval reaches an absurd bound is quoted
+                # AS THE COUNT (EXPERIMENT_RECORD.md §9), not as a percentage.
+                share = (f"**{count} of {r['n']}** — quoted as a count, not a rate"
+                         if count < 6 else
+                         f"**{pct(r['shares'][cat])}** {ci(r['cluster_ci95'][cat])}")
+                wilson = "—" if count < 6 else ci(r["wilson95"][cat])
                 lines.append(f"| {label} | {r['n']} ({r.get('n_problems','?')}) | "
-                             f"`{cat}` | {count} | **{pct(r['shares'][cat])}** "
-                             f"{ci(r['cluster_ci95'][cat])} | {ci(r['wilson95'][cat])} |")
+                             f"`{cat}` | {count} | {share} | {wilson} |")
             if r["unclassified"]:
                 lines.append(f"| {label} | {r['n']} | **unclassified** | "
                              f"{len(r['unclassified'])} | AUTHOR_INPUT_NEEDED |")
@@ -1470,18 +1492,22 @@ def tables(numbers: dict) -> str:
                      f"assertion failure. The registered analysis is unchanged; this is "
                      f"a sensitivity check, and it is EXPLORATORY.\n")
         lines.append(f"| family | union recall, registered P "
-                     f"(n = {ts['n_P_registered']}) | union recall, assertion-failure P "
-                     f"only (n = {ts['n_P_assertion_only']}) [95% Wilson] |")
-        lines.append("|---|---:|---|")
+                     f"(n = {ts['n_P_registered']}) [95% cluster CI] | "
+                     f"union recall, assertion-failure P only "
+                     f"(n = {ts['n_P_assertion_only']}) [95% cluster CI] | "
+                     f"[95% Wilson, too narrow] |")
+        lines.append("|---|---|---|---|")
         for fam, v in ts["families"].items():
             u, s = v["union_registered"], v["union_assertion_only"]
             lines.append(f"| `{fam}` (K = {v['k_max']}) | {u['k']}/{u['n']} "
-                         f"({100*u['k']/u['n']:.1f}%) | **{s['k']}/{s['n']}** "
-                         f"({100*s['rate']:.1f}%) {ci(s['cluster_ci95'])} |")
+                         f"({100*u['rate']:.1f}%) {ci(u['cluster_ci95'])} | "
+                         f"**{s['k']}/{s['n']}** ({100*s['rate']:.1f}%) "
+                         f"{ci(s['cluster_ci95'])} | {ci(s['wilson95'])} |")
         rr, rs = ts["residual_registered"], ts["residual_assertion_only"]
         lines.append(f"| **residual (never flagged)** | {rr['k']}/{rr['n']} "
-                     f"({100*rr['k']/rr['n']:.1f}%) | **{rs['k']}/{rs['n']}** "
-                     f"({100*rs['rate']:.1f}%) {ci(rs['cluster_ci95'])} |")
+                     f"({100*rr['rate']:.1f}%) {ci(rr['cluster_ci95'])} | "
+                     f"**{rs['k']}/{rs['n']}** ({100*rs['rate']:.1f}%) "
+                     f"{ci(rs['cluster_ci95'])} | {ci(rs['wilson95'])} |")
         lines.append(f"\nThe {len(ts['timeouts_in_residual'])} timeouts that sit inside "
                      f"the residual are `{'`, `'.join(ts['timeouts_in_residual'])}`.")
 

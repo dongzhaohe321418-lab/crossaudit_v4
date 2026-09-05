@@ -279,37 +279,84 @@ def test_ideal_bootstrap_coverage_is_measured_not_assumed():
 
 
 def test_cluster_bootstrap_covers_and_widens_with_clustering():
-    """The primary interval, simulated: nominal when instances are independent, and
-    wider — not narrower — when instances are paired inside problems.
+    """The primary interval, simulated in BOTH directions.
 
-    A method that ignored the clusters would look *tighter* here, which is exactly the
-    error being guarded against.
+    Nominal-ish when instances are independent, and wider — not narrower — when instances
+    are paired inside problems. A method that ignored the clusters would look *tighter*
+    here, which is the error being guarded against. The detrimental direction is exercised
+    too, because the first replacement was correct one way and 0.075 the other and nothing
+    in this suite would have noticed.
     """
     rng = random.Random(4)
     reps, boot = 300, 250
+    measured = {}
+    for sign in (+1, -1):
+        independent_width = None
+        for clustered in (False, True):
+            covered, widths = 0, []
+            for _ in range(reps):
+                by_problem = {}
+                if clustered:                      # 56 problems x 2 correlated instances
+                    for pid in range(56):
+                        v = sign if rng.random() < 0.10 else 0
+                        by_problem[str(pid)] = [v, v]
+                else:                              # 112 independent instances
+                    for pid in range(112):
+                        by_problem[str(pid)] = [sign if rng.random() < 0.10 else 0]
+                lo, hi = rc.cluster_bootstrap_ci(by_problem, boot, rng.randrange(10 ** 6))
+                widths.append(hi - lo)
+                if lo <= sign * 0.10 <= hi:
+                    covered += 1
+            rate = covered / reps
+            measured[(sign, clustered)] = rate
+            # Measured, not nominal: about 0.93 independent and 0.90 clustered here. The
+            # report quotes these as measured and says the bootstrap under-covers.
+            assert 0.87 <= rate <= 0.99, (sign, clustered, rate)
+            if clustered:
+                assert sum(widths) / len(widths) > independent_width * 1.2
+            else:
+                independent_width = sum(widths) / len(widths)
+    # symmetric in sign, as a percentile bootstrap on symmetric data must be
     for clustered in (False, True):
-        covered, widths = 0, []
-        for _ in range(reps):
-            by_problem = {}
-            if clustered:                      # 56 problems x 2 correlated instances
-                for pid in range(56):
-                    v = 1 if rng.random() < 0.10 else 0
-                    by_problem[str(pid)] = [v, v]
-            else:                              # 112 independent instances
-                for pid in range(112):
-                    by_problem[str(pid)] = [1 if rng.random() < 0.10 else 0]
-            lo, hi = rc.cluster_bootstrap_ci(by_problem, boot, rng.randrange(10 ** 6))
-            widths.append(hi - lo)
-            if lo <= 0.10 <= hi:
-                covered += 1
-        rate = covered / reps
-        # Measured, not nominal: about 0.93 independent and 0.90 clustered here. The
-        # report quotes these as measured and says the bootstrap under-covers.
-        assert 0.88 <= rate <= 0.99, (clustered, rate)
-        if clustered:
-            assert sum(widths) / len(widths) > independent_width * 1.2
-        else:
-            independent_width = sum(widths) / len(widths)
+        assert abs(measured[(+1, clustered)] - measured[(-1, clustered)]) < 0.06, measured
+
+
+def test_ideal_bootstrap_coverage_differs_by_scenario():
+    """The two scenarios give DIFFERENT bootstrap coverage, and the report must not
+    reuse one number for the other.
+
+    The third review found the report quoting 0.924 — the beneficial `Bin(112, 0.1)`
+    figure — as the detrimental `Bin(112, 0.5)` coverage, which is 0.953.
+    """
+    def ideal(b, c, n, alpha=0.05):
+        p = (b + c) / n
+        cum, lo, hi = 0.0, None, None
+        for k in range(n + 1):
+            cum += math.comb(n, k) * p ** k * (1 - p) ** (n - k)
+            if lo is None and cum >= alpha / 2:
+                lo = k
+            if hi is None and cum >= 1 - alpha / 2:
+                hi = k
+        span = (lo / n, (hi if hi is not None else n) / n)
+        return span if b >= c else (-span[1], -span[0])
+
+    beneficial = _scenario_coverage(ideal)
+    detrimental = _scenario_coverage(ideal, q=0.5, beneficial=False)
+    assert abs(beneficial - 0.9237318945) < 1e-6, beneficial
+    assert abs(detrimental - 0.9532649318) < 1e-6, detrimental
+    assert abs(beneficial - detrimental) > 0.02, "the two scenarios are not interchangeable"
+
+
+def test_exact_grid_endpoint_rounding_is_declared():
+    """The exact grid's coverage depends on inward endpoint rounding, and that is stated.
+
+    At (0, 44, 112) the grid test ACCEPTS delta = -0.5, but bisection returns a lower
+    endpoint of -0.499999993614, which excludes it. The reported 0.984 is coverage of the
+    RETURNED intervals; literal acceptance would give 0.9895. The report says so.
+    """
+    lo, hi = rc.exact_unconditional_interval(0, 44, 112)
+    assert lo > -0.5, lo                      # excluded by ~6.4e-9
+    assert abs(lo - (-0.4999999936)) < 1e-8, lo
 
 
 def test_signflip_matches_brute_force_on_the_real_shape():

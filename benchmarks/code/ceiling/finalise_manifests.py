@@ -136,6 +136,27 @@ def route_metadata() -> dict:
     return out
 
 
+#: Fields written by an earlier finalisation that a later one supersedes. They are
+#: REMOVED, not left beside their replacements: a manifest that carries both a wrong
+#: `finalised_at_commit` and a corrective `analysis_freeze` block contradicts itself, and a
+#: reader has no way to know which one is live. The third review found exactly that.
+SUPERSEDED_FIELDS = ("finalised_at_commit", "working_tree_at_freeze")
+
+
+def _drop_superseded(manifest: dict) -> None:
+    removed = [f for f in SUPERSEDED_FIELDS if f in manifest]
+    for field in removed:
+        manifest.pop(field)
+    if removed:
+        manifest["superseded_fields_removed"] = {
+            "fields": removed,
+            "why": "written by an earlier finalisation and contradicted by the fields "
+                   "that replaced them (analysis_freeze, provenance_note). Removed rather "
+                   "than left in place; the third cross-vendor review found them still "
+                   "present and reported as renamed when they were not.",
+        }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", required=True)
@@ -187,11 +208,13 @@ def main(argv: list[str] | None = None) -> int:
             "an edited loop.py (the retry passes added after the circuit-breaker run). "
             "The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and "
             "87939d2 (amendment 3), both clean and both before the first model call. The "
-            "meaningful freeze for the ANALYSIS is the commit this file records above, "
-            "whose tree is clean.",
+            "meaningful freeze for the ANALYSIS is defined in the `analysis_freeze` field "
+            "of this manifest, which says how to locate it and what to verify; it is NOT "
+            "the parent commit recorded in `finalised_on_parent_commit`.",
     }
 
     m1 = json.loads((CEILING / "manifest_ceiling1.json").read_text(encoding="utf-8"))
+    _drop_superseded(m1)
     m1.update(shared)
     m1["draw_windows_utc"] = windows_by_prefix(
         run_dir, lambda r: r.split("-holistic__")[1].rsplit("-", 1)[0]
@@ -241,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         json.dumps(m1, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     m2 = json.loads((CEILING / "manifest_loop.json").read_text(encoding="utf-8"))
+    _drop_superseded(m2)
     m2.update(shared)
     # The ledgers hold every invocation, including the discarded pilots and the run the
     # circuit breaker destroyed. Group by (arm, invocation stamp) so each window is one
@@ -270,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
             except json.JSONDecodeError:
                 continue
             if rid.startswith("ceiling-loop-") and arm_and_stamp(rid) is None:
-                unmatched[rid.rsplit("-", 1)[0]] = unmatched.get(rid.rsplit("-", 1)[0], 0) + 1
+                unmatched[rid] = unmatched.get(rid, 0) + 1
     m2_unmatched = unmatched
     reported = {}
     for arm in ("self-loop", "self-loop-rep", "cross-loop", "referent-loop"):
@@ -301,8 +325,12 @@ def main(argv: list[str] | None = None) -> int:
         windows[key]["supplied_the_committed_rows"] = supplied
         windows[key]["role"] = role
     m2["arm_windows_utc"] = windows
+    by_prefix: dict[str, int] = {}
+    for rid, count in m2_unmatched.items():
+        by_prefix[rid.rsplit("-", 1)[0]] = by_prefix.get(rid.rsplit("-", 1)[0], 0) + count
     m2["arm_ledger_events_not_in_any_window"] = {
-        "by_run_id_prefix": m2_unmatched,
+        "by_run_id": dict(sorted(m2_unmatched.items())),
+        "by_run_id_prefix": by_prefix,
         "total": sum(m2_unmatched.values()),
         "why": "run_ids minted before the per-invocation stamp was introduced "
                "(deviation 6) — the discarded pilots. Their spend IS counted in the "

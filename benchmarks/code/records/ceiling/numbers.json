@@ -687,36 +687,68 @@
         "2": {
           "C": 0.1125,
           "C_astra_alone_at_2": 0.10222222222222223,
+          "C_astra_alone_at_2_ci95": [
+            0.0547945205479452,
+            0.15452538631346577
+          ],
           "C_ci95": [
             0.0661764705882353,
             0.16473509933774835
           ],
           "C_cross_alone_at_2": 0.0707142857142857,
+          "C_cross_alone_at_2_ci95": [
+            0.041747025898811616,
+            0.10338755866175496
+          ],
           "P": 0.31278409090909093,
           "P_astra_alone_at_2": 0.31969696969696976,
+          "P_astra_alone_at_2_ci95": [
+            0.2018348623853211,
+            0.44196428571428575
+          ],
           "P_ci95": [
             0.2012543004587156,
             0.4312514076576577
           ],
           "P_cross_alone_at_2": 0.14967532467532468,
+          "P_cross_alone_at_2_ci95": [
+            0.08526074703530061,
+            0.2261931818181818
+          ],
           "per_family": 1,
           "total_draws": 2
         },
         "4": {
           "C": 0.12583333333333332,
           "C_astra_alone_at_4": 0.10666666666666667,
+          "C_astra_alone_at_4_ci95": [
+            0.05844155844155844,
+            0.1610738255033557
+          ],
           "C_ci95": [
             0.07685810810810811,
             0.18009868421052633
           ],
           "C_cross_alone_at_4": 0.10933333333333335,
+          "C_cross_alone_at_4_ci95": [
+            0.06785714285714287,
+            0.15444343629343624
+          ],
           "P": 0.3401515151515152,
           "P_astra_alone_at_4": 0.32727272727272727,
+          "P_astra_alone_at_4_ci95": [
+            0.20909090909090908,
+            0.45045045045045046
+          ],
           "P_ci95": [
             0.22446867321867323,
             0.45945997603107697
           ],
           "P_cross_alone_at_4": 0.21220779220779215,
+          "P_cross_alone_at_4_ci95": [
+            0.13010049113103184,
+            0.3000031887755102
+          ],
           "per_family": 2,
           "total_draws": 4
         },
@@ -727,12 +759,20 @@
             0.19302721088435373
           ],
           "C_cross_alone_at_6": 0.13738095238095238,
+          "C_cross_alone_at_6_ci95": [
+            0.08663327714718708,
+            0.1918186691895301
+          ],
           "P": 0.35568181818181815,
           "P_ci95": [
             0.24211532555282556,
             0.4736238532110092
           ],
           "P_cross_alone_at_6": 0.26006493506493505,
+          "P_cross_alone_at_6_ci95": [
+            0.16795366795366795,
+            0.3587516087516088
+          ],
           "per_family": 3,
           "total_draws": 6
         },
@@ -743,12 +783,20 @@
             0.2038247988602078
           ],
           "C_cross_alone_at_8": 0.16,
+          "C_cross_alone_at_8_ci95": [
+            0.10204081632653061,
+            0.22448979591836735
+          ],
           "P": 0.36818181818181817,
           "P_ci95": [
             0.25229357798165136,
             0.481981981981982
           ],
           "P_cross_alone_at_8": 0.3,
+          "P_cross_alone_at_8_ci95": [
+            0.2,
+            0.40540540540540543
+          ],
           "per_family": 4,
           "total_draws": 8
         }
@@ -817,14 +865,30 @@
             0.3150034496753246
           ],
           "C_cross_alone_at_2": 0.0707142857142857,
+          "C_cross_alone_at_2_ci95": [
+            0.041747025898811616,
+            0.10338755866175496
+          ],
           "C_self_alone_at_2": 0.22595238095238096,
+          "C_self_alone_at_2_ci95": [
+            0.15952340733590734,
+            0.29722166223260715
+          ],
           "P": 0.2134943181818182,
           "P_ci95": [
             0.125,
             0.31124441964285715
           ],
           "P_cross_alone_at_2": 0.14967532467532468,
+          "P_cross_alone_at_2_ci95": [
+            0.08526074703530061,
+            0.2261931818181818
+          ],
           "P_self_alone_at_2": 0.15876623376623378,
+          "P_self_alone_at_2_ci95": [
+            0.07366071428571429,
+            0.2567405354079882
+          ],
           "per_family": 1,
           "total_draws": 2
         },
@@ -835,14 +899,30 @@
             0.33976114273059793
           ],
           "C_cross_alone_at_4": 0.10933333333333335,
+          "C_cross_alone_at_4_ci95": [
+            0.06785714285714287,
+            0.15444343629343624
+          ],
           "C_self_alone_at_4": 0.2319047619047619,
+          "C_self_alone_at_4_ci95": [
+            0.1655838780424873,
+            0.30260681263970735
+          ],
           "P": 0.2513798701298701,
           "P_ci95": [
             0.15727105556162327,
             0.353950369927214
           ],
           "P_cross_alone_at_4": 0.21220779220779215,
+          "P_cross_alone_at_4_ci95": [
+            0.13010049113103184,
+            0.3000031887755102
+          ],
           "P_self_alone_at_4": 0.16363636363636364,
+          "P_self_alone_at_4_ci95": [
+            0.07657657657657657,
+            0.2633989448051947
+          ],
           "per_family": 2,
           "total_draws": 4
         },
@@ -853,14 +933,30 @@
             0.35755985464739437
           ],
           "C_cross_alone_at_6": 0.13738095238095238,
+          "C_cross_alone_at_6_ci95": [
+            0.08663327714718708,
+            0.1918186691895301
+          ],
           "C_self_alone_at_6": 0.23642857142857143,
+          "C_self_alone_at_6_ci95": [
+            0.1677581689669379,
+            0.3091216216216216
+          ],
           "P": 0.28183847402597406,
           "P_ci95": [
             0.18394886363636365,
             0.38354792800105303
           ],
           "P_cross_alone_at_6": 0.26006493506493505,
+          "P_cross_alone_at_6_ci95": [
+            0.16795366795366795,
+            0.3587516087516088
+          ],
           "P_self_alone_at_6": 0.16818181818181818,
+          "P_self_alone_at_6_ci95": [
+            0.08027522935779817,
+            0.27045454545454545
+          ],
           "per_family": 3,
           "total_draws": 6
         },
@@ -871,14 +967,30 @@
             0.37291535973027373
           ],
           "C_cross_alone_at_8": 0.16,
+          "C_cross_alone_at_8_ci95": [
+            0.10204081632653061,
+            0.22448979591836735
+          ],
           "C_self_alone_at_8": 0.24,
+          "C_self_alone_at_8_ci95": [
+            0.17197452229299362,
+            0.3129251700680272
+          ],
           "P": 0.30733766233766235,
           "P_ci95": [
             0.20751930501930502,
             0.41345384345384345
           ],
           "P_cross_alone_at_8": 0.3,
+          "P_cross_alone_at_8_ci95": [
+            0.2,
+            0.40540540540540543
+          ],
           "P_self_alone_at_8": 0.17272727272727273,
+          "P_self_alone_at_8_ci95": [
+            0.08181818181818182,
+            0.27522935779816515
+          ],
           "per_family": 4,
           "total_draws": 8
         }
@@ -901,20 +1013,44 @@
         "3": {
           "C": 0.2965625,
           "C_astra_alone_at_3": 0.105,
+          "C_astra_alone_at_3_ci95": [
+            0.05718954248366013,
+            0.16
+          ],
           "C_ci95": [
             0.22598620143676856,
             0.3715625
           ],
           "C_cross_alone_at_3": 0.09178571428571428,
+          "C_cross_alone_at_3_ci95": [
+            0.05587910477897722,
+            0.13127413127413126
+          ],
           "C_self_alone_at_3": 0.22928571428571426,
+          "C_self_alone_at_3_ci95": [
+            0.16277669335836095,
+            0.29833420056764426
+          ],
           "P": 0.37528409090909093,
           "P_astra_alone_at_3": 0.325,
+          "P_astra_alone_at_3_ci95": [
+            0.20681818181818182,
+            0.4477390458640457
+          ],
           "P_ci95": [
             0.258920380078637,
             0.49799311926605505
           ],
           "P_cross_alone_at_3": 0.18327922077922076,
+          "P_cross_alone_at_3_ci95": [
+            0.10945610789360788,
+            0.2643203614820587
+          ],
           "P_self_alone_at_3": 0.16136363636363638,
+          "P_self_alone_at_3_ci95": [
+            0.0768348623853211,
+            0.25795454545454544
+          ],
           "per_family": 1,
           "total_draws": 3
         },
@@ -925,14 +1061,30 @@
             0.3886710957879392
           ],
           "C_cross_alone_at_6": 0.13738095238095238,
+          "C_cross_alone_at_6_ci95": [
+            0.08663327714718708,
+            0.1918186691895301
+          ],
           "C_self_alone_at_6": 0.23642857142857143,
+          "C_self_alone_at_6_ci95": [
+            0.1677581689669379,
+            0.3091216216216216
+          ],
           "P": 0.4057359307359307,
           "P_ci95": [
             0.285273439023439,
             0.5302546268715994
           ],
           "P_cross_alone_at_6": 0.26006493506493505,
+          "P_cross_alone_at_6_ci95": [
+            0.16795366795366795,
+            0.3587516087516088
+          ],
           "P_self_alone_at_6": 0.16818181818181818,
+          "P_self_alone_at_6_ci95": [
+            0.08027522935779817,
+            0.27045454545454545
+          ],
           "per_family": 2,
           "total_draws": 6
         },
@@ -955,36 +1107,68 @@
         "2": {
           "C": 0.2833333333333333,
           "C_astra_alone_at_2": 0.10222222222222223,
+          "C_astra_alone_at_2_ci95": [
+            0.0547945205479452,
+            0.15452538631346577
+          ],
           "C_ci95": [
             0.21333333333333335,
             0.35811094231815704
           ],
           "C_self_alone_at_2": 0.22595238095238096,
+          "C_self_alone_at_2_ci95": [
+            0.15952340733590734,
+            0.29722166223260715
+          ],
           "P": 0.36477272727272725,
           "P_astra_alone_at_2": 0.31969696969696976,
+          "P_astra_alone_at_2_ci95": [
+            0.2018348623853211,
+            0.44196428571428575
+          ],
           "P_ci95": [
             0.2476593501984127,
             0.48986712717181463
           ],
           "P_self_alone_at_2": 0.15876623376623378,
+          "P_self_alone_at_2_ci95": [
+            0.07366071428571429,
+            0.2567405354079882
+          ],
           "per_family": 1,
           "total_draws": 2
         },
         "4": {
           "C": 0.2948412698412699,
           "C_astra_alone_at_4": 0.10666666666666667,
+          "C_astra_alone_at_4_ci95": [
+            0.05844155844155844,
+            0.1610738255033557
+          ],
           "C_ci95": [
             0.2195589645254075,
             0.37092762950422414
           ],
           "C_self_alone_at_4": 0.2319047619047619,
+          "C_self_alone_at_4_ci95": [
+            0.1655838780424873,
+            0.30260681263970735
+          ],
           "P": 0.3852813852813853,
           "P_astra_alone_at_4": 0.32727272727272727,
+          "P_astra_alone_at_4_ci95": [
+            0.20909090909090908,
+            0.45045045045045046
+          ],
           "P_ci95": [
             0.26126126126126126,
             0.512348434744268
           ],
           "P_self_alone_at_4": 0.16363636363636364,
+          "P_self_alone_at_4_ci95": [
+            0.07657657657657657,
+            0.2633989448051947
+          ],
           "per_family": 2,
           "total_draws": 4
         },
@@ -995,12 +1179,20 @@
             0.37928094422700587
           ],
           "C_self_alone_at_6": 0.23642857142857143,
+          "C_self_alone_at_6_ci95": [
+            0.1677581689669379,
+            0.3091216216216216
+          ],
           "P": 0.39204545454545453,
           "P_ci95": [
             0.26869158878504673,
             0.5196907845345343
           ],
           "P_self_alone_at_6": 0.16818181818181818,
+          "P_self_alone_at_6_ci95": [
+            0.08027522935779817,
+            0.27045454545454545
+          ],
           "per_family": 3,
           "total_draws": 6
         },
@@ -1011,12 +1203,20 @@
             0.3838155577299412
           ],
           "C_self_alone_at_8": 0.24,
+          "C_self_alone_at_8_ci95": [
+            0.17197452229299362,
+            0.3129251700680272
+          ],
           "P": 0.39545454545454545,
           "P_ci95": [
             0.2702702702702703,
             0.5225225225225225
           ],
           "P_self_alone_at_8": 0.17272727272727273,
+          "P_self_alone_at_8_ci95": [
+            0.08181818181818182,
+            0.27522935779816515
+          ],
           "per_family": 4,
           "total_draws": 8
         }
@@ -1868,6 +2068,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.125,
             "difference": 0.125,
+            "exact_unconditional_ci95": [
+              -0.035714276134967804,
+              0.2683457061648369
+            ],
             "flagged_cross-loop": 3,
             "flagged_referent-loop": 10,
             "n": 56,
@@ -1904,6 +2108,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.26785714285714285,
             "difference": 0.26785714285714285,
+            "exact_unconditional_ci95": [
+              0.06250002980232236,
+              0.43749996913330896
+            ],
             "flagged_cross-loop": 10,
             "flagged_referent-loop": 25,
             "n": 56,
@@ -1940,6 +2148,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.19642857142857142,
             "difference": 0.19642857142857142,
+            "exact_unconditional_ci95": [
+              0.08035716840199061,
+              0.2991071247628757
+            ],
             "flagged_cross-loop": 13,
             "flagged_referent-loop": 35,
             "n": 112,
@@ -2018,6 +2230,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.17857142857142858,
             "difference": 0.17857142857142858,
+            "exact_unconditional_ci95": [
+              -0.01641250933919633,
+              0.34821424526827677
+            ],
             "flagged_cross-loop": 3,
             "flagged_self-loop": 13,
             "n": 56,
@@ -2054,6 +2270,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.0,
             "difference": 0.0,
+            "exact_unconditional_ci95": [
+              -0.1875,
+              0.1875
+            ],
             "flagged_cross-loop": 10,
             "flagged_self-loop": 10,
             "n": 56,
@@ -2090,6 +2310,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.08928571428571429,
             "difference": 0.08928571428571429,
+            "exact_unconditional_ci95": [
+              -0.03571426655564988,
+              0.2053571087973458
+            ],
             "flagged_cross-loop": 13,
             "flagged_self-loop": 23,
             "n": 112,
@@ -2168,6 +2392,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.0,
             "difference": 0.0,
+            "exact_unconditional_ci95": [
+              -0.10714280605316162,
+              0.10714280605316162
+            ],
             "flagged_self-loop": 13,
             "flagged_self-loop-rep": 13,
             "n": 56,
@@ -2202,6 +2430,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.0,
             "difference": 0.0,
+            "exact_unconditional_ci95": [
+              -0.10714280605316162,
+              0.10714280605316162
+            ],
             "flagged_self-loop": 10,
             "flagged_self-loop-rep": 10,
             "n": 56,
@@ -2236,6 +2468,10 @@
             "ci95_method": "percentile bootstrap over problem clusters, 10000 resamples, seed 20260908 \u2014 PRIMARY",
             "delta": 0.0,
             "difference": 0.0,
+            "exact_unconditional_ci95": [
+              -0.05357140302658081,
+              0.05357140302658081
+            ],
             "flagged_self-loop": 23,
             "flagged_self-loop-rep": 23,
             "n": 112,
@@ -2415,8 +2651,19 @@
           ]
         },
         "union_registered": {
+          "cluster_ci95": [
+            0.20909090909090908,
+            0.45454545454545453
+          ],
           "k": 36,
-          "n": 110
+          "n": 110,
+          "n_problems": 56,
+          "note": "cluster_ci95 is the primary interval; Wilson assumes instances are independent and they are not where a problem supplies two",
+          "rate": 0.32727272727272727,
+          "wilson95": [
+            0.24671132610522006,
+            0.4194911242705093
+          ]
         }
       },
       "cross": {
@@ -2437,8 +2684,19 @@
           ]
         },
         "union_registered": {
+          "cluster_ci95": [
+            0.2,
+            0.40540540540540543
+          ],
           "k": 33,
-          "n": 110
+          "n": 110,
+          "n_problems": 56,
+          "note": "cluster_ci95 is the primary interval; Wilson assumes instances are independent and they are not where a problem supplies two",
+          "rate": 0.3,
+          "wilson95": [
+            0.22229896444649316,
+            0.39119860967277237
+          ]
         }
       },
       "self": {
@@ -2459,8 +2717,19 @@
           ]
         },
         "union_registered": {
+          "cluster_ci95": [
+            0.08181818181818182,
+            0.2727272727272727
+          ],
           "k": 19,
-          "n": 110
+          "n": 110,
+          "n_problems": 56,
+          "note": "cluster_ci95 is the primary interval; Wilson assumes instances are independent and they are not where a problem supplies two",
+          "rate": 0.17272727272727273,
+          "wilson95": [
+            0.11345918160580955,
+            0.2540823033166252
+          ]
         }
       }
     },
@@ -2483,8 +2752,19 @@
       ]
     },
     "residual_registered": {
+      "cluster_ci95": [
+        0.4036697247706422,
+        0.6355140186915887
+      ],
       "k": 57,
-      "n": 110
+      "n": 110,
+      "n_problems": 56,
+      "note": "cluster_ci95 is the primary interval; Wilson assumes instances are independent and they are not where a problem supplies two",
+      "rate": 0.5181818181818182,
+      "wilson95": [
+        0.4257793754404014,
+        0.6093572087305745
+      ]
     },
     "timeout_instances": [
       "b1:HumanEval/163",

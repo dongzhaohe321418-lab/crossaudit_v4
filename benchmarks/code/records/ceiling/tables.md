@@ -56,10 +56,10 @@ Unit of analysis: the instance; the same instances at every K, so the columns ar
 
 K_common = 8 draws per family. Positive means the generator's own model can ultimately see more of its own defects than a stranger can. Interval: 95% percentile bootstrap over problem clusters, both curves resampled together.
 
-| stratum | n instances | A(cross) | A(self) | A(self) − A(cross) [95% CI] | raw union difference at K_common [95% CI] |
-|---|---:|---:|---:|---|---|
-| P | 110 | 31.5% | 16.6% | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
-| C | 150 | 18.6% | 23.4% | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
+| stratum | n instances | A(cross) [95% CI] | A(self) [95% CI] | A(self) − A(cross) [95% CI] | raw union difference at K_common [95% CI] |
+|---|---:|---|---|---|---|
+| P | 110 | 31.5% [21.7, 45.6] | 16.6% [8.1, 26.3] | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
+| C | 150 | 18.6% [11.6, 29.1] | 23.4% [16.8, 30.6] | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
 
 ### Table 4 — mixed families at matched total draws
 
@@ -67,26 +67,26 @@ Unit of analysis: the instance. Each row spends the same total number of reading
 
 | combination | total draws | per family | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | same total inside one family (recall) |
 |---|---:|---:|---|---|---|
-| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0%; `self` 15.9% |
-| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2%; `self` 16.4% |
-| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0%; `self` 16.8% |
-| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0%; `self` 17.3% |
+| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0% [8.5, 22.6]; `self` 15.9% [7.4, 25.7] |
+| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2% [13.0, 30.0]; `self` 16.4% [7.7, 26.3] |
+| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0% [16.8, 35.9]; `self` 16.8% [8.0, 27.0] |
+| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0% [20.0, 40.5]; `self` 17.3% [8.2, 27.5] |
 | `cross+self` | 10 | 5 | 32.9% [22.5, 43.8] | 31.1% [23.9, 38.5] | — |
 | `cross+self` | 12 | 6 | 34.8% [24.3, 45.9] | 32.2% [24.9, 39.8] | — |
 | `cross+self` | 14 | 7 | 36.6% [25.8, 47.9] | 33.2% [25.7, 41.1] | — |
 | `cross+self` | 16 | 8 | 38.2% [27.3, 49.5] | 34.0% [26.3, 42.0] | — |
-| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
-| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0%; `self` 16.8% |
+| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3% [10.9, 26.4]; `self` 16.1% [7.7, 25.8]; `astra` 32.5% [20.7, 44.8] |
+| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0% [16.8, 35.9]; `self` 16.8% [8.0, 27.0] |
 | `cross+self+astra` | 9 | 3 | 42.3% [30.4, 54.5] | 32.4% [25.0, 40.3] | — |
 | `cross+self+astra` | 12 | 4 | 43.6% [31.7, 55.6] | 33.4% [26.1, 41.2] | — |
-| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0%; `astra` 32.0% |
-| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2%; `astra` 32.7% |
-| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% |
-| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% |
-| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9%; `astra` 32.0% |
-| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4%; `astra` 32.7% |
-| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% |
-| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% |
+| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0% [8.5, 22.6]; `astra` 32.0% [20.2, 44.2] |
+| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2% [13.0, 30.0]; `astra` 32.7% [20.9, 45.0] |
+| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% [16.8, 35.9] |
+| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% [20.0, 40.5] |
+| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9% [7.4, 25.7]; `astra` 32.0% [20.2, 44.2] |
+| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4% [7.7, 26.3]; `astra` 32.7% [20.9, 45.0] |
+| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% [8.0, 27.0] |
+| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% [8.2, 27.5] |
 
 ### Table 5 — the residual: stratum-P defects no draw ever flagged
 
@@ -103,10 +103,10 @@ Categories and their order were fixed in the preregistration (§1.5) before the 
 |---|---:|---|---:|---|---|
 | broker_families_only | 68 (40) | `unexercised-edge` | 55 | **80.9%** [67.6, 92.5] | [70.0, 88.5] |
 | broker_families_only | 68 (40) | `spec-misreading` | 8 | **11.8%** [2.9, 23.0] | [6.1, 21.5] |
-| broker_families_only | 68 (40) | `timeout` | 5 | **7.4%** [0.0, 16.7] | [3.2, 16.1] |
+| broker_families_only | 68 (40) | `timeout` | 5 | **5 of 68** — quoted as a count, not a rate | — |
 | all_families | 57 (34) | `unexercised-edge` | 46 | **80.7%** [66.1, 93.1] | [68.7, 88.9] |
 | all_families | 57 (34) | `spec-misreading` | 8 | **14.0%** [3.4, 26.9] | [7.3, 25.3] |
-| all_families | 57 (34) | `timeout` | 3 | **5.3%** [0.0, 14.0] | [1.8, 14.4] |
+| all_families | 57 (34) | `timeout` | 3 | **3 of 57** — quoted as a count, not a rate | — |
 
 ### Table 6 — ceiling 2: the closed loop, per arm
 
@@ -154,12 +154,12 @@ The mechanism behind any net effect. On stratum P a flag is a defect caught; on 
 
 The registered population is every hidden-suite non-pass, which **includes 7 instances whose suite did not terminate**. This table narrows it to instances with an observed assertion failure. The registered analysis is unchanged; this is a sensitivity check, and it is EXPLORATORY.
 
-| family | union recall, registered P (n = 110) | union recall, assertion-failure P only (n = 103) [95% Wilson] |
-|---|---:|---|
-| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [20.4, 42.2] |
-| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [7.8, 27.9] |
-| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [20.4, 45.6] |
-| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [40.4, 64.4] |
+| family | union recall, registered P (n = 110) [95% cluster CI] | union recall, assertion-failure P only (n = 103) [95% cluster CI] | [95% Wilson, too narrow] |
+|---|---|---|---|
+| `cross` (K = 8) | 33/110 (30.0%) [20.0, 40.5] | **32/103** (31.1%) [20.4, 42.2] | [22.9, 40.5] |
+| `self` (K = 8) | 19/110 (17.3%) [8.2, 27.3] | **18/103** (17.5%) [7.8, 27.9] | [11.3, 25.9] |
+| `astra` (K = 4) | 36/110 (32.7%) [20.9, 45.5] | **34/103** (33.0%) [20.4, 45.6] | [24.7, 42.6] |
+| **residual (never flagged)** | 57/110 (51.8%) [40.4, 63.6] | **54/103** (52.4%) [40.4, 64.4] | [42.9, 61.8] |
 
 The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
 

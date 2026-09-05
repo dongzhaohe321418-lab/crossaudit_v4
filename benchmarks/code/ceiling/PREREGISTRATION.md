@@ -543,22 +543,39 @@ reproduced before anything was changed.
 nuisance parameter `q = p_c` above by `(1 − |δ|)/2`. The feasible region is
 `max(0, −δ) ≤ q ≤ (1 − δ)/2`. The two agree for `δ ≥ 0` and diverge for `δ < 0`, so the
 implementations were correct in the direction this study's own results happen to point and
-wrong in the other: measured coverage **0.960 beneficial, 0.075 detrimental**. Corrected;
-detrimental coverage is now 0.953 and 0.984.
+wrong in the other. Measured for the **exact grid** interval: **0.960 under
+`D ~ Bin(112, 0.1)` (all beneficial) against 0.075 under `C ~ Bin(112, 0.5)` (all
+detrimental)**. Corrected; detrimental coverage is now **0.953 (Tango) and 0.984 (exact
+grid)**.
 
 **The overstatement.** Amendment 4 said the primary bootstrap had 0.95 nominal coverage and
 that the exact check "never under-covers". Measured at this study's own n = 112:
 
-| method | beneficial | detrimental |
+| method | beneficial: `D ~ Bin(112, 0.1)`, δ = +0.10 | detrimental: `C ~ Bin(112, 0.5)`, δ = −0.50 |
 |---|---:|---:|
-| withdrawn conditional | 0.416 | — |
-| **primary: problem-cluster bootstrap** | **0.924** | 0.924 |
+| withdrawn conditional | 0.416 | not computed |
+| **primary: problem-cluster bootstrap (idealised)** | **0.924** | **0.953** |
 | Tango score | 0.960 | 0.953 |
 | exact unconditional, grid-approximated | 0.997 | 0.984 |
 
-**Every interval in this study is therefore about 2 to 5 points optimistic**, and the report
-says so. The exact check is grid-approximated over 41 nuisance points with no bound on the
-missed supremum; it is not a proven exact interval and is no longer described as one.
+*Corrected 2026-09-06 after the third review: an earlier version of this table gave the
+detrimental bootstrap figure as 0.924, which is the beneficial scenario's number. The two
+scenarios are different and their values are not interchangeable.*
+
+**What this does and does not license.** These are coverage figures for two estimands in two
+scenarios with independent instances. **The coverage of the primary interval under this
+study's actual clustered design is unvalidated.** An earlier version of this amendment said
+"every interval in this study is therefore about 2 to 5 points optimistic"; that was a
+generalisation the evidence does not support and it is withdrawn. What can be said: the
+idealised bootstrap under-covers in the beneficial scenario (0.924 against 0.95); the two
+checks do not under-cover in either scenario tested; and no scenario tested reproduces the
+clustered design actually used.
+
+The exact check is grid-approximated over 41 nuisance points with no bound on the missed
+supremum; it is not a proven exact interval and is no longer described as one. Its 0.984 is
+coverage of the intervals the function *returns*, and is sensitive to inward endpoint
+rounding: at (0, 44, 112) the grid test accepts δ = −0.5 but bisection returns
+−0.499999993614, which excludes it; counting that as covered gives 0.9895.
 
 **What does not change.** No arm, no sample, no draw, no primary outcome, no kill condition,
 **and no point estimate**. No result in this study is affected by the nuisance-bound defect:

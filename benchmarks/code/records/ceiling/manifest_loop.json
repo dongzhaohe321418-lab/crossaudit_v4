@@ -12,6 +12,18 @@
     "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval"
   },
   "arm_ledger_events_not_in_any_window": {
+    "by_run_id": {
+      "ceiling-loop-probe": 2,
+      "ceiling-loop-self-loop-a0": 2,
+      "ceiling-loop-self-loop-a1": 2,
+      "ceiling-loop-self-loop-a2": 2,
+      "ceiling-loop-self-loop-a3": 2,
+      "ceiling-loop-self-loop-a4": 2,
+      "ceiling-loop-self-loop-a5": 2,
+      "ceiling-loop-self-loop-a6": 2,
+      "ceiling-loop-self-loop-a7": 2,
+      "ceiling-loop-self-loop-revise": 6
+    },
     "by_run_id_prefix": {
       "ceiling-loop": 2,
       "ceiling-loop-self-loop": 22
@@ -127,9 +139,9 @@
   "code": {
     "commit": "b68e7fa50120450b1f38297462386e88b90a7365",
     "files": {
-      "benchmarks/code/ceiling/PREREGISTRATION.md": "c137a686b4dd7c16b76e3a400c491cd79aa6cfb3af12b919cbb1df143b95a518",
+      "benchmarks/code/ceiling/PREREGISTRATION.md": "75b5617e5b920260968e55c29ffd3ae95c35c95145a19330591e7f0c12cfe60c",
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
-      "benchmarks/code/report_ceiling.py": "ed4460a84741017c046dd9f8d7db480177041e9a347f5e2f76a7d13b3e08029b"
+      "benchmarks/code/report_ceiling.py": "bf06b09e4956891c877b778ea740d06d135616a00b1714226f3e461319820e4a"
     },
     "status_porcelain": " M benchmarks/code/loop.py\n?? benchmarks/code/ceiling/archive.sh\n?? benchmarks/code/records/ceiling/\n"
   },
@@ -144,9 +156,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_at_commit": "f7f515ef848c4443e7a40588cb592094b6c2ea01",
-  "finalised_on_parent_commit": "4657e7fe7aa5ea62dc02f84070828ba9f8cb7d7e",
-  "finalised_utc": "2026-09-05T15:56:17Z",
+  "finalised_on_parent_commit": "d9bf61efd8786779ae0d22ae470641bae43c8800",
+  "finalised_utc": "2026-09-05T17:12:12Z",
   "package_versions": {
     "anthropic": "not installed",
     "certifi": "2026.7.22",
@@ -820,6 +831,12 @@
   },
   "spend_usd_total": 3.708342,
   "study": "ceiling (study 8), ceiling 2 \u2014 the closed loop",
-  "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is the commit this file records above, whose tree is clean.",
+  "superseded_fields_removed": {
+    "fields": [
+      "working_tree_at_freeze"
+    ],
+    "why": "written by an earlier finalisation and contradicted by the fields that replaced them (analysis_freeze, provenance_note). Removed rather than left in place; the third cross-vendor review found them still present and reported as renamed when they were not."
+  },
+  "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is defined in the `analysis_freeze` field of this manifest, which says how to locate it and what to verify; it is NOT the parent commit recorded in `finalised_on_parent_commit`.",
   "written_utc": "2026-09-05T10:46:08Z"
 }

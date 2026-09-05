@@ -1,7 +1,8 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Third version.** Two independent cross-vendor reviews have read this study and both
-> refused quotation approval. Round 1 found that the headline's "95% exact" interval had
+> **Fourth version.** Three independent cross-vendor reviews have read this study. Rounds 1
+> and 2 refused quotation approval; **round 3 approved it subject to the corrections made
+> here**, all of which are reporting corrections — no analysis changed. Round 1 found that the headline's "95% exact" interval had
 > 0.416 coverage. Round 2 found that **its replacement was also wrong** — both check
 > intervals bounded the nuisance parameter by `(1 − |δ|)/2` instead of `(1 − δ)/2`, which
 > is correct only for a non-negative difference and gave 0.075 coverage in the other
@@ -23,14 +24,26 @@ problems)**. It repaired 3 of 56 wrong solutions and broke 2 of 56 correct ones.
 preregistered kill condition fires under every one of those intervals**: all four contain
 zero.
 
+> **The sentence to carry away.** Self-audit changed accuracy by +0.89 percentage points
+> (problem-cluster percentile interval −3.54 to +5.88; 112 instances from 96 problems),
+> establishing no improvement; the interval method was changed after analysis, its coverage
+> in this clustered design is unvalidated, and modest benefits remain compatible with the
+> data.
+
 **What that does and does not mean.** The intervals contain zero on *both* sides, so this
 is an inconclusive result, not a demonstration of no effect. At n = 112, with the
 worsening rate held at the observed 2/112, the two-sided exact McNemar test had power
 **0.32 against a true +5-point improvement, 0.60 against +7.5, and 0.81 against +10**. So
-the study could have detected a large effect and did not; it could not have detected a
-small one either way. **"Self-audit does not raise accuracy" is not what these data
-support. "No improvement was established, and an improvement below about 7 points would
-probably have been missed" is.**
+the study could have detected a large effect and did not; it had **limited power to detect
+small effects** — 0.32 at +5 points is limited, not zero. **"Self-audit does not raise
+accuracy" is not what these data support. "No improvement was established, and an
+improvement below about 7 points would probably have been missed" is.**
+
+*The power model, stated because a power figure without its model is meaningless:* 112
+**independent** multinomial pairs, worsening probability fixed at 2/112 and improvement
+probability 2/112 + δ, so total discordance varies with δ rather than being held at the
+observed 5/112. **It is an instance-independent McNemar calculation and is not a power
+calculation for the clustered procedure this study actually reports.**
 
 Four further results, in the order they matter.
 
@@ -65,7 +78,7 @@ two-thirds of the false-positive cost** (30.0% at 16.0%).
 The largest effect measured anywhere in this study came from changing what the auditor was
 told to look for. One added constitution rule — *find what the visible tests do not cover* —
 moved flags on the defect population from 10 of 56 to 25 of 56: **+26.8 points, cluster CI
-[13.6, 40.4], exact unconditional [+6.3, +43.8], McNemar p = 0.0003, cluster sign-flip
+[13.6, 40.4], exact unconditional [+6.3, +43.7], McNemar p = 0.0003, cluster sign-flip
 p = 0.0009**. **Two contrasts in this study clear the Bonferroni threshold over the sixteen
 comparisons actually computed, and both are this same effect seen two ways**: referent
 against cross on stratum-P flags (+26.8 points, p = 2.7 × 10⁻⁴, cluster p = 8.5 × 10⁻⁴) and
@@ -85,8 +98,8 @@ title says "did the most", not "works".
 **3. Half the defects were flagged by no reading of any family.** **57 of 110 defective
 solutions (51.8%, cluster CI [40.0, 63.3]) were flagged by no reading of any family** — 20
 readings, three models, two vendors, one frontier route. Classified by hand under a rule
-fixed before the first was opened, **46 of those 57 (80.7% [68.7, 88.9]) fail only on an
-input class the visible test suite never constructs**: the empty list, the negative number,
+fixed before the first was opened, **46 of those 57 (80.7%, problem-cluster CI [66.1, 93.1], seed 20260919) fail
+only on an input class the visible test suite never constructs**: the empty list, the negative number,
 the two-digit case, the ragged input, the punctuation character. **That is the shape of what
 was missed.** A model shown a specification and a test suite has no evidence in front of it
 that those classes never appear in what the readers were shown. **This is a statement about the
@@ -128,6 +141,22 @@ corrected report.
 **What did not change: any point estimate.** The asymptotes, the union curves, the primary
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
+
+### What the third review changed
+
+Round 3 reproduced everything — five sign-symmetry triples to 5.6 × 10⁻¹⁷, all 143
+pre-existing interval arrays, 90 added cluster intervals, the power curve, the two
+survivors, the provenance freeze, byte-identical regeneration — and approved quotation
+subject to six reporting corrections. All six reproduced here first.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | Detrimental bootstrap coverage stated as 0.924; it is **0.953** (0.924 is the sign-reversed beneficial scenario). The blanket "every interval is 2–5 points optimistic" is unsupported. The exact grid's 0.984 depends on inward endpoint rounding | bootstrap 0.923731894539 / 0.953264931806; at (0,44,112) bisection returns **−0.499999993614**, excluding −0.5 | Coverage table rewritten **by method × scenario**; the blanket claim withdrawn and replaced with "coverage under the actual clustered design is **unvalidated**"; the endpoint effect stated with its 0.9895 alternative; the 0.960/0.075 comparison now names its method and both scenarios. A detrimental-direction case added to the bootstrap coverage test |
+| 2 | Opening still gave 46/57 as Wilson; Table 9 labelled cluster intervals "Wilson"; Tables 3, 4, 9, opening and conclusion rates lacked intervals; 3/57 shown as 5.3% | seed 20260919 gives [66.1, 93.1]; seed 20260908 gives [66.7, 93.1] | Opening uses the clustered interval **with its seed named**; Table 9 relabelled with Wilson printed beside; intervals added to Table 3's component asymptotes, Table 4's comparators, Table 9's registered rates, and the opening and conclusion; categories under 6 quoted **as counts** |
+| 3 | "Could not have detected a small one either way" overstates; the power model was not fully specified | power 0.32 at +5 pp is limited, not zero | Reworded to **"limited power to detect small effects"**; the model is now stated in full — 112 **independent** multinomial pairs, worsening fixed at 2/112, improvement 2/112 + δ — with an explicit note that **it is not a power calculation for the clustered procedure** |
+| 4 | Both manifests still carried `finalised_at_commit: f7f515e…` beside the corrective block; 24 unmatched stamps counted by prefix only | verified | Superseded fields **removed**, with a `superseded_fields_removed` record saying why; the dangling "records above" reference repointed at `analysis_freeze`; all 24 unmatched events **enumerated individually** (2 probes, 16 pilot audits, 6 pilot revisions) |
+| 5 | **The consistency guard did not bite**: mutating an interval by 0.01 left it green, and `[−99.99, +99.99]` in the headline passed | all four of the reviewer's mutations reproduced as false passes | Guard rewritten: parses `−`/`-`/`+`, compares **at displayed precision with zero tolerance**, and **binds the headline and primary spans to their estimands**. The five mutations now all go red, and **the mutation is committed as a test of the test**. Rewriting it immediately caught two live errors: a prose interval of `[+6.3, +43.8]` where the record says **+43.7**, and a flag contrast whose exact interval was quoted but never stored |
+| 6 | `.gitignore` also changed; the threshold appears once live and once historically | verified | Both stated |
 
 ### What the second review changed
 
@@ -232,36 +261,36 @@ Unit of analysis: the instance; the same instances at every K, so the columns ar
 
 K_common = 8 draws per family. Positive means the generator's own model can ultimately see more of its own defects than a stranger can. Interval: 95% percentile bootstrap over problem clusters, both curves resampled together.
 
-| stratum | n instances | A(cross) | A(self) | A(self) − A(cross) [95% CI] | raw union difference at K_common [95% CI] |
-|---|---:|---:|---:|---|---|
-| P | 110 | 31.5% | 16.6% | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
-| C | 150 | 18.6% | 23.4% | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
+| stratum | n instances | A(cross) [95% CI] | A(self) [95% CI] | A(self) − A(cross) [95% CI] | raw union difference at K_common [95% CI] |
+|---|---:|---|---|---|---|
+| P | 110 | 31.5% [21.7, 45.6] | 16.6% [8.1, 26.3] | **-14.9%** [-32.1, -2.3] | -12.7% [-25.0, -0.9] |
+| C | 150 | 18.6% [11.6, 29.1] | 23.4% [16.8, 30.6] | **4.8%** [-7.6, 14.3] | 8.0% [-0.7, 16.8] |
 ### Table 4 — mixed families at matched total draws
 
 Unit of analysis: the instance. Each row spends the same total number of readings; the question is whether spreading them across families beats spending them all inside one.
 
 | combination | total draws | per family | union recall on P [95% cluster CI] | union FP on C [95% cluster CI] | same total inside one family (recall) |
 |---|---:|---:|---|---|---|
-| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0%; `self` 15.9% |
-| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2%; `self` 16.4% |
-| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0%; `self` 16.8% |
-| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0%; `self` 17.3% |
+| `cross+self` | 2 | 1 | 21.3% [12.5, 31.1] | 24.6% [18.2, 31.5] | `cross` 15.0% [8.5, 22.6]; `self` 15.9% [7.4, 25.7] |
+| `cross+self` | 4 | 2 | 25.1% [15.7, 35.4] | 26.9% [20.0, 34.0] | `cross` 21.2% [13.0, 30.0]; `self` 16.4% [7.7, 26.3] |
+| `cross+self` | 6 | 3 | 28.2% [18.4, 38.4] | 28.5% [21.6, 35.8] | `cross` 26.0% [16.8, 35.9]; `self` 16.8% [8.0, 27.0] |
+| `cross+self` | 8 | 4 | 30.7% [20.8, 41.3] | 29.9% [23.1, 37.3] | `cross` 30.0% [20.0, 40.5]; `self` 17.3% [8.2, 27.5] |
 | `cross+self` | 10 | 5 | 32.9% [22.5, 43.8] | 31.1% [23.9, 38.5] | — |
 | `cross+self` | 12 | 6 | 34.8% [24.3, 45.9] | 32.2% [24.9, 39.8] | — |
 | `cross+self` | 14 | 7 | 36.6% [25.8, 47.9] | 33.2% [25.7, 41.1] | — |
 | `cross+self` | 16 | 8 | 38.2% [27.3, 49.5] | 34.0% [26.3, 42.0] | — |
-| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3%; `self` 16.1%; `astra` 32.5% |
-| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0%; `self` 16.8% |
+| `cross+self+astra` | 3 | 1 | 37.5% [25.9, 49.8] | 29.7% [22.6, 37.2] | `cross` 18.3% [10.9, 26.4]; `self` 16.1% [7.7, 25.8]; `astra` 32.5% [20.7, 44.8] |
+| `cross+self+astra` | 6 | 2 | 40.6% [28.5, 53.0] | 31.3% [23.9, 38.9] | `cross` 26.0% [16.8, 35.9]; `self` 16.8% [8.0, 27.0] |
 | `cross+self+astra` | 9 | 3 | 42.3% [30.4, 54.5] | 32.4% [25.0, 40.3] | — |
 | `cross+self+astra` | 12 | 4 | 43.6% [31.7, 55.6] | 33.4% [26.1, 41.2] | — |
-| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0%; `astra` 32.0% |
-| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2%; `astra` 32.7% |
-| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% |
-| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% |
-| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9%; `astra` 32.0% |
-| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4%; `astra` 32.7% |
-| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% |
-| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% |
+| `cross+astra` | 2 | 1 | 31.3% [20.1, 43.1] | 11.2% [6.6, 16.5] | `cross` 15.0% [8.5, 22.6]; `astra` 32.0% [20.2, 44.2] |
+| `cross+astra` | 4 | 2 | 34.0% [22.4, 45.9] | 12.6% [7.7, 18.0] | `cross` 21.2% [13.0, 30.0]; `astra` 32.7% [20.9, 45.0] |
+| `cross+astra` | 6 | 3 | 35.6% [24.2, 47.4] | 13.7% [8.6, 19.3] | `cross` 26.0% [16.8, 35.9] |
+| `cross+astra` | 8 | 4 | 36.8% [25.2, 48.2] | 14.7% [9.5, 20.4] | `cross` 30.0% [20.0, 40.5] |
+| `self+astra` | 2 | 1 | 36.5% [24.8, 49.0] | 28.3% [21.3, 35.8] | `self` 15.9% [7.4, 25.7]; `astra` 32.0% [20.2, 44.2] |
+| `self+astra` | 4 | 2 | 38.5% [26.1, 51.2] | 29.5% [22.0, 37.1] | `self` 16.4% [7.7, 26.3]; `astra` 32.7% [20.9, 45.0] |
+| `self+astra` | 6 | 3 | 39.2% [26.9, 52.0] | 30.1% [22.6, 37.9] | `self` 16.8% [8.0, 27.0] |
+| `self+astra` | 8 | 4 | 39.5% [27.0, 52.3] | 30.5% [23.3, 38.4] | `self` 17.3% [8.2, 27.5] |
 ---
 
 ## What no reading flagged
@@ -280,10 +309,10 @@ Categories and their order were fixed in the preregistration (§1.5) before the 
 |---|---:|---|---:|---|---|
 | broker_families_only | 68 (40) | `unexercised-edge` | 55 | **80.9%** [67.6, 92.5] | [70.0, 88.5] |
 | broker_families_only | 68 (40) | `spec-misreading` | 8 | **11.8%** [2.9, 23.0] | [6.1, 21.5] |
-| broker_families_only | 68 (40) | `timeout` | 5 | **7.4%** [0.0, 16.7] | [3.2, 16.1] |
+| broker_families_only | 68 (40) | `timeout` | 5 | **5 of 68** — quoted as a count, not a rate | — |
 | all_families | 57 (34) | `unexercised-edge` | 46 | **80.7%** [66.1, 93.1] | [68.7, 88.9] |
 | all_families | 57 (34) | `spec-misreading` | 8 | **14.0%** [3.4, 26.9] | [7.3, 25.3] |
-| all_families | 57 (34) | `timeout` | 3 | **5.3%** [0.0, 14.0] | [1.8, 14.4] |
+| all_families | 57 (34) | `timeout` | 3 | **3 of 57** — quoted as a count, not a rate | — |
 ---
 
 ## Ceiling 2 — whether the loop raised accuracy
@@ -358,36 +387,44 @@ attached, and `tests/test_ceiling_stats.py` pins it so the method cannot return 
 
 **What replaced it, and what its coverage actually is.** Every figure below is measured at
 **this study's own n = 112**, by exact enumeration over the binomial rather than by
-simulation, in both directions: `D ~ Binomial(112, 0.1)` with all discordances beneficial
-(true difference +0.10), and `C ~ Binomial(112, 0.5)` with all discordances detrimental
-(true difference −0.50).
+simulation. **The two scenarios are different and their numbers are not interchangeable** —
+a previous version quoted the beneficial figure as if it were the detrimental one.
 
-| method | role | coverage, beneficial | coverage, detrimental |
+| method | role | `D ~ Bin(112, 0.1)`, all beneficial, true δ = +0.10 | `C ~ Bin(112, 0.5)`, all detrimental, true δ = −0.50 |
 |---|---|---:|---:|
-| conditional × observed D/n | **withdrawn** | **0.416** | — |
-| problem-cluster percentile bootstrap | **primary** | **0.924** | 0.924 |
+| conditional × observed D/n | **withdrawn** | **0.416** | not computed |
+| problem-cluster percentile bootstrap (idealised) | **primary** | **0.924** | **0.953** |
 | Tango's unconditional score interval | check | **0.960** | **0.953** |
-| exact unconditional, Berger–Boos restricted (γ = 10⁻⁴), grid-approximated | check | **0.997** | **0.984** |
+| exact unconditional, Berger–Boos restricted, grid-approximated | check | **0.997** | **0.984** |
 
-**The primary interval under-covers, and by how much is stated rather than glossed.** The
-bootstrap figure above is the *idealised* infinite-resample bootstrap, enumerated exactly;
-it reaches **0.924**, about 2.6 points below nominal at this n. The committed finite
-simulation gives **0.933 with 112 independent instances and 0.897 with 56 perfectly
-correlated pairs** — so **expect roughly 2 to 5 points of under-coverage on the primary
-intervals in this report**, more where clustering is strong. A previous version of this
-table said "0.95 nominal by simulation". That was false, and it is withdrawn.
+**What these numbers do and do not license.** They are coverage *of these two estimands in
+these two scenarios*, with independent instances. They are **not** a coverage statement for
+every estimand in this report, and — this is the important limitation — **the coverage of
+the primary interval under this study's actual clustered design is unvalidated.** The
+finite committed simulation gives the bootstrap **0.933 with 112 independent instances and
+0.897 with 56 perfectly correlated pairs**, which is suggestive of a loss under clustering
+and is not a validation of it. An earlier version of this report asserted that every
+interval here is "2 to 5 points optimistic"; that was a generalisation the evidence does
+not support and it is withdrawn. What can be said: **the idealised bootstrap under-covers
+in the beneficial scenario (0.924 against 0.95), the two check intervals do not, and no
+scenario tested here reproduces the clustered design the study actually used.**
 
-**The exact unconditional check is grid-approximated, not guaranteed.** Its supremum over
-the nuisance is taken on a 41-point grid with no bound on what a finer grid would add, so
-it is not a proven exact interval and no claim that it "never under-covers" is made. Its
-measured coverage is above nominal in both directions, which is evidence, not a proof.
+**The exact check is grid-approximated, and its coverage depends on endpoint rounding.**
+The supremum over the nuisance is taken on a 41-point grid with no bound on what a finer
+grid would add, so it is not a proven exact interval and no claim that it "never
+under-covers" is made. Its **0.984** is coverage of the intervals the function *returns*:
+at `(b, c, n) = (0, 44, 112)` the grid test accepts δ = −0.5 with p = 0.0507, but bisection
+returns a lower endpoint of **−0.499999993614**, which excludes −0.5 by 6.4 × 10⁻⁹. Counting
+that instance as covered would give **0.9895** instead. The figure is therefore sensitive to
+inward rounding at the endpoint, and is quoted as measured rather than as a guarantee.
 
 **Both check intervals carried a nuisance-bound defect until the second review found it.**
 They bounded the nuisance `q = p_c` by `(1 − |δ|)/2` where the feasible bound is
 `(1 − δ)/2`. The two are equal for a non-negative difference and diverge sharply for a
-negative one, so coverage was 0.96 going one way and **0.075** going the other, and
+negative one, so the **exact grid** interval covered **0.960 under `D ~ Bin(112, 0.1)` (all beneficial)
+and 0.075 under `C ~ Bin(112, 0.5)` (all detrimental)**, and
 `tango_score_interval(20, 70, 112)` returned [−0.539, −0.358] instead of [−0.577, −0.291].
-Fixed; detrimental-direction coverage is now 0.953 and 0.984. A **sign-symmetry test** —
+Fixed; detrimental-direction coverage is now **0.953 (Tango) and 0.984 (exact grid)**. A **sign-symmetry test** —
 swapping b and c must negate and reverse the interval — now pins it, because that asymmetry
 is the defect's fingerprint and was invisible in the direction this study's own results
 happen to point.
@@ -416,7 +453,9 @@ everywhere. **Five planned comparisons — the mixed and `astra` asymptote contr
 delivered as specified** and are recorded as unmeasured (deviation 15). Every flag contrast
 is **exploratory**, because the plan named outcome contrasts. The full
 planned / performed / exploratory inventory is machine-readable in
-`numbers.json → comparison_inventory`. **Two** contrasts clear the corrected threshold, and they are the same effect measured two
+`numbers.json → comparison_inventory`. The threshold is stated **once** here and appears
+once more in the historical correction table above; both are intended. **Two** contrasts
+clear the corrected threshold, and they are the same effect measured two
 ways: `referent-loop` − `cross-loop` on stratum-P flags (p = 2.7 × 10⁻⁴, cluster
 8.5 × 10⁻⁴) and on pooled flags (p = 3.0 × 10⁻⁶, cluster 1.0 × 10⁻⁵). Both are exploratory.
 
@@ -440,12 +479,12 @@ at `87939d2`, both before the first model call including the credential probe.
 
 The registered population is every hidden-suite non-pass, which **includes 7 instances whose suite did not terminate**. This table narrows it to instances with an observed assertion failure. The registered analysis is unchanged; this is a sensitivity check, and it is EXPLORATORY.
 
-| family | union recall, registered P (n = 110) | union recall, assertion-failure P only (n = 103) [95% Wilson] |
-|---|---:|---|
-| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [20.4, 42.2] |
-| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [7.8, 27.9] |
-| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [20.4, 45.6] |
-| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [40.4, 64.4] |
+| family | union recall, registered P (n = 110) [95% cluster CI] | union recall, assertion-failure P only (n = 103) [95% cluster CI] | [95% Wilson, too narrow] |
+|---|---|---|---|
+| `cross` (K = 8) | 33/110 (30.0%) [20.0, 40.5] | **32/103** (31.1%) [20.4, 42.2] | [22.9, 40.5] |
+| `self` (K = 8) | 19/110 (17.3%) [8.2, 27.3] | **18/103** (17.5%) [7.8, 27.9] | [11.3, 25.9] |
+| `astra` (K = 4) | 36/110 (32.7%) [20.9, 45.5] | **34/103** (33.0%) [20.4, 45.6] | [24.7, 42.6] |
+| **residual (never flagged)** | 57/110 (51.8%) [40.4, 63.6] | **54/103** (52.4%) [40.4, 64.4] | [42.9, 61.8] |
 
 The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
 ---
@@ -539,7 +578,8 @@ git diff --stat "$(git merge-base fusion/evidence-authority HEAD)"..HEAD -- src/
 git log --oneline "$(git merge-base fusion/evidence-authority HEAD)"..HEAD -- src/ # empty
 ```
 
-Both are empty. This study's commits touch `benchmarks/` only.
+Both are empty. This study's commits touch **`benchmarks/` and `.gitignore`** only — the
+`.gitignore` line excludes the fetched corpus, which is not redistributed.
 
 **12. Transient provider failures cost wall-clock throughout and changed no result.** Final
 coverage is **260 of 260 on all 20 draws**, and every ceiling-2 arm covers all 112 instances.
@@ -561,6 +601,12 @@ mixed-family rows are descriptive and exploratory. Found by the cross-vendor rev
 version of this report used a conditional-times-observed-D construction with 0.416 coverage.
 It was found by the cross-vendor review, reproduced, withdrawn, and replaced. All point
 estimates are unchanged. **Erroneous numbers did enter a committed artefact**: see below.
+
+**17. Provenance was completed after the runs.** Package versions, per-invocation UTC
+windows, provider base URLs, corrected sampling metadata and re-hashed analysis files were
+added by `ceiling/finalise_manifests.py` from the ledgers and the installed environment. Both
+manifests were originally written mid-run and recorded dirty working trees; the clean freezes
+are `d96cdaf`/`87939d2` for the plan and the finalisation commit for the analysis.
 
 **18. The replacement interval methods were themselves defective, and were fixed after the
 second review.** Both `tango_score_interval` and `exact_unconditional_interval` bounded the
@@ -590,11 +636,31 @@ while answering the review; every table in this version is the current generated
 `tests/test_report_consistency.py` now fails the build if any interval quoted in prose is
 absent from `numbers.json`.
 
-**17. Provenance was completed after the runs.** Package versions, per-invocation UTC
-windows, provider base URLs, corrected sampling metadata and re-hashed analysis files were
-added by `ceiling/finalise_manifests.py` from the ledgers and the installed environment. Both
-manifests were originally written mid-run and recorded dirty working trees; the clean freezes
-are `d96cdaf`/`87939d2` for the plan and the finalisation commit for the analysis.
+**21. Coverage figures were mislabelled by scenario, and generalised beyond what was
+measured.** The third version gave the detrimental-direction bootstrap coverage as 0.924,
+which is the *beneficial* scenario's number; it is **0.953**. It also asserted that every
+interval in the study is "2 to 5 points optimistic" — a generalisation from two scenarios
+with independent instances to every estimand under a clustered design. Both are corrected;
+**coverage under the actual clustered design remains unvalidated**, and that is now stated
+rather than papered over. *Direction: the mislabelling made the primary interval look worse
+than measured in one scenario; the generalisation made every other interval look worse than
+evidence supports. Neither changed a result.*
+
+**22. The consistency guard introduced in deviation 20 did not work.** The third review
+demonstrated that mutating a quoted interval by 0.01 left it green, and that replacing the
+headline interval with `[−99.99, +99.99]` also passed: it rounded to one decimal, allowed
+0.051 of slack, ignored the Unicode minus and leading `+`, and accepted any interval in the
+file regardless of estimand. **The claim in deviation 20 that it "fails the build if any
+interval quoted in prose is absent" was false.** Rewritten to compare at displayed precision
+with zero tolerance and to bind the headline and primary spans to their estimands; the
+mutations are now committed as a test of the test. Rewriting it immediately found two live
+errors — a prose interval quoted as `[+6.3, +43.7]` had been written `+43.8`, and a flag
+contrast's exact interval was quoted in prose but never stored in the record.
+
+**23. Table splicing is now a command, not a habit.** Twice the prose was edited without
+re-generating the tables into the document, leaving the report a version behind its own
+numbers; the third review caught the second occurrence. `ceiling/splice_tables.py` does it
+in one step and warns if a generated table is missing from the report.
 
 ### The beta-tail defect, stated exactly
 
@@ -637,11 +703,14 @@ seconds and was corrected before any prose quoted it.**
 **It licenses**: that on this corpus, a generator's own model auditing and revising its own
 code produced no measurable gain in hidden-test accuracy (+0.89 pp, every interval spanning
 zero); that over eight readings each, its union recall was **below** a cross-vendor
-stranger's (raw −12.7 points [−25.0, −0.9]) while its false-positive rate was higher; that
+stranger's (raw −12.7 points [−25.0, −0.9]) while its false-positive rate was higher
+(24.0% [17.2, 31.2] against 16.0% [10.1, 22.3]); that
 repetition saturates quickly, and on a temperature-0 route almost immediately; that one
-frontier reading matched eight shipped readings on recall at lower false-positive cost; and
-that **51.8% of this defect population was flagged by no reading of any family**, dominated
-by inputs the visible tests never construct.
+frontier reading matched eight shipped readings on recall (30.2% [19.3, 42.0] against
+30.0% [20.0, 40.7]) at lower false-positive cost (9.7% [5.3, 14.5] against 16.0%
+[10.1, 22.3]); and
+that **51.8% of this defect population (57 of 110, cluster CI [40.4, 63.6]) was flagged by
+no reading of any family**, dominated by inputs the visible tests never construct.
 
 **It does not license** the claim that those defects cannot be found. It shows that these
 detectors, over 20 readings, did not find them.
@@ -724,6 +793,25 @@ instance), `cache/*.failed.jsonl`, `loop/<arm>.jsonl` (arm × instance),
 
 The revised solutions are committed because EvalPlus is redistributable and ceiling 2's
 primary outcome re-scores from them with no key and no network. **No finding prose is
-committed.** Run directories are archived at
-`~/Documents/Crossaudit/study-data/wt-ceiling-runs/` — **178 files**, `MANIFEST.sha256`
-digest `e5ef7227567c4fc44268624c73623eaf0eae8d44d8b423aa322c335a3aa6acbc`.
+committed.**
+
+Run directories are archived at `~/Documents/Crossaudit/study-data/wt-ceiling-runs/` and are
+registered in the programme-wide archive index, `benchmarks/ARCHIVE_MANIFEST.json`, under
+`studies/wt-ceiling-runs`:
+
+| record | value |
+|---|---|
+| this study's own per-file manifest | `MANIFEST.sha256`, **178 files**, digest `e5ef7227567c4fc44268624c73623eaf0eae8d44d8b423aa322c335a3aa6acbc` |
+| the programme index's entry | **179 files**, `directory_sha256` `ecdb86464e0ce6d1bcddb470586f008b60ff72d2901b0aecfdd9cc6cb5a41245`, 8,197,800 bytes |
+
+**The two counts differ by one on purpose and neither is wrong.** The index's counting rule
+covers every regular file under the study directory *including the archive's own
+`MANIFEST.sha256`*; this study's figure excludes that file, because a manifest cannot list
+its own digest. Both are verifiable on disk: `find . -type f | wc -l` gives 179 and
+`find . -type f ! -name MANIFEST.sha256 | wc -l` gives 178.
+
+**Provenance note on the index entry:** it was added to `fusion/evidence-authority` after
+this study branch was cut, so `benchmarks/ARCHIVE_MANIFEST.json` *on this branch* does not
+yet contain it. It is reachable at
+`git show fusion/evidence-authority:benchmarks/ARCHIVE_MANIFEST.json`, and will be present
+here on merge. The digests above were read from that file, not asserted.

@@ -24,12 +24,12 @@
     "commit": "296cfd72ca9d29123648e3dc896981b3815e3831",
     "files": {
       "benchmarks/code/ceiling.py": "11443515ee3651a4233e71de9a4304da81a53047ec8332c726bf6046075501ff",
-      "benchmarks/code/ceiling/PREREGISTRATION.md": "c137a686b4dd7c16b76e3a400c491cd79aa6cfb3af12b919cbb1df143b95a518",
+      "benchmarks/code/ceiling/PREREGISTRATION.md": "75b5617e5b920260968e55c29ffd3ae95c35c95145a19330591e7f0c12cfe60c",
       "benchmarks/code/explore.py": "e2f405dd083aa317f1ab727e1b15c93a8125d4a9db3f1dfb11f551dcdab3e40d",
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
-      "benchmarks/code/report_ceiling.py": "ed4460a84741017c046dd9f8d7db480177041e9a347f5e2f76a7d13b3e08029b",
+      "benchmarks/code/report_ceiling.py": "bf06b09e4956891c877b778ea740d06d135616a00b1714226f3e461319820e4a",
       "benchmarks/code/residual_dump.py": "9e7018afa2153679b5440808aad5f8b128bb73db8db8f703f65a598dd71e7e1c",
-      "benchmarks/code/tests/test_ceiling_stats.py": "2aaa5c5c8d909d945aea475d0c77dadc4b6100536968bec8fa024ee1cece996a"
+      "benchmarks/code/tests/test_ceiling_stats.py": "779a508ac0a2b0387eca790ebc7671168b7fea8da379edd2bccdd5eef08565b2"
     },
     "files_note": "re-hashed at finalisation; the first version's report_ceiling.py hash predated the analysis file",
     "status_porcelain": " M benchmarks/code/records/ceiling/cache/holistic__astra__d2.jsonl\n M benchmarks/code/records/ceiling/cache/holistic__self__d2.jsonl\n M benchmarks/code/records/ceiling/manifest_ceiling1.json\n M benchmarks/code/records/ceiling/numbers.json\n M benchmarks/code/records/ceiling/tables.md\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.jsonl\n"
@@ -330,9 +330,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_at_commit": "f7f515ef848c4443e7a40588cb592094b6c2ea01",
-  "finalised_on_parent_commit": "4657e7fe7aa5ea62dc02f84070828ba9f8cb7d7e",
-  "finalised_utc": "2026-09-05T15:56:17Z",
+  "finalised_on_parent_commit": "d9bf61efd8786779ae0d22ae470641bae43c8800",
+  "finalised_utc": "2026-09-05T17:12:12Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",
@@ -2672,6 +2671,12 @@
   "spend_usd_cumulative": 9.52378,
   "spend_usd_this_invocation": 9.52378,
   "study": "ceiling (study 8), ceiling 1 \u2014 the saturation curve",
-  "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is the commit this file records above, whose tree is clean.",
+  "superseded_fields_removed": {
+    "fields": [
+      "working_tree_at_freeze"
+    ],
+    "why": "written by an earlier finalisation and contradicted by the fields that replaced them (analysis_freeze, provenance_note). Removed rather than left in place; the third cross-vendor review found them still present and reported as renamed when they were not."
+  },
+  "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is defined in the `analysis_freeze` field of this manifest, which says how to locate it and what to verify; it is NOT the parent commit recorded in `finalised_on_parent_commit`.",
   "written_utc": "2026-09-05T12:17:15Z"
 }

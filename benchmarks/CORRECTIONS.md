@@ -391,18 +391,24 @@ independent cross-vendor review found the replacements defective in turn.
 
 Both `tango_score_interval` and `exact_unconditional_interval` bounded the nuisance
 `q = p_c` above by `(1 − |δ|)/2`; the feasible bound is `(1 − δ)/2`. Correct for a
-non-negative difference, wrong for a negative one. Measured coverage: **0.960 in the
-beneficial direction, 0.0752249063 in the detrimental direction** — reproduced to ten
-digits before the fix was made. Corrected; detrimental coverage is now 0.953 and 0.984, and
-a sign-symmetry test plus a two-directional coverage enumeration are in the suite.
+non-negative difference, wrong for a negative one. Measured for the **exact grid** interval:
+**0.960 under `D ~ Bin(112, 0.1)` (all beneficial) against 0.0752249063 under
+`C ~ Bin(112, 0.5)` (all detrimental)** — reproduced to ten digits before the fix was made.
+Corrected; detrimental coverage is now **0.953 (Tango) and 0.984 (exact grid)**, and a
+sign-symmetry test plus a two-directional coverage enumeration are in the suite.
 
 Separately, item 15's replacement claims were too generous. Measured at n = 112: the
-primary problem-cluster bootstrap covers **0.924**, not 0.95 — the committed simulation
-gives 0.933 independent and 0.897 clustered — and the exact unconditional check is
-**grid-approximated** over 41 nuisance points with no bound on the missed supremum, so
-"never under-covers" is withdrawn. **Every interval published from study 8 should be read
-as roughly 2 to 5 percentage points optimistic**, and `RESULTS-CEILING.md` says so at the
-coverage table.
+primary problem-cluster bootstrap covers **0.924 in the beneficial scenario and 0.953 in
+the detrimental one** — the committed simulation gives 0.933 independent and 0.897
+clustered — and the exact unconditional check is **grid-approximated** over 41 nuisance
+points with no bound on the missed supremum, so "never under-covers" is withdrawn.
+
+*Corrected 2026-09-06 after a third review:* this entry previously said "every interval
+published from study 8 should be read as roughly 2 to 5 percentage points optimistic". That
+**generalises two scenarios to every estimand and is withdrawn.** The supportable statement
+is narrower: the idealised bootstrap under-covers in the beneficial scenario (0.924 against
+0.95), the two checks do not under-cover in either scenario tested, and **coverage under
+study 8's actual clustered design is unvalidated**.
 
 **No point estimate changed, and no conclusion changed.** No result in study 8 is affected
 by the nuisance-bound defect: every paired difference in it has b ≥ c except one, whose
@@ -423,3 +429,37 @@ n = 112 the study's power was **0.32 against a true +5-point improvement, 0.60 a
 +7.5, and 0.81 against +10** (two-sided exact McNemar, worsening rate held at the observed
 2/112). An improvement smaller than about 7 points would probably have been missed. The
 title and opening of `RESULTS-CEILING.md` are corrected accordingly.
+
+**20. Study 8's coverage figures were mislabelled by scenario, and over-generalised.**
+Item 17 gave the detrimental-direction bootstrap coverage as 0.924. That is the *beneficial*
+scenario's figure; under `C ~ Bin(112, 0.5)` it is **0.953**. Item 17 also said every
+interval published from study 8 "should be read as roughly 2 to 5 percentage points
+optimistic" — a generalisation from two independent-instance scenarios to every estimand
+under a clustered design. Both are corrected in item 17 itself and in the report.
+
+The supportable statement: **the idealised percentile bootstrap under-covers in the
+beneficial scenario (0.924 against 0.95); the two check intervals do not under-cover in
+either scenario tested; and coverage under study 8's actual clustered design is
+unvalidated.** The exact grid check's 0.984 is additionally sensitive to inward endpoint
+rounding — at (0, 44, 112) the grid test accepts δ = −0.5 while bisection returns
+−0.499999993614 — and counting that instance as covered gives 0.9895.
+
+**21. `RESULTS-CEILING.md`'s claim that its consistency guard catches every absent prose
+interval — false, and the guard has been rewritten.**
+The third cross-vendor review showed the guard passed when a quoted interval was mutated by
+0.01, and passed when the headline was replaced with `[−99.99, +99.99]`. It rounded to one
+decimal, allowed 0.051 of tolerance, ignored the Unicode minus and the leading `+`, and
+accepted any interval present anywhere in `numbers.json` regardless of which quantity the
+sentence described. Rewritten to compare at displayed precision with zero tolerance and to
+bind the headline and primary-outcome spans to their `numbers.json` paths; the review's
+mutations are committed as a test of the test.
+
+Rewriting it caught two live defects immediately: a prose interval written `[+6.3, +43.8]`
+where the record says **+43.7**, and a flag contrast whose exact unconditional interval was
+quoted in prose but never computed into the record. Both fixed.
+
+**This is the third time a defect in study 8's own checking apparatus was found by a reader
+rather than by the author**, after the interval method (item 15) and the nuisance bound
+(item 17). The pattern is worth stating plainly in the corrections record: **every defect in
+this study's statistical machinery has been found by cross-vendor review, and none by the
+author's own tests until those tests were rewritten in response.**
