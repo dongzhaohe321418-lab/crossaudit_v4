@@ -7185,3 +7185,47 @@ A's outline hazard was never exercised and stays unmeasured; and Arm 2's
 malformed-envelope re-ask did not reproduce (7 of 48 rounds against 23 of 24),
 which means that incidental finding is not yet understood and must not be
 "fixed" until it is.
+
+## D160 — The containment gold licenses all six extensions and finds a false-pass class the contract had called structural
+
+`benchmarks/expertlongbench/RESULTS-GOLD.md`. Two labellers blinded to each
+other and to the matcher, a rule committed before any item was seen: κ = 0.986,
+κ = 1.0 on the 53 blocks. Every extension in `CONTAINMENT_RULE.md` has W = 0 —
+no pass and no wrong-location draw is newly passed — so **all six are
+licensed** and none is killed. On the design's own estimand (numbers that do
+trace) the extensions alone bring the residue to 0.62% [0.00, 1.55],
+uncalibrated, under the 2% line.
+
+**The finding that matters more.** The shipped matcher has a false-pass class:
+11 of 150 passes (7.33% [4.14, 12.65]) are correct-by-the-matcher and wrong by
+the gold, and nine of the eleven are one mechanism — `unit_token` stops at
+whitespace, so `°C` satisfies a source that writes `°C min⁻¹`. Slice 2's
+contract string describes exactly this ("a unit written with a space inside it
+is read as its first token only … this is the one place a partial unit passes,
+and it is structural"). The gold says it is not structural; it is D157 lesson 2
+unfinished. A prefix must never satisfy, and a space is not a licence.
+
+RULINGS:
+
+1. **Narrow first.** After slice 2 lands, a narrowing slice: when the token
+   after a number is followed by whitespace and a unit-shaped continuation
+   (letters with a superscript, `⁻¹`, `^-1`, `/`, or a known unit fragment),
+   the bare first token does not satisfy the annotation; the whole spaced
+   expression is the unit. This removes the nine false passes and can add no
+   new pass. Its mirror: `5 g sample` (a word, not a unit fragment) still
+   matches `g`. The gold's 150 passes and 97 panel draws are the regression
+   corpus; the contract string's "structural" sentence is deleted.
+2. **Then extend, in the note's order** — E4 (multi-word units) together with
+   the narrowing since they are two halves of one rule; E5+E6; E1; E2; E3 —
+   each measured against the frozen gold with W = 0 as the bar, each shipped
+   with its D64 mutation.
+3. **Arm 4 runs after the narrowing and E4**, not before: the check's
+   false-blocker rate is what Arm 4 measures, and E4 changes it by
+   construction. Then the check may enter a profile, per D159 ruling 2.
+4. **The rule sharpening**: a basis qualifier (`vol/vol`, `w/w`, `wt`) is part
+   of the unit expression. Written into the labelling rule and the synonym
+   table's contract before any extension is measured against the gold.
+
+Recorded because the contract had documented a defect as a property. A
+sentence that says "this is the one place a partial unit passes" is a sentence
+that should have been a finding.
