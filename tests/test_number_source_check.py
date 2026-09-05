@@ -2577,3 +2577,105 @@ def test_the_continuation_never_crosses_a_line_break():
                                   "source": "runs.csv@v3#L2-L3"}],
                   "convergence": {"converged": True}}).encode()}
     assert run_checks(files, ["number_source"]).findings == []
+
+
+# ------- the second review's P2: a footnote on the RIGHT operand, too
+#: `Grid dimensions: 5 x 3 ¹`, with `¹ Dimensions are in cells.` beneath it.
+#: The footnote sits on the operand to the RIGHT of the `x`, which the second
+#: cut of the separated-operator rule read as an exponent on the 3.
+#:
+#: FOR THE GOLD RECORD, `benchmarks/expertlongbench/RESULTS-GOLD.md` Amendment 2
+#: (owned by that record; stated here rather than edited in on this branch):
+#: *the footnoted grid `Grid dimensions: 5 x 3 ¹` is a second instance of the
+#: class the corpus lacks — the frozen 300 items contain no row at all in which
+#: a digit is followed by whitespace and then a superscript, so the gold scored
+#: W = 0 for the rule that blocked 100 of 100 such rows exactly as it did for
+#: the rule that does not, and could no more distinguish this draft than the
+#: first one.*
+GRID = "Grid dimensions: 5 x 3 ¹"
+GRID_NOTE = "¹ Dimensions are in cells."
+
+
+@pytest.mark.parametrize("line,v,u,expected,why", [
+    (GRID,                      "5",  "", [], "a footnote on the right operand"),
+    ("Grid dimensions: 5 x 3 ¹", "5", "", [], "and with a no-break space before it"),
+    ("Grid dimensions: 5 x 3 ¹", "3",  "", [], "the operand it is attached to, too"),
+    ("5 x 10 ³ g",              "5",  "", [], "a spaced superscript is a footnote on a ten"),
+    ("a 5 x 3 grid",            "5",  "", [], "and a plain product is still prose"),
+    ("Participants: 5 ¹",       "5",  "", [], "the left operand, unchanged"),
+    # The mirrors: an ADJACENT marker on the right operand is still notation.
+    ("5 x 10³ g",               "5",  "", ["CA-NUM-002"], "5 × 10³ is not 5"),
+    ("5 x 10^3 g",              "5",  "", ["CA-NUM-002"], "nor with a caret"),
+    ("5 × -10³ g",              "5",  "", ["CA-NUM-002"], "nor with a sign between"),
+    ("base pressure ≈ 3 × 10⁻² mbar", "3", "", ["CA-NUM-002"], "the row this rule exists for"),
+    ("3×10⁻² mbar",             "3",  "", ["CA-NUM-002"], "and its adjacent form"),
+])
+def test_an_exponent_marker_must_adjoin_the_operand_it_exponentiates(
+        line, v, u, expected, why):
+    """MUTATION: restore the trailing `[^\\S\\r\\n]*` before the marker in
+    `_UNPARSED`'s fifth alternative — the allowance this slice's second cut
+    carried. `Grid dimensions: 5 x 3 ¹` becomes a non-overridable blocker on a
+    correctly annotated unitless five, and
+    `test_the_footnoted_grid_sweep_the_second_review_ran` reddens at all 100
+    rows. Both were PASS at the base commit; this was a weakening.
+
+    The whitespace allowance is in front of the OPERATOR and nowhere else. A
+    superscript separated from the number it follows is a footnote mark — the
+    rule the left-hand operand already had — and the right-hand operand is owed
+    the same answer: `5 x 10³` is notation, `5 x 10 ³` is a footnote on a ten.
+
+    Both interfaces, because a footnote definition on the line BELOW the number
+    is exactly the shape a `results.json` range names: see the structured half
+    in `test_the_footnoted_grid_reaches_both_interfaces`."""
+    files = {RECIPE_PATH: (line + "\n" + GRID_NOTE + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(line))],
+                               prose="see the source")}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+@pytest.mark.parametrize("magnitude", range(1, 101))
+def test_the_footnoted_grid_sweep_the_second_review_ran(magnitude):
+    """MUTATION: the same one — restore the trailing whitespace allowance. All
+    100 rows redden. The second review swept `Grid dimensions: <n> x 101 ¹` for
+    n = 1…100 and measured **0 base blockers against 100 head false blockers**;
+    a contiguous hundred is a grammar defect and not a curiosity, so the range
+    is the guard, as it is for the sign sweep and the exponent sweep."""
+    line = f"Grid dimensions: {magnitude} x 101 ¹"
+    files = {RECIPE_PATH: (line + "\n" + GRID_NOTE + "\n").encode(),
+             DRAFT_PATH: draft([row(value=str(magnitude), unit="", src=cite(line))],
+                               prose="see the source")}
+    assert findings(files) == []
+
+
+def test_the_footnoted_grid_reaches_both_interfaces():
+    """The structured half of the case above, in the shape that makes it real: a
+    `results.json` quantity citing `#L1-L2`, where line 2 is the footnote's own
+    definition. That span is the one place this check reads more than one line,
+    so it is where a footnote marker and its definition can meet the matcher
+    together.
+
+    MUTATION: as above. The range citation blocks, and a quantity a script wrote
+    correctly is refused by the deterministic layer before any model sees it."""
+    def project(source: str) -> dict[str, bytes]:
+        return {"experiments/e1/metadata.yml":
+                b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+                "experiments/e1/runs.csv": f"{GRID}\n{GRID_NOTE}\n".encode(),
+                "experiments/e1/results.json": json.dumps(
+                    {"quantities": [{"name": "cells", "value": 5, "unit": "",
+                                     "source": source}],
+                     "convergence": {"converged": True}}).encode()}
+
+    assert run_checks(project("runs.csv@v3#L1-L2"), ["number_source"]).findings == []
+    assert run_checks(project("runs.csv@v3#L1"), ["number_source"]).findings == []
+
+    # And the notation form through the same interface still blocks, so the
+    # narrowing this slice exists for is not what was given up to fix it.
+    product = {"experiments/e1/metadata.yml":
+               b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+               "experiments/e1/runs.csv": "base pressure 3 × 10⁻² mbar\n".encode(),
+               "experiments/e1/results.json": json.dumps(
+                   {"quantities": [{"name": "p", "value": 3, "unit": "",
+                                    "source": "runs.csv@v3#L1"}],
+                    "convergence": {"converged": True}}).encode()}
+    assert [f.rule for f in run_checks(product, ["number_source"]).findings] == \
+        ["CA-NUM-002"]

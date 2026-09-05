@@ -237,15 +237,25 @@ _OPENERS, _CLOSERS = set("([{"), set(")]}")
 #: annotation into a non-overridable blocker. A bare superscript after a space
 #: is a footnote mark; only an OPERATOR can be separated from its left operand.
 #:
-#: Two further conditions, each removing a false blocker the first draft had:
-#: the whitespace is non-newline (`[^\S\r\n]`), because a superscript or an
-#: operator on the NEXT line of a multi-line span is not this number's
-#: continuation; and **the right operand must itself be in exponent notation**,
-#: which is what keeps `5 x 3 grid` prose. An ASCII `x` between two plain
-#: integers is a grid, a window or a matrix, and blocking every one of them to
-#: catch a product would be the false-blocker trade this whole line refuses.
-#: `3 × 10⁻²` and `5 x 10^3` continue into an exponent; `5 x 3` does not, and
-#: the difference is read off the bytes rather than guessed at.
+#: Three further conditions, each removing a false blocker a draft of this had:
+#:
+#: * the whitespace is non-newline (`[^\S\r\n]`), because a superscript or an
+#:   operator on the NEXT line of a multi-line span is not this number's
+#:   continuation;
+#: * **the right operand must carry an exponent marker**, which is what keeps
+#:   `5 x 3 grid` prose. An ASCII `x` between two plain integers is a grid, a
+#:   window or a matrix, and blocking every one of them to catch a product would
+#:   be the false-blocker trade this whole line refuses. `3 × 10⁻²` and
+#:   `5 x 10^3` continue into an exponent; `5 x 3` does not, and the difference
+#:   is read off the bytes rather than guessed at;
+#: * **and that marker must be ADJACENT to the operand it exponentiates.** The
+#:   whitespace allowance is in front of the operator and nowhere else. Allowing
+#:   it before the marker as well read `Grid dimensions: 5 x 3 ¹` — a footnoted
+#:   grid — as five times three-to-the-something, and a sweep of
+#:   `<n> x 101 ¹` blocked 100 of 100. It is the same footnote the left-hand
+#:   rule already refuses to read as an exponent, met on the other operand, and
+#:   the same answer is owed to it: `5 x 10³` is notation, `5 x 10 ³` is a
+#:   footnote on a ten.
 #:
 #: It is a narrowing of the matcher (strictly fewer occurrences match), so it
 #: cannot add a false PASS — but it can add a false BLOCKER, which is why the
@@ -261,10 +271,11 @@ _UNPARSED = re.compile(
     rf"|[{_SIGNS}⁺⁻][{_SUPER}]"             # 10⁻⁵, 10⁺⁵
     rf"|[⁺⁻]"                               # a bare superscript sign
     rf"|[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]"     # 5×10³, 5×-10³, 5^−3
-    # `3 × 10⁻²`, `5 x 10^3`: a space before the operator only, and only where
-    # the operand is exponentiated, so a spaced product of two plain integers
-    # stays prose and a spaced superscript stays a footnote mark.
-    rf"|{_INLINE}+[×x*^⋅·]{_INLINE}*[{_SIGNS}]?{_INLINE}*[0-9]+{_INLINE}*"
+    # `3 × 10⁻²`, `5 x 10^3`: a space before the OPERATOR only, and only where
+    # the right operand carries an exponent marker ADJACENT to it, so a spaced
+    # product of two plain integers stays prose and a spaced superscript stays a
+    # footnote mark — on the right operand exactly as on the left one.
+    rf"|{_INLINE}+[×x*^⋅·]{_INLINE}*[{_SIGNS}]?{_INLINE}*[0-9]+"
     rf"[{_SUPER}⁺⁻^]")
 
 #: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
