@@ -212,6 +212,24 @@ def spread_statistics(labels: list[str], per_replicate: dict[str, dict[str, dict
             "n_instances_identical": sum(1 for d in differences if d == 0),
             "wilcoxon": str(wilcoxon_signed_rank(differences)),
         })
+
+    # DERIVED from the preregistered per-instance differences, and reported as derived.
+    #
+    # A paired experiment at this n does not report a mean ABSOLUTE difference; it
+    # reports a signed mean paired difference and asks whether it is distinguishable
+    # from zero. Every pair below is two runs of the SAME configuration, so each pair's
+    # signed mean IS such an experiment with a true effect of exactly zero. Their spread
+    # is therefore the floor for a signed paired contrast at this n -- the quantity
+    # study 5's primary outcome is, and the one a mean absolute difference overstates.
+    nulls = [pair["mean_per_instance_difference"] for pair in result["pairs"]]
+    result["null_contrast"] = {
+        "values": nulls,
+        "max_abs": max(abs(v) for v in nulls),
+        "sd": statistics.stdev(nulls) if len(nulls) > 1 else 0.0,
+        "range": max(nulls) - min(nulls),
+        "note": "signed mean paired difference between two runs of one configuration; "
+                "the true effect is zero by construction",
+    }
     return result
 
 
@@ -282,6 +300,14 @@ def render(payload: dict) -> str:
             add(f"  {label:<44} {entry['point']:>6.2f} pp   "
                 f"95% CI [{entry['ci_low']:.2f}, {entry['ci_high']:.2f}]")
         add(f"  {'2 SD':<44} {spread['two_sd']:>6.2f} pp")
+        null = spread["null_contrast"]
+        add("")
+        add("  DERIVED -- what a SIGNED paired contrast at this n returns when the true "
+            "effect is zero:")
+        add(f"    per-pair signed means: "
+            f"{', '.join(f'{v:+.2f}' for v in null['values'])} pp")
+        add(f"    SD {null['sd']:.2f} pp (2 SD {2 * null['sd']:.2f});  "
+            f"largest |signed mean| {null['max_abs']:.2f} pp")
         add("")
         for pair in spread["pairs"]:
             add(f"  {pair['a']} vs {pair['b']}: aggregate "
