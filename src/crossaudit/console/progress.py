@@ -123,6 +123,7 @@ CHECK_WORDS_ZH = {
     "Provenance": "来源",
     "Parseable": "可解析",
     "Source provenance": "来源出处",
+    "Number source": "数字来源",
     "Document integrity": "文档完整性",
 }
 

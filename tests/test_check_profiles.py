@@ -23,7 +23,18 @@ def test_off_profile_disables_all_checks():
 
 
 def test_science_profile_is_the_structured_science_pack():
-    assert resolve("science") == ["schema", "units", "convergence", "provenance"]
+    # `declared` joined it because `provenance` alone checks membership in a list
+    # of names and never opens the file, so a science project could cite an input
+    # that does not exist and pass (PROVENANCE_CHECKS.md §1); `number_source`
+    # joined it with §2.1's span contract. Both are additive: `general` is
+    # untouched, so no existing default-profile project changes behaviour.
+    assert resolve("science") == ["schema", "units", "convergence", "declared",
+                                  "provenance", "number_source"]
+
+
+def test_research_profile_is_the_general_pack_plus_the_provenance_checks():
+    assert resolve("research") == ["parseable", "declared", "internal", "complete",
+                                   "source_provenance", "number_source"]
 
 
 def test_an_explicit_list_passes_through_verbatim():

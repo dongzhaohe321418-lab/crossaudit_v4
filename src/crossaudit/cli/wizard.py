@@ -27,7 +27,7 @@ from .. import doctor_shared
 from ..config import CONFIG_NAME
 from ..errors import ConfigDenial, Denial
 from ..scaffold import (AUDIT_TREE, CONFIG_TEMPLATE, GENERAL_CHECKS,
-                        SCIENCE_CHECKS, SCIENCE_TREE,
+                        SCIENCE_CHECKS, SCIENCE_TREE, annotation_skill_tree,
                         read, write_tree)
 from ..providers.specs import SPECS
 from . import tui
@@ -842,6 +842,10 @@ def run(target: Path, *, mode: str, force: bool = False,
     if not gitignore_existed:
         owned.append(".gitignore")
     owned.extend(write_tree(target, SCIENCE_TREE))
+    # A check that reads a generator-emitted block ships with the house skill
+    # that asks for one, or it is a name that lies (PROVENANCE_CHECKS.md §5.4).
+    owned.extend(write_tree(
+        target, annotation_skill_tree(STARTING_CHECKS[starting_point])))
     if mode == "local":
         owned.extend(write_tree(target, AUDIT_TREE))
 

@@ -64,7 +64,8 @@ def test_browser_creation_can_explicitly_choose_the_science_contract(tmp_path,
     cfg = load(root / "crossaudit.yml")
 
     assert cfg.scope_dirs == ["experiments"]
-    assert cfg.checks == ["schema", "units", "convergence", "provenance"]
+    assert cfg.checks == ["schema", "units", "convergence", "declared",
+                          "provenance", "number_source"]
     assert (root / "experiments" / "TEMPLATE" / "results.json").is_file()
     assert "metadata.yml" in (root / "AUDIT_RULES.md").read_text()
 

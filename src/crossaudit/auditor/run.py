@@ -48,6 +48,7 @@ CHECK_NAMES = {
     "provenance": "Provenance",
     "parseable": "Parseable",
     "source_provenance": "Source provenance",
+    "number_source": "Number source",
     "documents": "Document integrity",
 }
 

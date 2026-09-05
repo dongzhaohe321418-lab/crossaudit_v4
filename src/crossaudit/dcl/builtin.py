@@ -152,6 +152,15 @@ def check_provenance(files: Mapping[str, bytes]) -> list[Finding]:
             src = str(q.get("source") or "")
             if not src:
                 continue                                   # reported by check_units
+            # Additive widening (PROVENANCE_CHECKS.md §2.1): a source may now
+            # name a SPAN, `path@revision#L14`, so a number can be traced to the
+            # line that holds it and not merely to a file that was declared. The
+            # membership test is against the input the fragment hangs off, so
+            # every `path@revision` value written before this keeps passing
+            # unchanged, and a `#L…` fragment neither loosens nor tightens what
+            # `provenance` itself asserts — verifying the span is
+            # `number_source`'s job, and it is a separate check.
+            src, _, _fragment = src.partition("#")
             path, sep, rev = src.rpartition("@")
             if not sep or src not in declared:
                 out.append(Finding(
@@ -175,5 +184,7 @@ register("convergence", check_convergence, "When results.json has convergence, i
          "mapping whose converged field is true; numeric achieved must not exceed numeric "
          "threshold.")
 register("provenance", check_provenance, "Each quantity source exactly equals one "
-         "'path@revision' string in metadata.yml inputs; a matching source revision "
-         "different from code_version is additionally recorded as advisory.")
+         "'path@revision' string in metadata.yml inputs, optionally followed by a "
+         "'#L14' span fragment that this check ignores and number_source verifies; a "
+         "matching source revision different from code_version is additionally "
+         "recorded as advisory.")

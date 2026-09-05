@@ -10,7 +10,8 @@ check names, a project can name a profile:
     general  the domain-neutral pack — the light default: parses, dangling
              declarations, broken links (advisory), leftover placeholders
              (advisory). Binds no data format; fits code, docs, web, contracts.
-    science  structured-science rigor: schema, units, convergence, provenance.
+    science  structured-science rigor: schema, units, convergence, declared
+             inputs that exist, provenance, and declared number sources.
 
 An explicit list is still accepted verbatim, so a project can compose its own mix
 (e.g. the general pack plus ``complete-strict`` to make placeholders hard-fail).
@@ -24,10 +25,20 @@ from ..errors import ConfigDenial
 PROFILES: dict[str, list[str]] = {
     "off": [],
     "general": ["parseable", "declared", "internal", "complete"],
-    "science": ["schema", "units", "convergence", "provenance"],
+    # `declared` sits before `provenance` deliberately. `provenance` checks that a
+    # quantity's source is an exact MEMBER of metadata inputs and never opens the
+    # file; `declared` checks that those inputs EXIST. Shipping the second without
+    # the first meant a science project could cite `data/runs.csv@v3`, list it in
+    # metadata.yml, not have the file at all, and pass — membership in a list of
+    # names that name nothing (PROVENANCE_CHECKS.md §1). Ordering them this way
+    # means the existence failure is reported before the membership one, so the
+    # reader meets the cause and not the symptom.
+    "science": ["schema", "units", "convergence", "declared", "provenance",
+                "number_source"],
     # The general pack plus the opt-in, deterministic citation-provenance check:
     # a report may only cite sources it fetched through a governed research tool.
-    "research": ["parseable", "declared", "internal", "complete", "source_provenance"],
+    "research": ["parseable", "declared", "internal", "complete", "source_provenance",
+                 "number_source"],
 }
 
 DEFAULT_PROFILE = "general"

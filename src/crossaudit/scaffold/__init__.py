@@ -5,11 +5,41 @@ from pathlib import Path
 
 TEMPLATES = Path(__file__).parent / "templates"
 GENERAL_CHECKS = ["parseable", "declared", "internal", "complete"]
-SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance"]
+# Kept identical to dcl/profiles.py PROFILES["science"]: a project scaffolded
+# as "science" and a project that writes `checks: science` must mean the same
+# thing, or the profile name is documentation for a list nobody uses.
+SCIENCE_CHECKS = ["schema", "units", "convergence", "declared", "provenance",
+                  "number_source"]
 # The CLI keeps its established science-first scaffold for compatibility. The
 # browser project wizard chooses explicitly between GENERAL_CHECKS and
 # SCIENCE_CHECKS instead of silently applying a laboratory contract to prose.
 DEFAULT_CHECKS = SCIENCE_CHECKS
+
+
+#: The generator-side half of the provenance checks, and the reason it is not
+#: optional. `number_source` and `source_provenance` both read a block the
+#: GENERATOR emits; nothing in `generator.py` or the Constitution asks for one.
+#: Turning such a check on with nothing telling the generator to annotate gives
+#: a check that passes every document while appearing to guard it — a name that
+#: lies (PROVENANCE_CHECKS.md §5.4). So the skill ships beside the check, on the
+#: shipped channel and no other: a committed `skills/*.md`, loaded by
+#: `skills.load`, rendered into the generator prompt by `skills.render`, hashed
+#: into the receipt, and never shown to the auditor.
+PROVENANCE_SKILL_PATH = "skills/provenance.md"
+ANNOTATION_CHECKS = ("number_source", "source_provenance")
+
+
+def annotation_skill_tree(checks) -> dict[str, str]:
+    """The house skill a project's checks need, or nothing at all.
+
+    Keyed off the check list rather than the project type, so a project that
+    composes its own mix gets the instruction exactly when a check would read
+    for it — and a `general` project, which enables neither, gets no advice
+    about annotating numbers it has no reason to annotate.
+    """
+    if not any(name in ANNOTATION_CHECKS for name in (checks or ())):
+        return {}
+    return {PROVENANCE_SKILL_PATH: read("PROVENANCE_SKILL.md")}
 
 
 def read(name: str) -> str:
