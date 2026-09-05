@@ -156,7 +156,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
-   （`cli/main.py:280` → `auditor/prompt.py:86`），早于本分支。两者待写决策记录。
+   （`cli/main.py:280` → `auditor/prompt.py:86`），早于本分支。两者已记入 **D156**：前者在第一片里加固；后者裁定为在第一片落地后单独一片，把 `skills/` 像 `TEMPLATE` 一样排除出审计增量。
    **等 owner 决定**：`web_fetch` 的正文是否保留（提交=可由 verify 再推导但第三方
    文本入库；gitignore 缓存=无许可变化但不可再推导）。不保留则 claim→citation 只能
    做增量内的一半。
