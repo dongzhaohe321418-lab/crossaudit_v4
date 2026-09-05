@@ -338,6 +338,16 @@ def instance_table(labels: list[str], per_replicate: dict[str, dict[str, dict]],
                          for label in labels},
             "range": max(values) - min(values),
             "identical_across_replicates": max(values) - min(values) == 0,
+            # The auditor's own behaviour, before any mapping to rubric items: how many
+            # objections it raised, and whether it stopped the increment at all. These
+            # are what a per-instance analysis downstream of an audit is built on.
+            "findings_spread": (max(entry_findings := [
+                per_replicate[label][instance]["audit"]["n_findings"]
+                for label in labels]) - min(entry_findings)),
+            "gated": {label: per_replicate[label][instance]["audit"]["gated"]
+                      for label in labels},
+            "gate_flips": len({per_replicate[label][instance]["audit"]["gated"]
+                               for label in labels}) > 1,
         })
     return table
 
@@ -470,6 +480,16 @@ def render(payload: dict) -> str:
     add(f"  moved by more than 20 pp: "
         f"{sum(1 for e in payload['instances'] if e['range'] > 20)}"
         f"/{len(payload['instances'])}")
+    same_findings = sum(1 for e in payload["instances"] if e["findings_spread"] == 0)
+    flips = sum(1 for e in payload["instances"] if e["gate_flips"])
+    add(f"  identical FINDING COUNT in every replicate: {same_findings}"
+        f"/{len(payload['instances'])}")
+    add(f"  GATED verdict not the same in every replicate: {flips}"
+        f"/{len(payload['instances'])}")
+    total = sum(s["n_findings"] for s in payload["replicates"])
+    blockers = sum(s["n_blockers"] for s in payload["replicates"])
+    add(f"  severity over every replicate: {total} findings, {blockers} BLOCKER, "
+        f"{total - blockers} ADVISORY")
     add("")
     add(f"total measured spend (audit + adjudication, from the usage ledgers): "
         f"${payload['cost_usd']:.4f}")

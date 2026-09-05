@@ -129,7 +129,9 @@ def main(argv: list[str] | None = None) -> int:
         "source": "the product's own usage ledger, via each row's recorded event and "
                   "each run's _host adjudication ledger",
     }
-    for path in sorted(HERE.glob("*.jsonl")) + sorted(HERE.glob("*.json")):
+    records = (sorted(HERE.glob("*.jsonl")) + sorted(HERE.glob("*.json"))
+               + sorted(HERE.glob("*.txt")) + sorted(HERE.glob("*.sh")))
+    for path in records:
         if path.name == "MANIFEST-SHA256.json":
             continue
         manifest["committed"][path.name] = sha256_file(path)

@@ -1,0 +1,96 @@
+{
+  "note": "sha256 of every committed record and of the gitignored run directories they came from. Run directories hold drafts, which quote the corpus, and are never committed.",
+  "study": "6-noise",
+  "runs": {
+    "noise-rep1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep1",
+      "n_files": 41,
+      "directory_sha256": "f91343e6fb4a7676a1dfdeed748506eeb19d1335e9f914bcb9833b07ba196484"
+    },
+    "noise-rep1-fill1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep1-fill1",
+      "n_files": 41,
+      "directory_sha256": "a7ded6ebe2efc213d9e0394ac7c71bee7e4d29fd24d84b9884daf23ce8793915"
+    },
+    "noise-rep1-fill2": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep1-fill2",
+      "n_files": 41,
+      "directory_sha256": "ce86ca6e5903378e84c9ee399fd4779485cf9fe5d7293117c047f7c5a6e17d0e"
+    },
+    "noise-rep2": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep2",
+      "n_files": 41,
+      "directory_sha256": "4c5727ba3b6950ef55e1178b58a09ff7305290a713fb0127ed988ab810366409"
+    },
+    "noise-rep2-fill1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep2-fill1",
+      "n_files": 41,
+      "directory_sha256": "91f5e52d93eabe45f4244bb110ec04a5336d7c4291a9e15f072ff4be7f5b0d8e"
+    },
+    "noise-rep3": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep3",
+      "n_files": 41,
+      "directory_sha256": "3fb823c5ce0cbbb9805fd2e85ac6438462e73a8ebe52b0861dd24ed6b7cea2eb"
+    },
+    "noise-rep3-fill1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep3-fill1",
+      "n_files": 41,
+      "directory_sha256": "2249dab4540a8f8dd501ed27db410bb5f1bb1eaf6ec2c9823f3e0685182c6266"
+    },
+    "noise-rep4": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep4",
+      "n_files": 41,
+      "directory_sha256": "6e74b54df4a85ebd8c3bf5ef83f3287c91f7c4a009c2dc3e3712fc31e5812505"
+    },
+    "noise-rep4-fill1": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep4-fill1",
+      "n_files": 39,
+      "directory_sha256": "330f70fd073d8f8dbfb95b5bf56b4b38feda1a76676b23be749965276a977d4a"
+    },
+    "noise-rep4-fill2": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/noise-rep4-fill2",
+      "n_files": 41,
+      "directory_sha256": "090c3cc78289e78c620c410f33de5b0ab99fa3373a981ac482153164dae9d1a3"
+    },
+    "study6-source": {
+      "absolute_path": "/private/tmp/claude-501/-Users-ericdong/e8f80e28-bc0c-43ea-845e-513b702467fc/scratchpad/wt-noise/benchmarks/expertlongbench/runs/study6-source",
+      "n_files": 22,
+      "directory_sha256": "4c8cbfbcc69834c284863606215342f669b8b78b97fffb7d3cc5768dda3ec67d",
+      "role": "generated source; drafts and CLEAR verdicts read back from study 3"
+    }
+  },
+  "committed": {
+    "noise-rep1-fill1.rows.jsonl": "abae5f9473027cf529336b17877b1d9ec1713772a92105f091c8d4cd0b20eae8",
+    "noise-rep1-fill2.rows.jsonl": "912c836294d2be0ba97edd6aec7ffb6abcdf65dd89f2c4156e864e3a51952fd0",
+    "noise-rep1.rows.jsonl": "5610fa283d3ceacd14d6f9d939c932c42f50a5d64b714c526897d9b36f33eb9d",
+    "noise-rep2-fill1.rows.jsonl": "d10d2381430731ecd290673451f8ceb6d89163b5e2b29f25a47616833b8b89f8",
+    "noise-rep2.rows.jsonl": "408b0463f8640198dc09d0202f76793bea7197c18ca7a387a90d00a9daabc2b3",
+    "noise-rep3-fill1.rows.jsonl": "0281e980aa3b67df09dcdb15b33bfe3fcb765ec48844a572b367cb71a464d917",
+    "noise-rep3.rows.jsonl": "df96b42631c7e91e713e709e3db0fbb0d42daedf5ad11d921c8f49a1898162d2",
+    "noise-rep4-fill1.rows.jsonl": "3792a4359b4b1429236c6d4ac5f083208967b6c50821228e6d1af6278d092961",
+    "noise-rep4-fill2.rows.jsonl": "a968f8f9a02d7fdef4ab9abe77b02e6db9e3e8cc5f50ab4494b76b2473cabb2b",
+    "noise-rep4.rows.jsonl": "db5958913975df8cc13ec1cba48a5e0a4064955234ef145df617fcec0d26d991",
+    "analysis.json": "187884f51d2819b7dac8b10dc9fb83525af1c78f3cde4b8e3329296f11f1408b",
+    "fidelity-check.json": "6acd37ecbfbcd6262719485047268843aa2deca1ca61dda00082213e70a9f5eb",
+    "noise-rep1-fill1.manifest.json": "1671ed75235b4c7db431ad578ce17d891d38e6b440405dd59d2898aeb0b5786c",
+    "noise-rep1-fill2.manifest.json": "39f7f487044e5e2c577ee524b25bb7778ab9c52689c012e5a9655ac4382adb82",
+    "noise-rep1.manifest.json": "7b8a1b93f8d87421f16c79cc0054f0a32647d829fc7c43e100842a531837fe54",
+    "noise-rep2-fill1.manifest.json": "690772695d3b5114ffdb417bbe0dffd452fd2e8c5f6dcb20a3f00c3a46c63e13",
+    "noise-rep2.manifest.json": "18202e7e787296404d6c4c73b7605dddb0ed466d81fdbc244869fe4208851db4",
+    "noise-rep3-fill1.manifest.json": "abd06e8a3756064d278254e5f5d4eb5d4fba202fcc6eae15ee3b4fb4e2f5d451",
+    "noise-rep3.manifest.json": "85a9cdef3865094d1b61b609fd5baa689d1fe04209d175a5a849ec1956b6cf7b",
+    "noise-rep4-fill1.manifest.json": "738141799b3286ed0272bf1e4acf1b7c7209f7dbe73e687d971bffc7466011b7",
+    "noise-rep4-fill2.manifest.json": "aed4b462bda9c887bfaea167dc72da8e5169d90c51fa5cb392e709d15cb48cf3",
+    "noise-rep4.manifest.json": "3862805f713b35ddc21a25aa6aafb8ebe790d37b23c6689e2560eefba3745ab2",
+    "source-digests.json": "76b7b4d9cc9acf3cfbbaab7b4163181bc3e890c0d7fcaec6c846425a64d6033e",
+    "analysis.txt": "bcf5b3d29dfde5efb432a2fa1af8093d3d7ddd482956f6f021fe9f042ecd3b2b",
+    "run-replicate.sh": "7ab3b9b4d026c9e1e499b604f314e755fe61ef2c00b730f154d6ac6391a66e94"
+  },
+  "cost": {
+    "audit_usd": 1.763987,
+    "adjudication_usd": 0.181002,
+    "total_usd": 1.94499,
+    "auditor_calls": 80,
+    "source": "the product's own usage ledger, via each row's recorded event and each run's _host adjudication ledger"
+  }
+}

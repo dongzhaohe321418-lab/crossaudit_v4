@@ -1,0 +1,111 @@
+========================================================================================
+STUDY 6 -- the audit-stage noise floor. Fixed drafts, fixed ground truth, one arm, K replicates
+========================================================================================
+instances analysed: 20 of 20 (common set: every replicate's audit reached a model)
+replicates: rep1, rep2, rep3, rep4
+
+replicate            n  wrong  find  blk  adv  fired  gated  recall(model)  recall(rule)  prec(model)  unadj       $
+rep1                20     98    38   38    0     18     18          23.5%         22.4%        65.7%      2   0.457
+rep2                20     98    36   36    0     16     16          19.4%         21.4%        67.9%      7   0.414
+rep3                20     98    42   42    0     18     18          25.5%         25.5%        67.6%      2   0.462
+rep4                20     98    44   44    0     18     18          25.5%         27.6%        67.6%      5   0.430
+
+  unadj = findings whose adjudicator call failed. They cite no item under the MODEL mapping,
+          which depresses it and cannot touch the deterministic rule mapping.
+  where the adjudicator DID answer on a CA-RUBRIC finding, it agreed with the deterministic mapping on 130 of 130.
+  model-mapping recall with the deterministic mapping imputed for failed calls: rep1 24.49%, rep2 23.47%, rep3 26.53%, rep4 29.59%
+    -> range 6.12 pp (against 6.12 pp raw)
+
+----------------------------------------------------------------------------------------
+SPREAD -- model_mapping (n = 20 instances, K = 4 replicates, 6 pairs)
+----------------------------------------------------------------------------------------
+  range (max - min) of the aggregate             6.12 pp   95% CI [2.91, 17.71]
+  SD of the aggregate across replicates          2.89 pp   95% CI [1.26, 7.75]
+  mean |paired difference| of the aggregate      3.40 pp   95% CI [1.50, 9.38]
+  mean |paired difference| per instance         14.46 pp   95% CI [10.51, 18.36]
+  2 SD                                           5.77 pp
+
+  DERIVED -- what a SIGNED paired contrast at this n returns when the true effect is zero:
+    per-pair signed means: +4.58, -2.42, -2.75, -7.00, -7.33, -0.33 pp
+    SD 4.44 pp (2 SD 8.88);  largest |signed mean| 7.33 pp
+
+  rep1 vs rep2: aggregate +4.08 pp; mean per-instance +4.58 pp; mean |per-instance| 18.75; max |per-instance| 50.0; identical on 7; Wilcoxon WilcoxonResult(n_pairs=20, n_used=13, w_plus=58.0, w_minus=33.0, statistic=33.0, p_value=0.406982421875, method='exact (enumerated 2^13)', note='7 of 20 pairs were exact ties and were dropped')
+  rep1 vs rep3: aggregate -2.04 pp; mean per-instance -2.42 pp; mean |per-instance| 10.58; max |per-instance| 40.0; identical on 11; Wilcoxon WilcoxonResult(n_pairs=20, n_used=9, w_plus=17.5, w_minus=27.5, statistic=17.5, p_value=0.58984375, method='exact (enumerated 2^9)', note='11 of 20 pairs were exact ties and were dropped')
+  rep1 vs rep4: aggregate -2.04 pp; mean per-instance -2.75 pp; mean |per-instance| 9.75; max |per-instance| 40.0; identical on 12; Wilcoxon WilcoxonResult(n_pairs=20, n_used=8, w_plus=11.5, w_minus=24.5, statistic=11.5, p_value=0.4375, method='exact (enumerated 2^8)', note='12 of 20 pairs were exact ties and were dropped')
+  rep2 vs rep3: aggregate -6.12 pp; mean per-instance -7.00 pp; mean |per-instance| 22.00; max |per-instance| 60.0; identical on 6; Wilcoxon WilcoxonResult(n_pairs=20, n_used=14, w_plus=39.0, w_minus=66.0, statistic=39.0, p_value=0.4150390625, method='exact (enumerated 2^14)', note='6 of 20 pairs were exact ties and were dropped')
+  rep2 vs rep4: aggregate -6.12 pp; mean per-instance -7.33 pp; mean |per-instance| 11.00; max |per-instance| 50.0; identical on 12; Wilcoxon WilcoxonResult(n_pairs=20, n_used=8, w_plus=4.5, w_minus=31.5, statistic=4.5, p_value=0.078125, method='exact (enumerated 2^8)', note='12 of 20 pairs were exact ties and were dropped')
+  rep3 vs rep4: aggregate +0.00 pp; mean per-instance -0.33 pp; mean |per-instance| 14.67; max |per-instance| 40.0; identical on 8; Wilcoxon WilcoxonResult(n_pairs=20, n_used=12, w_plus=33.0, w_minus=45.0, statistic=33.0, p_value=0.66796875, method='exact (enumerated 2^12)', note='8 of 20 pairs were exact ties and were dropped')
+
+----------------------------------------------------------------------------------------
+SPREAD -- rule_mapping (n = 20 instances, K = 4 replicates, 6 pairs)
+----------------------------------------------------------------------------------------
+  range (max - min) of the aggregate             6.12 pp   95% CI [3.85, 16.04]
+  SD of the aggregate across replicates          2.81 pp   95% CI [1.71, 7.09]
+  mean |paired difference| of the aggregate      3.57 pp   95% CI [2.04, 8.61]
+  mean |paired difference| per instance         14.01 pp   95% CI [9.56, 18.82]
+  2 SD                                           5.62 pp
+
+  DERIVED -- what a SIGNED paired contrast at this n returns when the true effect is zero:
+    per-pair signed means: -1.25, -3.58, -7.08, -2.33, -5.83, -3.50 pp
+    SD 2.17 pp (2 SD 4.35);  largest |signed mean| 7.08 pp
+
+  rep1 vs rep2: aggregate +1.02 pp; mean per-instance -1.25 pp; mean |per-instance| 19.58; max |per-instance| 66.7; identical on 7; Wilcoxon WilcoxonResult(n_pairs=20, n_used=13, w_plus=41.5, w_minus=49.5, statistic=41.5, p_value=0.801513671875, method='exact (enumerated 2^13)', note='7 of 20 pairs were exact ties and were dropped')
+  rep1 vs rep3: aggregate -3.06 pp; mean per-instance -3.58 pp; mean |per-instance| 13.42; max |per-instance| 40.0; identical on 8; Wilcoxon WilcoxonResult(n_pairs=20, n_used=12, w_plus=27.0, w_minus=51.0, statistic=27.0, p_value=0.3740234375, method='exact (enumerated 2^12)', note='8 of 20 pairs were exact ties and were dropped')
+  rep1 vs rep4: aggregate -5.10 pp; mean per-instance -7.08 pp; mean |per-instance| 14.08; max |per-instance| 66.7; identical on 9; Wilcoxon WilcoxonResult(n_pairs=20, n_used=11, w_plus=12.0, w_minus=54.0, statistic=12.0, p_value=0.0654296875, method='exact (enumerated 2^11)', note='9 of 20 pairs were exact ties and were dropped')
+  rep2 vs rep3: aggregate -4.08 pp; mean per-instance -2.33 pp; mean |per-instance| 16.67; max |per-instance| 60.0; identical on 9; Wilcoxon WilcoxonResult(n_pairs=20, n_used=11, w_plus=31.0, w_minus=35.0, statistic=31.0, p_value=0.8857421875, method='exact (enumerated 2^11)', note='9 of 20 pairs were exact ties and were dropped')
+  rep2 vs rep4: aggregate -6.12 pp; mean per-instance -5.83 pp; mean |per-instance| 7.50; max |per-instance| 40.0; identical on 14; Wilcoxon WilcoxonResult(n_pairs=20, n_used=6, w_plus=1.0, w_minus=20.0, statistic=1.0, p_value=0.0625, method='exact (enumerated 2^6)', note='14 of 20 pairs were exact ties and were dropped')
+  rep3 vs rep4: aggregate -2.04 pp; mean per-instance -3.50 pp; mean |per-instance| 12.83; max |per-instance| 40.0; identical on 10; Wilcoxon WilcoxonResult(n_pairs=20, n_used=10, w_plus=16.5, w_minus=38.5, statistic=16.5, p_value=0.287109375, method='exact (enumerated 2^10)', note='10 of 20 pairs were exact ties and were dropped')
+
+----------------------------------------------------------------------------------------
+SECONDARY OUTCOMES -- run-to-run spread (PREREGISTRATION-6 s3)
+----------------------------------------------------------------------------------------
+  gate_rate_pct              rep1 90.0, rep2 80.0, rep3 90.0, rep4 90.0   range 10.00 pp, SD 5.00
+  findings_total             rep1 38.0, rep2 36.0, rep3 42.0, rep4 44.0   range 8.00 findings, SD 3.65
+  item_precision_pct_rule    rep1 62.9, rep2 63.6, rep3 65.8, rep4 67.5   range 4.64 pp, SD 2.11
+  gate rate, DERIVED signed paired contrast between two runs of one config: +10.0, +0.0, +0.0, -10.0, -10.0, +0.0 pp; SD 7.53 (2 SD 15.06)
+    rep1 vs rep2: discordant 3/1
+    rep1 vs rep3: discordant 2/2
+    rep1 vs rep4: discordant 2/2
+    rep2 vs rep3: discordant 1/3
+    rep2 vs rep4: discordant 0/2
+    rep3 vs rep4: discordant 1/1
+
+========================================================================================
+KILL CONDITION (PREREGISTRATION-6 s6): range of the aggregate round-one recall > 8.0 pp
+========================================================================================
+  observed range (model mapping): 6.12 pp  ->  did not fire
+  observed range (rule mapping):  6.12 pp
+
+  study 3's +21.5 pp (2.0% -> 23.5%, n = 20) vs 2 SD of this floor (5.77 pp): survives
+
+PER-INSTANCE, not summarised away
+----------------------------------------------------------------------------------------
+instance                           wrong    rep1    rep2    rep3    rep4   range
+MaterialSEG-10.1002/adfm.202002249     5    40.0     0.0    60.0    20.0    60.0
+MaterialSEG-10.1002/adfm.202209924     6    33.3     0.0    33.3    33.3    33.3
+MaterialSEG-10.1002/adfm.202309656     5     0.0     0.0     0.0     0.0     0.0
+MaterialSEG-10.1002/ange.202112688     2    50.0     0.0    50.0    50.0    50.0
+MaterialSEG-10.1002/anie.201812472     3     0.0     0.0    33.3     0.0    33.3
+MaterialSEG-10.1002/anie.202410016     5    20.0    60.0    20.0    60.0    40.0
+MaterialSEG-10.1002/celc.202200984     5    40.0     0.0    40.0    40.0    40.0
+MaterialSEG-10.1002/chem.201905217     4     0.0    25.0     0.0    25.0    25.0
+MaterialSEG-10.1002/chem.202302565     5    20.0    40.0    20.0    40.0    20.0
+T03MaterialSEG-10.1002/cjce.24030      5     0.0     0.0    20.0    20.0    20.0
+MaterialSEG-10.1002/cnma.202200403     6    16.7    33.3    33.3    16.7    16.7
+MaterialSEG-10.1002/cssc.201000245     5     0.0     0.0     0.0     0.0     0.0
+MaterialSEG-10.1002/cssc.202300809     6    33.3     0.0    16.7     0.0    33.3
+MaterialSEG-10.1002/ijch.201400157     5    40.0    60.0    80.0    60.0    40.0
+MaterialSEG-10.1002/pssb.201900312     5    20.0    40.0     0.0    20.0    40.0
+MaterialSEG-10.1002/smll.201800441     6    33.3    16.7    33.3    16.7    16.7
+MaterialSEG-10.1002/smll.202408072     5    40.0    20.0    20.0    40.0    20.0
+MaterialSEG-10.1002/zaac.201800357     6    16.7    16.7    16.7    16.7     0.0
+MaterialSEG-10.1002/zaac.202200095     5    20.0    20.0    20.0    20.0     0.0
+MaterialSEG-10.1126/sciadv.adp3309     4    50.0    50.0    25.0    50.0    25.0
+
+  identical across every replicate: 4/20
+  moved by more than 20 pp: 11/20
+  identical FINDING COUNT in every replicate: 2/20
+  GATED verdict not the same in every replicate: 6/20
+  severity over every replicate: 160 findings, 160 BLOCKER, 0 ADVISORY
+
+total measured spend (audit + adjudication, from the usage ledgers): $1.9450
