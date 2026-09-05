@@ -146,6 +146,17 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    可以不存在；A4 的 sources fence 在生成端没有任何指令，`checks: research` 无法
    触发。第一片（这两个修复 + `number_source` 检查 + house skill）已派出构建，
    验收门是 §6 Arm 1（$0，现有字节上假阻断率 > 2% 即杀）。
+   **第一片被 astra 复核否决（不能合并）**，报告存于 `benchmarks/reviews/2026-09-05-provenance-slice-1-astra.md`。
+   两个内核削弱我自己复现了：片段剥离让 `runs.csv@v3#garbage` 之类以前被拦的源通过，
+   还让合法文件名 `runs#raw.csv` 被误拦；`declared` 进 science 后 `sources: [doi:…]`、
+   `requires: [python>=3.11]` 变成假阻断。构建者正按项修（片段只剥 `#L<n>(-L<n>)?`
+   且在精确匹配失败后；science 撤回 declared，改在 provenance 里对 metadata.yml 的
+   inputs 做带版本的存在性检查；数值比较改十进制字符串、带符号、复合单位）。修完再送
+   第二轮独立复核。
+   **顺带发现两个已上线的旧缺陷**：(1) `general` 包里的 `check_declared` 把标量
+   `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
+   (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
+   （`cli/main.py:280` → `auditor/prompt.py:86`），早于本分支。两者待写决策记录。
    **等 owner 决定**：`web_fetch` 的正文是否保留（提交=可由 verify 再推导但第三方
    文本入库；gitignore 缓存=无许可变化但不可再推导）。不保留则 claim→citation 只能
    做增量内的一半。
