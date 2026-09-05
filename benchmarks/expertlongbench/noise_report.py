@@ -122,6 +122,36 @@ def replicate_summary(label: str, rows: dict[str, dict], instances: list[str]) -
         "wall_s": sum(float(rows[i].get("wall_s") or 0.0) for i in instances),
     }
     out["n_advisories"] = out["n_findings"] - out["n_blockers"]
+
+    # Is the model mapper doing anything the deterministic one is not?
+    #
+    # The rubric constitution defines CA-RUBRIC-00N as rubric item N by construction, so
+    # for those findings the rule mapping is the ground truth about what was named. Where
+    # the adjudicator answered, does it agree? And what would the model mapping have been
+    # had its failed calls returned what the deterministic mapping already knows?
+    agree = disagree = 0
+    wrong_total = imputed_hit = 0
+    for instance in instances:
+        row = rows[instance]
+        wrong = {k for k, v in row["clear"]["per_item"].items() if not v["correct"]}
+        wrong_total += len(wrong)
+        named_imputed: set[str] = set()
+        for finding in row.get("findings", []):
+            model_items = set(finding["items_model_mapping"])
+            rule_items = set(finding["items_rule_mapping"])
+            if finding.get("note"):
+                named_imputed |= rule_items
+                continue
+            named_imputed |= model_items
+            if finding["rule"].strip().upper().startswith("CA-RUBRIC-"):
+                if model_items == rule_items:
+                    agree += 1
+                else:
+                    disagree += 1
+        imputed_hit += len(wrong & named_imputed)
+    out["mapping_agreement"] = {"agree": agree, "disagree": disagree}
+    out["recall_model_with_rule_imputed"] = (
+        100.0 * imputed_hit / wrong_total if wrong_total else 0.0)
     for mapping in MAPPINGS:
         named = sum(rows[i]["scored"][mapping]["n_named"] for i in instances)
         hit = sum(rows[i]["scored"][mapping]["n_wrong_and_named"] for i in instances)
@@ -284,6 +314,20 @@ def render(payload: dict) -> str:
             f"{'n/a' if precision is None else f'{precision:>11.1f}%'} "
             f"{summary['findings_unadjudicated']:>6} "
             f"{summary['cost_usd']:>7.3f}")
+    add("")
+    add("  unadj = findings whose adjudicator call failed. They cite no item under the "
+        "MODEL mapping,")
+    add("          which depresses it and cannot touch the deterministic rule mapping.")
+    agree = sum(s["mapping_agreement"]["agree"] for s in payload["replicates"])
+    disagree = sum(s["mapping_agreement"]["disagree"] for s in payload["replicates"])
+    add(f"  where the adjudicator DID answer on a CA-RUBRIC finding, it agreed with the "
+        f"deterministic mapping on {agree} of {agree + disagree}.")
+    add("  model-mapping recall with the deterministic mapping imputed for failed calls: "
+        + ", ".join(f"{s['label']} {s['recall_model_with_rule_imputed']:.2f}%"
+                    for s in payload["replicates"]))
+    imputed = [s["recall_model_with_rule_imputed"] for s in payload["replicates"]]
+    add(f"    -> range {max(imputed) - min(imputed):.2f} pp "
+        f"(against {payload['spread']['model_mapping']['range']['point']:.2f} pp raw)")
     add("")
 
     for mapping in MAPPINGS:
