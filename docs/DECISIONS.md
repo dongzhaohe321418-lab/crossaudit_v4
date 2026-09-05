@@ -6962,8 +6962,23 @@ they are generator inputs (hashed into the receipt as such), not work product.
 Of every file class the auditor could be shown, this is the one most likely to
 read as instructions rather than as data.
 
-RULING: **exclude `skills/` from the audited increment the same way `TEMPLATE`
-is excluded**, in a slice of its own after slice 1 lands. State the receipt
+Two facts sharpen this, found while fixing slice 1. `skills.py`'s own
+docstring states that "skills never reach the auditor" and gives the reason with
+teeth: a skill that could speak to the auditor would be an unversioned rule, the
+thing P3 exists to prevent. So the code currently contradicts its own stated
+invariant — the isolation is real in the hand-off (nothing passes a skill to the
+auditor deliberately) and absent as an invariant (nothing stops the scope from
+carrying it). And `cycles/`, the state directory and `.github/` are already
+excluded from scope materialisation in the same place, so the fix is one more
+entry in an existing list, not a new mechanism. Shipping the provenance skill
+into `skills/` by default turns this exposure from hypothetical into routine for
+every science and research project, which is why it is sequenced immediately
+after slice 1 and not later.
+
+RULING: **exclude `skills/` from the audited increment the same way `TEMPLATE`,
+`cycles/`, the state directory and `.github/` are excluded**, in a slice of its
+own immediately after slice 1 lands, with a test that renders an auditor prompt
+for a root-scoped project carrying a skill and asserts the skill text is absent. State the receipt
 consequence in that slice: `inputs` digests over the audited scope change for
 projects whose scope currently includes `skills/`, and `verify` of earlier
 receipts is unaffected because it re-derives against the receipt's own recorded
