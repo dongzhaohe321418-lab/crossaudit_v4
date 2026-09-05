@@ -7241,16 +7241,28 @@ same file; Arm 4 after it.*
 preregistered at `benchmarks/expertlongbench/study9/PREREGISTRATION.md` before
 any line of `src/` was touched, measured in `study9/RESULTS.md`, suite 3605/4).
 Composed: R = 6, W = 0, R' = 11, W' = 0; all 10 gold-right blocks still block;
-the 97-draw panel is untouched. Two things the ruling did not survive intact.
-**The narrowing alone fails its own kill** (W' = 2: the shipped `wt %` percent
-split was the only reading of a spaced unit the matcher had, and taking the bare
-token away loses it until E4 gives it back) — which is ruling 2's "two halves of
-one rule" measured rather than asserted. And **the continuation set the ruling
-names cannot produce the block the ruling's own adversarial list demands**: "a
-member of the synonym table" does not contain `m`, so `5 kg m` would keep
-satisfying `kg`; what ships is a structural marker test first (superscript,
-exponent tail, solidus, middle dot, percent) and a small fixed unit-fragment
-table second, whose omissions fail toward today's behaviour and whose
-exclusions — function words, bare capitals, element symbols — are the argument.
-R' = 11 rather than 9 because R6a's basis qualifier reaches `20% vol/vol`. Arm 4
-next.*
+the 97-draw panel is untouched; R' = 11 rather than 9 because R6a's basis
+qualifier reaches `20% vol/vol`. **The continuation set the ruling names cannot
+produce the block the ruling's own adversarial list demands** — "a member of the
+synonym table" does not contain `m`, so `5 kg m` would keep satisfying `kg` — so
+what ships is a structural test (is the token a named fragment, a fragment with
+an exponent attached, or such atoms joined by a solidus or middle dot?) over a
+small fixed table whose exclusions are the argument: no function word, no word
+that is also a unit, and no bare element symbol or capital without a marker.
+
+The first build was refused by independent review for two P1s, and both are the
+same sentence failing in opposite directions. **A stopped scan was offered as a
+complete unit**: at the token cap, at an operator with nothing after it, or at a
+fragment it could not name, the join built so far was handed back — `5 kg m sr`
+satisfied `kg m`, and expressions of 7 to 20 tokens all accepted their first six.
+That is D157 lesson 2 a FOURTH time, on the join rather than the token, and it
+means an incomplete scan must yield no reading at all: an unreadable unit is a
+block, never a shorter reading that happens to be readable. **And a marker
+anywhere in a token was read as a unit**: `wet/dry`, `batch-1` and `sample¹`
+blocked correct annotations, because "carries a slash" is not "is a unit". The
+lesson the pair records: an extension that widens what a token may MEAN must
+still narrow what it may BE, and length or bracket guards are guessing where a
+grammar is owed. A third finding retracted a claim of ours — this record's
+earlier "the narrowing alone fails its own kill" was an over-strong ablation
+measuring the instrument, not the narrowing, and the correct ablation gives
+W' = 0. Arm 4 next.*

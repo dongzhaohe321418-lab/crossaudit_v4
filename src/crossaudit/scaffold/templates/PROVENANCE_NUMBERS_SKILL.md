@@ -34,8 +34,13 @@ All three fields, every row. A row with two cannot be checked and is refused.
     because half of a unit is still half of a unit. The same for `°C min⁻¹`,
     `mg h⁻¹` and `wt %` — copy the whole thing, spacing and all, and do not
     rewrite your own prose to make it one token.
-  - A word after a unit is not part of it. In `5 g sample` and `2 h later` the
-    units are `g` and `h`.
+  - A word after a unit is not part of it, and neither is a substance or a
+    label. In `5 g sample` and `2 h later` the units are `g` and `h`; in
+    `5 wt % Ni` the unit is `wt %`, because the `Ni` is what the percentage is
+    OF, not part of how it is measured.
+  - If the unit at that spot is something the checker cannot read to its end,
+    the row blocks rather than matching half of it. `uncited` is the honest
+    answer there, and it never counts against the work.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

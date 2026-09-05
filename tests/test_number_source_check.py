@@ -1550,6 +1550,9 @@ def test_the_shipped_words_say_what_the_scanner_does():
     assert "A SPACE IS NOT WHERE A UNIT ENDS" in contract
     assert "'m-2 s-1'" in contract and "WHOLE spaced expression" in contract
     assert "exactly as the source writes it, spaces included" in contract
+    assert "'5 wt % Ni' has the unit 'wt %'" in contract
+    assert "reports NO reading and the row BLOCKS" in contract
+    assert "never falls back to the part it managed to read" in contract
     assert "first token only" not in contract       # D160 ruling 1 deleted it
     assert "structural" not in contract
     assert "EMPTY unit imposes no unit constraint" in contract.replace("an EMPTY", "EMPTY")
@@ -1560,6 +1563,8 @@ def test_the_shipped_words_say_what_the_scanner_does():
     body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
     assert "exactly as the source writes it, spaces included" in body
     assert "`m-2 s-1`" in body and "uncited" in body
+    assert "`5 wt % Ni` the unit is `wt %`" in body
+    assert "cannot read to its end" in body
     assert "FIRST token only" not in body           # D160 ruling 1 deleted it
     assert "structural" not in body
     assert "so it is one token" not in body         # and the instruction with it
@@ -1623,6 +1628,21 @@ SPACED_UNITS = [
     ("5 g A2",              "g",         [],             "nor a sample label"),
     ("5 h (heating/cooling rate)", "h",  [],             "nor a parenthetical"),
     ("5 g heating/cooling", "g",         [],             "nor a long word with a solidus"),
+    ("5 g wet/dry sample",  "g",         [],             "nor a word with a solidus"),
+    ("5 g batch-1",         "g",         [],             "nor a word with a hyphen"),
+    ("5 g sample\u00b9",       "g",         [],             "nor a footnoted word"),
+    ("5 g K",               "g",         [],             "nor potassium"),
+    ("5 g Pa",              "g",         [],             "nor protactinium"),
+    ("5 g A",               "g",         [],             "nor a labelled batch"),
+    ("5 g 10 mL",           "g",         [],             "nor a second numeral"),
+    ("5 g (dry)",           "g",         [],             "nor a parenthetical"),
+    # An expression the module CAN read to its end, in full and never in part.
+    ("5 g / mL",            "g / mL",    [],             "an operator joins one unit"),
+    ("5 g / mL",            "g",         ["CA-NUM-002"], "and its first token is not it"),
+    ("5 kg·m",              "kg·m",      [],             "a middle dot needs no spaces"),
+    ("5 kg·m",              "kg",        ["CA-NUM-002"], "and its first fragment is not it"),
+    ("5 J K⁻¹",             "J K⁻¹",     [],             "a marked capital continues"),
+    ("5 J K⁻¹",             "J",         ["CA-NUM-002"], "so the bare joule does not"),
 ]
 
 
@@ -1673,23 +1693,107 @@ def test_a_spaced_unit_is_one_unit_through_results_json(span, unit, expected, wh
     assert got == expected, why
 
 
-def test_the_continuation_test_is_read_off_the_bytes_before_any_vocabulary():
-    """MUTATION: delete the marker half of `_continues_unit` and keep only the
-    table.
+def test_a_continuation_is_unit_shaped_in_itself_not_marker_bearing():
+    """MUTATION: test for a marker ANYWHERE in the token instead of parsing the
+    token as an expression over named fragments.
 
-    The rule is structure first and vocabulary second, and the order matters
-    because the table is knowingly incomplete: a unit this project has never
-    seen still continues a unit expression if it carries a superscript, an
-    exponent tail, a solidus, a middle dot or a percent sign. Delete the marker
-    half and `°C mK⁻¹` — a unit nothing names — falls back to `°C`."""
+    That is what the first build of this rule did, and review found it reads
+    short prose as a unit: `wet/dry` is a word with a slash, `batch-1` a word
+    with a hyphen, `sample¹` a word with a footnote, and each turned a correct
+    `(5, g)` into a non-overridable block. Guards against brackets and long
+    words did not draw the boundary either, because the boundary is not length —
+    it is whether the token PARSES: a named fragment, a fragment with an
+    exponent attached, or such atoms joined by a solidus or a middle dot.
+
+    The cost is stated rather than hidden: a unit nothing here names (`mK⁻¹`)
+    does not continue, so before a join the bare token still matches as it does
+    today, and after a join the expression is unreadable and blocks."""
     from crossaudit.dcl.numbers import _continues_unit
 
-    for token in ("min⁻¹", "h⁻¹", "s-1", "min−1", "m^2", "vol/vol", "%", "·s",
-                  "mK⁻¹", "µΩ⁻¹"):
+    for token in ("min⁻¹", "h⁻¹", "s-1", "min−1", "m^2", "vol/vol", "%",
+                  "K⁻¹", "Pa·s", "mol⁻¹·K⁻¹·s⁻¹", "hours", "µm"):
         assert _continues_unit(token), token
     for token in ("sample", "of", "later", "powder", "Ni", "at", "in", "bar",
-                  "S1", "A2", "(heating/cooling", "heating/cooling", ""):
+                  "S1", "A2", "(heating/cooling", "heating/cooling", "",
+                  "wet/dry", "batch-1", "sample\u00b9", "mK⁻¹", "/", "g/"):
         assert not _continues_unit(token), token
+
+
+def test_a_bare_element_symbol_or_capital_needs_a_marker_to_continue():
+    """MUTATION: drop the element and bare-capital refusal from
+    `_continues_unit`.
+
+    `K`, `Pa`, `N`, `C`, `S`, `P`, `H`, `O`, `F`, `B`, `V`, `W`, `Y`, `I` and
+    `U` are unit symbols AND element symbols, and `5 g K` is five grams of
+    potassium far more often than it is grams per kelvin; a bare capital is a
+    labelled batch (`5 g A`) as often as it is an ampere. They are in the
+    fragment table because `5 J K⁻¹` has to read `K⁻¹` — so the refusal is on
+    the BARE form, and a structural marker brings them back."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    for element in ("K", "Pa", "N", "C", "S", "P", "H", "O", "F", "B", "V",
+                    "W", "Y", "I", "U", "Ni", "Ti", "A", "T", "M"):
+        assert contains_pair(f"5 g {element}", "5", "g"), element
+    assert not contains_pair("5 J K⁻¹", "5", "J")
+    assert contains_pair("5 J K⁻¹", "5", "J K⁻¹")
+    assert not contains_pair("5 mPa·s", "5", "mPa")
+
+
+#: A scan that stops without reaching a boundary has read a PREFIX of the unit,
+#: and a prefix never satisfies. Review found the first build handing that
+#: prefix back through three different stops.
+STOPPED_SCANS = [
+    ("5 g / 100 mL",                   "g /",       "an expression ending on an operator"),
+    ("5 g / 100 mL",                   "g",         "and its first token"),
+    ("5 kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹ A⁻¹",  "kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹", "seven tokens, six read"),
+    ("5 kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹ A⁻¹",  "kg m",      "and any shorter prefix of them"),
+    ("5 kg m qz",                      "kg m",      "a token the table cannot read"),
+    ("5 kg m qz",                      "kg m qz",   "and the whole line it appears in"),
+]
+
+
+@pytest.mark.parametrize("span,unit,why", STOPPED_SCANS)
+def test_a_stopped_scan_yields_no_reading_at_all(span, unit, why):
+    """MUTATION: return the joined prefix when `_spaced_unit` reports the scan
+    incomplete — that is, delete the `complete` flag and always join.
+
+    Review's first P1. The token cap, an operator with nothing after it, and a
+    token that is neither a unit nor prose each stopped the scan, and
+    `_unit_candidates` then offered what had been joined so far as if it were
+    the whole unit: `5 kg m sr` satisfied `kg m`, a seven-token expression
+    satisfied its first six, and `5 g / 100 mL` satisfied `g /`. Contiguous
+    sweeps confirmed it was a grammar defect and not three curiosities —
+    expressions of 7 to 20 tokens ALL accepted their first six.
+
+    An unreadable unit is a block. The one thing it must never be is a shorter
+    reading that happens to be readable, which is the defect D157 rounds 3-5
+    record being fixed three times and this is the fourth.
+
+    `qz` and not `Ni`: a short LOWERCASE token that is not a named fragment is
+    a unit this table does not know, so the scan truncates. A capitalised one
+    is a substance or a label — `5 wt % Ni` — and ends the expression, which is
+    the row beside this table that must stay green."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value="5", unit=unit, src=cite(span))])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"], why
+
+
+def test_no_prefix_of_an_overflowing_expression_is_ever_a_reading():
+    """The sweep behind the table above, kept as the guard.
+
+    One case would be a curiosity; 14 contiguous expression lengths each
+    handing back their first six tokens is a grammar defect, so the whole range
+    is asserted — the same discipline as the exponent sweep."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    sup = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+    for n in range(2, 21):
+        tokens = ["kg"] + [f"s⁻{sup[i % 9 + 1]}" for i in range(n - 1)]
+        span = "5 " + " ".join(tokens)
+        for k in range(1, n):
+            assert not contains_pair(span, "5", " ".join(tokens[:k])), (n, k)
+        # Within the cap the whole expression reads; past it, nothing does.
+        assert contains_pair(span, "5", " ".join(tokens)) is (n <= 6), n
 
 
 def test_a_continuation_never_crosses_a_line():

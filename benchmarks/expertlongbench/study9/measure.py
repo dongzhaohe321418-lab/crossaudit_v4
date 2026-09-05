@@ -44,12 +44,56 @@ def _shipped(rest):
     return _CANDIDATES(rest)
 
 
-def _narrowing_only(rest):
-    """HALF 1 alone. The bare first token stops being a reading where a
-    continuation follows, and no join replaces it — E4 is not applied."""
-    cands = _CANDIDATES(rest)
-    parts, _end = N._spaced_unit(rest)
-    return [] if len(parts) > 1 else cands
+def _base_candidates(rest):
+    """The MERGE BASE's `_unit_candidates`, reimplemented here so an ablation
+    can subtract from it: the whole token, a range split, and the `wt %` percent
+    tail. Verified against `a763dd3:src/crossaudit/dcl/numbers.py`."""
+    token, after = N.unit_token(rest)
+    if not token:
+        return []
+    end = len(rest) - len(after)
+    out = [(token, end)]
+    span = N._RANGE.fullmatch(token)
+    if span and N.normalise_unit(span.group("u1")) == N.normalise_unit(span.group("u2")):
+        head = span.group("u1")
+        out.append((head, end - len(token) + len(head)))
+    if "%" not in token and "‰" not in token and token.isalpha():
+        gap = len(after) - len(after.lstrip())
+        sign = after[gap:gap + 1]
+        if sign in ("%", "‰"):
+            tail, rest_after = N._scan(after[gap + 1:], False)
+            out.append((f"{token} {sign}{tail}",
+                        end + gap + 1 + len(tail)))
+    return out
+
+
+def _narrowing_all_spaced(rest):
+    """HALF 1 alone, **as this study first performed it**: where the source
+    writes a spaced unit, every candidate is deleted — the bare token and the
+    base's own whole `wt %` reading with it. Kept on the record because its
+    numbers are quoted in `RESULTS.md`; it is an over-strong ablation and is
+    labelled so. Review found that its W' = 2 measures the instrument, not the
+    narrowing."""
+    parts, _end, _complete = N._spaced_unit(rest)
+    return [] if len(parts) > 1 else _CANDIDATES(rest)
+
+
+def _fold(unit):
+    return N.normalise_unit(unit).replace(" ", "")
+
+
+def _narrowing_prefix_only(rest):
+    """HALF 1 alone, **as it should be performed**: subtract from the BASE's
+    candidate set only those readings that are a strict PREFIX of the whole
+    spaced expression, and add nothing. The base's valid whole-`wt %` reading
+    survives, which is the reading the over-strong ablation above deletes."""
+    parts, _end, complete = N._spaced_unit(rest)
+    base = _base_candidates(rest)
+    if len(parts) < 2 or not complete:
+        return base
+    whole = _fold(" ".join(parts))
+    return [(c, e) for c, e in base
+            if not (whole.startswith(_fold(c)) and _fold(c) != whole)]
 
 
 def _e4_only(rest):
@@ -57,14 +101,16 @@ def _e4_only(rest):
     join is offered as a FURTHER candidate and the bare first token survives
     beside it."""
     cands = _CANDIDATES(rest)
-    parts, end = N._spaced_unit(rest)
-    if len(parts) > 1:
+    parts, end, complete = N._spaced_unit(rest)
+    if len(parts) > 1 and complete:
         token, after = N.unit_token(rest)
         cands = [(token, len(rest) - len(after))] + cands
     return cands
 
 
-CONFIGS = {"shipped": _shipped, "narrowing": _narrowing_only, "e4": _e4_only}
+CONFIGS = {"shipped": _shipped, "e4": _e4_only,
+           "narrowing-all-spaced": _narrowing_all_spaced,
+           "narrowing-prefix-only": _narrowing_prefix_only}
 
 GOLD = HERE.parent / "study8gold" / "GOLD.csv"
 KEY = HERE.parent / "study8gold" / "key.jsonl"
@@ -74,9 +120,13 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sheet", required=True, type=Path)
     ap.add_argument("--config", choices=sorted(CONFIGS), default="shipped",
-                    help="shipped = both halves; narrowing = half 1 alone; "
-                         "e4 = half 2 alone, the bare token surviving beside "
-                         "the join (what study8gold/simulate.py called E4)")
+                    help="shipped = both halves; e4 = half 2 alone, the bare "
+                         "token surviving beside the join (study8gold/"
+                         "simulate.py's E4); narrowing-prefix-only = half 1 "
+                         "alone, subtracting only prefix readings from the "
+                         "base's candidates; narrowing-all-spaced = the "
+                         "over-strong ablation this study first ran, which "
+                         "also deletes the base's whole `wt %` reading")
     args = ap.parse_args(argv)
 
     N._unit_candidates = CONFIGS[args.config]

@@ -320,70 +320,88 @@ SYNONYMS: dict[str, str] = {
 #: the annotation can name in full (E4 — a candidate at least as long as the
 #: whole token, never shorter).
 #:
-#: A continuation is recognised by a MARKER first, which is structure and needs
-#: no vocabulary: a superscript digit or sign, a letters-then-exponent tail
-#: (`s-1`, `min−1`, `m^2`; U+2212 counts as a minus), a solidus, a middle dot, or
-#: a percent sign. `min⁻¹`, `h⁻¹`, `L⁻¹`, `vol/vol` and `%` are all read off the
-#: bytes.
-_MARK_SUPER = set(_SUPER + "⁺⁻")
-_MARK_CHARS = set("/⁄·⋅%‰")
-#: A token that ends in an EXPLICIT exponent: something that is not a digit,
-#: then `^`, `-`, `−` or `+`, then digits. `s-1`, `°C-1`, `m^2`, `min−1`. The
-#: marker must be explicit — a bare letter-digit run (`S1`, `A2`, `Fig3`) is a
-#: sample label in exactly the place materials prose puts one, and reading it as
-#: a unit would block a correct annotation on every one of them.
-_EXPONENT_TOKEN = re.compile(r"[^\s0-9][^\s]*?[\^\-−+][0-9]+\Z")
+#: **A token is unit-shaped in ITSELF, not because it carries a marker
+#: somewhere.** The first build tested for a marker anywhere in the token — a
+#: superscript, a solidus, a middle dot — and review found that reads short prose
+#: as a unit: `wet/dry` is a word with a slash, `batch-1` a word with a hyphen,
+#: `sample¹` a word with a footnote, and all three turned a correct `(5, g)` into
+#: a block. Guards against brackets and long words did not draw the boundary
+#: either, because the boundary is not length. A continuation is now an
+#: EXPRESSION over named fragments: a fragment, a fragment with an exponent
+#: attached, or such atoms joined by a solidus or a middle dot. `min⁻¹` is
+#: `min` + `⁻¹`; `wet/dry` is two words.
+_FRAGMENT_SPLIT = re.compile(r"[/⁄·⋅]")
+#: An exponent ATTACHED to a fragment. ASCII digits need an explicit `^` or a
+#: sign, because a bare letter-digit run is a sample label in exactly the place
+#: materials prose puts one (`A2`, `S1`, `Fig3`) and reading it as a unit blocks
+#: a correct annotation on every one of them. A superscript run stands alone.
+_EXPONENT_TAIL = re.compile(r"(?:\^[+\-−]?[0-9]+|[+\-−][0-9]+|[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)\Z")
+#: A solidus or middle dot with nothing either side of it is an OPERATOR, not a
+#: unit: it continues an expression and can never end one. `5 g / mL` is one
+#: unit written in three tokens; `5 g / 100 mL` runs into a numeral and is not
+#: readable at all, which is a block and not a `g /`.
+_CONNECTORS = frozenset("/⁄·⋅")
 
-#: The second half of the continuation test, and the only part that needs a
-#: vocabulary: a plain unit symbol with no marker at all, so `5 kg m` reads the
-#: unit `kg m` and `kg` is the prefix it is.
+#: The named fragments. **Fixed, small, and knowingly incomplete**, and the
+#: incompleteness is now stated honestly in both directions, because review
+#: showed the first version of this sentence was false:
 #:
-#: **This table is fixed, small, and knowingly incomplete, and its incompleteness
-#: is safe in a way a dictionary usually is not.** `CONTAINMENT_RULE.md` §2 warns
-#: that no unit dictionary is complete — but there the dictionary would have
-#: SHORTENED a token (`cm` out of `-cm`), where an omission fails toward a false
-#: PASS. Here it can only LENGTHEN one: a unit symbol this table does not name
-#: leaves the bare-token reading exactly as it shipped, so an omission is not a
-#: regression. The only harm is a wrong INCLUSION, which is a false blocker, so
-#: what is excluded is the argument:
+#: * BEFORE a join has begun, an omission leaves the shipped behaviour — the
+#:   bare token still matches, exactly as it does today;
+#: * AFTER a join has begun, an omission is a BLOCK, not a pass. `5 kg m sr`
+#:   with `sr` missing must not hand back `kg m`; the scan stops without a
+#:   boundary and `_unit_candidates` returns nothing (see `_spaced_unit`). The
+#:   first build returned the joined prefix instead, which is "a prefix never
+#:   satisfies" defeated a fourth time.
 #:
-#: * **no English function word** — `of`, `in`, `at`, `a`, `and`, `or`, `per`,
-#:   `to`, `with`, `by`. Several are real unit symbols (`in` is an inch, `at` a
-#:   technical atmosphere, `a` an are) and every one of them would turn `10 g at
-#:   300 °C` and `5 mL in water` into blocks on a correct annotation;
-#: * **no bare capital and no element symbol** — `K`, `A`, `N`, `M`, `Ni`, `Ti`.
-#:   An element after a quantity is the commonest thing materials prose writes
-#:   (`5 wt % Ni`, `20 g Ti`), and `M` is that literature's generic metal. Where
-#:   a capital really is the unit it arrives with a marker anyway: `5 mol L⁻¹`,
-#:   `5 K min⁻¹`;
-#: * **no English word that is also a unit** — `bar`, because `a 5 g bar` is
-#:   prose and `5 bar` needs no continuation to be read.
-#:
-#: The synonym table's own single-token keys are in it, which is the part of the
-#: continuation set D160's sentence named.
+#: What is excluded is still the argument, because a wrong INCLUSION is a false
+#: blocker: no English function word (`of`, `in`, `at`, `per`), no word that is
+#: also a unit (`bar`, so `a 5 g bar` stays prose). Bare capitals and element
+#: symbols ARE named here — they have to be, or `5 J K⁻¹` cannot read `K⁻¹` —
+#: but `_continues_unit` refuses them BARE, so `5 g K` is five grams of
+#: potassium and `5 g Pa` is protactinium, both still matching `g`.
 _UNIT_FRAGMENTS = frozenset("""
-    m cm mm nm pm km µm μm
+    m cm mm nm pm µm μm km dm
     g kg mg µg μg ng
     s ms µs μs ns ps min h
-    mL µL μL nL
+    L mL µL μL nL dL
     mol mmol µmol μmol nmol
+    K A N J W V C F S T H B Y I U O P
     Pa kPa MPa GPa hPa mbar atm Torr torr psi
     Hz kHz MHz GHz rpm
+    Wb Bq Gy Sv lm lx cd sr rad kat Ω Å
     eV keV MeV meV kJ mJ kW mW
-    mA µA μA mV kV
-    mM µM μM nM
+    mA µA μA nA mV kV µV μV mN kN
+    M mM µM μM nM
     wt vol
-    sccm ppm ppb
-    °C °F ° % ‰ Å
-    hours hour minutes minute
+    sccm slm ppm ppb
+    °C °F ° % ‰
 """.split())
-#: How many tokens one unit expression may span. A bound, not a rule: it stops a
-#: pathological line from being rescanned without end, and no unit in the corpus
-#: is written in more than three.
+#: Every element symbol, so the collision set is exact rather than guessed. A
+#: bare fragment that is one of these needs a structural marker to continue:
+#: `5 g K` is potassium, `5 g Pa` protactinium, `5 g C` carbon — ordinary
+#: materials prose, and the commonest thing written after a mass. With a marker
+#: they are units again (`5 J K⁻¹`, `5 mPa·s`), because no element is written
+#: with an exponent in that position.
+_ELEMENTS = frozenset("""
+    H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni
+    Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe
+    Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au
+    Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf
+    Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og
+""".split())
+#: Short function words, which are the prose a quantity is followed by when the
+#: prose is shorter than four characters. Only consulted AFTER a join has begun,
+#: to tell a true boundary from a scan that ran out of vocabulary.
+_STOPWORDS = frozenset("""
+    a an and as at by for from in into is of on or over per than the then to
+    under until up using was were with
+""".split())
+#: How many tokens one unit expression may span. A LOOP GUARD, and since review
+#: emphatically not a candidate producer: hitting it truncates the scan and
+#: yields no reading at all. Seven-token expressions used to hand back their
+#: first six.
 _MAX_UNIT_TOKENS = 6
-#: The longest a single continuation token may be. `min⁻¹` is 5 characters,
-#: `vol/vol` is 7, `mmol/L` is 6; `(heating/cooling` is 16 and is prose.
-_MAX_FRAGMENT = 12
 #: The run of whitespace a unit expression may cross. `_INLINE` and not `\s`:
 #: Python's `\s` already covers U+00A0, U+2003 and U+202F (a hand-written list of
 #: the ones somebody thought of is how the first two got in and the third did
@@ -393,31 +411,61 @@ _MAX_FRAGMENT = 12
 _INLINE_GAP = re.compile(rf"{_INLINE}*")
 
 
-def _continues_unit(token: str) -> bool:
-    """Whether this token, separated from a unit reading by whitespace only,
-    is part of the same unit expression.
-
-    Marker first (structure, no vocabulary), then the fixed fragment table. A
-    word is not a unit fragment — which is the mirror the whole rule is judged
-    by: `5 g sample`, `5 g of powder` and `2 h later` must keep matching `g`,
-    `g` and `h`."""
-    if not token or len(token) > _MAX_FRAGMENT or token[0] in _OPENERS:
-        # Two guards, both measured against the gold rather than imagined. A
-        # token that OPENS A BRACKET is a parenthetical, not a unit: the gold
-        # row `… for 5 h (heating/cooling rate 5 °C min⁻¹)` scans
-        # `(heating/cooling` — a solidus inside a bracket — and reading it as a
-        # continuation turned a correct `(5, h)` into a block (W' = 1 on the
-        # first build of this rule). A token LONGER than any unit expression is
-        # prose for the same reason: `heating/cooling` carries a solidus and is
-        # not a unit. Both guards fail toward the shipped behaviour — an
-        # unrecognised continuation leaves the bare token matching as it does
-        # today — which is the only direction an incomplete rule may fail here.
-        return False
-    if any(ch in _MARK_SUPER or ch in _MARK_CHARS for ch in token):
-        return True
-    if _EXPONENT_TOKEN.match(token):
-        return True
+def _fragment(token: str) -> bool:
+    """A named unit fragment, under the synonym table's folding — which is what
+    covers `hours`, `minutes` and `µm` without listing them twice."""
     return token in _UNIT_FRAGMENTS or normalise_unit(token) in _UNIT_FRAGMENTS
+
+
+def _unit_atom(token: str) -> bool:
+    """A fragment, or a fragment with an exponent attached to it."""
+    if _fragment(token):
+        return True
+    tail = _EXPONENT_TAIL.search(token)
+    return bool(tail) and tail.start() > 0 and _fragment(token[:tail.start()])
+
+
+def _unit_shaped(token: str) -> bool:
+    """Whether this token is a unit EXPRESSION in itself: an atom, or atoms
+    joined by a solidus or a middle dot. `min⁻¹`, `vol/vol`, `mol⁻¹·K⁻¹·s⁻¹`
+    are; `wet/dry`, `batch-1`, `sample¹`, `(heating/cooling` are words."""
+    parts = _FRAGMENT_SPLIT.split(token)
+    if len(parts) > 1:
+        return all(part and _unit_atom(part) for part in parts)
+    return bool(token) and _unit_atom(token)
+
+
+def _continues_unit(token: str) -> bool:
+    """Whether this token, separated from a unit reading by whitespace only, is
+    part of the same unit expression.
+
+    A word is not a unit fragment — the mirror the whole rule is judged by:
+    `5 g sample`, `5 g of powder` and `2 h later` keep matching `g`, `g` and
+    `h`. Neither is a bare element symbol or a bare capital: `5 g K` is
+    potassium and `5 g A` is a labelled batch far more often than either is a
+    unit, so those need a marker (`K⁻¹`, `Pa·s`) before they continue."""
+    if not token or not _unit_shaped(token):
+        return False
+    return not (token in _ELEMENTS or (len(token) == 1 and token.isupper()))
+
+
+def _is_boundary(token: str) -> bool:
+    """Whether this token ENDS a unit expression rather than continuing it or
+    truncating it — consulted only after a join has begun, where the difference
+    between "prose" and "a unit this table does not name" decides between a
+    reading and a block. Prose, a numeral, or an opening bracket. A short
+    alphabetic token that is not a function word is NOT prose: `sr`, `cd` and
+    `rad` are units, and guessing they are words is how a joined prefix gets
+    offered as a whole unit."""
+    if not token:
+        return True
+    if token[0].isdigit() or token[0] in _OPENERS:
+        return True
+    if _fragment(token):
+        return False                         # a named unit is never the prose
+    if token in _ELEMENTS or (token[0].isupper() and token.isalpha()):
+        return True                          # `5 wt % Ni`: a substance, a label
+    return token.isalpha() and (len(token) >= 4 or token.lower() in _STOPWORDS)
 
 
 def _text(data: bytes) -> str | None:
@@ -484,34 +532,56 @@ def unit_token(rest: str) -> tuple[str, str]:
     return _scan(rest, True)
 
 
-def _spaced_unit(rest: str) -> tuple[list[str], int]:
-    """The whole unit expression following a number, token by token, and where
-    it ends in `rest`.
+def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
+    """The whole unit expression following a number: its tokens, where it ends
+    in `rest`, and **whether the scan ended at a true boundary**.
 
     The first token is `unit_token`'s. After it, whitespace is crossed for as
-    long as the next token is a continuation (`_continues_unit`) — and only
-    NON-NEWLINE whitespace, because a token on the next line of a multi-line span
-    is not this number's unit, it is the next line's prose.
+    long as the next token continues the unit — and only NON-NEWLINE whitespace,
+    because a token on the next line of a multi-line span is not this number's
+    unit, it is the next line's prose.
 
     One list, both halves of D160 ruling 1: more than one part means the source
     wrote a spaced unit, so the bare first token stops being a reading (the
     narrowing) and the join becomes one (E4).
+
+    **The third value is the repair review demanded, and it is load-bearing.**
+    A scan that stops because it hit the token cap, ran into an operator with
+    nothing after it, or met a token it can neither continue nor call a
+    boundary has NOT read the unit — it has read a PREFIX of it. Handing that
+    prefix back made `5 kg m sr` satisfy `kg m` and a seven-token expression
+    satisfy its first six: the prefix defect a fourth time, now on the join.
+    An incomplete scan yields no candidate at all, so the annotation blocks.
+    A single token is always complete, which is the shipped behaviour for
+    every line that holds no spaced unit.
     """
     token, after = unit_token(rest)
     if not token:
-        return [], 0
+        return [], 0, True
     parts, end = [token], len(rest) - len(after)
-    while len(parts) < _MAX_UNIT_TOKENS:
+    complete = True
+    while True:
         gap = _INLINE_GAP.match(after).end()
         if not gap:
-            break
+            break                            # a boundary character, or the end
         nxt, remainder = _scan(after[gap:], False)
-        if not _continues_unit(nxt):
+        if not nxt:
+            break                            # whitespace, then nothing to read
+        if len(parts) >= _MAX_UNIT_TOKENS:
+            complete = False
             break
-        parts.append(nxt)
-        end += gap + len(nxt)
-        after = remainder
-    return parts, end
+        if _continues_unit(nxt) or nxt in _CONNECTORS:
+            parts.append(nxt)
+            end += gap + len(nxt)
+            after = remainder
+            continue
+        if len(parts) == 1 or _is_boundary(nxt):
+            break                            # prose, a numeral, or no join yet
+        complete = False                     # a unit this table cannot read
+        break
+    if parts[-1] in _CONNECTORS:
+        complete = False                     # an expression never ends on `/`
+    return parts, end, complete
 
 
 def _unit_candidates(rest: str) -> list[tuple[str, int]]:
@@ -528,17 +598,21 @@ def _unit_candidates(rest: str) -> list[tuple[str, int]]:
       ruling 1 in one line: the bare first token is not offered, because the gold
       found `°C` satisfying `°C min⁻¹` nine times in 150 passes, and the join is
       offered, because `°C min⁻¹` is what the source says and an annotation must
-      be allowed to say it.
+      be allowed to say it;
+    * where the source writes a spaced unit this module cannot read to its end,
+      **nothing**. Neither the join nor the bare token: an unreadable unit is a
+      block, and the one thing it must never be is a shorter reading that
+      happens to be readable.
 
     The percent split (`wt %`) that used to be a special case is now this rule:
     `%` is a continuation like any other, and `wt %/s` is still one expression
     that `wt %` does not satisfy.
     """
-    parts, end = _spaced_unit(rest)
+    parts, end, complete = _spaced_unit(rest)
     if not parts:
         return []
     if len(parts) > 1:
-        return [(" ".join(parts), end)]
+        return [(" ".join(parts), end)] if complete else []
     token = parts[0]
     out = [(token, end)]
     span = _RANGE.fullmatch(token)
@@ -1143,7 +1217,13 @@ register("number_source", check_number_source,
          "unit is the WHOLE spaced expression, so a source saying 'm-2 s-1' is not "
          "satisfied by 'm-2' and is satisfied by 'm-2 s-1'. Write the unit exactly "
          "as the source writes it, spaces included. A WORD is not a continuation, "
-         "so '5 g sample' still matches 'g' and '2 h later' still matches 'h'. "
+         "so '5 g sample' still matches 'g' and '2 h later' still matches 'h'; "
+         "neither is a substance or a label, so '5 wt % Ni' has the unit 'wt %' "
+         "and '5 g K' still matches 'g'. Where the spaced expression runs past "
+         "what the check can read - more tokens than it scans, an operator with "
+         "nothing after it, or a fragment it does not name - it reports NO "
+         "reading and the row BLOCKS; it never falls back to the part it "
+         "managed to read, because that part is a prefix. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
