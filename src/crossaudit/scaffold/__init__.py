@@ -1,6 +1,7 @@
 """Templates `init` instantiates. The Constitution is a template here, never law."""
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 TEMPLATES = Path(__file__).parent / "templates"
@@ -40,19 +41,38 @@ ANNOTATION_CHECKS = tuple(ANNOTATION_SKILLS)
 #: A generated skill from before the per-check split. It carried both fences and
 #: no `requires_check:` key, so it stays selected however the check list moves —
 #: including `checks: []`. Nothing shipped with it and there is no migration
-#: path, so it is removed where it is found rather than left to instruct a
-#: generator about checks the project may no longer run. A file a PERSON wrote
-#: at that path is never touched: only one that still matches the bytes this
-#: scaffold produced.
+#: path, so it is removed where it is found rather than left instructing a
+#: generator about checks the project may no longer run.
 LEGACY_ANNOTATION_SKILL = "skills/provenance.md"
-LEGACY_ANNOTATION_MARK = "```crossaudit-numbers"
+
+#: **Ownership is proved by digest, never by a substring.** Matching on "this
+#: file mentions the fence name" deleted a hand-written policy whose only crime
+#: was quoting ```crossaudit-numbers in an example, and it simultaneously MISSED
+#: the source-only rendering, which contains no numeric marker at all. A
+#: generated file is one this scaffold generated, and the only honest test of
+#: that is the bytes.
+#:
+#: Every rendering the pre-split composer could emit, over every combination of
+#: the two annotation checks (numbers only, sources only, both), computed from
+#: the round-3 templates at `da8ddfe` and pinned here. A file whose sha256 is not
+#: one of these is somebody's, and is left alone.
+LEGACY_ANNOTATION_DIGESTS = frozenset({
+    # header + numbers          (checks: science, or ["number_source"])
+    "1fda0d9187c1de90f6ad571f450e0a678f7c119ae6b7302e9cb087108eaeafef",
+    # header + sources          (checks: ["source_provenance"])
+    "967213437932ca9fc7d62a6f67d8c7332be48d496df0b40c7bb76e2b9ca5fc90",
+    # header + numbers + sources (checks: research)
+    "36c79202e7a9de020c31303d6821fddd80854ef3cf08a95e116e5efd3d1f2d40",
+})
 
 
 def prune_legacy_annotation_skill(root) -> list[str]:
-    """Delete the pre-split generated skill if it is still there, unmodified.
+    """Delete the pre-split generated skill if it is there, byte for byte.
 
-    Returns the paths removed, so the caller can record them in the setup commit
-    the way it records what it wrote.
+    Returns the paths removed. The caller MUST add them to whatever it stages:
+    the first version returned them and both creation paths dropped the value on
+    the floor, so `commit_setup` never saw the deletion and the file stayed in
+    the tree it had just been removed from.
     """
     if root is None:
         return []
@@ -60,11 +80,11 @@ def prune_legacy_annotation_skill(root) -> list[str]:
     if not target.is_file() or target.is_symlink():
         return []
     try:
-        text = target.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+        data = target.read_bytes()
+    except OSError:
         return []
-    if "requires_check" in text or LEGACY_ANNOTATION_MARK not in text:
-        return []                      # hand-edited, or already keyed: leave it
+    if hashlib.sha256(data).hexdigest() not in LEGACY_ANNOTATION_DIGESTS:
+        return []                                  # not ours; do not touch it
     target.unlink()
     return [LEGACY_ANNOTATION_SKILL]
 
@@ -80,8 +100,9 @@ def annotation_skill_tree(checks, root=None) -> dict[str, str]:
     `root`, when given, also clears the pre-split generated skill: a keyless
     `skills/provenance.md` from before this round survives every check gate,
     because the gate it would be read by lives in front matter it does not have.
+    Its removal is reported through `prune_legacy_annotation_skill`, which the
+    caller must stage; this function only writes.
     """
-    prune_legacy_annotation_skill(root)
     return {path: read(template)
             for name, (path, template) in ANNOTATION_SKILLS.items()
             if name in (checks or ())}

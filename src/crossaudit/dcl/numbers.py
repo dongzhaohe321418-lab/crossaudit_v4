@@ -142,7 +142,21 @@ _GAP = r"\s*"
 #: (`Ω`, `Å`, `′`, `″`, subscripts, `⁄`, a new SI prefix) keeps the token whole
 #: instead of cutting it short, and the failure direction is a blocker on a
 #: half-transcribed unit rather than a pass on one.
-_BOUNDARY = set(',;:!?"\'«»…')
+_BOUNDARY = set(',;:!?"\'«»…' + "\u2018\u2019\u201a\u201b\u201c\u201d\u201e\u201f\u2039\u203a"
+                + "†‡§¶")
+#: The set names three families, and the reason each is in it. Structural
+#: punctuation (`,;:!?"'«»…`) never appears inside a unit. Typographic quotes
+#: (`\u201c\u201d\u2018\u2019`) are the same thing in a word processor's
+#: rendering, and leaving them out made `5 °C\u201d` and `5 °C\u2019s` blockers on
+#: ordinary prose. Footnote and note marks (`†‡§¶`) attach to a number in exactly
+#: the position a unit would, which is why they have to be named rather than
+#: guessed at.
+#:
+#: `*` and `>` are deliberately NOT boundaries: `*` is multiplication and `>` is
+#: comparison, both of which are real notation a unit can contain, and treating
+#: them as punctuation would let a shortened unit satisfy a longer source. The
+#: contract says so, because the cost is a footnote star reading as unit text.
+#:
 #: An em or en dash never continues a unit: it separates prose or a range.
 _DASHES = set("—–")
 _OPENERS, _CLOSERS = set("([{"), set(")]}")
@@ -155,7 +169,13 @@ _OPENERS, _CLOSERS = set("([{"), set(")]}")
 #: no unit. Narrow on purpose: it fires on the number's own continuation and
 #: never on a word that merely follows, because "a unitless number may not be
 #: followed by anything" would block every `run 5 of 12` in the corpus.
-_UNPARSED = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹]|[×x*^]\s*[0-9]")
+_SIGNS = r"+\-−±"
+_SUPER = r"⁰¹²³⁴⁵⁶⁷⁸⁹"
+_UNPARSED = re.compile(
+    rf"[{_SUPER}]"                          # 10⁵
+    rf"|[{_SIGNS}⁺⁻][{_SUPER}]"             # 10⁻⁵, 10⁺⁵
+    rf"|[⁺⁻]"                               # a bare superscript sign
+    rf"|[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]")    # 5×10³, 5×-10³, 5^−3
 
 #: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
 #: as the ambient window `(20°C-25°C)`. Whole-token comparison is what stops a
@@ -168,11 +188,11 @@ _RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
 #: archived drafts (`benchmarks/expertlongbench/provenance_arm1.py`): deleting it
-#: takes the primary false-blocker rate from 6 of 365 (1.64%) to 12 of 365
-#: (3.29%, 95% Wilson 1.89–5.66%) — past §6's 2% kill line — and the six it adds
-#: are every draft that wrote `hours`, `minutes` or `wt%` where its source wrote
-#: `h`, `min` or `wt %`. The six that remain either way are an artefact of the
-#: harness's own unit vocabulary, measured and reported there rather than
+#: takes the primary block rate from 7 of 365 (1.92%) to 13 of 365 (3.56%, 95%
+#: Wilson 2.09–6.00%) — past §6's 2% kill line — and the six it adds are every
+#: draft that wrote `hours`, `minutes` or `wt%` where its source wrote `h`,
+#: `min` or `wt %`. The seven that remain either way are all artefacts of the
+#: harness's own extraction vocabulary, measured and reported there rather than
 #: corrected.
 #:
 #: It is fixed, and it is small on purpose. Growing it against a failing corpus
@@ -333,22 +353,25 @@ def _span(text: str, start: int, end: int) -> str | None:
     return "\n".join(lines[start - 1:end])
 
 
-def _at_span(at) -> tuple[int, int] | None:
+def _at_span(at, lines: int) -> tuple[int, int] | None:
     """Where in the enclosing artefact the number was written, or None.
 
-    Validated exactly as `src` is (`_span`): the line is 1-based so it must be
-    at least 1, a range must be ordered, and both ends are kept. `at` used to be
-    checked for SYNTAX only and to discard the range end, so `#L0` and `#L5-L2`
-    were accepted — a locator this layer would refuse in the other field, waved
-    through in this one. `at` is the address the activity stream prints back to
-    a person; an address that cannot exist is a malformed row, not a detail.
+    Validated exactly as `src` is (`_span`), and `lines` is the last clause of
+    "exactly": the line is 1-based so it must be at least 1, a range must be
+    ordered, and **both ends must be inside the artefact that carries the
+    annotation**. `at` was first checked for SYNTAX only, which let `#L0` and
+    `#L5-L2` through; then for positivity and order, which let
+    `#L1-L1000000` through on a four-line draft while the identical `src` was
+    CA-NUM-001. A locator this layer refuses in one field must not be waved
+    through in the field beside it, and `at` is the address §7 prints back to a
+    person.
     """
     m = _AT.fullmatch(str(at or ""))
     if not m:
         return None
     start = int(m.group("start"))
     end = int(m.group("end") or start)
-    if start < 1 or end < start:
+    if start < 1 or end < start or end > lines:
         return None
     return start, end
 
@@ -359,7 +382,8 @@ def _at_span(at) -> tuple[int, int] | None:
 _SCALAR = (str, int, float)
 
 
-def _row_findings(path: str, files: Mapping[str, bytes], row: dict) -> list[Finding]:
+def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
+                  lines: int) -> list[Finding]:
     # All four fields, present. `u` was previously allowed to be absent and read
     # as unitless, which let a row opt out of the half of the check that
     # compares units by simply not writing the key — the contract says four
@@ -379,7 +403,7 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict) -> list[Find
     # by the same `.strip()` that made `$` and `\Z` indistinguishable in the
     # membership test next door.
     src = str(row["src"])
-    at = _at_span(row["at"])
+    at = _at_span(row["at"], lines)
     if at is None or not v.strip() or not src:
         return [Finding(BLOCKER, "CA-NUM-001", path,
                         "a source annotation has an empty number or location; each "
@@ -585,7 +609,8 @@ def check_number_source(files: Mapping[str, bytes]) -> list[Finding]:
                     "{v, u, at, src} rows"))
                 continue
             for row in rows:
-                out.extend(_row_findings(path, files, row))
+                out.extend(_row_findings(path, files, row,
+                                         text.count("\n") + 1))
     return out
 
 
@@ -598,9 +623,15 @@ register("number_source", check_number_source,
          "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
          "number and a reported precision is not preserved); the unit must equal the "
          "WHOLE unit token following that number, under a fixed synonym table, so a "
-         "prefix of a compound unit never satisfies it (a unit written with a space "
-         "inside it, such as 'm-2 s-1', therefore cannot be matched at all and "
-         "belongs in 'uncited'). A named span that does not resolve or does not "
+         "prefix of a compound unit never satisfies it, except that a unit written "
+         "with a space inside it is read as its first token only, so 'm-2 s-1' in "
+         "a source is seen as 'm-2' and the rest is invisible to the check; write "
+         "such a unit joined, or annotate it 'uncited'. Punctuation ends a unit "
+         "token, but '*' and '>' do not, because multiplication and comparison are "
+         "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
+         "all — '5' annotated with no unit matches a source saying '5 g' — so the "
+         "check can confirm that a number is present and can never establish that "
+         "it is unitless. A named span that does not resolve or does not "
          "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "

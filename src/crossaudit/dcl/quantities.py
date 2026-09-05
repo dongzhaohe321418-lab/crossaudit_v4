@@ -47,12 +47,16 @@ RESULTS_SUFFIX = "results.json"
 #: 100 false passes out of 100. Here the pattern is used with `fullmatch`, so an
 #: over-long literal matches nothing, `normalise_number` returns None, and the
 #: caller raises CA-NUM-001.
-#: The exponent is capped at five digits — a magnitude above 99,999 is refused,
-#: not truncated. Six digits was the contract saying "bounded" while `1e999999`
-#: sailed through; the number a source could actually state is many orders of
-#: magnitude below either bound, so the cap only has to be a cap.
+#: The exponent is capped by MAGNITUDE: above 99,999 it is refused, not
+#: truncated. The pattern admits the padding a literal may carry and the cap is
+#: applied to the significant digits, because a rule that counted characters
+#: made `1e000005` malformed and `1e99999` fine — the zeros deciding, not the
+#: number. Six digits was the contract saying "bounded" while `1e999999` sailed
+#: through; the number a source could actually state is many orders of magnitude
+#: below either bound, so the cap only has to be a cap.
+_MAX_EXPONENT_DIGITS = 5
 _DECIMAL = re.compile(r"[+-]?(?:[0-9]{1,512}(?:\.[0-9]{1,512})?|\.[0-9]{1,512})"
-                      r"(?:[eE][+-]?[0-9]{1,5})?")
+                      r"(?:[eE][+-]?[0-9]{1,512})?")
 #: U+2212 MINUS SIGN is what a typesetter, a spreadsheet export and half the
 #: scientific literature write for a negative number. It is a minus.
 _MINUS = "−"
@@ -112,6 +116,15 @@ def normalise_number(token) -> str | None:
     negative = text.startswith("-")
     body = text.lstrip("+-")
     mantissa, _, exponent = body.partition("e") if "e" in body else body.partition("E")
+    # The cap is on MAGNITUDE, not on how the magnitude was written. Counting
+    # digits made `1e000005` a malformed row while `1e99999` was fine — the
+    # padding, not the number, decided it.
+    if exponent:
+        sign, digits = ("-", exponent[1:]) if exponent[0] in "+-" else ("", exponent)
+        digits = digits.lstrip("0") or "0"
+        if len(digits) > _MAX_EXPONENT_DIGITS:
+            return None
+        exponent = sign + digits
     whole, _, frac = mantissa.partition(".")
     digits = (whole + frac).lstrip("0")
     if not digits:

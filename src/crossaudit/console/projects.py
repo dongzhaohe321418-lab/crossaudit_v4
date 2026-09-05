@@ -50,6 +50,7 @@ from ..scaffold import (
     SCIENCE_CHECKS,
     SCIENCE_TREE,
     annotation_skill_tree,
+    prune_legacy_annotation_skill,
     read,
     write_tree,
 )
@@ -1785,7 +1786,9 @@ def create_project(base: Path, payload: dict, progress) -> dict:
     if gitignore_changed:
         owned.append(".gitignore")
     owned.extend(write_tree(target, tree))
-    owned.extend(write_tree(target, annotation_skill_tree(checks, target)))
+    owned.extend(write_tree(target, annotation_skill_tree(checks)))
+    owned.extend(wizard.tracked_paths(
+        target, prune_legacy_annotation_skill(target)))
     commit = wizard.commit_setup(target, owned)
     record("local", f"Committed local project {commit[:12]}")
 

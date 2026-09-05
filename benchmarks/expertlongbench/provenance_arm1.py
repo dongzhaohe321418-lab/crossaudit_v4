@@ -73,13 +73,15 @@ SOURCE_PATH = "work/synthesis/RECIPE.md"
 DRAFT_PATH = "work/explanation.md"
 
 
-#: A character that continues a unit token past where the probe's fixed
+#: A character that continues the draft's own text past where the probe's fixed
 #: alternation stops. `NUM` knows `°C` and not `°C/min`, so on a ramp rate it
-#: captures `("5", "°C")` and the annotation it derives is NOT what the draft
-#: wrote. That is an instrument limit, and it is measured rather than corrected:
-#: rebuilding the annotation with the product's own unit grammar would be
-#: feeding the checker its own reading and calling the agreement a result.
-_CONTINUES = re.compile(r"[/·⋅∙^A-Za-zµμ°ÅΩ]")
+#: captures `("5", "°C")`; it knows a bare `10` and not `10⁻²`, so in
+#: `3 × 10⁻² mbar` it captures `("10", "")`. Either way the annotation it derives
+#: is NOT what the draft wrote. That is an instrument limit, and it is measured
+#: rather than corrected: rebuilding the annotation with the product's own
+#: grammar would be feeding the checker its own reading and calling the
+#: agreement a result.
+_CONTINUES = re.compile(r"[/·⋅∙^×*A-Za-zµμ°ÅΩ⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻₀₁₂₃₄₅₆₇₈₉]")
 
 
 def draft_pairs(text: str):
@@ -93,7 +95,9 @@ def draft_pairs(text: str):
     """
     out = []
     for m in NUM.finditer(text):
-        truncated = bool(m.group(2)) and bool(_CONTINUES.match(text[m.end():m.end() + 1]))
+        # The unit the probe captured may be empty and the draft may still
+        # continue — `10⁻²` is a number the alternation cannot see the end of.
+        truncated = bool(_CONTINUES.match(text[m.end():m.end() + 1]))
         out.append((m.group(1), (m.group(2) or "").strip(),
                     text[:m.start()].count("\n") + 1, truncated))
     return out
@@ -233,8 +237,9 @@ def main() -> int:
           "says which.")
     print(f"  of those {exact_blocked}, {exact_truncated} are HARNESS-ANNOTATION "
           f"ERRORS: the draft's own text continues")
-    print("  the unit past the probe's fixed alternation (a ramp rate written "
-          "°C/min, captured as °C),")
+    print("  past the probe's fixed alternation — a ramp rate written °C/min and "
+          "captured as °C, or a")
+    print("  power written 10⁻² and captured as 10 —")
     print("  so the annotation is the harness's transcription and not the "
           "draft's. Left in the numerator;")
     print("  correcting it with the product's own unit grammar would be feeding "

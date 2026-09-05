@@ -15,6 +15,7 @@ explanation.md citing `#L11`, and the wrong-line case citing `#L12`.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 from pathlib import Path
@@ -1167,50 +1168,285 @@ def test_an_unparsed_numeric_notation_is_not_a_match_for_any_unit(
     assert [f.rule for f in findings(files)] == expected, why
 
 
-def test_the_skill_and_the_contract_admit_the_spaced_compound_unit():
-    """MUTATION: promise the unit "in full" and stop there.
+@pytest.mark.parametrize("unit,expected", [
+    ("m-2",      []),
+    ("m-2 s-1",  ["CA-NUM-002"]),
+    ("m-2s-1",   ["CA-NUM-002"]),
+    ("m-2·s-1",  ["CA-NUM-002"]),
+])
+def test_a_unit_containing_a_space_is_read_as_its_first_token(unit, expected):
+    """MUTATION: change the shipped wording without changing this.
 
-    `5 m-2 s-1` cannot be matched at all: whitespace is where a token ends, so
-    the source offers `m-2` and the full unit is unreachable. Telling a
-    generator to transcribe in full without saying that leaves it one blocker it
-    can neither avoid nor understand."""
+    This asserts BEHAVIOUR, not strings, because the previous version of this
+    guard checked the instruction text and the instruction was wrong: it said
+    the checker refuses the first half of `m-2 s-1`, and in fact `m-2` PASSES.
+    Whitespace is a boundary, so against `5 m-2 s-1` the token is `m-2` and the
+    second half is invisible to the check. That is the one place a partial unit
+    satisfies, it is structural, and a documentation test could not have caught
+    the contradiction because it never ran the scanner.
+
+    The skill and the contract must now describe exactly this table."""
+    files = {RECIPE_PATH: b"5 m-2 s-1\n",
+             DRAFT_PATH: draft([row(value="5", unit=unit, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected
+
+
+def test_the_shipped_words_say_what_the_scanner_does():
+    """The other half of the pair above: the guidance and the contract have to
+    describe the behaviour the table just asserted, including the two limits a
+    reader would otherwise have to discover by being blocked.
+
+    An empty unit imposes NO unit constraint, so the check can confirm a number
+    is present and can never establish that it is unitless; and `*` and `>` are
+    not boundaries because multiplication and comparison are notation a unit can
+    contain, which costs a footnote star."""
     from crossaudit.dcl.framework import contracts
     from crossaudit.scaffold import annotation_skill_tree
 
     contract = contracts(["number_source"])["number_source"]
-    assert "space inside it" in contract and "'m-2 s-1'" in contract
+    assert "first token only" in contract and "'m-2 s-1'" in contract
+    assert "EMPTY unit imposes no unit constraint" in contract.replace("an EMPTY", "EMPTY")
+    assert "never establish that it is unitless" in contract
+    assert "'*' and '>'" in contract
     assert contract.count("does not resolve") == 1        # and it reads once
 
     body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
-    assert "space inside it" in body
+    assert "first token only" in body.lower() or "FIRST token only" in body
     assert "m-2s-1" in body and "uncited" in body
 
 
-def test_the_pre_split_generated_skill_is_removed_and_a_written_one_is_not(tmp_path):
-    """MUTATION: leave `skills/provenance.md` where it is.
+def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
+    """MUTATION: make an empty unit mismatch a source that has one.
 
-    The round-3 file carried both fences and no `requires_check:`, so no gate
-    can reach it: it stays selected at `checks: []`, instructing a generator
-    about checks the project may have turned off. Nothing shipped with it, so
-    there is no migration — it is cleared where it is found. A file a PERSON
-    wrote at that path must survive, which is why the removal is conditioned on
-    the bytes this scaffold produced rather than on the name."""
-    from crossaudit.scaffold import (LEGACY_ANNOTATION_SKILL, SCIENCE_CHECKS,
-                                     annotation_skill_tree,
+    Stated rather than assumed, because the review asked for the choice on the
+    record. `5 g` annotated `5 / ""` PASSES. Under a boundary scanner any word
+    after a number is a token, so the stricter rule would make `of` the unit in
+    `run 5 of 12` and block most legitimately unitless annotations. The price is
+    that this check can never establish that a source number is unitless, and
+    the contract says that in those words."""
+    for span in ("5 g", "5 samples", "run 5 of 12", "5"):
+        files = {RECIPE_PATH: (span + "\n").encode(),
+                 DRAFT_PATH: draft([row(value="5", unit="", src=f"{RECIPE_PATH}#L1")])}
+        assert findings(files) == [], span
+
+
+LEGACY_FIXTURES = Path(__file__).parent / "fixtures" / "legacy_provenance_skills"
+
+
+@pytest.mark.parametrize("rendering", ["numbers.md", "sources.md", "both.md"])
+def test_every_pre_split_rendering_is_recognised_and_removed(tmp_path, rendering):
+    """MUTATION: prune on a substring again, or drop one rendering's digest.
+
+    The round-3 composer could emit three files — numbers only, sources only,
+    both — and the first migration matched two SUBSTRINGS instead. That deleted
+    a hand-written policy whose only crime was quoting the fence name in an
+    example, and it missed the source-only rendering entirely, which carries no
+    numeric marker at all. Ownership of a generated file is proved by its bytes.
+
+    The fixtures here are the actual round-3 output, and asserting their digests
+    against the pinned set is what keeps the set honest: if somebody edits the
+    templates and recomputes the constants from the NEW ones, this reddens."""
+    from crossaudit.scaffold import (LEGACY_ANNOTATION_DIGESTS,
+                                     LEGACY_ANNOTATION_SKILL,
+                                     prune_legacy_annotation_skill)
+
+    body = (LEGACY_FIXTURES / rendering).read_bytes()
+    assert hashlib.sha256(body).hexdigest() in LEGACY_ANNOTATION_DIGESTS
+
+    legacy = tmp_path / LEGACY_ANNOTATION_SKILL
+    legacy.parent.mkdir(parents=True, exist_ok=True)
+    legacy.write_bytes(body)
+    assert prune_legacy_annotation_skill(tmp_path) == [LEGACY_ANNOTATION_SKILL]
+    assert not legacy.exists()
+
+
+@pytest.mark.parametrize("kept", [
+    # The exact file the first migration deleted.
+    "Hand written custom policy\nMy example uses ```crossaudit-numbers; keep my"
+    " custom advice.\n",
+    "---\nrequires_check: number_source\n---\n```crossaudit-numbers\n```\n",
+    "# my own house style\n",
+    "```crossaudit-sources\n[]\n```\n",
+])
+def test_a_file_this_scaffold_did_not_write_is_never_removed(tmp_path, kept):
+    """MUTATION: match on "mentions the fence name" instead of on the bytes.
+
+    A person may write anything at `skills/provenance.md`, including a document
+    that quotes the fence it is teaching. Deleting that is data loss caused by a
+    migration for a file that shipped to nobody."""
+    from crossaudit.scaffold import (LEGACY_ANNOTATION_SKILL,
                                      prune_legacy_annotation_skill)
 
     legacy = tmp_path / LEGACY_ANNOTATION_SKILL
-    legacy.parent.mkdir(parents=True)
-    legacy.write_text("# guidance\n\n```crossaudit-numbers\n[]\n```\n")
-    assert annotation_skill_tree(SCIENCE_CHECKS, tmp_path)
-    assert not legacy.exists()
+    legacy.parent.mkdir(parents=True, exist_ok=True)
+    legacy.write_text(kept)
+    assert prune_legacy_annotation_skill(tmp_path) == []
+    assert legacy.read_text() == kept
 
-    for kept in ("---\nrequires_check: number_source\n---\n```crossaudit-numbers\n```\n",
-                 "# my own house style\n"):
-        legacy.write_text(kept)
-        assert prune_legacy_annotation_skill(tmp_path) == []
-        assert legacy.read_text() == kept
 
-    legacy.unlink()
+def test_nothing_to_prune_is_not_an_error(tmp_path):
+    from crossaudit.scaffold import prune_legacy_annotation_skill
+
     assert prune_legacy_annotation_skill(tmp_path) == []
     assert prune_legacy_annotation_skill(None) == []
+
+
+def test_the_removal_is_staged_so_the_setup_commit_records_it(tmp_path, monkeypatch):
+    """MUTATION: drop the return value at either creation path.
+
+    Both callers discarded it, so the file was deleted from the working tree
+    and left alive in the commit — a migration that runs and does not stick.
+    `commit_setup` stages exactly `owned`, so a removal has to travel there.
+
+    The `git add` guard is asserted too: a pathspec that neither exists nor is
+    tracked makes `git add` fail, which would turn setup into a denial over an
+    untracked leftover."""
+    from crossaudit.cli import wizard
+    from crossaudit.console import projects
+    from crossaudit.scaffold import LEGACY_ANNOTATION_SKILL
+
+    monkeypatch.delenv("CROSSAUDIT_AUDITOR_KEY", raising=False)
+    root = Path(projects.create_project(
+        tmp_path,
+        {"name": "lab", "description": "Numbers need units and sources.",
+         "max_rounds": 3, "auditor_vendor": "openai", "auditor_model": "gpt-5.6-sol",
+         "generator_vendor": "anthropic", "generator_model": "claude-sonnet-4-6",
+         "github": False, "project_type": "science"},
+        lambda *_: None)["root"])
+
+    legacy = root / LEGACY_ANNOTATION_SKILL
+    legacy.write_bytes((LEGACY_FIXTURES / "both.md").read_bytes())
+    subprocess.run(["git", "add", "--", LEGACY_ANNOTATION_SKILL], cwd=root, check=True)
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@t.invalid",
+                    "commit", "-qm", "legacy skill"], cwd=root, check=True)
+
+    from crossaudit.scaffold import prune_legacy_annotation_skill
+    removed = wizard.tracked_paths(root, prune_legacy_annotation_skill(root))
+    assert removed == [LEGACY_ANNOTATION_SKILL]
+    wizard.commit_setup(root, removed)
+    assert not legacy.exists()
+    listed = subprocess.run(["git", "ls-files", "--", LEGACY_ANNOTATION_SKILL],
+                            cwd=root, capture_output=True, text=True, check=True)
+    assert listed.stdout.strip() == "", "the deletion was not committed"
+    dirty = subprocess.run(["git", "status", "--porcelain"], cwd=root,
+                           capture_output=True, text=True, check=True)
+    assert dirty.stdout.strip() == "", dirty.stdout
+
+    # An UNTRACKED leftover is removed but never staged, because `git add` on a
+    # pathspec that neither exists nor is tracked is a fatal error.
+    legacy.write_bytes((LEGACY_FIXTURES / "both.md").read_bytes())
+    assert wizard.tracked_paths(root, prune_legacy_annotation_skill(root)) == []
+    assert not legacy.exists()
+
+
+# ------------------ the fifth review: signed notation, and quotes as boundaries
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # The review's four rows, plus the structured pair it also reported.
+    ("10⁻⁵ g",   "10", "",   ["CA-NUM-002"], "a superscript MINUS exponent"),
+    ("10⁺⁵ g",   "10", "",   ["CA-NUM-002"], "a superscript PLUS exponent"),
+    ("5×-10³ g", "5",  "",   ["CA-NUM-002"], "an ASCII sign after the operator"),
+    ("5^−3 g",   "5",  "",   ["CA-NUM-002"], "a U+2212 sign after the caret"),
+    ("10⁻⁵ g",   "10", "⁻⁵", ["CA-NUM-002"], "and naming the exponent as a unit"),
+    ("10⁺⁵ g",   "10", "⁺⁵", ["CA-NUM-002"], "in either sign"),
+    # The neighbourhood, so this is a rule and not four patches.
+    ("5⋅10³ g",  "5", "",  ["CA-NUM-002"], "a dot operator"),
+    ("5·10³ g",  "5", "",  ["CA-NUM-002"], "a middle dot operator"),
+    ("5*-10³ g", "5", "",  ["CA-NUM-002"], "a signed asterisk product"),
+    ("5x±10³ g", "5", "",  ["CA-NUM-002"], "a plus-minus operand"),
+    ("10⁵ g",    "10", "", ["CA-NUM-002"], "the unsigned case still blocks"),
+    # And nothing that is merely prose or a legitimate unit is caught by it.
+    ("run 5 of 12", "5", "",       [], "a word after a number is not notation"),
+    ("5 g",         "5", "",       [], "nor is a unit"),
+    ("5 m·s^-1",    "5", "m·s^-1", [], "a caret INSIDE a unit is untouched"),
+    ("5 cm-1",      "5", "cm-1",   [], "and so is a hyphen exponent"),
+    ("5 x 3 grid",  "5", "",       [], "a spaced multiplication sign is prose"),
+])
+def test_signed_notation_is_unparsed_notation_too(span, v, u, expected, why):
+    """MUTATION: drop the sign alternatives from `_UNPARSED`.
+
+    The rule was "a number that continues into notation this layer cannot read
+    is not a match for any unit", and it enumerated superscript DIGITS only. So
+    `10⁻⁵ g` still satisfied an annotation of `10` with an empty unit, and
+    `10 / "⁻⁵"` satisfied it through a `results.json` citation under the
+    complete science profile, where base blocks. The sign is part of the
+    notation; leaving it out left the same hole one character to the left."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_signed_notation_blocks_through_a_structured_citation_too():
+    """The same rule where the review found it: a `results.json` quantity, under
+    every check the science profile resolves to."""
+    from crossaudit.dcl.profiles import resolve
+
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": "run,y\n10⁻⁵ g\n".encode(),
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "y", "value": 10, "unit": "⁻⁵",
+                                  "source": "runs.csv@v3#L2"}],
+                  "convergence": {"converged": True}}).encode()}
+    assert [f.rule for f in run_checks(files, resolve("science")).findings] == ["CA-NUM-002"]
+
+
+@pytest.mark.parametrize("mark", list("‘’‚‛“”„‟‹›«»†‡§¶"))
+def test_quotes_and_footnote_marks_end_a_unit_token(mark):
+    """MUTATION: take the typographic quotes or the note marks back out.
+
+    `5 °C”` and `5 °C’s` blocked on `°C` — a word processor's closing quote and
+    an English possessive turning into unit text — and `5 °C†` and `5 °C§`
+    blocked wherever a footnote is marked. Inverting the scanner made the
+    boundary list the whole contract, so a boundary left out of it is a blocker
+    on ordinary prose. Every direction of single and double quote is listed by
+    codepoint, because several are indistinguishable from ASCII by eye."""
+    files = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
+             DRAFT_PATH: draft([row(value="5", unit="°C", src=f"{RECIPE_PATH}#L1")])}
+    assert findings(files) == [], mark
+
+
+@pytest.mark.parametrize("mark", ["*", ">"])
+def test_multiplication_and_comparison_stay_inside_the_token(mark):
+    """The deliberate other side, stated in the contract: `*` and `>` are
+    notation a unit can contain, so they are NOT boundaries. The cost is that a
+    footnote star reads as unit text, and that cost is named rather than traded
+    away — making them boundaries would let a shortened unit satisfy a longer
+    source, which is the defect this whole line has been closing."""
+    files = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
+             DRAFT_PATH: draft([row(value="5", unit="°C", src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
+    whole = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
+             DRAFT_PATH: draft([row(value="5", unit=f"°C{mark}", src=f"{RECIPE_PATH}#L1")])}
+    assert findings(whole) == []
+
+
+@pytest.mark.parametrize("at,blocks", [
+    ("#L3", False), ("#L2-L4", False),
+    ("#L1-L1000000", True), ("#L999", True), ("#L0", True), ("#L5-L2", True),
+])
+def test_the_at_locator_must_be_inside_the_artefact_that_carries_it(at, blocks):
+    """MUTATION: drop the `end > lines` clause from `_at_span`.
+
+    `at` was validated for syntax, then for positivity and order, and each time
+    it stayed one clause behind `src`: `#L1-L1000000` passed on an eight-line
+    draft while the identical `src` was CA-NUM-001. Two locator parsers in one
+    module must not disagree about what a line number is."""
+    files = {RECIPE_PATH: RECIPE.encode(),
+             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at,
+                                 "src": f"{RECIPE_PATH}#L11"}])}
+    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
+
+
+@pytest.mark.parametrize("value,canonical", [
+    ("1e000005", "1e5"), ("1e5", "1e5"), ("1e0000000000005", "1e5"),
+    ("1e-000005", "1e-5"), ("1e99999", "1e99999"),
+    ("1e100000", None), ("1e0999999", None),
+])
+def test_the_exponent_cap_is_on_magnitude_not_on_padding(value, canonical):
+    """MUTATION: count exponent characters again.
+
+    `1e000005` was CA-NUM-001 and `1e99999` was fine — the padding deciding, not
+    the number. A cap that a literal can trip by being written verbosely is not
+    a cap on anything."""
+    from crossaudit.dcl.quantities import normalise_number
+
+    assert normalise_number(value) == canonical

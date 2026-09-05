@@ -28,7 +28,7 @@ from ..config import CONFIG_NAME
 from ..errors import ConfigDenial, Denial
 from ..scaffold import (AUDIT_TREE, CONFIG_TEMPLATE, GENERAL_CHECKS,
                         SCIENCE_CHECKS, SCIENCE_TREE, annotation_skill_tree,
-                        read, write_tree)
+                        prune_legacy_annotation_skill, read, write_tree)
 from ..providers.specs import SPECS
 from . import tui
 from .i18n import t
@@ -183,6 +183,25 @@ def prepare(target: Path) -> list[str]:
                      + "\n".join(missing_state) + "\n")
         done.append(t("prepare.gitignore"))
     return done
+
+
+def tracked_paths(target: Path, paths: list[str]) -> list[str]:
+    """The subset git already knows about.
+
+    `git add -- <path>` stages a DELETION when the path is tracked and fails
+    with "pathspec did not match any files" when it is neither on disk nor in
+    the index. A removal we report for staging is therefore only safe to stage
+    if the file was committed; an untracked leftover would turn setup into a
+    denial for a file nobody was tracking anyway.
+    """
+    if not paths:
+        return []
+    listed = subprocess.run(["git", "ls-files", "--", *paths], cwd=str(target),
+                            capture_output=True, text=True)
+    if listed.returncode != 0:
+        return []
+    known = {line for line in listed.stdout.splitlines() if line}
+    return [p for p in paths if p in known]
 
 
 def commit_setup(target: Path, paths: list[str]) -> str:
@@ -845,7 +864,11 @@ def run(target: Path, *, mode: str, force: bool = False,
     # A check that reads a generator-emitted block ships with the house skill
     # that asks for one, or it is a name that lies (PROVENANCE_CHECKS.md §5.4).
     owned.extend(write_tree(
-        target, annotation_skill_tree(STARTING_CHECKS[starting_point], target)))
+        target, annotation_skill_tree(STARTING_CHECKS[starting_point])))
+    # Staged, not merely deleted: `commit_setup` records exactly `owned`, so a
+    # removal dropped here leaves the file deleted in the tree and alive in the
+    # commit.
+    owned.extend(tracked_paths(target, prune_legacy_annotation_skill(target)))
     if mode == "local":
         owned.extend(write_tree(target, AUDIT_TREE))
 
