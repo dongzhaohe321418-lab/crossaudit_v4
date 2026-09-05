@@ -680,13 +680,24 @@ def analyse_ceiling2(instances: dict) -> dict:
         entry = paired_difference_exact(only_a, only_b, len(shared))
         entry["arms"] = [a, b]
         entry["label"] = f"{a} minus {b}, hidden-test pass after one round"
-        # the flag rate is the mechanism; show it paired too
-        fa = sum(1 for i in shared if arm_rows[a][i].get("flagged")
-                 and not arm_rows[b][i].get("flagged"))
-        fb = sum(1 for i in shared if arm_rows[b][i].get("flagged")
-                 and not arm_rows[a][i].get("flagged"))
-        entry["flag_discordance"] = {"only_" + a: fa, "only_" + b: fb,
-                                     "p_exact": mcnemar_exact(fa, fb)}
+        # The flag rate is the mechanism behind any net effect, so it is shown paired and
+        # split by stratum: on P a flag is a defect caught, on C it is a false alarm, and
+        # a single pooled discordance would hide which of the two moved.
+        entry["flag_discordance"] = {}
+        for stratum in ("P", "C", "all"):
+            ids = [i for i in shared
+                   if stratum == "all" or arm_rows[a][i]["stratum"] == stratum]
+            fa = sum(1 for i in ids if arm_rows[a][i].get("flagged")
+                     and not arm_rows[b][i].get("flagged"))
+            fb = sum(1 for i in ids if arm_rows[b][i].get("flagged")
+                     and not arm_rows[a][i].get("flagged"))
+            entry["flag_discordance"][stratum] = {
+                "n": len(ids), "only_" + a: fa, "only_" + b: fb,
+                "flagged_" + a: sum(1 for i in ids if arm_rows[a][i].get("flagged")),
+                "flagged_" + b: sum(1 for i in ids if arm_rows[b][i].get("flagged")),
+                "difference": (fa - fb) / len(ids) if ids else None,
+                "ci95": paired_difference_exact(fa, fb, len(ids))["ci95"],
+                "p_exact": mcnemar_exact(fa, fb)}
         out["contrasts"][f"{a}__vs__{b}"] = entry
 
     if "self-loop" in out["arms"] and "self-loop-rep" in out["arms"]:
@@ -853,6 +864,24 @@ def tables(numbers: dict) -> str:
             lines.append(f"| {d['label']} | {d['n']} | {d['b']} / {d['c']} | "
                          f"{d['delta'] * 100:+.2f} pp {ci(d['ci95'], 2)} | "
                          f"{d['p_exact']:.4f} | 0.00417 |")
+        lines.append("\n### Table 7b — what the arms flag, paired and split by stratum\n")
+        lines.append("The mechanism behind any net effect. On stratum P a flag is a "
+                     "defect caught; on stratum C it is a false alarm. Unit: the "
+                     "instance, paired across arms; exact McNemar on the discordant "
+                     "pairs.\n")
+        lines.append("| contrast | stratum | n | flagged by each | discordant (b / c) | "
+                     "difference [95% exact CI] | exact p |")
+        lines.append("|---|---|---:|---|---:|---|---:|")
+        for key, d in c2["contrasts"].items():
+            a, b = d["arms"]
+            for stratum in ("P", "C"):
+                f = d["flag_discordance"][stratum]
+                lines.append(
+                    f"| `{a}` vs `{b}` | {stratum} | {f['n']} | "
+                    f"{f['flagged_' + a]} vs {f['flagged_' + b]} | "
+                    f"{f['only_' + a]} / {f['only_' + b]} | "
+                    f"{f['difference'] * 100:+.2f} pp {ci(f['ci95'], 2)} | "
+                    f"{f['p_exact']:.4f} |")
     spend = numbers.get("spend", {})
     lines.append("\n### Table 8 — what it cost\n")
     lines.append("From the product's own usage ledgers, per call, not reconstructed. The "

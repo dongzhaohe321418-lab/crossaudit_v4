@@ -6,7 +6,7 @@ Unit of analysis: the instance. n = 110 stratum-P instances (recall) and 150 str
 
 | family | K_max | union recall on P at K=1 | at K_max | fitted asymptote A [95% bootstrap CI over problems] | union FP on C at K=1 | at K_max | last-step gain on P |
 |---|---:|---:|---:|---|---:|---:|---:|
-| `cross` | 3 | 11.2% | **18.2%** (20/110) | **19.6%** [11.4, 32.4] | 3.8% | **7.3%** | 3.03% |
+| `cross` | 3 | 11.2% | **18.2%** (20/110) | **19.6%** [11.3, 31.8] | 3.8% | **7.3%** | 3.03% |
 | `self` | 1 | 15.5% | **15.5%** (17/110) | **—** — | 22.0% | **22.0%** | — |
 | `astra` | 1 | 28.2% | **28.2%** (31/110) | **—** — | 9.3% | **9.3%** | — |
 
@@ -73,6 +73,19 @@ Outcome: whether the instance passes the hidden suite after one round. Unit: the
 | self-loop minus cross-loop, hidden-test pass after one round | 112 | 3 / 5 | -1.79 pp [-5.93, 3.64] | 0.7266 | 0.00417 |
 | referent-loop minus cross-loop, hidden-test pass after one round | 112 | 9 / 3 | +5.36 pp [-1.54, 9.54] | 0.1460 | 0.00417 |
 | self-loop minus self-loop-rep, hidden-test pass after one round | 112 | 0 / 0 | +0.00 pp — | 1.0000 | 0.00417 |
+
+### Table 7b — what the arms flag, paired and split by stratum
+
+The mechanism behind any net effect. On stratum P a flag is a defect caught; on stratum C it is a false alarm. Unit: the instance, paired across arms; exact McNemar on the discordant pairs.
+
+| contrast | stratum | n | flagged by each | discordant (b / c) | difference [95% exact CI] | exact p |
+|---|---|---:|---|---:|---|---:|
+| `self-loop` vs `cross-loop` | P | 56 | 10 vs 10 | 7 / 7 | +0.00 pp [-13.48, 13.48] | 1.0000 |
+| `self-loop` vs `cross-loop` | C | 56 | 13 vs 3 | 12 / 2 | +17.86 pp [3.59, 24.11] | 0.0129 |
+| `referent-loop` vs `cross-loop` | P | 56 | 25 vs 10 | 16 / 1 | +26.79 pp [12.94, 30.27] | 0.0003 |
+| `referent-loop` vs `cross-loop` | C | 56 | 10 vs 3 | 7 / 0 | +12.50 pp [2.26, 12.50] | 0.0156 |
+| `self-loop` vs `self-loop-rep` | P | 56 | 10 vs 10 | 0 / 0 | +0.00 pp — | 1.0000 |
+| `self-loop` vs `self-loop-rep` | C | 56 | 13 vs 13 | 0 / 0 | +0.00 pp — | 1.0000 |
 
 ### Table 8 — what it cost
 

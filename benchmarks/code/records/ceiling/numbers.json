@@ -1,5 +1,5 @@
 {
-  "bootstrap_reps": 2000,
+  "bootstrap_reps": 500,
   "bootstrap_seed": 20260908,
   "ceiling1": {
     "families": {
@@ -98,7 +98,7 @@
       "cross": {
         "C": {
           "asymptote_is_extrapolation": true,
-          "bootstrap_reps": 2000,
+          "bootstrap_reps": 500,
           "counts_k": {
             "0": 139,
             "1": 7,
@@ -119,14 +119,14 @@
             "tau": 2.004698958956282
           },
           "fit_A_ci95": [
-            0.041588216820330794,
-            0.26298488054896646
+            0.043909969561118145,
+            0.22274142061108573
           ],
           "marginal_gain_last_step": 0.015555555555555559,
           "n_instances": 150,
           "raw_kmax_ci95": [
-            0.033783783783783786,
-            0.11842105263157894
+            0.0338929490715205,
+            0.11764705882352941
           ],
           "union_at_kmax": 0.07333333333333333,
           "union_at_kmax_count": 11,
@@ -143,7 +143,7 @@
         },
         "P": {
           "asymptote_is_extrapolation": true,
-          "bootstrap_reps": 2000,
+          "bootstrap_reps": 500,
           "counts_k": {
             "0": 90,
             "1": 10,
@@ -164,14 +164,14 @@
             "tau": 1.2348332560964916
           },
           "fit_A_ci95": [
-            0.1138314376674853,
-            0.32382502933361385
+            0.11260770823873427,
+            0.3178432822054505
           ],
           "marginal_gain_last_step": 0.03030303030303033,
           "n_instances": 110,
           "raw_kmax_ci95": [
-            0.1,
-            0.2793427518427515
+            0.10714285714285714,
+            0.2740408673894912
           ],
           "union_at_kmax": 0.18181818181818182,
           "union_at_kmax_count": 20,
@@ -567,7 +567,7 @@
         "n_revised": 13,
         "net_bootstrap_secondary_ci95": [
           0.0,
-          0.07272727272727272
+          0.07117117117117112
         ],
         "net_primary": {
           "b": 3,
@@ -634,8 +634,8 @@
         "n_returned_non_solution": 0,
         "n_revised": 35,
         "net_bootstrap_secondary_ci95": [
-          0.017857142857142856,
-          0.14814814814814814
+          0.018775348263092927,
+          0.13995726495726482
         ],
         "net_primary": {
           "b": 11,
@@ -702,8 +702,8 @@
         "n_returned_non_solution": 4,
         "n_revised": 23,
         "net_bootstrap_secondary_ci95": [
-          -0.03636363636363636,
-          0.060357946026986437
+          -0.036036036036036036,
+          0.05555555555555555
         ],
         "net_primary": {
           "b": 3,
@@ -770,8 +770,8 @@
         "n_returned_non_solution": 4,
         "n_revised": 23,
         "net_bootstrap_secondary_ci95": [
-          -0.03636363636363636,
-          0.060357946026986437
+          -0.036036036036036036,
+          0.05555555555555555
         ],
         "net_primary": {
           "b": 3,
@@ -811,9 +811,45 @@
         ],
         "delta": 0.05357142857142857,
         "flag_discordance": {
-          "only_cross-loop": 1,
-          "only_referent-loop": 23,
-          "p_exact": 2.9802322387695312e-06
+          "C": {
+            "ci95": [
+              0.022595900693749116,
+              0.125
+            ],
+            "difference": 0.125,
+            "flagged_cross-loop": 3,
+            "flagged_referent-loop": 10,
+            "n": 56,
+            "only_cross-loop": 0,
+            "only_referent-loop": 7,
+            "p_exact": 0.015625
+          },
+          "P": {
+            "ci95": [
+              0.12938858059490166,
+              0.3026678941195881
+            ],
+            "difference": 0.26785714285714285,
+            "flagged_cross-loop": 10,
+            "flagged_referent-loop": 25,
+            "n": 56,
+            "only_cross-loop": 1,
+            "only_referent-loop": 16,
+            "p_exact": 0.000274658203125
+          },
+          "all": {
+            "ci95": [
+              0.12377070708986862,
+              0.21383384895194152
+            ],
+            "difference": 0.19642857142857142,
+            "flagged_cross-loop": 13,
+            "flagged_referent-loop": 35,
+            "n": 112,
+            "only_cross-loop": 1,
+            "only_referent-loop": 23,
+            "p_exact": 2.9802322387695312e-06
+          }
         },
         "label": "referent-loop minus cross-loop, hidden-test pass after one round",
         "method": "exact-conditional (Clopper-Pearson on the discordant pairs), exact McNemar p",
@@ -834,9 +870,45 @@
         ],
         "delta": -0.017857142857142856,
         "flag_discordance": {
-          "only_cross-loop": 9,
-          "only_self-loop": 19,
-          "p_exact": 0.08715855330228806
+          "C": {
+            "ci95": [
+              0.03593541954515045,
+              0.24110274225840422
+            ],
+            "difference": 0.17857142857142858,
+            "flagged_cross-loop": 3,
+            "flagged_self-loop": 13,
+            "n": 56,
+            "only_cross-loop": 2,
+            "only_self-loop": 12,
+            "p_exact": 0.012939453125
+          },
+          "P": {
+            "ci95": [
+              -0.13481972927596886,
+              0.13481972927596875
+            ],
+            "difference": 0.0,
+            "flagged_cross-loop": 10,
+            "flagged_self-loop": 10,
+            "n": 56,
+            "only_cross-loop": 7,
+            "only_self-loop": 7,
+            "p_exact": 1.0
+          },
+          "all": {
+            "ci95": [
+              -0.011758203354809371,
+              0.1706119810569231
+            ],
+            "difference": 0.08928571428571429,
+            "flagged_cross-loop": 13,
+            "flagged_self-loop": 23,
+            "n": 112,
+            "only_cross-loop": 9,
+            "only_self-loop": 19,
+            "p_exact": 0.08715855330228806
+          }
         },
         "label": "self-loop minus cross-loop, hidden-test pass after one round",
         "method": "exact-conditional (Clopper-Pearson on the discordant pairs), exact McNemar p",
@@ -854,9 +926,36 @@
         "ci95": null,
         "delta": 0.0,
         "flag_discordance": {
-          "only_self-loop": 0,
-          "only_self-loop-rep": 0,
-          "p_exact": 1.0
+          "C": {
+            "ci95": null,
+            "difference": 0.0,
+            "flagged_self-loop": 13,
+            "flagged_self-loop-rep": 13,
+            "n": 56,
+            "only_self-loop": 0,
+            "only_self-loop-rep": 0,
+            "p_exact": 1.0
+          },
+          "P": {
+            "ci95": null,
+            "difference": 0.0,
+            "flagged_self-loop": 10,
+            "flagged_self-loop-rep": 10,
+            "n": 56,
+            "only_self-loop": 0,
+            "only_self-loop-rep": 0,
+            "p_exact": 1.0
+          },
+          "all": {
+            "ci95": null,
+            "difference": 0.0,
+            "flagged_self-loop": 23,
+            "flagged_self-loop-rep": 23,
+            "n": 112,
+            "only_self-loop": 0,
+            "only_self-loop-rep": 0,
+            "p_exact": 1.0
+          }
         },
         "label": "self-loop minus self-loop-rep, hidden-test pass after one round",
         "n": 112,
