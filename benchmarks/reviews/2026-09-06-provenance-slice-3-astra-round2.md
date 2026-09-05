@@ -19,7 +19,7 @@ the repository root.
 ---
 
 **Do not merge `edffde8`.** The original counterexamples are repaired, but the boundary heuristic still creates new partial-unit false passes. I also reproduced new false blocks through both fenced and structured citations. No files modified.
-1. **P1 — Unknown longer unit fragments still produce a successful prefix.**  
+1. **P1 — Unknown longer unit fragments still produce a successful prefix.**
    [`_is_boundary`, line 468](src/crossaudit/dcl/numbers.py:468) treats unknown alphabetic tokens of four or more characters as prose.
    | Source | Annotation | Base → head |
    |---|---|---|
@@ -29,7 +29,7 @@ the repository root.
    | `5 kg m dbar` | `kg m` | BLOCK → **false PASS** |
    Whole transcriptions block. Both interfaces reproduce every row.
    The corrected omission-safety claim is therefore **still false**. Removing only `mbar`, `Torr`, `sccm`, or `µmol` from the fragment table in memory makes `5 kg m <fragment>` newly accept `kg m`. Removing `s` blocks as claimed; the claimed behavior does not generalize.
-2. **P1 — Element and prose boundaries break after a join, including previously valid percentage readings.**  
+2. **P1 — Element and prose boundaries break after a join, including previously valid percentage readings.**
    [`_is_boundary`, lines 464–468](src/crossaudit/dcl/numbers.py:464) rejects named fragments before checking element identity. Its prose fallback also rejects labels and marked words.
    | Source, annotated `wt %` | Base → head |
    |---|---|
@@ -38,7 +38,7 @@ the repository root.
    | `5 wt % wet/dry`, `batch-1`, or `sample¹` | PASS → **false BLOCK** |
    | `5 wt % A2`, `Li₂O`, or `H2O` | PASS → **false BLOCK** |
    All **118 elements pass after `5 g`**, as requested. After `5 wt %`, **15 wrongly block**: `B C F H I K N O P Pa S U V W Y`. The full element table does not fix the ordering error.
-3. **P2 — The cap fires before checking an actual boundary.**  
+3. **P2 — The cap fires before checking an actual boundary.**
    [`_spaced_unit`, line 570](src/crossaudit/dcl/numbers.py:570) rejects any nonempty next token after six tokens, including prose, a numeral, or an opening bracket.
    Annotating the complete six-token unit `kg m s⁻² A⁻¹ K⁻¹ mol⁻¹` passes at end-of-line or before a comma, but **blocks** when followed by ` sample`, ` 10 s`, or ` (dry)`. These are false blocks within the stated limit.
 The requested reproductions:

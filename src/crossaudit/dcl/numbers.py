@@ -108,6 +108,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from typing import Mapping, NamedTuple
 
 from .framework import ADVISORY, BLOCKER, Finding, register
@@ -360,7 +361,12 @@ _CONNECTORS = frozenset("/⁄·⋅")
 #:   nothing on the surface separates `mmHg` from `sample`. That is the base's
 #:   class, not a new one, and for the entries of that shape listed here —
 #:   `mbar`, `Torr`, `sccm`, `mmol`, `Hz`, `Sv` and their like — this table is
-#:   the only guard. `tests/test_number_source_check.py` enumerates them.
+#:   the only guard. `tests/test_number_source_check.py` enumerates them;
+#: * and where a word and an unnamed unit have the SAME shape — two short
+#:   lower-case parts on a solidus, `wet/dry` and `oz/yd` — the join blocks,
+#:   because the third review showed `oz/yd` passing `kg m` as prose. A false
+#:   block on `wet/dry` after a join is disclosed in `_is_boundary` and bound
+#:   to a row; at the first continuation it still ends the unit.
 #:
 #: What is excluded is still the argument, because a wrong INCLUSION is a false
 #: blocker: no English function word (`of`, `in`, `at`, `per`), no word that is
@@ -469,24 +475,35 @@ def _is_boundary(token: str) -> bool:
     because the block is the safe failure:
 
     * nothing, a numeral, an opening bracket;
+    * trailing punctuation the scanner does not split on (`sample，`) is not
+      part of the word, and a word in a script that writes no unit symbol
+      (`样品`) is a word;
     * a bare element symbol, a bare capital, a capitalised word — `5 wt % Ni`,
       `5 wt % K`, `5 wt % A`, `5 wt % Sample`: the substance or the label the
       quantity is OF. Decided BEFORE the fragment table is consulted: `K` and
       `Pa` are in that table for the sake of `K⁻¹` and `Pa·s`, and the second
       review found the table consulted first, which blocked `wt %` before
       fifteen elements;
-    * a function word (`of`, `at`, `per`), or an alphabetic word of four or
-      more letters (`sample`, `later`);
+    * a function word (`of`, `at`, `per`), an alphabetic word of four or more
+      letters (`sample`, `later`), an abbreviation of single letters (`e.g`);
     * a marked word whose stem is longer than a unit symbol (`batch-1`,
-      `sample¹`). A stem of one to three letters under an exponent is a unit
-      symbol this table does not name (`xyz⁻¹`, and `run-2` with it), and
-      blocks;
-    * a word carrying a digit or a subscript (`A2`, `H2O`, `Li₂O`);
-    * words joined by a solidus with no named fragment among them (`wet/dry`;
-      `g/xyz` is a unit half-read, and blocks).
+      `sample¹`);
+    * a hyphenated or apostrophised word with a word among its parts
+      (`high-purity`, `as-received`); the third review found `5 wt %
+      high-purity powder` blocking `wt %` where the base passed it;
+    * a label or formula carrying a digit on a capital or a long stem (`A2`,
+      `H2O`, `Li₂O`, `sample2`);
+    * words joined by a solidus with a word among them (`heating/cooling`).
 
-    A short lower-case token that is none of these — `qz`, `sr` were it
-    unnamed — is a unit this table does not know, and blocks.
+    **What blocks, stated because each is the shape of a unit:** a short
+    lower-case token that is none of the above (`qz`); a stem of one to three
+    letters under an exponent or a digit (`xyz⁻¹`, `run-2`, `m2`, `m₂` — the
+    shapes of `s-1` and `m2`); short stems joined by a hyphen (`kg-m`); and a
+    solidus joining nothing but short unknown parts (`oz/yd`), which the third
+    review showed passing `kg m` as prose. `wet/dry` is that shape and blocks
+    after a join with it — a false block, disclosed, because nothing on the
+    surface separates two three-letter words from two unnamed unit symbols.
+    At the first continuation `wet/dry` still ends the unit, as before.
 
     **What this cannot tell apart, stated rather than hidden:** an alphabetic
     token of four or more letters, or a capitalised one, that is a unit this
@@ -500,20 +517,45 @@ def _is_boundary(token: str) -> bool:
         return True
     if token[0].isdigit() or token[0] in _OPENERS:
         return True
-    if token in _ELEMENTS or (token[0].isupper() and token.isalpha()):
+    core = token
+    while core and unicodedata.category(core[-1]).startswith("P") and core[-1] not in "%‰":
+        core = core[:-1]                     # `sample，`: the comma is not the word
+    if not core:
+        return True
+    if any(ch.isalpha() and ord(ch) >= 0x0400 for ch in core):
+        return True                          # `样品`: a script with no unit symbols
+    if core in _ELEMENTS or (core[0].isupper() and core.isalpha()):
         return True                          # `5 wt % Ni`: a substance, a label
-    if token.isalpha():
-        return len(token) >= 4 or token.lower() in _STOPWORDS
-    tail = _EXPONENT_TAIL.search(token)
+    if core.isalpha():
+        return len(core) >= 4 or core.lower() in _STOPWORDS
+    if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", core):
+        return True                          # `e.g`, `i.e`
+    tail = _EXPONENT_TAIL.search(core)
     if tail and tail.start() > 0:
-        stem = token[:tail.start()]
+        stem = core[:tail.start()]
         return stem.isalpha() and len(stem) >= 4   # `batch-1` a label, `xyz⁻¹` a unit
-    if any(ch.isdigit() for ch in token):
-        return True                          # `A2`, `H2O`, `Li₂O`
-    parts = _FRAGMENT_SPLIT.split(token)
+    lettered = re.fullmatch(r"([^\W\d_]+)[0-9₀-₉]+", core)
+    if lettered:
+        stem = lettered.group(1)
+        return not (stem.islower() and len(stem) <= 3)   # `A2` a label, `m2` a unit
+    if any(ch.isdigit() for ch in core):
+        return True                          # `H2O`, `Li₂O`
+    parts = [part for part in re.split(r"[-'’]", core) if part]
+    if len(parts) > 1 and all(part.isalpha() for part in parts):
+        return any(_word(part) for part in parts)   # `high-purity`; `kg-m` is not
+    parts = _FRAGMENT_SPLIT.split(core)
     if len(parts) > 1:
-        return all(part.isalpha() for part in parts) and not any(_unit_atom(p) for p in parts)
+        if any(_unit_atom(part) for part in parts):
+            return False                     # `g/xyz`: a unit half-read
+        return all(part.isalpha() for part in parts) and any(_word(p) for p in parts)
     return False
+
+
+def _word(part: str) -> bool:
+    """A part that is a word on its face: four or more letters, a function
+    word, or capitalised. Three letters or fewer in lower case is the shape of
+    a unit symbol, and is not."""
+    return len(part) >= 4 or part.lower() in _STOPWORDS or part[:1].isupper()
 
 
 def _text(data: bytes) -> str | None:
@@ -1278,7 +1320,12 @@ register("number_source", check_number_source,
          "rather than hidden: an unnamed fragment of four or more letters, or a "
          "capitalised one, reads as a WORD, so '5 kg m mmHg' offers 'kg m' exactly "
          "as '5 g mmHg' offers 'g', and the fragment table is the only guard "
-         "there. "
+         "there. After a join, a solidus joining nothing but short unknown parts "
+         "('oz/yd', and 'wet/dry' with it), a short stem under an exponent or a "
+         "digit ('run-2', 'm2') and short stems joined by a hyphen ('kg-m') BLOCK, "
+         "each being the shape of a unit; a word of any other shape - hyphenated, "
+         "abbreviated, in another script, or carrying trailing punctuation - ends "
+         "the unit as a word does. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "

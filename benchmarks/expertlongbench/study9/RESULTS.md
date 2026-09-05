@@ -203,6 +203,35 @@ narrowing-all-spaced 0/0/11/2; 10 of 10 gold-right blocks; panel 2 of 97. The
 gold holds no instance of any of the three shapes, which is why it could not
 have found them (the list above).
 
+### What the third review found, and what it changed
+
+1. **A solidus joining nothing but short unknown parts read as prose** (P1).
+   `5 kg m oz/yd` offered `kg m` through every interface, against this file's
+   own sentence that a short or marked unknown fragment blocks; `m2` and `m₂`
+   did the same through the digit rule. Both shapes now block after a join.
+   **The cost is a false block, disclosed**: `wet/dry` and `x/y` are the same
+   shape as `oz/yd` — two short lower-case parts on a solidus — and nothing
+   on the surface separates two three-letter words from two unnamed symbols,
+   so after a join they block too, in the safe direction. At the first
+   continuation they end the unit exactly as before (`5 g wet/dry sample`
+   still passes `g`), asserted beside the block.
+2. **Ordinary prose blocked after a join, one row a regression against the
+   base** (P1). `5 wt % high-purity powder` passed `wt %` on the base and
+   blocked on round 3; `e.g.`, `sample，` (a trailing full-width comma the
+   scanner keeps) and `样品` blocked with it. The enumerated grammar was too
+   short: it now names hyphenated and apostrophised words with a word among
+   their parts, single-letter abbreviations, words in a script that writes no
+   unit symbol, and trailing punctuation as prose — and `kg-m`, short stems on
+   a hyphen, as a unit shape that blocks.
+3. **The disclosure was present but not bound** (P2). The words-say-what-the-
+   scanner-does test asserts phrases, which binds presence, not truth.
+   `DISCLOSED_LIMITS` now lists every limit sentence beside the row that
+   makes it true, in the contract and in the skill, and each row asserts both.
+
+Re-measured after this round, again unchanged to the row: shipped R = 6, W = 0,
+R′ = 11, W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced
+0/0/11/2. `tests/test_number_source_check.py` 894 passed.
+
 ### Out of scope, noted for a later extension
 
 Two limitations the reviewer confirmed are **pre-existing and untouched here**:

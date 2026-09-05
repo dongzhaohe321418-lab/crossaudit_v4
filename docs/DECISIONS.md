@@ -7284,5 +7284,12 @@ narrowed to short and marked fragments, a generated test removes each of the
 table's 112 entries in turn, and the 18 the table alone guards are pinned as a
 literal. Two sentences of the companion report were also false — "every
 configuration clears both kills" (the over-strong ablation does not, W' = 2)
-and "seven redundant entries removed" (four) — and are corrected there. Arm 4
-next.*
+and "seven redundant entries removed" (four) — and are corrected there.
+
+The third build was refused for the same rule a third way: `oz/yd`, nothing
+but short unknown parts on a solidus, read as prose and passed `kg m`, while
+`high-purity` blocked where the base had passed it. The grammar now says which
+shapes are prose and which are units; where a word and an unnamed unit are the
+same shape — `wet/dry` beside `oz/yd` — the join blocks, the false block is
+disclosed, and every disclosed limit is bound to the row that makes it true in
+both the contract and the skill. Arm 4 next.*
