@@ -1,6 +1,7 @@
 {
   "archived_utc": "2026-09-05",
   "bytes": 29945642,
+  "counting_rule": "n_files and directory_sha256 cover every regular file under the study directory, including the archive's own MANIFEST.sha256 where one exists; a study report that states a count excluding that file (e.g. the ceiling study's 178) is therefore one lower.",
   "location": "/Users/ericdong/Documents/Crossaudit/study-data",
   "n_files": 2070,
   "not_committed": "contains model outputs derived from ExpertLongBench (CC BY-NC-SA 4.0, non-commercial, no redistribution). Only this manifest of derived values is committed.",
