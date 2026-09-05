@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import itertools
 import random
 import sys
 from pathlib import Path
@@ -48,6 +49,9 @@ FAMILIES = ("cross", "self", "astra")
 LOOP_ARMS = ("self-loop", "self-loop-rep", "cross-loop", "referent-loop")
 BOOTSTRAP = 10000
 BOOT_SEED = 20260908
+#: The exact unconditional interval is a check, not the primary, and it is the
+#: one expensive estimator here; --no-exact-unconditional turns it off.
+EXACT_UNCONDITIONAL = True
 
 
 # ---------------------------------------------------------------------------------
@@ -129,28 +133,274 @@ def clopper_pearson(k: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
     return (low, high)
 
 
-def paired_difference_exact(b: int, c: int, n: int) -> dict:
-    """The exact-conditional interval for delta = (b - c)/n (amendment 3).
+def tango_score_interval(b: int, c: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
+    """Tango's score interval for the paired difference delta = p_b - p_c.
 
-    Conditioning on the n_d = b + c discordant pairs, b ~ Binomial(n_d, pi). A
-    Clopper-Pearson interval for pi maps monotonically to an interval for delta, because
-    delta = n_d(2 pi - 1)/n is increasing in pi. This is the right instrument when the
-    discordances all point one way: a percentile bootstrap cannot then generate a
-    resample of the opposite sign and returns a one-signed interval that does not
-    establish exclusion of zero (CORRECTIONS.md item 4).
+    **Unconditional**: it does not condition on the number of discordant pairs, so unlike
+    the withdrawn conditional construction it carries the uncertainty in how many
+    discordances there are. Under H0: delta = d, the constrained MLE of the nuisance
+    p_c solves dL/dq = 0 for the multinomial (b, c, rest); the score statistic is
+
+        z(d) = (b - c - n d) / sqrt(n (2 q_hat(d) + d (1 - d)))
+
+    whose variance term is Var(b - c) = n(p_b + p_c - (p_b - p_c)^2) under that model.
+    The interval is the set of d with |z(d)| <= z_{alpha/2}, found by bisection because
+    z is monotone decreasing in d. Its coverage is measured, not assumed
+    (``tests/test_ceiling_stats.py::test_replacement_intervals_have_their_advertised_coverage``).
     """
-    nd = b + c
+    z = 1.959963984540054 if abs(alpha - 0.05) < 1e-12 else _z_for(alpha)
+
+    def q_hat(d: float) -> float:
+        lo, hi = max(0.0, -d) + 1e-12, (1.0 - abs(d)) / 2 - 1e-12
+        if hi <= lo:
+            return max(lo, 0.0)
+
+        def deriv(q: float) -> float:
+            rest = 1.0 - 2 * q - d
+            if q + d <= 0 or q <= 0 or rest <= 0:
+                return float("inf")
+            return b / (q + d) + c / q - 2 * (n - b - c) / rest
+
+        if deriv(lo) < 0:
+            return lo
+        if deriv(hi) > 0:
+            return hi
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if deriv(mid) > 0:
+                lo = mid
+            else:
+                hi = mid
+        return (lo + hi) / 2
+
+    def score(d: float) -> float:
+        var = n * (2 * q_hat(d) + d * (1 - d))
+        if var <= 0:
+            return float("inf") if (b - c - n * d) > 0 else float("-inf")
+        return (b - c - n * d) / math.sqrt(var)
+
+    point = (b - c) / n
+
+    def solve(target: float, lo: float, hi: float) -> float:
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            if score(mid) > target:
+                lo = mid
+            else:
+                hi = mid
+        return (lo + hi) / 2
+
+    return (solve(z, -1.0 + 1e-9, point), solve(-z, point, 1.0 - 1e-9))
+
+
+def _z_for(alpha: float) -> float:
+    lo, hi = 0.0, 10.0
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        # two-sided: P(|Z| > mid) = alpha  =>  erfc(mid/sqrt2) = alpha
+        if math.erfc(mid / math.sqrt(2)) > alpha:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def exact_unconditional_interval(b: int, c: int, n: int, alpha: float = 0.05,
+                                 grid: int = 40, gamma: float = 1e-4) -> tuple[float, float]:
+    """Exact unconditional interval for delta, by inverting a maximised exact test.
+
+    For each candidate delta the p-value is **maximised over the nuisance parameter**
+    p_c on a grid, using the exact multinomial distribution of (b, c) rather than any
+    normal approximation; delta is retained when that maximised p-value exceeds alpha.
+    This is the standard exact-unconditional construction, and it is conservative by
+    design — it never under-covers, which is the property the withdrawn interval lacked.
+
+    Cost is bounded by pruning the (b, c) lattice to cells whose log-probability can
+    matter, and the nuisance grid is coarse (40 points) because the maximised p-value is
+    smooth in the nuisance. Reported as a **check** on the primary clustered bootstrap,
+    never as the primary interval, and it ignores clustering exactly as Tango's does.
+    """
+    logfac = [0.0] * (n + 1)
+    for i in range(1, n + 1):
+        logfac[i] = logfac[i - 1] + math.log(i)
+    cells = [(x, y) for x in range(n + 1) for y in range(n + 1 - x)]
+    coef = {(x, y): logfac[n] - logfac[x] - logfac[y] - logfac[n - x - y] for x, y in cells}
+    t_obs = b - c
+
+    # Berger-Boos: restrict the nuisance to a (1 - gamma) confidence set built from the
+    # OBSERVED discordance count, then add gamma to the maximised p-value. Without this
+    # restriction the supremum runs over nuisance values the data exclude, and the
+    # interval is so conservative it is uninformative (it returned +/- 20 points on
+    # n = 112 before this was added).
+    d_obs = b + c
+    s_lo, s_hi = clopper_pearson(d_obs, n, alpha=gamma)      # for p_b + p_c = 2q + d
+
+    def maximised_p(d: float) -> float:
+        lo_q = max(0.0, -d, (s_lo - d) / 2)
+        hi_q = min((1.0 - abs(d)) / 2, (s_hi - d) / 2)
+        if hi_q < lo_q:
+            return 0.0
+        best = 0.0
+        for g in range(grid + 1):
+            q = lo_q + (hi_q - lo_q) * g / grid
+            pb, pc = q + d, q
+            rest = 1.0 - pb - pc
+            if pb < 0 or pc < 0 or rest < -1e-12:
+                continue
+            lpb = math.log(pb) if pb > 0 else float("-inf")
+            lpc = math.log(pc) if pc > 0 else float("-inf")
+            lre = math.log(rest) if rest > 0 else float("-inf")
+            total = 0.0
+            centre = n * d
+            for x, y in cells:
+                if abs((x - y) - centre) < abs(t_obs - centre) - 1e-9:
+                    continue          # strictly less extreme than what was observed
+                if (x > 0 and lpb == float("-inf")) or (y > 0 and lpc == float("-inf")):
+                    continue
+                if (n - x - y) > 0 and lre == float("-inf"):
+                    continue
+                lp = coef[(x, y)] + (x * lpb if x else 0.0) + (y * lpc if y else 0.0) \
+                    + ((n - x - y) * lre if (n - x - y) else 0.0)
+                if lp > -60:
+                    total += math.exp(lp)
+            best = max(best, min(1.0, total))
+            if best + gamma > alpha:
+                return best + gamma
+        return best + gamma
+
+    point = (b - c) / n
+
+    def edge(direction: int) -> float:
+        lo, hi = point, float(direction)
+        for _ in range(24):
+            mid = (lo + hi) / 2
+            if maximised_p(mid) > alpha:
+                lo = mid
+            else:
+                hi = mid
+        return lo
+
+    return (edge(-1), edge(1))
+
+
+def cluster_bootstrap_ci(values_by_cluster: dict, reps: int, seed: int,
+                         alpha: float = 0.05) -> tuple[float | None, float | None]:
+    """Percentile bootstrap over whole clusters for a mean of per-instance values.
+
+    The resampling unit is the **problem**: the 68 problems contributing two instances
+    each move together, so the interval carries that dependence instead of assuming it
+    away. This is the primary interval for every rate and every paired difference in
+    this report.
+    """
+    clusters = sorted(values_by_cluster)
+    if not clusters:
+        return (None, None)
+    rng = random.Random(seed)
+    stats = []
+    for _ in range(reps):
+        acc, count = 0.0, 0
+        for _ in range(len(clusters)):
+            vals = values_by_cluster[clusters[rng.randrange(len(clusters))]]
+            acc += sum(vals)
+            count += len(vals)
+        if count:
+            stats.append(acc / count)
+    return (percentile(stats, alpha / 2), percentile(stats, 1 - alpha / 2))
+
+
+def signflip_p(values_by_cluster: dict, max_exact: int = 22) -> dict:
+    """Cluster-level sign-flip permutation test on the per-problem totals.
+
+    A problem contributes one number — the sum of its instances' signed changes — and the
+    null flips the sign of whole problems. Enumerated exactly when there are at most
+    ``max_exact`` non-zero clusters, otherwise sampled with a fixed seed and reported as
+    such. This is a **sensitivity check beside** exact McNemar, not a replacement: it
+    carries its own exchangeability assumption. It exists because McNemar treats
+    instances as independent and, where problems repeat across batches, they are not.
+    """
+    totals = [sum(v) for v in values_by_cluster.values()]
+    nz = [t for t in totals if t]
+    observed = abs(sum(nz))
+    if not nz:
+        return {"p": 1.0, "n_clusters": len(totals), "n_nonzero_clusters": 0,
+                "method": "no non-zero cluster; p = 1 by construction"}
+    if len(nz) <= max_exact:
+        hits = sum(1 for signs in itertools.product((1, -1), repeat=len(nz))
+                   if abs(sum(s * t for s, t in zip(signs, nz))) >= observed)
+        return {"p": hits / 2 ** len(nz), "n_clusters": len(totals),
+                "n_nonzero_clusters": len(nz), "method": "exact enumeration"}
+    rng = random.Random(BOOT_SEED + 7)
+    reps = 200000
+    hits = sum(1 for _ in range(reps)
+               if abs(sum(t if rng.random() < 0.5 else -t for t in nz)) >= observed)
+    return {"p": (hits + 1) / (reps + 1), "n_clusters": len(totals),
+            "n_nonzero_clusters": len(nz),
+            "method": f"sampled, {reps} draws, seed {BOOT_SEED + 7}"}
+
+
+def paired_difference(values_by_cluster: dict, *, reps: int = None, seed: int = None,
+                      exact_unconditional: bool = False) -> dict:
+    """A paired binary difference, with an interval whose coverage has been measured.
+
+    ``values_by_cluster`` maps a problem id to that problem's per-instance signed changes
+    (+1 improved, -1 worsened, 0 unchanged). Everything else is derived, so no caller can
+    supply a discordance count that disagrees with the clusters.
+
+    **Primary interval: the cluster bootstrap.** **Checks: Tango's unconditional score
+    interval and (optionally) an exact unconditional interval**, both of which ignore
+    clustering and are labelled so. **Tests: exact McNemar, with a cluster-level
+    sign-flip permutation p beside it.**
+
+    The interval this replaces — a Clopper-Pearson interval for the direction probability
+    *conditional on discordance*, rescaled by the *observed* discordance fraction — is
+    retained under ``withdrawn_conditional_ci95`` with its measured coverage, because it
+    was published and a reader is entitled to see what changed. Its coverage in the
+    review's scenario (D ~ Binomial(112, 0.1), every discordance beneficial) is
+    **0.416**, not 0.95: rescaling by the observed D discards the uncertainty in D.
+    """
+    reps = BOOTSTRAP if reps is None else reps
+    seed = BOOT_SEED if seed is None else seed
+    flat = [v for vals in values_by_cluster.values() for v in vals]
+    n = len(flat)
+    b = sum(1 for v in flat if v > 0)
+    c = sum(1 for v in flat if v < 0)
     delta = (b - c) / n if n else 0.0
-    if nd == 0:
-        return {"b": b, "c": c, "n_discordant": 0, "n": n, "delta": delta,
-                "ci95": None, "p_exact": 1.0,
-                "note": "0 of 0 discordant pairs; no rate is quoted"}
-    lo, hi = clopper_pearson(b, nd)
-    return {"b": b, "c": c, "n_discordant": nd, "n": n, "delta": delta,
-            "ci95": [nd * (2 * lo - 1) / n, nd * (2 * hi - 1) / n],
-            "p_exact": mcnemar_exact(b, c),
-            "method": "exact-conditional (Clopper-Pearson on the discordant pairs), "
-                      "exact McNemar p"}
+    # When every discordance points one way, a percentile bootstrap over the observed
+    # values cannot produce a resample of the opposite sign, so its interval is
+    # one-signed by construction and must NOT be read as excluding zero. That is
+    # CORRECTIONS.md item 4, and it applies to this bootstrap exactly as it applied to
+    # the construction that item withdrew. Where it fires, the unconditional intervals
+    # (Tango, exact) are the ones to quote, and the report says so at the number.
+    one_signed = (b == 0) != (c == 0)
+    out = {
+        "b": b, "c": c, "n_discordant": b + c, "n": n, "delta": delta,
+        "n_clusters": len(values_by_cluster),
+        "one_signed_discordance": one_signed,
+        "one_signed_note": (
+            "every discordant pair points the same way, so the percentile bootstrap "
+            "cannot generate a resample of the opposite sign: its bound at zero is an "
+            "artefact of the method, not evidence of exclusion. Quote the Tango or exact "
+            "unconditional interval here." if one_signed else ""),
+        "ci95": list(cluster_bootstrap_ci(values_by_cluster, reps, seed)),
+        "ci95_method": ("percentile bootstrap over problem clusters, "
+                        f"{reps} resamples, seed {seed} — PRIMARY"),
+        "tango_ci95": list(tango_score_interval(b, c, n)) if n else None,
+        "p_exact": mcnemar_exact(b, c),
+        "p_signflip_cluster": signflip_p(values_by_cluster),
+        "withdrawn_conditional_ci95": (
+            [(b + c) * (2 * clopper_pearson(b, b + c)[0] - 1) / n,
+             (b + c) * (2 * clopper_pearson(b, b + c)[1] - 1) / n] if (b + c) and n else None),
+        "withdrawn_conditional_note":
+            "published in the first version of this report; withdrawn — it rescales a "
+            "conditional interval by the observed discordance fraction and so discards "
+            "the uncertainty in that fraction. Measured coverage 0.416 where 0.95 was "
+            "claimed. Retained for comparison only.",
+    }
+    if exact_unconditional and n:
+        out["exact_unconditional_ci95"] = list(exact_unconditional_interval(b, c, n))
+    if b + c == 0:
+        out["note"] = "0 of 0 discordant pairs; the difference is the count 0, not a rate"
+    return out
 
 
 # ---------------------------------------------------------------------------------
@@ -246,6 +496,14 @@ def fit_saturation(curve: list[float]) -> dict:
         f = [1 - math.exp(-K / tau) for K in Ks]
         denom = sum(v * v for v in f)
         A = (sum(y * v for y, v in zip(curve, f)) / denom) if denom else 0.0
+        # Constrained least squares: the preregistration fixes A in [0, 1], because A is
+        # a fraction of a population. The unconstrained ratio can leave that box on
+        # degenerate curves (a curve that is 1.0 at every K returns A = 250), and
+        # clipping only the point estimate afterwards left the two bootstrap paths
+        # treating the boundary differently — the asymptote path clipped, the paired
+        # difference path did not. The projection happens HERE, inside the objective, so
+        # every path sees the same constrained fit.
+        A = min(1.0, max(0.0, A))
         return sum((y - A * v) ** 2 for y, v in zip(curve, f)), A
 
     best = min(((sse(t)[0], t) for t in (10 ** (x / 40) for x in range(-60, 121))))[1]
@@ -346,7 +604,7 @@ def bootstrap_asymptote(ks_by_problem: dict[str, list[int]], k_max: int,
         curve = union_curve(drawn, k_max)
         fit = fit_saturation(curve)
         if fit["A"] is not None:
-            fitted.append(min(1.0, max(0.0, fit["A"])))
+            fitted.append(fit["A"])      # already in [0, 1]: the fit is constrained
             raw.append(curve[-1])
     return fitted, raw
 
@@ -385,6 +643,41 @@ def mixed_curve(draws: dict[str, dict[int, dict[str, bool]]], families: list[str
     return acc / len(ids)
 
 
+def clustered_mean(values: dict, ids: list[str], instances: dict, reps: int,
+                   seed: int) -> dict:
+    """The mean of a per-instance quantity, with a problem-cluster bootstrap interval.
+
+    Used where the quantity is not an indicator — notably the K = 1 point of a union
+    curve, which is the **average over all K_max single draws** (per instance, k_i/K_max),
+    not the rate of one nominated draw.
+    """
+    by_problem: dict[str, list[float]] = {}
+    for i in ids:
+        by_problem.setdefault(instances[i]["problem_id"], []).append(float(values[i]))
+    flat = [v for vs in by_problem.values() for v in vs]
+    lo, hi = cluster_bootstrap_ci(by_problem, reps, seed)
+    return {"n": len(ids), "n_problems": len(by_problem),
+            "rate": (sum(flat) / len(flat)) if flat else 0.0,
+            "cluster_ci95": [lo, hi]}
+
+
+def clustered_rate(flags: dict, ids: list[str], instances: dict, reps: int,
+                   seed: int) -> dict:
+    """A rate with BOTH intervals: Wilson (instances independent) and the problem
+    cluster bootstrap (the honest one where problems repeat across batches)."""
+    by_problem: dict[str, list[int]] = {}
+    for i in ids:
+        by_problem.setdefault(instances[i]["problem_id"], []).append(int(bool(flags.get(i))))
+    k = sum(1 for i in ids if flags.get(i))
+    lo, hi = cluster_bootstrap_ci(by_problem, reps, seed)
+    return {"k": k, "n": len(ids), "n_problems": len(by_problem),
+            "rate": k / len(ids) if ids else 0.0,
+            "wilson95": list(wilson(k, len(ids))),
+            "cluster_ci95": [lo, hi],
+            "note": "cluster_ci95 is the primary interval; Wilson assumes instances are "
+                    "independent and they are not where a problem supplies two"}
+
+
 def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
     scope = [i for i in audit_set if instances[i]["stratum"] in ("P", "C")]
     draws = load_draws(set(scope))
@@ -414,8 +707,18 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
             boot_A, boot_raw = bootstrap_asymptote(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
             flat = (curve[-1] - curve[-2]) if len(curve) >= 2 else None
             single = sum(1 for k in ks if k > 0)  # instances any draw ever flagged
+            union_flags = {i: any(draws[family][d].get(i) for d in complete) for i in ids}
             entry[label] = {
                 "n_instances": len(ids),
+                "n_problems": len({instances[i]["problem_id"] for i in ids}),
+                "union_at_kmax_block": clustered_rate(union_flags, ids, instances,
+                                                      BOOTSTRAP, BOOT_SEED),
+                # The K = 1 point of the curve is the mean single-draw rate over ALL
+                # K_max draws, so its per-instance value is k_i/K_max — not draw 1's
+                # indicator, which would be a different quantity with a different mean.
+                "draw1_block": clustered_mean(
+                    {i: sum(1 for d in complete if draws[family][d].get(i)) / len(complete)
+                     for i in ids}, ids, instances, BOOTSTRAP, BOOT_SEED + 3),
                 "curve": [round(v, 6) for v in curve],
                 "counts_k": {str(k): ks.count(k) for k in range(0, k_max + 1)},
                 "union_at_kmax": curve[-1],
@@ -525,12 +828,16 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
                       for f in subset for d in draws[f] if isinstance(d, int))
             if not hit:
                 never.append(i)
+        never_flags = {i: (i in set(never)) for i in ids}
         residual[label] = {
             "families": subset,
             "total_draws": sum(out["families"][f]["k_max"] for f in subset),
             "n_P": len(ids), "n_never_flagged": len(never),
+            "n_problems": len({instances[i]["problem_id"] for i in ids}),
             "share": len(never) / len(ids) if ids else None,
             "share_wilson95": list(wilson(len(never), len(ids))),
+            "share_block": clustered_rate(never_flags, ids, instances, BOOTSTRAP,
+                                          BOOT_SEED + 4),
             "instance_ids": sorted(never),
         }
     out["residual"] = residual
@@ -566,6 +873,123 @@ def analyse_ceiling1(instances: dict, audit_set: list[str]) -> dict:
             "status": "AUTHOR_INPUT_NEEDED: records/ceiling/residual_classification.json "
                       "has not been written yet"}
     return out
+
+
+def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path) -> dict:
+    """Stratum P without the timeouts, as a sensitivity analysis.
+
+    The preregistered population is "passes every visible test, fails a hidden one".
+    Seven of the 110 P instances fail because the hidden suite **did not terminate**, not
+    because an assertion was observed to fail. `CORRECTIONS.md` item 4 records exactly
+    this for the code study and it is not fixed by ignoring it: the registered analysis
+    keeps the registered population, and this table shows what changes if the population
+    is narrowed to instances with an **observed assertion failure**.
+
+    The timeout flags come from study 2's committed scoring records, re-verified on this
+    machine by `baseline_reproduction.json`; no model and no new execution is involved.
+    """
+    scored: dict[str, dict] = {}
+    for batch in ("b1", "b2"):
+        path = run_dir / f"study2-inputs/scored-{batch}.jsonl"
+        if not path.exists():
+            return {"status": f"AUTHOR_INPUT_NEEDED: {path} not available; the timeout "
+                              "sensitivity cannot be recomputed without the archived "
+                              "scoring records"}
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                row = json.loads(line)
+                scored[f"{batch}:{row['problem_id']}"] = row
+    P = [i for i in audit_set if instances[i]["stratum"] == "P"]
+    timeouts = sorted(i for i in P if scored[i]["hidden"].get("timed_out"))
+    keep = [i for i in P if i not in set(timeouts)]
+    scope = set(i for i in audit_set if instances[i]["stratum"] in ("P", "C"))
+    draws = load_draws(scope)
+    out = {
+        "definition": "stratum P restricted to instances with an OBSERVED assertion "
+                      "failure; the preregistered population is every hidden-suite "
+                      "non-pass, which includes timeouts",
+        "n_P_registered": len(P), "n_P_assertion_only": len(keep),
+        "timeout_instances": timeouts, "n_timeouts": len(timeouts),
+        "families": {},
+    }
+    for family in FAMILIES:
+        complete = sorted(d for d in draws[family] if isinstance(d, int))
+        if not complete:
+            continue
+        union_reg = sum(1 for i in P if any(draws[family][d].get(i) for d in complete))
+        union_sub = sum(1 for i in keep if any(draws[family][d].get(i) for d in complete))
+        out["families"][family] = {
+            "k_max": len(complete),
+            "union_registered": {"k": union_reg, "n": len(P)},
+            "union_assertion_only": {"k": union_sub, "n": len(keep),
+                                     "wilson95": list(wilson(union_sub, len(keep)))},
+        }
+    all_fams = [f for f in FAMILIES if any(isinstance(d, int) for d in draws[f])]
+    never_reg = [i for i in P if not any(draws[f][d].get(i)
+                                         for f in all_fams for d in draws[f]
+                                         if isinstance(d, int))]
+    never_sub = [i for i in keep if i in set(never_reg)]
+    out["residual_registered"] = {"k": len(never_reg), "n": len(P)}
+    out["residual_assertion_only"] = {"k": len(never_sub), "n": len(keep),
+                                      "wilson95": list(wilson(len(never_sub), len(keep)))}
+    out["timeouts_in_residual"] = sorted(set(never_reg) & set(timeouts))
+    return out
+
+
+#: Every comparison this study computed, reconciled against the plan. The correction
+#: family is "every contrast reported with a p value", and the threshold is stated once.
+COMPARISON_INVENTORY = {
+    "policy": "One correction family: every contrast this study reports a p value for. "
+              "The two primary outcomes (A(self) - A(cross); self-loop net) were each "
+              "declared singly in the preregistration before any model call and are NOT "
+              "corrected. Every other contrast carries its unadjusted p AND the "
+              "Bonferroni threshold over the family size below. A contrast that was not "
+              "in the preregistered list of twelve is labelled EXPLORATORY at every "
+              "occurrence, whatever its p.",
+    "planned_twelve": [
+        "A(self) - A(cross)  [PRIMARY, ceiling 1]",
+        "A(mixed) - A(cross) at K = 8",
+        "A(mixed) - A(self) at K = 8",
+        "self-loop net vs 0  [PRIMARY, ceiling 2]",
+        "cross-loop net vs 0",
+        "referent-loop net vs 0",
+        "self-loop - cross-loop net",
+        "referent-loop - cross-loop net",
+        "self-loop vs self-loop-rep (the floor, not a test)",
+        "A(astra) - A(cross)",
+        "A(astra) - A(self)",
+        "A(mixed-with-astra) - A(mixed-without)",
+    ],
+    "planned_not_delivered_as_specified": [
+        "The five mixed/astra asymptote contrasts (items 2, 3, 10, 11, 12) are NOT "
+        "delivered as fitted contrasts with intervals. Table 4 reports raw mixed-union "
+        "rates at matched total draws instead. That is a deviation (deviation 15), not a "
+        "result: the mixed families' asymptote contrasts are UNMEASURED in this study.",
+    ],
+    "performed_with_a_p_value": [
+        "self-loop net vs 0  [PRIMARY]",
+        "self-loop-rep net vs 0  [replicate, not a hypothesis test]",
+        "cross-loop net vs 0",
+        "referent-loop net vs 0",
+        "self-loop - cross-loop, final outcome",
+        "referent-loop - cross-loop, final outcome",
+        "self-loop - self-loop-rep, final outcome  [replicate]",
+        "self-loop - cross-loop flags: P, C, pooled  [pooled is EXPLORATORY]",
+        "referent-loop - cross-loop flags: P, C, pooled  [pooled is EXPLORATORY]",
+        "self-loop - self-loop-rep flags: P, C, pooled  [replicate]",
+    ],
+    "family_size_for_correction": 16,
+    "bonferroni_threshold": 0.05 / 16,
+    "exploratory_not_in_the_plan": [
+        "every flag contrast (P, C and pooled) — the plan named outcome contrasts, not "
+        "flag contrasts, so all nine are EXPLORATORY even though the P-stratum one is "
+        "the study's largest effect",
+        "the conditional-on-revision net for each arm",
+        "the mixed-family union rates in Table 4",
+        "the timeout sensitivity analysis",
+        "the residual's oracle-disputability flag",
+    ],
+}
 
 
 def load_spend() -> dict:
@@ -618,19 +1042,33 @@ def analyse_ceiling2(instances: dict) -> dict:
         C = [r for r in rows if r["stratum"] == "C"]
         revised = [r for r in rows if r["revised"]]
         changed = [r for r in rows if r["changed"]]
+        by_problem: dict[str, list[int]] = {}
+        for r in rows:
+            by_problem.setdefault(r["problem_id"], []).append(
+                int(r["hidden_passed_after"]) - int(r["hidden_passed_before"]))
+        flagP = {r["instance_id"]: bool(r.get("flagged")) for r in P}
+        flagC = {r["instance_id"]: bool(r.get("flagged")) for r in C}
         entry = {
             "n_instances": n, "n_P": len(P), "n_C": len(C),
-            "flag_rate_P": {"k": sum(1 for r in P if r.get("flagged")), "n": len(P)},
-            "flag_rate_C": {"k": sum(1 for r in C if r.get("flagged")), "n": len(C)},
+            "n_problems": len(by_problem),
+            "flag_rate_P": clustered_rate(flagP, [r["instance_id"] for r in P],
+                                          instances, BOOTSTRAP, BOOT_SEED + 5),
+            "flag_rate_C": clustered_rate(flagC, [r["instance_id"] for r in C],
+                                          instances, BOOTSTRAP, BOOT_SEED + 6),
             "blocked_P": sum(1 for r in P if r.get("verdict") == "BLOCKED"),
             "blocked_C": sum(1 for r in C if r.get("verdict") == "BLOCKED"),
             "n_revised": len(revised), "n_changed": len(changed),
             "n_returned_non_solution": sum(1 for r in rows if r.get("returned_non_solution")),
-            "fixed_on_P": {"k": len(fixed), "n": len(P),
-                           "wilson95": list(wilson(len(fixed), len(P)))},
-            "broken_on_C": {"k": len(broken), "n": len(C),
-                            "wilson95": list(wilson(len(broken), len(C)))},
-            "net_primary": paired_difference_exact(len(fixed), len(broken), n),
+            "fixed_on_P": clustered_rate(
+                {r["instance_id"]: (not r["hidden_passed_before"] and r["hidden_passed_after"])
+                 for r in P}, [r["instance_id"] for r in P], instances,
+                BOOTSTRAP, BOOT_SEED + 8),
+            "broken_on_C": clustered_rate(
+                {r["instance_id"]: (r["hidden_passed_before"] and not r["hidden_passed_after"])
+                 for r in C}, [r["instance_id"] for r in C], instances,
+                BOOTSTRAP, BOOT_SEED + 9),
+            "net_primary": paired_difference(by_problem,
+                                             exact_unconditional=EXACT_UNCONDITIONAL),
             "pass_rate_before": {"k": sum(1 for r in rows if r["hidden_passed_before"]),
                                  "n": n},
             "pass_rate_after": {"k": sum(1 for r in rows if r["hidden_passed_after"]),
@@ -648,21 +1086,6 @@ def analyse_ceiling2(instances: dict) -> dict:
             "n": len(cond), "fixed": cf, "broken": cb,
             "net": ((cf - cb) / len(cond)) if cond else None,
             "warning": "conditions on a post-treatment variable; exploratory only"}
-        # bootstrap over problem clusters, secondary (amendment 3)
-        by_problem: dict[str, list[int]] = {}
-        for r in rows:
-            delta = int(r["hidden_passed_after"]) - int(r["hidden_passed_before"])
-            by_problem.setdefault(r["problem_id"], []).append(delta)
-        problems = sorted(by_problem)
-        rng = random.Random(BOOT_SEED + 2)
-        nets = []
-        for _ in range(BOOTSTRAP):
-            vals = []
-            for _ in range(len(problems)):
-                vals.extend(by_problem[problems[rng.randrange(len(problems))]])
-            nets.append(sum(vals) / len(vals))
-        entry["net_bootstrap_secondary_ci95"] = [percentile(nets, 0.025),
-                                                 percentile(nets, 0.975)]
         out["arms"][arm] = entry
 
     # paired arm-vs-arm on the after-revision outcome, exact McNemar
@@ -671,13 +1094,12 @@ def analyse_ceiling2(instances: dict) -> dict:
         if a not in arm_rows or b not in arm_rows:
             continue
         shared = sorted(set(arm_rows[a]) & set(arm_rows[b]))
-        only_a = sum(1 for i in shared
-                     if arm_rows[a][i]["hidden_passed_after"]
-                     and not arm_rows[b][i]["hidden_passed_after"])
-        only_b = sum(1 for i in shared
-                     if arm_rows[b][i]["hidden_passed_after"]
-                     and not arm_rows[a][i]["hidden_passed_after"])
-        entry = paired_difference_exact(only_a, only_b, len(shared))
+        clusters: dict[str, list[int]] = {}
+        for i in shared:
+            clusters.setdefault(arm_rows[a][i]["problem_id"], []).append(
+                int(arm_rows[a][i]["hidden_passed_after"])
+                - int(arm_rows[b][i]["hidden_passed_after"]))
+        entry = paired_difference(clusters, exact_unconditional=EXACT_UNCONDITIONAL)
         entry["arms"] = [a, b]
         entry["label"] = f"{a} minus {b}, hidden-test pass after one round"
         # The flag rate is the mechanism behind any net effect, so it is shown paired and
@@ -687,17 +1109,18 @@ def analyse_ceiling2(instances: dict) -> dict:
         for stratum in ("P", "C", "all"):
             ids = [i for i in shared
                    if stratum == "all" or arm_rows[a][i]["stratum"] == stratum]
-            fa = sum(1 for i in ids if arm_rows[a][i].get("flagged")
-                     and not arm_rows[b][i].get("flagged"))
-            fb = sum(1 for i in ids if arm_rows[b][i].get("flagged")
-                     and not arm_rows[a][i].get("flagged"))
-            entry["flag_discordance"][stratum] = {
-                "n": len(ids), "only_" + a: fa, "only_" + b: fb,
+            fc: dict[str, list[int]] = {}
+            for i in ids:
+                fc.setdefault(arm_rows[a][i]["problem_id"], []).append(
+                    int(bool(arm_rows[a][i].get("flagged")))
+                    - int(bool(arm_rows[b][i].get("flagged"))))
+            block = paired_difference(fc)
+            block.update({
                 "flagged_" + a: sum(1 for i in ids if arm_rows[a][i].get("flagged")),
                 "flagged_" + b: sum(1 for i in ids if arm_rows[b][i].get("flagged")),
-                "difference": (fa - fb) / len(ids) if ids else None,
-                "ci95": paired_difference_exact(fa, fb, len(ids))["ci95"],
-                "p_exact": mcnemar_exact(fa, fb)}
+                "only_" + a: block["b"], "only_" + b: block["c"],
+                "difference": block["delta"]})
+            entry["flag_discordance"][stratum] = block
         out["contrasts"][f"{a}__vs__{b}"] = entry
 
     if "self-loop" in out["arms"] and "self-loop-rep" in out["arms"]:
@@ -738,21 +1161,35 @@ def tables(numbers: dict) -> str:
                  f"(recall) and {c1['n_C']} stratum-C instances (false positives), the "
                  f"same instances at every K. Union rate at K is averaged over all "
                  f"C(K_max, K) subsets of that family's draws, exactly.\n")
-    lines.append("| family | K_max | union recall on P at K=1 | at K_max | "
-                 "fitted asymptote A [95% bootstrap CI over problems] | union FP on C at "
-                 "K=1 | at K_max | last-step gain on P |")
-    lines.append("|---|---:|---:|---:|---|---:|---:|---:|")
+    lines.append("Every rate carries a 95% **problem-cluster bootstrap** interval; the "
+                 "P population is 110 instances from only **56 problems**, so an interval "
+                 "that treats instances as independent is too narrow. `flat?` says "
+                 "whether the curve met the preregistered flattening bar (last-step gain "
+                 "≤ 1.0 point); where it did not, **A is an extrapolation** and the raw "
+                 "union at K_max is the number to quote.\n")
+    lines.append("| family | K_max | union recall on P at K=1 [95% CI] | at K_max "
+                 "[95% CI] | fitted asymptote A [95% CI] | union FP on C at K=1 [95% CI] "
+                 "| at K_max [95% CI] | last-step gain | flat? |")
+    lines.append("|---|---:|---|---|---|---|---|---:|:---:|")
     for family in FAMILIES:
         f = c1["families"].get(family, {})
         if not f.get("k_max"):
-            lines.append(f"| `{family}` | — | — | — | not run | — | — | — |")
+            lines.append(f"| `{family}` | — | — | — | not run | — | — | — | — |")
             continue
         P, C = f["P"], f["C"]
+        flat = "yes" if not P["asymptote_is_extrapolation"] else "**no**"
+        A = (f"**{pct(P['fit']['A'])}** {ci(P['fit_A_ci95'])}"
+             if not P["asymptote_is_extrapolation"]
+             else f"{pct(P['fit']['A'])} {ci(P['fit_A_ci95'])} *(extrapolation)*")
         lines.append(
-            f"| `{family}` | {f['k_max']} | {pct(P['draw1_rate'])} | "
-            f"**{pct(P['union_at_kmax'])}** ({P['union_at_kmax_count']}/{P['n_instances']}) | "
-            f"**{pct(P['fit']['A'])}** {ci(P['fit_A_ci95'])} | {pct(C['draw1_rate'])} | "
-            f"**{pct(C['union_at_kmax'])}** | {pct(P['marginal_gain_last_step'], 2)} |")
+            f"| `{family}` | {f['k_max']} | "
+            f"{pct(P['draw1_block']['rate'])} {ci(P['draw1_block']['cluster_ci95'])} | "
+            f"**{pct(P['union_at_kmax'])}** ({P['union_at_kmax_count']}/{P['n_instances']}) "
+            f"{ci(P['union_at_kmax_block']['cluster_ci95'])} | {A} | "
+            f"{pct(C['draw1_block']['rate'])} {ci(C['draw1_block']['cluster_ci95'])} | "
+            f"**{pct(C['union_at_kmax'])}** "
+            f"{ci(C['union_at_kmax_block']['cluster_ci95'])} | "
+            f"{pct(P['marginal_gain_last_step'], 2)} | {flat} |")
     lines.append("")
     lines.append("### Table 2 — union recall and union false positives at every K\n")
     lines.append("Unit of analysis: the instance; the same instances at every K, so the "
@@ -804,13 +1241,16 @@ def tables(numbers: dict) -> str:
                              f"{pct(row['P'])} | {pct(row['C'])} | {alone or '—'} |")
     if c1.get("residual"):
         lines.append("\n### Table 5 — the residual: stratum-P defects no draw ever flagged\n")
-        lines.append("| population | families | total draws | n P instances | "
-                     "never flagged | share [95% Wilson] |")
-        lines.append("|---|---|---:|---:|---:|---|")
+        lines.append("| population | families | total draws | n P instances "
+                     "(problems) | never flagged | share [95% cluster CI] | "
+                     "[95% Wilson, too narrow] |")
+        lines.append("|---|---|---:|---:|---:|---|---|")
         for label, r in c1["residual"].items():
             lines.append(f"| {label} | {', '.join(r['families'])} | {r['total_draws']} | "
-                         f"{r['n_P']} | **{r['n_never_flagged']}** | "
-                         f"{pct(r['share'])} {ci(r['share_wilson95'])} |")
+                         f"{r['n_P']} ({r.get('n_problems', '?')}) | "
+                         f"**{r['n_never_flagged']}** | "
+                         f"**{pct(r['share'])}** {ci(r['share_block']['cluster_ci95'])} | "
+                         f"{ci(r['share_wilson95'])} |")
 
     rcl = c1.get("residual_classified") or {}
     if rcl and "status" not in rcl:
@@ -832,56 +1272,104 @@ def tables(numbers: dict) -> str:
     c2 = numbers["ceiling2"]
     lines.append("\n### Table 6 — ceiling 2: the closed loop, per arm\n")
     lines.append("Unit of analysis: the instance, paired before/after on the same "
-                 "instance. Net is unconditional on whether a revision occurred. "
-                 "Interval and p: exact-conditional (Clopper–Pearson on the discordant "
-                 "pairs) and exact McNemar.\n")
-    lines.append("| arm | n | audits BLOCKED (P / C) | revisions that changed the file | "
-                 "fixed on P | broken on C | **net change in hidden-test pass rate** "
-                 "[95% exact CI] | exact p |")
-    lines.append("|---|---:|---:|---:|---|---|---|---:|")
+                 "instance; the resampling unit is the problem. Net is unconditional on "
+                 "whether a revision occurred.\n")
+    lines.append("The primary interval is the **problem-cluster bootstrap**; Tango's "
+                 "unconditional score interval and the exact unconditional interval "
+                 "(Berger-Boos restricted) are checks that ignore clustering. `p` is "
+                 "exact McNemar (instances independent); `p_clu` is a cluster-level "
+                 "sign-flip permutation test beside it. 112 instances come from **96 "
+                 "problems**.\n")
+    lines.append("**†** — every discordant pair points the same way, so the percentile "
+                 "bootstrap cannot produce a resample of the opposite sign and its bound "
+                 "at zero is an artefact of the method. Read the Tango or exact "
+                 "unconditional interval on that row. This is `CORRECTIONS.md` item 4 "
+                 "applying to the replacement as it applied to what it replaced.\n")
+    lines.append("| arm | n (problems) | BLOCKED (P / C) | changed | fixed on P | "
+                 "broken on C | **net change** [95% cluster CI] | Tango CI | exact-unc. "
+                 "CI | p | p_clu |")
+    lines.append("|---|---:|---:|---:|---|---|---|---|---|---:|---:|")
     for arm in LOOP_ARMS:
         a = c2["arms"].get(arm, {})
         if "n_instances" not in a:
-            lines.append(f"| `{arm}` | — | — | — | — | — | not run | — |")
+            lines.append(f"| `{arm}` | — | — | — | — | — | not run | — | — | — | — |")
             continue
         net = a["net_primary"]
+        eu = ci(net.get("exact_unconditional_ci95"), 2) if net.get(
+            "exact_unconditional_ci95") else "—"
         lines.append(
-            f"| `{arm}` | {a['n_instances']} | {a['blocked_P']} / {a['blocked_C']} | "
-            f"{a['n_changed']} | {a['fixed_on_P']['k']}/{a['fixed_on_P']['n']} "
-            f"{ci(a['fixed_on_P']['wilson95'])} | {a['broken_on_C']['k']}/"
-            f"{a['broken_on_C']['n']} {ci(a['broken_on_C']['wilson95'])} | "
-            f"**{net['delta'] * 100:+.2f} pp** {ci(net['ci95'], 2)} "
-            f"(b={net['b']}, c={net['c']}) | {net['p_exact']:.4f} |")
+            f"| `{arm}` | {a['n_instances']} ({a['n_problems']}) | "
+            f"{a['blocked_P']} / {a['blocked_C']} | {a['n_changed']} | "
+            f"{a['fixed_on_P']['k']}/{a['fixed_on_P']['n']} "
+            f"{ci(a['fixed_on_P']['cluster_ci95'])} | {a['broken_on_C']['k']}/"
+            f"{a['broken_on_C']['n']} {ci(a['broken_on_C']['cluster_ci95'])} | "
+            f"**{net['delta'] * 100:+.2f} pp** {ci(net['ci95'], 2)}"
+            f"{' †' if net.get('one_signed_discordance') else ''} "
+            f"(b={net['b']}, c={net['c']}) | {ci(net['tango_ci95'], 2)} | {eu} | "
+            f"{net['p_exact']:.4f} | {net['p_signflip_cluster']['p']:.4f} |")
     if c2.get("contrasts"):
         lines.append("\n### Table 7 — paired contrasts between arms\n")
         lines.append("Outcome: whether the instance passes the hidden suite after one "
-                     "round. Unit: the instance, paired across arms. Exact McNemar on "
-                     "the discordant pairs; both discordant counts shown.\n")
-        lines.append("| contrast | n instances | discordant (b / c) | difference "
-                     "[95% exact CI] | exact p | Bonferroni/12 threshold |")
-        lines.append("|---|---:|---:|---|---:|---:|")
+                     "round. Unit: the instance, paired across arms; resampled by "
+                     "problem. Both discordant counts shown.\n")
+        thr = numbers["comparison_inventory"]["bonferroni_threshold"]
+        lines.append("| contrast | n (problems) | discordant (b / c) | difference "
+                     "[95% cluster CI] | Tango CI | p | p_clu | Bonferroni/16 |")
+        lines.append("|---|---:|---:|---|---|---:|---:|---:|")
         for key, d in c2["contrasts"].items():
-            lines.append(f"| {d['label']} | {d['n']} | {d['b']} / {d['c']} | "
-                         f"{d['delta'] * 100:+.2f} pp {ci(d['ci95'], 2)} | "
-                         f"{d['p_exact']:.4f} | 0.00417 |")
+            lines.append(f"| {d['label']} | {d['n']} ({d['n_clusters']}) | "
+                         f"{d['b']} / {d['c']} | "
+                         f"{d['delta'] * 100:+.2f} pp {ci(d['ci95'], 2)}"
+                         f"{' †' if d.get('one_signed_discordance') else ''} | "
+                         f"{ci(d['tango_ci95'], 2)} | {d['p_exact']:.4f} | "
+                         f"{d['p_signflip_cluster']['p']:.4f} | {thr:.5f} |")
         lines.append("\n### Table 7b — what the arms flag, paired and split by stratum\n")
         lines.append("The mechanism behind any net effect. On stratum P a flag is a "
                      "defect caught; on stratum C it is a false alarm. Unit: the "
-                     "instance, paired across arms; exact McNemar on the discordant "
-                     "pairs.\n")
-        lines.append("| contrast | stratum | n | flagged by each | discordant (b / c) | "
-                     "difference [95% exact CI] | exact p |")
-        lines.append("|---|---|---:|---|---:|---|---:|")
+                     "instance, paired across arms; resampled by problem.\n")
+        lines.append("**Every row here is EXPLORATORY**: the preregistered twelve named "
+                     "outcome contrasts, not flag contrasts. They are reported because "
+                     "the mechanism matters, and they are labelled at every occurrence.\n")
+        lines.append("| contrast | stratum | n (problems) | flagged by each | discordant "
+                     "(b / c) | difference [95% cluster CI] | p | p_clu | Bonferroni/16 |")
+        lines.append("|---|---|---:|---|---:|---|---:|---:|---:|")
+        thr = numbers["comparison_inventory"]["bonferroni_threshold"]
         for key, d in c2["contrasts"].items():
             a, b = d["arms"]
             for stratum in ("P", "C"):
                 f = d["flag_discordance"][stratum]
                 lines.append(
-                    f"| `{a}` vs `{b}` | {stratum} | {f['n']} | "
+                    f"| `{a}` vs `{b}` | {stratum} | {f['n']} ({f['n_clusters']}) | "
                     f"{f['flagged_' + a]} vs {f['flagged_' + b]} | "
                     f"{f['only_' + a]} / {f['only_' + b]} | "
-                    f"{f['difference'] * 100:+.2f} pp {ci(f['ci95'], 2)} | "
-                    f"{f['p_exact']:.4f} |")
+                    f"{f['difference'] * 100:+.2f} pp {ci(f['ci95'], 2)}"
+                    f"{' †' if f.get('one_signed_discordance') else ''} | "
+                    f"{f['p_exact']:.4f} | {f['p_signflip_cluster']['p']:.4f} | "
+                    f"{thr:.5f} |")
+    ts = numbers.get("timeout_sensitivity", {})
+    if ts and "families" in ts:
+        lines.append("\n### Table 9 — sensitivity: stratum P without the timeouts\n")
+        lines.append(f"The registered population is every hidden-suite non-pass, which "
+                     f"**includes {ts['n_timeouts']} instances whose suite did not "
+                     f"terminate**. This table narrows it to instances with an observed "
+                     f"assertion failure. The registered analysis is unchanged; this is "
+                     f"a sensitivity check, and it is EXPLORATORY.\n")
+        lines.append(f"| family | union recall, registered P "
+                     f"(n = {ts['n_P_registered']}) | union recall, assertion-failure P "
+                     f"only (n = {ts['n_P_assertion_only']}) [95% Wilson] |")
+        lines.append("|---|---:|---|")
+        for fam, v in ts["families"].items():
+            u, s = v["union_registered"], v["union_assertion_only"]
+            lines.append(f"| `{fam}` (K = {v['k_max']}) | {u['k']}/{u['n']} "
+                         f"({100*u['k']/u['n']:.1f}%) | **{s['k']}/{s['n']}** "
+                         f"({100*s['k']/s['n']:.1f}%) {ci(s['wilson95'])} |")
+        rr, rs = ts["residual_registered"], ts["residual_assertion_only"]
+        lines.append(f"| **residual (never flagged)** | {rr['k']}/{rr['n']} "
+                     f"({100*rr['k']/rr['n']:.1f}%) | **{rs['k']}/{rs['n']}** "
+                     f"({100*rs['k']/rs['n']:.1f}%) {ci(rs['wilson95'])} |")
+        lines.append(f"\nThe {len(ts['timeouts_in_residual'])} timeouts that sit inside "
+                     f"the residual are `{'`, `'.join(ts['timeouts_in_residual'])}`.")
+
     spend = numbers.get("spend", {})
     lines.append("\n### Table 8 — what it cost\n")
     lines.append("From the product's own usage ledgers, per call, not reconstructed. The "
@@ -903,10 +1391,17 @@ def tables(numbers: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    global BOOTSTRAP
+    global BOOTSTRAP, EXACT_UNCONDITIONAL
     parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP)
+    parser.add_argument("--no-exact-unconditional", action="store_true",
+                        help="skip the exact unconditional check interval (the one "
+                             "expensive estimator); the primary bootstrap is unaffected")
+    parser.add_argument("--run", default=str(Path.home() / "Documents/Crossaudit/"
+                                             "study-data/wt-ceiling-runs"),
+                        help="archived run dir, read only for the timeout sensitivity")
     args = parser.parse_args(argv)
     BOOTSTRAP = args.bootstrap
+    EXACT_UNCONDITIONAL = not args.no_exact_unconditional
 
     instances = load_instances()
     audit_set = load_audit_set()
@@ -916,6 +1411,8 @@ def main(argv: list[str] | None = None) -> int:
         "bootstrap_reps": BOOTSTRAP, "bootstrap_seed": BOOT_SEED,
         "ceiling1": analyse_ceiling1(instances, audit_set),
         "ceiling2": analyse_ceiling2(instances),
+        "timeout_sensitivity": timeout_sensitivity(instances, audit_set, Path(args.run)),
+        "comparison_inventory": COMPARISON_INVENTORY,
         "spend": load_spend(),
     }
     CEILING.mkdir(parents=True, exist_ok=True)

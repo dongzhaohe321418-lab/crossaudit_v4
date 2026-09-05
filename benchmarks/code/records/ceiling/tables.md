@@ -4,11 +4,13 @@
 
 Unit of analysis: the instance. n = 110 stratum-P instances (recall) and 150 stratum-C instances (false positives), the same instances at every K. Union rate at K is averaged over all C(K_max, K) subsets of that family's draws, exactly.
 
-| family | K_max | union recall on P at K=1 | at K_max | fitted asymptote A [95% bootstrap CI over problems] | union FP on C at K=1 | at K_max | last-step gain on P |
-|---|---:|---:|---:|---|---:|---:|---:|
-| `cross` | 8 | 10.7% | **30.0%** (33/110) | **31.5%** [21.7, 45.6] | 4.5% | **16.0%** | 1.93% |
-| `self` | 8 | 15.5% | **17.3%** (19/110) | **16.6%** [8.1, 26.3] | 21.9% | **24.0%** | 0.23% |
-| `astra` | 4 | 30.2% | **32.7%** (36/110) | **32.5%** [20.5, 44.8] | 9.7% | **10.7%** | 0.23% |
+Every rate carries a 95% **problem-cluster bootstrap** interval; the P population is 110 instances from only **56 problems**, so an interval that treats instances as independent is too narrow. `flat?` says whether the curve met the preregistered flattening bar (last-step gain ≤ 1.0 point); where it did not, **A is an extrapolation** and the raw union at K_max is the number to quote.
+
+| family | K_max | union recall on P at K=1 [95% CI] | at K_max [95% CI] | fitted asymptote A [95% CI] | union FP on C at K=1 [95% CI] | at K_max [95% CI] | last-step gain | flat? |
+|---|---:|---|---|---|---|---|---:|:---:|
+| `cross` | 8 | 10.7% [5.1, 17.4] | **30.0%** (33/110) [20.0, 40.7] | 31.5% [21.7, 45.6] *(extrapolation)* | 4.5% [2.4, 7.0] | **16.0%** [10.1, 22.3] | 1.93% | **no** |
+| `self` | 8 | 15.5% [7.1, 24.9] | **17.3%** (19/110) [8.3, 27.3] | **16.6%** [8.1, 26.3] | 21.9% [15.5, 28.9] | **24.0%** [17.2, 31.2] | 0.23% | yes |
+| `astra` | 4 | 30.2% [19.3, 42.0] | **32.7%** (36/110) [20.7, 45.0] | **32.5%** [20.5, 44.8] | 9.7% [5.3, 14.5] | **10.7%** [5.9, 16.1] | 0.23% | yes |
 
 ### Table 2 — union recall and union false positives at every K
 
@@ -88,10 +90,10 @@ Unit of analysis: the instance. Each row spends the same total number of reading
 
 ### Table 5 — the residual: stratum-P defects no draw ever flagged
 
-| population | families | total draws | n P instances | never flagged | share [95% Wilson] |
-|---|---|---:|---:|---:|---|
-| broker_families_only | cross, self | 16 | 110 | **68** | 61.8% [52.5, 70.4] |
-| all_families | cross, self, astra | 20 | 110 | **57** | 51.8% [42.6, 60.9] |
+| population | families | total draws | n P instances (problems) | never flagged | share [95% cluster CI] | [95% Wilson, too narrow] |
+|---|---|---:|---:|---:|---|---|
+| broker_families_only | cross, self | 16 | 110 (56) | **68** | **61.8%** [50.9, 72.7] | [52.5, 70.4] |
+| all_families | cross, self, astra | 20 | 110 (56) | **57** | **51.8%** [40.0, 63.3] | [42.6, 60.9] |
 
 ### Table 5b — what the residual defects are
 
@@ -108,37 +110,56 @@ Categories and their order were fixed in the preregistration (§1.5) before the 
 
 ### Table 6 — ceiling 2: the closed loop, per arm
 
-Unit of analysis: the instance, paired before/after on the same instance. Net is unconditional on whether a revision occurred. Interval and p: exact-conditional (Clopper–Pearson on the discordant pairs) and exact McNemar.
+Unit of analysis: the instance, paired before/after on the same instance; the resampling unit is the problem. Net is unconditional on whether a revision occurred.
 
-| arm | n | audits BLOCKED (P / C) | revisions that changed the file | fixed on P | broken on C | **net change in hidden-test pass rate** [95% exact CI] | exact p |
-|---|---:|---:|---:|---|---|---|---:|
-| `self-loop` | 112 | 10 / 13 | 19 | 3/56 [1.8, 14.6] | 2/56 [1.0, 12.1] | **+0.89 pp** [-3.16, 3.99] (b=3, c=2) | 1.0000 |
-| `self-loop-rep` | 112 | 10 / 13 | 19 | 3/56 [1.8, 14.6] | 2/56 [1.0, 12.1] | **+0.89 pp** [-3.16, 3.99] (b=3, c=2) | 1.0000 |
-| `cross-loop` | 112 | 10 / 3 | 12 | 3/56 [1.8, 14.6] | 0/56 [0.0, 6.4] | **+2.68 pp** [-1.11, 2.68] (b=3, c=0) | 0.2500 |
-| `referent-loop` | 112 | 25 / 10 | 35 | 11/56 [11.3, 31.8] | 2/56 [1.0, 12.1] | **+8.04 pp** [1.06, 11.16] (b=11, c=2) | 0.0225 |
+The primary interval is the **problem-cluster bootstrap**; Tango's unconditional score interval and the exact unconditional interval (Berger-Boos restricted) are checks that ignore clustering. `p` is exact McNemar (instances independent); `p_clu` is a cluster-level sign-flip permutation test beside it. 112 instances come from **96 problems**.
+
+**†** — every discordant pair points the same way, so the percentile bootstrap cannot produce a resample of the opposite sign and its bound at zero is an artefact of the method. Read the Tango or exact unconditional interval on that row. This is `CORRECTIONS.md` item 4 applying to the replacement as it applied to what it replaced.
+
+| arm | n (problems) | BLOCKED (P / C) | changed | fixed on P | broken on C | **net change** [95% cluster CI] | Tango CI | exact-unc. CI | p | p_clu |
+|---|---:|---:|---:|---|---|---|---|---|---:|---:|
+| `self-loop` | 112 (96) | 10 / 13 | 19 | 3/56 [0.0, 14.5] | 2/56 [0.0, 9.1] | **+0.89 pp** [-3.54, 5.88] (b=3, c=2) | [-3.98, 6.06] | [-6.70, 8.48] | 1.0000 | 1.0000 |
+| `self-loop-rep` | 112 (96) | 10 / 13 | 19 | 3/56 [0.0, 14.5] | 2/56 [0.0, 9.1] | **+0.89 pp** [-3.54, 5.88] (b=3, c=2) | [-3.98, 6.06] | [-6.70, 8.48] | 1.0000 | 1.0000 |
+| `cross-loop` | 112 (96) | 10 / 3 | 12 | 3/56 [0.0, 13.8] | 0/56 [0.0, 0.0] | **+2.68 pp** [0.00, 7.14] † (b=3, c=0) | [-0.73, 7.58] | [-4.46, 9.64] | 0.2500 | 0.5000 |
+| `referent-loop` | 112 (96) | 25 / 10 | 35 | 11/56 [8.9, 31.7] | 2/56 [0.0, 9.1] | **+8.04 pp** [1.77, 15.26] (b=11, c=2) | [2.03, 15.27] | [-1.79, 17.41] | 0.0225 | 0.0469 |
 
 ### Table 7 — paired contrasts between arms
 
-Outcome: whether the instance passes the hidden suite after one round. Unit: the instance, paired across arms. Exact McNemar on the discordant pairs; both discordant counts shown.
+Outcome: whether the instance passes the hidden suite after one round. Unit: the instance, paired across arms; resampled by problem. Both discordant counts shown.
 
-| contrast | n instances | discordant (b / c) | difference [95% exact CI] | exact p | Bonferroni/12 threshold |
-|---|---:|---:|---|---:|---:|
-| self-loop minus cross-loop, hidden-test pass after one round | 112 | 3 / 5 | -1.79 pp [-5.93, 3.64] | 0.7266 | 0.00417 |
-| referent-loop minus cross-loop, hidden-test pass after one round | 112 | 9 / 3 | +5.36 pp [-1.54, 9.54] | 0.1460 | 0.00417 |
-| self-loop minus self-loop-rep, hidden-test pass after one round | 112 | 0 / 0 | +0.00 pp — | 1.0000 | 0.00417 |
+| contrast | n (problems) | discordant (b / c) | difference [95% cluster CI] | Tango CI | p | p_clu | Bonferroni/16 |
+|---|---:|---:|---|---|---:|---:|---:|
+| self-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 3 / 5 | -1.79 pp [-7.83, 4.39] | [-7.79, 3.81] | 0.7266 | 0.7812 | 0.00313 |
+| referent-loop minus cross-loop, hidden-test pass after one round | 112 (96) | 9 / 3 | +5.36 pp [-0.89, 12.07] | [-0.82, 12.36] | 0.1460 | 0.1826 | 0.00313 |
+| self-loop minus self-loop-rep, hidden-test pass after one round | 112 (96) | 0 / 0 | +0.00 pp [0.00, 0.00] | [-3.32, 3.32] | 1.0000 | 1.0000 | 0.00313 |
 
 ### Table 7b — what the arms flag, paired and split by stratum
 
-The mechanism behind any net effect. On stratum P a flag is a defect caught; on stratum C it is a false alarm. Unit: the instance, paired across arms; exact McNemar on the discordant pairs.
+The mechanism behind any net effect. On stratum P a flag is a defect caught; on stratum C it is a false alarm. Unit: the instance, paired across arms; resampled by problem.
 
-| contrast | stratum | n | flagged by each | discordant (b / c) | difference [95% exact CI] | exact p |
-|---|---|---:|---|---:|---|---:|
-| `self-loop` vs `cross-loop` | P | 56 | 10 vs 10 | 7 / 7 | +0.00 pp [-13.48, 13.48] | 1.0000 |
-| `self-loop` vs `cross-loop` | C | 56 | 13 vs 3 | 12 / 2 | +17.86 pp [3.59, 24.11] | 0.0129 |
-| `referent-loop` vs `cross-loop` | P | 56 | 25 vs 10 | 16 / 1 | +26.79 pp [12.94, 30.27] | 0.0003 |
-| `referent-loop` vs `cross-loop` | C | 56 | 10 vs 3 | 7 / 0 | +12.50 pp [2.26, 12.50] | 0.0156 |
-| `self-loop` vs `self-loop-rep` | P | 56 | 10 vs 10 | 0 / 0 | +0.00 pp — | 1.0000 |
-| `self-loop` vs `self-loop-rep` | C | 56 | 13 vs 13 | 0 / 0 | +0.00 pp — | 1.0000 |
+**Every row here is EXPLORATORY**: the preregistered twelve named outcome contrasts, not flag contrasts. They are reported because the mechanism matters, and they are labelled at every occurrence.
+
+| contrast | stratum | n (problems) | flagged by each | discordant (b / c) | difference [95% cluster CI] | p | p_clu | Bonferroni/16 |
+|---|---|---:|---|---:|---|---:|---:|---:|
+| `self-loop` vs `cross-loop` | P | 56 (41) | 10 vs 10 | 7 / 7 | +0.00 pp [-15.52, 16.07] | 1.0000 | 1.0000 | 0.00313 |
+| `self-loop` vs `cross-loop` | C | 56 (55) | 13 vs 3 | 12 / 2 | +17.86 pp [5.45, 30.36] | 0.0129 | 0.0129 | 0.00313 |
+| `referent-loop` vs `cross-loop` | P | 56 (41) | 25 vs 10 | 16 / 1 | +26.79 pp [13.56, 40.35] | 0.0003 | 0.0009 | 0.00313 |
+| `referent-loop` vs `cross-loop` | C | 56 (55) | 10 vs 3 | 7 / 0 | +12.50 pp [5.17, 21.82] † | 0.0156 | 0.0156 | 0.00313 |
+| `self-loop` vs `self-loop-rep` | P | 56 (41) | 10 vs 10 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
+| `self-loop` vs `self-loop-rep` | C | 56 (55) | 13 vs 13 | 0 / 0 | +0.00 pp [0.00, 0.00] | 1.0000 | 1.0000 | 0.00313 |
+
+### Table 9 — sensitivity: stratum P without the timeouts
+
+The registered population is every hidden-suite non-pass, which **includes 7 instances whose suite did not terminate**. This table narrows it to instances with an observed assertion failure. The registered analysis is unchanged; this is a sensitivity check, and it is EXPLORATORY.
+
+| family | union recall, registered P (n = 110) | union recall, assertion-failure P only (n = 103) [95% Wilson] |
+|---|---:|---|
+| `cross` (K = 8) | 33/110 (30.0%) | **32/103** (31.1%) [22.9, 40.5] |
+| `self` (K = 8) | 19/110 (17.3%) | **18/103** (17.5%) [11.3, 25.9] |
+| `astra` (K = 4) | 36/110 (32.7%) | **34/103** (33.0%) [24.7, 42.6] |
+| **residual (never flagged)** | 57/110 (51.8%) | **54/103** (52.4%) [42.9, 61.8] |
+
+The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
 
 ### Table 8 — what it cost
 

@@ -478,3 +478,54 @@ comparisons to §3.2's nine: (10) A(astra) − A(cross); (11) A(astra) − A(sel
 unchanged: no correction on the two primaries, which were declared singly in advance;
 every secondary contrast carries its unadjusted exact p with the Bonferroni-over-twelve
 threshold (p = 0.00417) stated beside it.
+
+---
+
+## Amendment 4 — 2026-09-05, AFTER the results were known — the interval method is replaced
+
+**This amendment is written after the data were collected and analysed, and it changes a
+preregistered analysis method.** That is the kind of change a preregistration exists to make
+visible, so it is recorded here in full rather than folded silently into the report.
+
+**What happened.** An independent cross-vendor review of the committed study reproduced
+every headline number and then showed that amendment 3's interval — a Clopper–Pearson
+interval for the direction probability *conditional on the discordant pairs*, rescaled by
+the *observed* discordance fraction D/n — is not a valid confidence interval for the
+unconditional risk difference. Rescaling by the observed D discards the uncertainty in D.
+Enumerating D ~ Binomial(112, 0.1) with every discordance beneficial gives it a coverage of
+**0.4162688657** where 0.95 was claimed. The defect was reproduced here to ten digits
+before anything was changed.
+
+**What changes.**
+
+1. **Primary interval for every paired binary difference and every rate: the percentile
+   bootstrap over problem clusters** (10,000 resamples, seed 20260908). Amendment 3 had
+   demoted it to secondary on the strength of `CORRECTIONS.md` item 4; that reasoning was
+   right about the *conditional* construction's failure mode and wrong to promote a method
+   with worse coverage in its place.
+2. **Checks, both unconditional and both reported beside it: Tango's score interval**
+   (measured coverage 0.960) **and a Berger–Boos-restricted exact unconditional interval**
+   (measured coverage 0.998, conservative by construction).
+3. **The `CORRECTIONS.md` item 4 caveat now attaches to the bootstrap too.** Where every
+   discordant pair points one way, a percentile bootstrap cannot generate a resample of the
+   opposite sign; those rows are marked and the unconditional intervals are quoted instead.
+4. **Every McNemar p is accompanied by a cluster-level sign-flip permutation p**, because
+   the loop's 112 instances come from 96 problems and stratum P's 110 from 56, and McNemar
+   treats instances as independent.
+5. **`A` is constrained to [0, 1] inside the fit objective**, as §1.2 always specified.
+6. **The correction family is every contrast reported with a p value: sixteen, not the
+   planned twelve.** The full planned/performed/exploratory inventory is committed in
+   `numbers.json`. Five planned comparisons (the mixed and `astra` asymptote contrasts)
+   were **not delivered as specified** and are recorded as unmeasured.
+
+**What does not change, and this is the point of recording it here.** No arm, no sample, no
+draw, no primary outcome, no kill condition, and **no point estimate**. The asymptotes, the
+union curves, the primary difference, the arm nets, the residual counts and the hand
+classification are identical before and after. The kill condition fires under the withdrawn
+interval, the bootstrap, Tango and the exact unconditional alike: all four contain zero.
+
+**The honest status of this amendment.** It is a post-hoc methods change. It was forced by a
+demonstrated coverage failure found by someone else, not chosen because of what it did to
+any result, and its direction was to make every interval **wider**. A reader who wishes to
+discount it entirely can: the withdrawn interval is retained in `numbers.json` as
+`withdrawn_conditional_ci95`, and the study's conclusions are the same under it.

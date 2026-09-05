@@ -129,7 +129,8 @@
     "b1:Mbpp/305": {
       "benchmark": "mbpp",
       "category": "unexercised-edge",
-      "failing_input_class": "an empty list, and lists with no word starting with p",
+      "description_corrected": "the first version said 'an empty list, and lists with no word starting with p'; the archived witnesses also show failures with p-words present (lowercase, and split across elements). Found by the cross-vendor review; the category is unchanged because every failing class is still one the visible suite never constructs.",
+      "failing_input_class": "the empty list; lists whose p-words are lowercase, which the oracle skips; and p-words split across separate list elements \u2014 none of which the visible tests construct",
       "found_by_astra_only": false,
       "hidden_failed_n": 90,
       "hidden_total": 110,
@@ -408,7 +409,8 @@
     "b2:Mbpp/305": {
       "benchmark": "mbpp",
       "category": "unexercised-edge",
-      "failing_input_class": "an empty list, and lists with no word starting with p",
+      "description_corrected": "the first version said 'an empty list, and lists with no word starting with p'; the archived witnesses also show failures with p-words present (lowercase, and split across elements). Found by the cross-vendor review; the category is unchanged because every failing class is still one the visible suite never constructs.",
+      "failing_input_class": "the empty list; lists whose p-words are lowercase, which the oracle skips; and p-words split across separate list elements \u2014 none of which the visible tests construct",
       "found_by_astra_only": false,
       "hidden_failed_n": 90,
       "hidden_total": 110,
@@ -622,6 +624,17 @@
       "oracle_disputable_EXPLORATORY": false
     }
   },
+  "corrections": [
+    {
+      "date": "2026-09-05",
+      "found_by": "independent cross-vendor review of study/ceiling",
+      "instances": [
+        "b1:Mbpp/305",
+        "b2:Mbpp/305"
+      ],
+      "what": "failing_input_class description corrected; category unchanged"
+    }
+  ],
   "exploratory_flag": {
     "definition": "would a competent reader defend the candidate against the specification's prose as written? Not part of the preregistered rule; recorded because the rule's ordering places `unexercised-edge` ahead of `ambiguous-oracle` and therefore absorbs instances whose oracle is itself arguable. Reported as exploratory wherever it appears.",
     "name": "oracle_disputable_EXPLORATORY"

@@ -1,4 +1,70 @@
 {
+  "arm_windows_note": "One window per invocation. Windows with supplied_the_committed_rows = false are the discarded pilots and the run the provider's circuit breaker destroyed; their spend is counted in the totals and their rows are not in any reported number.",
+  "arm_windows_utc": {
+    "cross-loop@0905100548": {
+      "calls": 3,
+      "role": "discarded (pilot, or the run the circuit breaker destroyed)",
+      "supplied_the_committed_rows": false,
+      "utc_end": "2026-09-05T10:08:58Z",
+      "utc_start": "2026-09-05T10:08:46Z"
+    },
+    "cross-loop@0905101505": {
+      "calls": 117,
+      "role": "audits and revisions for the reported rows",
+      "supplied_the_committed_rows": true,
+      "utc_end": "2026-09-05T10:31:11Z",
+      "utc_start": "2026-09-05T10:28:04Z"
+    },
+    "cross-loop@0905104455": {
+      "calls": 8,
+      "role": "the targeted revision-repair pass \u2014 deviation 5; it supplied the eight repaired cross-loop revisions",
+      "supplied_the_committed_rows": true,
+      "utc_end": "2026-09-05T10:45:41Z",
+      "utc_start": "2026-09-05T10:45:00Z"
+    },
+    "referent-loop@0905100548": {
+      "calls": 8,
+      "role": "discarded (pilot, or the run the circuit breaker destroyed)",
+      "supplied_the_committed_rows": false,
+      "utc_end": "2026-09-05T10:09:47Z",
+      "utc_start": "2026-09-05T10:09:07Z"
+    },
+    "referent-loop@0905101505": {
+      "calls": 147,
+      "role": "audits and revisions for the reported rows",
+      "supplied_the_committed_rows": true,
+      "utc_end": "2026-09-05T10:43:12Z",
+      "utc_start": "2026-09-05T10:31:33Z"
+    },
+    "self-loop-rep@0905100548": {
+      "calls": 19,
+      "role": "discarded (pilot, or the run the circuit breaker destroyed)",
+      "supplied_the_committed_rows": false,
+      "utc_end": "2026-09-05T10:08:34Z",
+      "utc_start": "2026-09-05T10:08:02Z"
+    },
+    "self-loop-rep@0905101505": {
+      "calls": 141,
+      "role": "audits and revisions for the reported rows",
+      "supplied_the_committed_rows": true,
+      "utc_end": "2026-09-05T10:27:30Z",
+      "utc_start": "2026-09-05T10:20:58Z"
+    },
+    "self-loop@0905100548": {
+      "calls": 95,
+      "role": "discarded (pilot, or the run the circuit breaker destroyed)",
+      "supplied_the_committed_rows": false,
+      "utc_end": "2026-09-05T10:07:42Z",
+      "utc_start": "2026-09-05T10:05:53Z"
+    },
+    "self-loop@0905101505": {
+      "calls": 141,
+      "role": "audits and revisions for the reported rows",
+      "supplied_the_committed_rows": true,
+      "utc_end": "2026-09-05T10:20:24Z",
+      "utc_start": "2026-09-05T10:15:07Z"
+    }
+  },
   "arms": {
     "cross-loop": {
       "auditor": "openai:gpt-5.6-terra",
@@ -32,8 +98,9 @@
   "code": {
     "commit": "b68e7fa50120450b1f38297462386e88b90a7365",
     "files": {
-      "benchmarks/code/ceiling/PREREGISTRATION.md": "6dd87348eefa39054aac3e2ba9fbed77efae83bedfa06bf8c40849d8450e761a",
-      "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921"
+      "benchmarks/code/ceiling/PREREGISTRATION.md": "5c324f68020cffd2d4fa665ca76ec66b1a72cfc122421d2bb4fb9beea5d5258e",
+      "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
+      "benchmarks/code/report_ceiling.py": "f2d50516cf7ad4dbbb2919d1dacea3b17c57e300bc2111a7a6991722441e90f6"
     },
     "status_porcelain": " M benchmarks/code/loop.py\n?? benchmarks/code/ceiling/archive.sh\n?? benchmarks/code/records/ceiling/\n"
   },
@@ -48,17 +115,95 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
+  "finalised_at_commit": "f7f515ef848c4443e7a40588cb592094b6c2ea01",
+  "finalised_utc": "2026-09-05T15:04:24Z",
+  "package_versions": {
+    "anthropic": "not installed",
+    "certifi": "2026.7.22",
+    "executor_python": "3.13.5",
+    "httpx": "0.28.1",
+    "note": "the analysis uses only the standard library; these are the packages the RUN depended on (provider transport, and numpy inside the sandboxed test subprocesses, which is EvalPlus's own dependency)",
+    "numpy": "2.4.0",
+    "openai": "not installed",
+    "pytest": "not installed",
+    "python": "3.13.5",
+    "requests": "2.32.5",
+    "urllib3": "2.6.3"
+  },
   "prompts": {
     "auditor_system_sha256": "6db494aa6ec6cd2dcaa96bfba483448147a5a04e662c26f5d035b50e10b82769",
     "generator_system_sha256": "9c52eecdae0378b07425df3ff08dccc65a6153dcbfea8aa4ba369babb6474c3a",
     "referent_rule_sha256": "8d21b13fb4cbd3dc2893c6e2c7539ac7fe4499b3598bb8ad40f7d5cb94cf8fdb",
     "referent_rule_text": "\n\n### CA-COVER-001\n**BLOCKER.** The increment's visible test suite is shown to you. It is not a\nspecification and it is not complete. Identify the behaviour the specification\nrequires that the visible tests **do not exercise** \u2014 the input classes they\nnever construct \u2014 and judge the solution on those. A defect the visible tests\nwould not catch is the defect this rule exists to find.\n"
   },
+  "provenance_note": "Completed after the runs finished, from the ledgers' own timestamps, the installed environment and the product's capability cards. The cross-vendor review found the first version missing these fields.",
+  "routes_detail": {
+    "astra": {
+      "base_url": "not applicable \u2014 the Codex CLI holds its own session; CrossAudit's broker is bypassed",
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "spec": "codex:gpt-6-astra",
+      "temperature_note": "not settable through `codex exec`; reasoning effort is the only sampling control exposed and it was set to high",
+      "temperature_sent": null,
+      "vendor": "openai (via Codex CLI)"
+    },
+    "cross": {
+      "base_url": "https://api.openai.com/v1",
+      "key_env": "CROSSAUDIT_OPENAI_KEY",
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": null,
+      "spec": "openai:gpt-5.6-terra",
+      "temperature_note": "the capability card carries temperature: False, so no sampling parameter is sent \u2014 this route varies run to run",
+      "temperature_sent": null,
+      "token_param": "max_completion_tokens",
+      "vendor": "openai"
+    },
+    "generator": {
+      "base_url": "https://api.anthropic.com/v1",
+      "key_env": "CROSSAUDIT_ANTHROPIC_KEY",
+      "model": "claude-haiku-4-5-20251001",
+      "reasoning_effort": null,
+      "spec": "anthropic:claude-haiku-4-5-20251001",
+      "temperature_note": "the capability card permits temperature, so the provider layer sends 0 \u2014 this route is near-deterministic",
+      "temperature_sent": 0,
+      "token_param": "max_tokens",
+      "vendor": "anthropic"
+    },
+    "self": {
+      "base_url": "https://api.anthropic.com/v1",
+      "key_env": "CROSSAUDIT_ANTHROPIC_KEY",
+      "model": "claude-haiku-4-5-20251001",
+      "reasoning_effort": null,
+      "spec": "anthropic:claude-haiku-4-5-20251001",
+      "temperature_note": "the capability card permits temperature, so the provider layer sends 0 \u2014 this route is near-deterministic",
+      "temperature_sent": 0,
+      "token_param": "max_tokens",
+      "vendor": "anthropic"
+    }
+  },
   "run_dir": "/Users/ericdong/Documents/Crossaudit/study-data/wt-ceiling-runs",
   "sampling": {
+    "correction": "supersedes the first version, which said temperature is universally omitted; the self route sends 0",
+    "flag_rule": "at least one BLOCKER finding",
     "max_rounds": 1,
-    "reasoning_effort": null,
-    "temperature": "provider default; the auditor capability card carries temperature=False (D154), so no sampling parameter is sent"
+    "per_route": {
+      "astra": {
+        "reasoning_effort": "high",
+        "temperature_sent": null
+      },
+      "cross": {
+        "reasoning_effort": null,
+        "temperature_sent": null
+      },
+      "generator": {
+        "reasoning_effort": null,
+        "temperature_sent": 0
+      },
+      "self": {
+        "reasoning_effort": null,
+        "temperature_sent": 0
+      }
+    }
   },
   "scratch": "/Users/ericdong/Documents/Crossaudit/study-data/wt-ceiling-runs/projects",
   "spend_usd_by_run_id": {
@@ -644,5 +789,6 @@
   },
   "spend_usd_total": 3.708342,
   "study": "ceiling (study 8), ceiling 2 \u2014 the closed loop",
+  "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is the commit this file records above, whose tree is clean.",
   "written_utc": "2026-09-05T10:46:08Z"
 }

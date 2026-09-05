@@ -337,3 +337,49 @@ visible tests do not cover raised flags on defective code from 10 of 56 to 25 of
 study's own Bonferroni threshold over twelve planned comparisons (0.00417), and it costs 7
 additional false alarms on 56 correct solutions. It licenses a larger confirmatory run, not
 a default change.
+
+**15. Study 8's "95% exact" paired intervals — withdrawn, and the method replaced.**
+The first committed version of `benchmarks/code/RESULTS-CEILING.md` reported every paired
+binary difference with an interval built by taking a Clopper–Pearson interval for the
+direction probability **conditional on the discordant pairs** and rescaling it by the
+**observed** discordance fraction D/n. Conditioning is legitimate for McNemar's test. It is
+not legitimate for an interval on the unconditional risk difference, because D/n is itself
+an estimate and its uncertainty is thrown away.
+
+An independent cross-vendor reviewer found this, and it reproduces exactly: enumerating
+D ~ Binomial(112, 0.1) with every discordance beneficial gives that construction a coverage
+of **0.4162688657**, not 0.95. The headline `self-loop` interval **[−3.16, +3.99] is
+withdrawn**, as is every other paired interval in that version.
+
+**What replaces them** (preregistration amendment 4): the problem-cluster percentile
+bootstrap as primary, with Tango's unconditional score interval and a Berger–Boos-restricted
+exact unconditional interval as checks. Measured coverages 0.960 and 0.998. The headline
+becomes **+0.89 pp, cluster CI [−3.54, +5.88], Tango [−3.98, +6.06], exact unconditional
+[−6.70, +8.48]**.
+
+**No point estimate changed, and no conclusion changed.** The kill condition fires under the
+withdrawn interval and under all three replacements. This entry exists because the interval
+was published, not because the finding moved.
+
+Two further corrections to that report, from the same review, both reproduced before being
+accepted:
+
+- **"Exactly one secondary contrast clears the correction threshold" was false.** The
+  preregistration planned twelve comparisons; **sixteen** were computed, the highlighted
+  contrast was not among the twelve, and a second contrast also cleared the threshold. The
+  report now carries a full planned/performed/exploratory inventory, a single correction
+  family of sixteen, and labels every flag contrast exploratory. **Five planned comparisons —
+  the mixed and `astra` asymptote contrasts — were never delivered and are unmeasured.**
+- **"The referent raises accuracy" was overstated.** +8.04 pp is the referent arm against its
+  own baseline; its exact unconditional interval contains zero. The contrast that isolates
+  the referent, against `cross-loop`, is **+5.36 pp, CI [−0.88, +12.08], p = 0.146**. What
+  survives is that the referent **moved what the auditor flagged** (+26.8 points on
+  stratum-P flags, exploratory), not that it raised accuracy.
+
+**16. "No number had left the harness" — false, by 99 seconds.**
+`RESULTS-CEILING.md`'s first version said a swapped Clopper–Pearson tail was caught before
+any number escaped. `git show 1a66571:benchmarks/code/records/ceiling/tables.md` carries the
+headline interval as **[+3.16, −1.93]**, committed at 18:46:39; the fix landed at 18:48:18.
+An erroneous number was in a committed results artefact for that interval. It never reached
+prose — the report was first committed at 20:55:51 — but the claim as written was wrong and
+is corrected in that report's deviations.

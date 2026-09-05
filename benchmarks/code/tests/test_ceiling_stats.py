@@ -11,6 +11,7 @@ puts the burden of proof here. These tests are the proof.
 
 from __future__ import annotations
 
+import itertools
 import math
 import random
 import sys
@@ -103,22 +104,39 @@ def test_exact_mcnemar_matches_the_binomial_sign_test():
         assert abs(rc.mcnemar_exact(b, c) - expect) < 1e-12
 
 
-def test_paired_difference_interval_is_ordered_and_covers_the_point():
-    """The bug this file exists to have caught: a swapped beta tail.
+def test_paired_difference_intervals_are_ordered_and_contain_the_point():
+    """Every interval a reader sees must be ordered and must contain its own estimate.
 
-    An interval whose bounds are the wrong way round, or that does not contain its own
-    point estimate, is a defect that survives every eyeball check because both numbers
-    look plausible. It does not survive this.
+    An interval whose bounds are the wrong way round, or that excludes its own point
+    estimate, survives every eyeball check because both numbers look plausible. It does
+    not survive this — which is how the swapped beta tail was caught.
     """
-    for b, c, n in ((3, 2, 112), (3, 0, 112), (11, 2, 112), (0, 4, 56), (16, 1, 56)):
-        d = rc.paired_difference_exact(b, c, n)
-        low, high = d["ci95"]
-        assert low <= high
-        assert low <= d["delta"] <= high
-    # no discordant pairs: a count, never a rate (EXPERIMENT_RECORD §9)
-    none = rc.paired_difference_exact(0, 0, 56)
-    assert none["ci95"] is None
-    assert none["n_discordant"] == 0
+    shapes = [
+        {"p1": [1], "p2": [1], "p3": [1], "p4": [-1], "p5": [-1]},      # b=3, c=2
+        {"p1": [1], "p2": [1], "p3": [1]},                               # b=3, c=0
+        {f"p{i}": [0] for i in range(20)},                               # no discordance
+        {"p1": [1, 1], "p2": [-1], "p3": [1], "p4": [0, 0]},             # clustered
+    ]
+    for clusters in shapes:
+        d = rc.paired_difference(clusters, reps=400, seed=1)
+        for key in ("ci95", "tango_ci95"):
+            interval = d[key]
+            if interval is None or interval[0] is None:
+                continue
+            lo, hi = interval
+            assert lo <= hi, (key, d)
+            assert lo - 1e-9 <= d["delta"] <= hi + 1e-9, (key, d)
+        assert d["b"] + d["c"] == sum(1 for v in
+                                      [x for vs in clusters.values() for x in vs] if v)
+        if d["b"] + d["c"] == 0:
+            assert "note" in d and d["p_exact"] == 1.0
+
+
+def test_paired_difference_derives_its_counts_from_the_clusters():
+    """No caller can hand in a discordance count that disagrees with the data."""
+    d = rc.paired_difference({"a": [1, -1], "b": [1], "c": [0]}, reps=200, seed=2)
+    assert (d["b"], d["c"], d["n"], d["n_clusters"]) == (2, 1, 4, 3)
+    assert abs(d["delta"] - 0.25) < 1e-12
 
 
 def test_zibb_recovers_a_planted_ceiling():
@@ -145,3 +163,115 @@ def test_wilson_matches_an_independent_implementation():
         low, high = rc.wilson(k, n)
         assert abs(low - max(0.0, centre - spread)) < 1e-12
         assert abs(high - min(1.0, centre + spread)) < 1e-12
+
+
+# ---------------------------------------------------------------------------------
+# Coverage. The defect these exist to prevent from recurring silently.
+# ---------------------------------------------------------------------------------
+
+def _scenario_coverage(interval_fn, n=112, q=0.1, tol=None):
+    """Exact coverage in the cross-vendor review's scenario.
+
+    D ~ Binomial(n, q); every discordance is beneficial, so b = D, c = 0 and the true
+    population risk difference is delta = q(2*1 - 1) = q. Coverage is summed exactly over
+    the binomial, not simulated, so the number is reproducible to machine precision.
+    """
+    covered = 0.0
+    for D in range(n + 1):
+        weight = math.comb(n, D) * q ** D * (1 - q) ** (n - D)
+        if weight < 1e-15:
+            continue
+        lo, hi = interval_fn(D, 0, n)
+        if lo is not None and lo <= q <= hi:
+            covered += weight
+    return covered
+
+
+def test_withdrawn_conditional_interval_undercovers_as_the_review_found():
+    """The critical defect, pinned to the number an independent reviewer computed.
+
+    The published interval took a Clopper-Pearson interval for the direction probability
+    *conditional on discordance* and rescaled it by the *observed* discordance fraction
+    D/n. That throws away the uncertainty in D. Its coverage in this scenario is 0.416,
+    not the advertised 0.95, and this test exists so that the method cannot come back.
+    """
+    def withdrawn(b, c, n):
+        nd = b + c
+        if nd == 0:
+            return (None, None)
+        lo, hi = rc.clopper_pearson(b, nd)
+        return (nd * (2 * lo - 1) / n, nd * (2 * hi - 1) / n)
+
+    coverage = _scenario_coverage(withdrawn)
+    assert abs(coverage - 0.4162688657) < 1e-9, coverage
+    assert coverage < 0.5
+
+
+def test_replacement_intervals_have_their_advertised_coverage():
+    """Tango's unconditional score interval reaches nominal coverage where the
+    withdrawn construction reached 0.416. Exact, summed over the binomial."""
+    coverage = _scenario_coverage(lambda b, c, n: rc.tango_score_interval(b, c, n))
+    assert coverage >= 0.93, coverage
+    # and it is not achieved by being uselessly wide
+    lo, hi = rc.tango_score_interval(3, 2, 112)
+    assert (hi - lo) < 0.25
+
+
+def test_exact_unconditional_interval_is_conservative_and_contains_the_point():
+    """The exact unconditional check never under-covers. Run at n = 40 to stay fast."""
+    coverage = _scenario_coverage(
+        lambda b, c, n: rc.exact_unconditional_interval(b, c, n, grid=20), n=40, q=0.15)
+    assert coverage >= 0.95, coverage
+    for b, c, n in ((3, 2, 40), (0, 4, 40), (6, 0, 40)):
+        lo, hi = rc.exact_unconditional_interval(b, c, n, grid=20)
+        assert lo <= (b - c) / n <= hi
+
+
+def test_cluster_bootstrap_covers_and_widens_with_clustering():
+    """The primary interval, simulated: nominal when instances are independent, and
+    wider — not narrower — when instances are paired inside problems.
+
+    A method that ignored the clusters would look *tighter* here, which is exactly the
+    error being guarded against.
+    """
+    rng = random.Random(4)
+    reps, boot = 300, 250
+    for clustered in (False, True):
+        covered, widths = 0, []
+        for _ in range(reps):
+            by_problem = {}
+            if clustered:                      # 56 problems x 2 correlated instances
+                for pid in range(56):
+                    v = 1 if rng.random() < 0.10 else 0
+                    by_problem[str(pid)] = [v, v]
+            else:                              # 112 independent instances
+                for pid in range(112):
+                    by_problem[str(pid)] = [1 if rng.random() < 0.10 else 0]
+            lo, hi = rc.cluster_bootstrap_ci(by_problem, boot, rng.randrange(10 ** 6))
+            widths.append(hi - lo)
+            if lo <= 0.10 <= hi:
+                covered += 1
+        rate = covered / reps
+        assert rate >= 0.88, (clustered, rate)
+        if clustered:
+            assert sum(widths) / len(widths) > independent_width * 1.2
+        else:
+            independent_width = sum(widths) / len(widths)
+
+
+def test_signflip_matches_brute_force_on_the_real_shape():
+    """The cluster-level test, against explicit enumeration."""
+    got = rc.signflip_p({"a": [1], "b": [1], "c": [-1], "d": [1, 1]})
+    totals = [1, 1, -1, 2]
+    obs = abs(sum(totals))
+    want = sum(1 for s in itertools.product((1, -1), repeat=4)
+               if abs(sum(x * y for x, y in zip(s, totals))) >= obs) / 16
+    assert abs(got["p"] - want) < 1e-12
+    assert got["method"] == "exact enumeration"
+
+
+def test_fit_saturation_respects_its_registered_bound():
+    """A in [0, 1] is a registered constraint, enforced inside the objective so every
+    bootstrap path treats the boundary identically."""
+    assert rc.fit_saturation(rc.union_curve([1] * 110, 8))["A"] == 1.0
+    assert 0.0 <= rc.fit_saturation(rc.union_curve([0] * 110, 8))["A"] <= 1.0
