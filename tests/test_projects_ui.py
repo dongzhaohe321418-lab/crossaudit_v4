@@ -64,8 +64,9 @@ def test_browser_creation_can_explicitly_choose_the_science_contract(tmp_path,
     cfg = load(root / "crossaudit.yml")
 
     assert cfg.scope_dirs == ["experiments"]
-    assert cfg.checks == ["schema", "units", "convergence", "provenance",
-                          "number_source"]
+    # D158 ruling 1: `number_source` is registered and selectable by name, and
+    # in no profile — Arm 2 blocked 24 of 24 drafts with it on by default.
+    assert cfg.checks == ["schema", "units", "convergence", "provenance"]
     assert (root / "experiments" / "TEMPLATE" / "results.json").is_file()
     assert "metadata.yml" in (root / "AUDIT_RULES.md").read_text()
 

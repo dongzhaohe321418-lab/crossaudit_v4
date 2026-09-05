@@ -96,8 +96,9 @@ def test_the_grounds_are_the_persons_own_rules_and_never_invented():
     # quoted. An invented reason for a real choice is the §1.5 failure this
     # slice exists to remove.
     assert grounded["CA-D-002"][2] == ""
-    assert proposal.checks == ("schema", "units", "convergence", "provenance",
-                               "number_source")
+    # `number_source` is not here: D158 ruling 1 took it out of the science
+    # pack the same day it arrived (Arm 2 blocked 24 of 24 drafts).
+    assert proposal.checks == ("schema", "units", "convergence", "provenance")
     assert proposal.instead_of == ("parseable", "declared", "internal", "complete")
 
 
@@ -272,7 +273,7 @@ def test_the_inference_is_shown_as_a_proposal_with_its_grounds(
     assert "they never change what your rules say" in flat
 
     # Accepting it reaches the file that decides what actually runs.
-    assert _checks_line(project) == "checks: [schema, units, convergence, provenance, number_source]"
+    assert _checks_line(project) == "checks: [schema, units, convergence, provenance]"
     rules = (project / "AUDIT_RULES.md").read_text()
     assert "CA-DATA-001" in rules and "<PROJECT>" not in rules
 
@@ -384,7 +385,7 @@ def test_the_proposal_guards_fail_when_the_pack_is_taken_without_asking(
         answers=[*_TO_THE_PROPOSAL, *_AFTER])
     assert "Automatic checks:" not in out, (
         "the mutation did not take; this demonstration proves nothing")
-    assert _checks_line(mutated) == "checks: [schema, units, convergence, provenance, number_source]", (
+    assert _checks_line(mutated) == "checks: [schema, units, convergence, provenance]", (
         "the mutation did not take; this demonstration proves nothing")
 
 

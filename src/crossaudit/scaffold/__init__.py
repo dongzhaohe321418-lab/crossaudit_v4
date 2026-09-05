@@ -9,7 +9,11 @@ GENERAL_CHECKS = ["parseable", "declared", "internal", "complete"]
 # Kept identical to dcl/profiles.py PROFILES["science"]: a project scaffolded
 # as "science" and a project that writes `checks: science` must mean the same
 # thing, or the profile name is documentation for a list nobody uses.
-SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance", "number_source"]
+# `number_source` left this list with D158 ruling 1, for the reason recorded
+# in `dcl/profiles.py`: the generator cannot address lines it is never shown,
+# so the check blocked 24 of 24 measured drafts. A project that wants it
+# writes it into `checks:` by name.
+SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance"]
 # The CLI keeps its established science-first scaffold for compatibility. The
 # browser project wizard chooses explicitly between GENERAL_CHECKS and
 # SCIENCE_CHECKS instead of silently applying a laboratory contract to prose.

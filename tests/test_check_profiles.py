@@ -23,18 +23,28 @@ def test_off_profile_disables_all_checks():
 
 
 def test_science_profile_is_the_structured_science_pack():
-    # §1's existence gap is closed inside `check_provenance`, not by adding the
-    # neutral pack's `declared` here — that reads `sources`/`requires` as
-    # filenames too and blocked legitimate metadata. `number_source` joined with
-    # §2.1's span contract. `general` is untouched, so no existing
-    # default-profile project changes behaviour.
-    assert resolve("science") == ["schema", "units", "convergence", "provenance",
-                                  "number_source"]
+    """MUTATION (D158 ruling 1): put `number_source` back in this list.
+
+    §1's existence gap is closed inside `check_provenance`, not by adding the
+    neutral pack's `declared` here — that reads `sources`/`requires` as
+    filenames too and blocked legitimate metadata. `number_source` joined with
+    §2.1's span contract on 2026-09-06 and left the same day: Arm 2
+    (`benchmarks/expertlongbench/RESULTS-ARM2.md`) blocked 24 of 24 drafts and
+    passed 0 of 215 annotation rows, because the generator is never shown line
+    numbers and cannot address them. A profile a project selects by name may
+    not contain a check that blocks every round. `general` is untouched, so no
+    existing default-profile project changes behaviour either way."""
+    assert resolve("science") == ["schema", "units", "convergence", "provenance"]
 
 
 def test_research_profile_is_the_general_pack_plus_the_provenance_checks():
+    """MUTATION (D158 ruling 1): put `number_source` back in this list too.
+
+    `source_provenance` stays: Arm 2 measured the numbers contract and nothing
+    else, and this check's locator is a governed source id the generator does
+    hold."""
     assert resolve("research") == ["parseable", "declared", "internal", "complete",
-                                   "source_provenance", "number_source"]
+                                   "source_provenance"]
 
 
 def test_an_explicit_list_passes_through_verbatim():

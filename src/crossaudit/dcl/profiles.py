@@ -11,7 +11,7 @@ check names, a project can name a profile:
              declarations, broken links (advisory), leftover placeholders
              (advisory). Binds no data format; fits code, docs, web, contracts.
     science  structured-science rigor: schema, units, convergence, provenance
-             (inputs that exist and are cited exactly), declared number sources.
+             (inputs that exist and are cited exactly).
 
 An explicit list is still accepted verbatim, so a project can compose its own mix
 (e.g. the general pack plus ``complete-strict`` to make placeholders hard-fail).
@@ -31,11 +31,25 @@ PROFILES: dict[str, list[str]] = {
     # `depends_on` as filenames as well, so bringing it into science blocked
     # legitimate metadata (`sources: [doi:10.1234/x]`); the profile stays as it
     # was and the check got stronger, which is the direction that is allowed.
-    "science": ["schema", "units", "convergence", "provenance", "number_source"],
+    #
+    # `number_source` is NOT here, and its absence is D158's first ruling.
+    # D157 put it in both profiles; Arm 2
+    # (`benchmarks/expertlongbench/RESULTS-ARM2.md`) then ran it against what a
+    # real generator writes under the shipped skill and **no annotation row of
+    # 215 passed, 24 of 24 drafts BLOCKED** — not because the verifier was
+    # wrong about a span (it was wrong zero times in 189 blocks) but because
+    # the generator is never shown line numbers (`generator.py:449-450`) and so
+    # cannot address the lines the contract asks it to name. A check that
+    # blocks every project that enables it does not belong in a profile a
+    # project selects by name. It stays REGISTERED and selectable by explicit
+    # name (`checks: [..., number_source]`) — nothing is unregistered, and the
+    # addressing contract goes back to design (D158 ruling 2) before it may
+    # re-enter any profile (ruling 3). This returns both lists to their
+    # pre-D157 state; it removes nothing that existed before that day.
+    "science": ["schema", "units", "convergence", "provenance"],
     # The general pack plus the opt-in, deterministic citation-provenance check:
     # a report may only cite sources it fetched through a governed research tool.
-    "research": ["parseable", "declared", "internal", "complete", "source_provenance",
-                 "number_source"],
+    "research": ["parseable", "declared", "internal", "complete", "source_provenance"],
 }
 
 DEFAULT_PROFILE = "general"
