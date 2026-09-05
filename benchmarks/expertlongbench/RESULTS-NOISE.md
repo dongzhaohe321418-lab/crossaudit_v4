@@ -457,6 +457,24 @@ python benchmarks/expertlongbench/noise_report.py \
     --ledger-cost 1.94499
 ```
 
+### Reproducing the analysis without keys, the corpus, or the run directories
+
+Every number in this report is arithmetic over the committed rows, and
+`noise_report.py` accepts those files directly:
+
+```sh
+S=benchmarks/expertlongbench/study6
+python benchmarks/expertlongbench/noise_report.py \
+    --replicate rep1=$S/noise-rep1.rows.jsonl,$S/noise-rep1-fill1.rows.jsonl,$S/noise-rep1-fill2.rows.jsonl \
+    --replicate rep2=$S/noise-rep2.rows.jsonl,$S/noise-rep2-fill1.rows.jsonl \
+    --replicate rep3=$S/noise-rep3.rows.jsonl,$S/noise-rep3-fill1.rows.jsonl \
+    --replicate rep4=$S/noise-rep4.rows.jsonl,$S/noise-rep4-fill1.rows.jsonl,$S/noise-rep4-fill2.rows.jsonl \
+    --ledger-cost 1.94499
+```
+
+This was checked, not assumed: the command above reproduces
+`study6/analysis.txt` exactly.
+
 `--out` must be absolute. **It will not reproduce byte-identically, and that is the
 measurement**: the provider layer exposes no seed and temperature comes from the model's
 capability card. The analysis, however, is deterministic given the committed rows —

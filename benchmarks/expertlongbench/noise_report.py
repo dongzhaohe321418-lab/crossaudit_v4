@@ -59,7 +59,10 @@ def load_replicate(paths: list[Path]) -> dict[str, dict]:
     """
     by_instance: dict[str, dict] = {}
     for path in paths:
-        rows_path = path / "rows.jsonl"
+        # A run directory, or the committed rows file lifted out of one. The second form
+        # is what makes this report reproducible from `study6/` alone -- no keys, no
+        # corpus, no run directories.
+        rows_path = path if path.is_file() else path / "rows.jsonl"
         if not rows_path.exists():
             raise SystemExit(f"{rows_path} does not exist")
         for line in rows_path.read_text(encoding="utf-8").splitlines():
