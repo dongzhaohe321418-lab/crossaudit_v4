@@ -257,6 +257,10 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    默认配置撤下 `number_source`（保留显式选用）、`uncited` 永不阻断（热修复片派出，过复核后合并）；
    寻址契约回设计层（给生成端展示行号，或改为按内容寻址）；重设计后按 §8g 重跑 Arm 2。
    八轮复核验证了验证器，没有一轮跑过生成端——这是教训本身。
+   **热修复已交**（`fix/number-source-not-default`，f6e6621，全套 3275 通过）：两个配置回到 D157
+   前的列表、检查仍注册可显式选用；`uncited` 分支移到 `at` 校验**和**值阻断之前（构建者把
+   "uncited 永不阻断"读作完整性质，超出字面指令，已交复核者评判）；新脚手架科研项目无数字技能
+   与指令、显式启用则两者俱全。`src/` 仅三文件。复核 + 我的主机套件进行中。
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
