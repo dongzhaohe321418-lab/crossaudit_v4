@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Seventh version.** Six independent cross-vendor reviews have read this study. Rounds 1
+> **Eighth version.** Seven independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2, and no
 > point estimate has changed since the first version. Round 5's corrections included one
@@ -148,6 +148,18 @@ corrected report.
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
 
+### What the seventh review changed
+
+Round 7 confirmed both artefacts byte-identical to round 6, all prior mutations red, the
+34/205 seed count and `+7`, deviations 1–30, 36 tests and byte-identical regeneration, and
+approved subject to three narrow corrections. All three reproduced first.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | **The binding ignored the sentence's subject.** Splitting one conclusion sentence in two and giving the second a different subject re-attributed astra's one-reading false-positive rate to the shipped auditor's eight readings, with all 15 tests green — the anchor still matched, and matched only once, so uniqueness was silent too | reproduced | Each bound rate must now find, **in its own sentence**, tokens naming the family the array belongs to. The reviewer's edit is committed as a test. The uniqueness rule's known cost — a correctly repeated sentence fails it — is documented in its docstring and accepted rather than loosened |
+| 2 | The manifest still said `+1 = 20260909` "does not appear in observed_seeds"; it does | reproduced | **The observation claim is no longer prose.** A `status_derived_from_instrument` block marks every named seed consumed or not, computed from the instrument; only the *reason* a seed is unconsumed is written by a person, and only for seeds the instrument reports absent. This was the second hand-written seed explanation to contradict the instrument, so the class of error is removed rather than the instance |
+| 3 | "Six of the nine" should be **eight**; "every defect in this study's statistical machinery" overstates — the beta-tail defect was the author's own find, fixed before round 1; and the test file held **11 duplicated function definitions**, four of them tests | all reproduced | Count corrected, claim narrowed with the beta tail credited to the author in the attribution table, and all 11 duplicates removed — the same silent-override hazard already found in the rule block |
+
 ### What the sixth review changed
 
 Round 6 reproduced everything — the four changed arrays equalling their canonical
@@ -159,7 +171,7 @@ counterparts, 302 byte-identical, 533 scalars unchanged, five mutations red, 32 
 |---|---|---|---|
 | 1 | **The reader sentence's interval was never bound.** A declaration claimed the headline mechanism checked it; that mechanism checks a different sentence. Replacing `−3.54 to +5.88` with `+1.00 to +2.00`, or deleting it, left all 12 tests green. And a **reused label** bound a rate to the wrong family: an inserted sentence attributing astra's 9.7% [5.3, 14.5] to the shipped auditor's eight readings (16.0% [10.1, 22.3]) also passed | all three reproduced | The reader sentence is bound to `ceiling2.arms.self-loop.net_primary.ci95`, with its prose "to"-form parsed. Every reused label now carries its discriminating family and reading count. A further test fails if **any binding rule matches more than once** — which is how new prose slips under an existing anchor — and that test immediately found a legitimate duplicate to split. All three counterexamples are committed |
 | 2 | **Seed 20260915 is consumed**, not unused: the pooled self−cross flag contrast has 25 non-zero clusters and uses the sampled sign-flip path. The manifest's claim was contradicted by `numbers.json` in plain text | verified | The inventory now instruments **`random.Random` itself**, not one call site, so every generator is counted whatever builds it: **34 seeds over 205 constructions**, against 32 over 196 from the narrower instrument. `+7` is recorded as consumed with its sample size and p |
-| 3 | **`CORRECTIONS.md` #25 misattributed discoveries**, crediting tests for what round 4 had explicitly reported | verified against round 4's report | #25 is replaced with a per-item table naming who found each defect. Six of the nine were cross-vendor findings; one was the author's, and only because a reviewer had demanded the mechanism that exposed it |
+| 3 | **`CORRECTIONS.md` #25 misattributed discoveries**, crediting tests for what round 4 had explicitly reported | verified against round 4's report | #25 is replaced with a per-item table naming who found each defect. **Eight** of the nine were cross-vendor findings; one was the author's, and only because a reviewer had demanded the mechanism that exposed it |
 
 While fixing item 1, a defect in the test file itself came to light: **the binding rules had been duplicated**, with the second copy silently overriding the first. Both copies were identical, so no check was wrong — but the file was 142 lines of dead code that could have diverged. Deduplicated.
 
@@ -792,6 +804,27 @@ that the pooled self−cross flag contrast has 25 non-zero clusters and used "sa
 200000 draws, seed 20260915". The instrument now wraps `random.Random` itself: **34 seeds
 over 205 constructions**. *A claim contradicted by the file it shipped beside is the
 cheapest kind of defect to prevent and this study shipped it twice — see also deviation 26.*
+
+**31. A rate could be re-attributed by moving its clause into a new sentence.** The
+binding rules checked where a rate sat, not what its sentence was about, so splitting one
+conclusion sentence in two and giving the second a different subject silently transferred
+`astra`'s one-reading false-positive rate to the shipped auditor's eight readings. Every
+bound rate now requires its own sentence to name the family its array belongs to. *No
+published number was ever wrong; what was wrong was the strength of the guarantee claimed
+for them.*
+
+**32. A hand-written seed explanation contradicted the instrument for the second time.**
+Deviation 30 recorded one such contradiction; the same commit contained another, stating
+that seed 20260909 "does not appear in observed_seeds" when it does. Hand-written
+observation claims about seeds are now **removed entirely**: consumed-or-not is derived
+from the instrument, and prose is confined to explaining why an unconsumed seed is
+unconsumed.
+
+**33. The consistency test file contained eleven duplicated function definitions**, four of
+them test functions, each silently overriding its twin. All pairs were byte-identical, so
+no check was wrong — but this is the second time duplication has appeared in that file
+after string-level surgery, and the hazard is the one already recorded in deviation 26.
+Removed, with an `ast`-based check used to confirm none remain.
 
 ### The beta-tail defect, stated exactly
 

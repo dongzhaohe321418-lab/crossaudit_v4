@@ -9,7 +9,7 @@
     "bootstrap": 20260908,
     "completeness": "every offset report_ceiling.py uses is listed above; the fourth review found +50+total, +14 and +15 missing while the manifest claimed to be sufficient on its own, and the fifth found three of the RANGES wrong. The hand-written entries are now cross-checked against `observed_seeds`, which is recorded by instrumenting the analysis rather than by hand.",
     "derived_offsets": {
-      "+1  primary asymptote difference": "20260909 \u2014 consumed by an inline random.Random in analyse_ceiling1, not by cluster_bootstrap_ci, so it does not appear in observed_seeds.",
+      "+1  primary asymptote difference": 20260909,
       "+11 residual categories": 20260919,
       "+12 timeout sensitivity, assertion-only unions": 20260920,
       "+13 timeout sensitivity, assertion-only residual": 20260921,
@@ -26,7 +26,7 @@
       ],
       "+50+total  Table 4 single-family comparators": "20260960, 20260961, 20260962, 20260964, 20260966 \u2014 totals 2, 3, 4, 6, 8 only",
       "+60 last-step gain": 20260968,
-      "+7  sign-flip sampling fallback": "20260915 \u2014 CONSUMED. The pooled self-cross flag contrast has 25 non-zero problem clusters, above the 22-cluster exact-enumeration bound, so its sign-flip p is sampled: 200,000 draws, p = 0.1237. An earlier version of this inventory declared this seed never drawn, contradicting numbers.json, which records the sampling in plain text. Found by the sixth cross-vendor review.",
+      "+7  sign-flip sampling fallback": 20260915,
       "+8/+9  fixed-on-P / broken-on-C": [
         20260916,
         20260917
@@ -77,7 +77,140 @@
       20260964,
       20260966,
       20260968
-    ]
+    ],
+    "status_derived_from_instrument": {
+      "+1  primary asymptote difference": {
+        "consumed": [
+          20260909
+        ],
+        "not_consumed": []
+      },
+      "+11 residual categories": {
+        "consumed": [
+          20260919
+        ],
+        "not_consumed": []
+      },
+      "+12 timeout sensitivity, assertion-only unions": {
+        "consumed": [
+          20260920
+        ],
+        "not_consumed": []
+      },
+      "+13 timeout sensitivity, assertion-only residual": {
+        "consumed": [
+          20260921
+        ],
+        "not_consumed": []
+      },
+      "+14 (RETIRED)": {
+        "consumed": [],
+        "not_consumed": [
+          20260922
+        ],
+        "why_not_consumed": {
+          "20260922": "retired: the timeout sensitivity's registered unions now reuse BOOT_SEED, so Table 9's registered column is identical to Table 1's"
+        }
+      },
+      "+15 (RETIRED)": {
+        "consumed": [],
+        "not_consumed": [
+          20260923
+        ],
+        "why_not_consumed": {
+          "20260923": "retired: the timeout sensitivity's registered residual now reuses BOOT_SEED + 4, matching residual.share_block"
+        }
+      },
+      "+2  (unused since amendment 4)": {
+        "consumed": [],
+        "not_consumed": [
+          20260910
+        ],
+        "why_not_consumed": {
+          "20260910": "unused since amendment 4, which removed the estimator that drew it"
+        }
+      },
+      "+20+K  union curve at each K": {
+        "consumed": [
+          20260929,
+          20260930,
+          20260931,
+          20260932,
+          20260933,
+          20260934,
+          20260935,
+          20260936
+        ],
+        "not_consumed": []
+      },
+      "+3  draw-1 mean per family": {
+        "consumed": [
+          20260911
+        ],
+        "not_consumed": []
+      },
+      "+30+per_family  mixed families": {
+        "consumed": [
+          20260939,
+          20260940,
+          20260941,
+          20260942,
+          20260943,
+          20260944,
+          20260945,
+          20260946
+        ],
+        "not_consumed": []
+      },
+      "+4  residual share": {
+        "consumed": [
+          20260912
+        ],
+        "not_consumed": []
+      },
+      "+5/+6  loop flag rates P/C": {
+        "consumed": [
+          20260913,
+          20260914
+        ],
+        "not_consumed": []
+      },
+      "+50+total  Table 4 single-family comparators": {
+        "consumed": [
+          20260960,
+          20260961,
+          20260962,
+          20260964,
+          20260966
+        ],
+        "not_consumed": []
+      },
+      "+60 last-step gain": {
+        "consumed": [
+          20260968
+        ],
+        "not_consumed": []
+      },
+      "+7  sign-flip sampling fallback": {
+        "consumed": [
+          20260915
+        ],
+        "not_consumed": []
+      },
+      "+8/+9  fixed-on-P / broken-on-C": {
+        "consumed": [
+          20260916,
+          20260917
+        ],
+        "not_consumed": []
+      },
+      "BOOT_SEED": {
+        "consumed": [
+          20260908
+        ],
+        "not_consumed": []
+      }
+    }
   },
   "astra": {
     "bypasses": "the product's provider broker, its metered usage ledger and its same-vendor heterogeneity guard; a measurement of a model, not of the product path",
@@ -398,8 +531,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "ba1f23291b9bdf7fe719775dbc31cea4af0223b2",
-  "finalised_utc": "2026-09-05T19:18:33Z",
+  "finalised_on_parent_commit": "6073d0de61bab83b99bc0569aa9dccb198396e9a",
+  "finalised_utc": "2026-09-05T19:50:54Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",

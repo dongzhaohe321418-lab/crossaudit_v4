@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import time
@@ -31,6 +32,39 @@ sys.path.insert(0, str(REPO / "src"))
 sys.path.insert(0, str(CODE.parent / "expertlongbench"))
 
 CEILING = CODE / "records" / "ceiling"
+
+
+#: Why a named seed is not consumed. Written by a person, and ONLY consulted for seeds the
+#: instrument reports absent — so a wrong entry here cannot claim a consumed seed is unused.
+NOT_CONSUMED_REASONS = {
+    20260910: "unused since amendment 4, which removed the estimator that drew it",
+    20260922: "retired: the timeout sensitivity's registered unions now reuse BOOT_SEED, "
+              "so Table 9's registered column is identical to Table 1's",
+    20260923: "retired: the timeout sensitivity's registered residual now reuses "
+              "BOOT_SEED + 4, matching residual.share_block",
+}
+
+
+def _annotate_seed_status(seeds: dict) -> None:
+    """Mark every named seed consumed or not, FROM the instrument's output."""
+    observed = set(seeds.get("observed_seeds") or [])
+    status = {}
+    for label, value in seeds.get("derived_offsets", {}).items():
+        found = [int(tok) for tok in re.findall(r"\b(2026\d{4})\b", str(value))]
+        if "\u2025" in str(value) or ".." in str(value):
+            found = list(range(min(found), max(found) + 1)) if len(found) >= 2 else found
+        if not found:
+            continue
+        consumed = sorted(s for s in found if s in observed)
+        absent = sorted(s for s in found if s not in observed)
+        entry = {"consumed": consumed, "not_consumed": absent}
+        if absent:
+            entry["why_not_consumed"] = {
+                str(s): NOT_CONSUMED_REASONS.get(s, "AUTHOR_INPUT_NEEDED: no reason "
+                                                    "recorded for an unconsumed seed")
+                for s in absent}
+        status[label] = entry
+    seeds["status_derived_from_instrument"] = status
 
 
 def _observed_seeds(run_dir: Path) -> dict:
@@ -273,21 +307,8 @@ def main(argv: list[str] | None = None) -> int:
                                                                "20260966 — totals 2, 3, "
                                                                "4, 6, 8 only",
                 "+60 last-step gain": 20260968,
-                "+7  sign-flip sampling fallback": "20260915 — CONSUMED. The pooled "
-                                                   "self-cross flag contrast has 25 "
-                                                   "non-zero problem clusters, above the "
-                                                   "22-cluster exact-enumeration bound, "
-                                                   "so its sign-flip p is sampled: "
-                                                   "200,000 draws, p = 0.1237. An earlier "
-                                                   "version of this inventory declared "
-                                                   "this seed never drawn, contradicting "
-                                                   "numbers.json, which records the "
-                                                   "sampling in plain text. Found by the "
-                                                   "sixth cross-vendor review.",
-                "+1  primary asymptote difference": "20260909 — consumed by an inline "
-                                                    "random.Random in analyse_ceiling1, "
-                                                    "not by cluster_bootstrap_ci, so it "
-                                                    "does not appear in observed_seeds.",
+                "+7  sign-flip sampling fallback": 20260915,
+                "+1  primary asymptote difference": 20260909,
                 "+2  (unused since amendment 4)": 20260910,
             },
             "completeness": "every offset report_ceiling.py uses is listed above; the "
@@ -339,6 +360,8 @@ def main(argv: list[str] | None = None) -> int:
     m1 = json.loads((CEILING / "manifest_ceiling1.json").read_text(encoding="utf-8"))
     _drop_superseded(m1)
     m1.update(shared)
+    _annotate_seed_status(m1["analysis_seeds"])
+    m2_seeds_placeholder = None
     m1["draw_windows_utc"] = windows_by_prefix(
         run_dir, lambda r: r.split("-holistic__")[1].rsplit("-", 1)[0]
         if "-holistic__" in r else None)
@@ -447,6 +470,7 @@ def main(argv: list[str] | None = None) -> int:
                                     "supplied the eight repaired cross-loop revisions")
         windows[key]["supplied_the_committed_rows"] = supplied
         windows[key]["role"] = role
+    _annotate_seed_status(m2["analysis_seeds"])
     m2["arm_windows_utc"] = windows
     by_prefix: dict[str, int] = {}
     for rid, count in m2_unmatched.items():

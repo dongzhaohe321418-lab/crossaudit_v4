@@ -527,14 +527,21 @@ misattribution. The record, accurately:
 | 22 | 0.960 attributed to the exact grid when it is Tango's | **cross-vendor review, round 4** |
 | 23 | the blanket claim surviving in deviation 19 | **cross-vendor review, round 4** |
 | 24 | two different bootstrap intervals for the same number | **the author**, while rewriting the rate bindings that round 5 required |
+| — | the swapped Clopper–Pearson beta tail (fixed at `7dc2620`, before round 1) | **the author**, by the author's own test |
 | 26 | the reader sentence's interval was never bound; a reused label bound a rate to another family's array | **cross-vendor review, round 6** |
 | 27 | seed BOOT_SEED + 7 declared unused while `numbers.json` recorded it as consumed | **cross-vendor review, round 6** |
 
-**Every defect in this study's statistical machinery, and all but one defect in its
-reporting apparatus, was found by cross-vendor review.** The single exception, item 24, was
-found by the author only because a reviewer had demanded a mechanism strong enough to
-expose it — the rate-to-key binding — and the reviewer's requirement, not the author's
-insight, is what made that discovery possible.
+**Of the nine items listed above, eight were found by cross-vendor review.** The single
+exception, item 24, was found by the author only because a reviewer had demanded a
+mechanism strong enough to expose it — the rate-to-key binding — and the reviewer's
+requirement, not the author's insight, is what made that discovery possible.
+
+*The claim is deliberately narrowed to the listed items.* An earlier version said "every
+defect in this study's statistical machinery" was found by review, which is not true: the
+**swapped Clopper–Pearson beta tail was the author's own find**, caught by the author's own
+test and fixed at `7dc2620`, before the first review ran. That one belongs on the other
+side of the ledger and is recorded in the report's deviations. The seventh review caught
+the overstatement.
 
 That is the study's own thesis, tested on the study, over six rounds. The honest summary is
 not "tests written after reviews found further defects". It is: **a reader who did not share

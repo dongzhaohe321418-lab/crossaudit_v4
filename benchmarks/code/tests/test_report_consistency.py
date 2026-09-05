@@ -451,6 +451,59 @@ def _flat_sections(text: str) -> dict[str, str]:
     return {k: _normalise(v) for k, v in _sections(text).items()}
 
 
+#: Tokens that must appear in the SAME SENTENCE as a rate, keyed by the interval array it
+#: is bound to. A rule's anchor identifies *where* a rate sits; these identify *what the
+#: sentence is about*. Without them a rate could be re-attributed by moving a clause into a
+#: new sentence with a different subject — which is exactly what the seventh review did:
+#:
+#:     ... on recall (30.2% [...] against 30.0% [...]). The shipped auditor's eight
+#:     readings operated at lower false-positive cost (9.7% [5.3, 14.5] against ...)
+#:
+#: leaving astra's one-reading false-positive rate attributed to the shipped auditor's
+#: eight readings, with every test green. Requiring the sentence to name the family makes
+#: that unbound, and red.
+SUBJECT_TOKENS: dict[tuple, list[str]] = {
+    ("ceiling1", "families", "astra", "P", "draw1_block", "cluster_ci95"):
+        [r"astra|frontier"],
+    ("ceiling1", "families", "astra", "C", "draw1_block", "cluster_ci95"):
+        [r"astra|frontier"],
+    ("ceiling1", "families", "cross", "P", "draw1_block", "cluster_ci95"):
+        [r"cross-vendor|shipped"],
+    ("ceiling1", "families", "cross", "C", "draw1_block", "cluster_ci95"):
+        [r"cross-vendor|shipped"],
+    ("ceiling1", "families", "cross", "P", "union_at_kmax_block", "cluster_ci95"):
+        [r"cross-vendor|shipped|extrapolation", r"eight|K = 8|number to quote"],
+    ("ceiling1", "families", "cross", "C", "union_at_kmax_block", "cluster_ci95"):
+        [r"cross-vendor|shipped", r"eight|false positives|false-positive"],
+    ("ceiling1", "families", "self", "P", "draw1_block", "cluster_ci95"):
+        [r"generator's own model|self"],
+    ("ceiling1", "families", "self", "P", "union_at_kmax_block", "cluster_ci95"):
+        [r"generator's own model|self", r"eight"],
+    ("ceiling1", "families", "self", "C", "union_at_kmax_block", "cluster_ci95"):
+        [r"generator's own model|self|false-positive"],
+    ("ceiling1", "families", "cross", "P", "fit_A_ci95"):
+        [r"asymptote|extrapolation"],
+    ("ceiling1", "families", "self", "P", "fit_A_ci95"):
+        [r"asymptote"],
+    ("ceiling1", "families", "cross", "P", "last_step_gain_block", "cluster_ci95"):
+        [r"flattened|gained"],
+}
+
+
+def _sentence_around(section: str, position: int) -> str:
+    """The sentence containing `position`.
+
+    Split on sentence-final punctuation followed by whitespace and a capital or opening
+    bracket, so "9.7%" and "0.32" are never treated as boundaries.
+    """
+    starts = [0] + [m.end() for m in
+                    re.finditer(r"(?<=[.;])\s+(?=[A-Z(\u201c\"])", section)]
+    start = max(s for s in starts if s <= position)
+    ends = [m.start() for m in re.finditer(r"(?<=[.;])\s+(?=[A-Z(\u201c\"])", section)
+            if m.start() > position]
+    return section[start:(ends[0] if ends else len(section))]
+
+
 def _digit_pos(section: str, start: int) -> int:
     """The index of the first digit at or after `start`.
 
@@ -488,6 +541,17 @@ def check_rate_bindings(text: str, numbers: dict) -> list[str]:
                         f"{stored_value:.{decimals}f}")
                 lo, dlo = _parse(match.group("lo"))
                 hi, dhi = _parse(match.group("hi"))
+                required = SUBJECT_TOKENS.get(tuple(interval_path), [])
+                if required:
+                    sentence = _sentence_around(section, match.start("v"))
+                    absent = [tok for tok in required
+                              if not re.search(tok, sentence, re.I)]
+                    if absent:
+                        problems.append(
+                            f"[{name}] {match.group('v')!r} is bound to "
+                            f"{'.'.join(map(str, interval_path))} but its sentence does "
+                            f"not identify that subject (missing {absent}): "
+                            f"...{sentence.strip()[:110]}")
                 if not _matches((lo, hi), stored_iv, (dlo, dhi)):
                     problems.append(
                         f"[{name}] the interval beside {match.group('v')!r} is "
@@ -614,9 +678,36 @@ def test_the_binding_rejects_a_reused_label_on_the_wrong_family():
         "a false claim bound itself to another family's array and passed"
 
 
+def test_the_binding_rejects_a_rate_moved_under_a_new_subject():
+    """The seventh review's edit, committed.
+
+    Splitting one sentence into two and giving the second a different subject left
+    astra's one-reading false-positive rate attributed to the shipped auditor's eight
+    readings, with all fifteen tests green: the rule's anchor still matched, and it
+    matched only once, so the uniqueness check was silent too. A rate is now unbound
+    unless its own sentence names the family the array belongs to.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    mutated = original.replace(
+        "30.0% [20.0, 40.7]) at lower false-positive cost",
+        "30.0% [20.0, 40.7]). The shipped auditor's eight readings operated at lower "
+        "false-positive cost", 1)
+    assert mutated != original, "the conclusion changed shape; update this test"
+    problems = _binding_problems(mutated)
+    assert problems, "a rate was re-attributed to another family and passed"
+    assert any("astra" in p for p in problems), problems[:2]
+
+
 def test_no_binding_rule_matches_more_than_once():
     """Each rule identifies one occurrence. A second match means new prose slipped under
-    an existing rule's anchor — which is how the reused-label counterexample got in."""
+    an existing rule's anchor — which is how the reused-label counterexample got in.
+
+    **This is deliberately a strict editing guard, and it has a known cost**: writing the
+    same correct sentence twice fails it. That is accepted rather than loosened. A report
+    that states a result twice should bind each statement separately, so that moving or
+    editing one cannot silently borrow the other's guarantee; the seventh review noted the
+    trade-off and it is taken knowingly.
+    """
     sections = _flat_sections(REPORT.read_text(encoding="utf-8"))
     multiple = []
     for pattern, _value, _interval, _why in RATE_RULES:
@@ -643,150 +734,11 @@ def test_every_bound_rule_actually_fires():
                       + "\n".join("  " + d for d in dead))
 
 
-def _current_claims() -> str:
-    """The report minus its audit trail and deviations, with quoted spans removed.
-
-    The review tables and the deviations quote withdrawn wording on purpose. Quoted spans
-    are denials, not assertions. What remains is what the report says in its own voice.
-    """
-    text = REPORT.read_text(encoding="utf-8")
-    body = text.split("## What was run", 1)[-1]
-    body = body.split("## Deviations from the plan", 1)[0]
-    body = re.sub(r"[“\"][^”\"\n]{0,200}[”\"]", " ", body)
-    return body.lower()
-
-
-def test_report_does_not_claim_exactly_one_contrast_survives():
-    for phrase in ("exactly one contrast clears",
-                   "the only contrast in this study that clears",
-                   "exactly one secondary contrast"):
-        assert phrase not in _current_claims(), phrase
-
-
-def test_report_does_not_reassert_any_withdrawn_claim():
-    for phrase in ("in the limit of unlimited readings", "cannot be seen",
-                   "did not raise accuracy", "never under-covers", "0.95 nominal",
-                   "byte-identical output", "bonferroni/12", "0.00417",
-                   "could not have detected a small one",
-                   "every interval in this report is roughly"):
-        assert phrase not in _current_claims(), phrase
-
-
-def test_report_states_the_correction_threshold_once_in_live_prose():
-    """Once live, plus once in the historical correction table. Both are intended."""
-    text = REPORT.read_text(encoding="utf-8")
-    assert text.count("0.00313") <= 2, text.count("0.00313")
-    assert _current_claims().count("0.00313") == 1, _current_claims().count("0.00313")
-
-
 # ---------------------------------------------------------------------------------
 # Interval completeness, mechanically. Four reviews found bare rates in the opening and
 # the conclusion by hand; this finds them forever.
 # ---------------------------------------------------------------------------------
 
-
-
-def _sections(text: str) -> dict[str, str]:
-    """The opening (before the audit trail) and the conclusion.
-
-    These are the two places a reader meets a number without a table around it, so they
-    are where every rate must be bound. The audit trail and the deviations quote withdrawn
-    figures on purpose and are excluded.
-    """
-    opening = text.split("## What the review changed", 1)[0]
-    tail = text.split("## What this study licenses, and what it does not", 1)
-    conclusion = (tail[1].split("### Where this sits beside the earlier record", 1)[0]
-                  if len(tail) > 1 else "")
-    return {"opening": opening, "conclusion": conclusion}
-
-
-def _normalise(section: str) -> str:
-    """Flatten and strip markdown, so a binding pattern is written against prose.
-
-    Emphasis, code ticks and blockquote markers carry no meaning for a number and made
-    every pattern brittle: `**+26.8 points**, cluster CI [...]` needed a different regex
-    from `+26.8 points [...]` for the same claim. Removing them once is more robust than
-    encoding them 36 times, and it keeps the rate scan and the rule matching on identical
-    offsets.
-    """
-    cleaned = section.replace("\n", " ")
-    cleaned = re.sub(r"[*`>]", "", cleaned)
-    return re.sub(r"\s+", " ", cleaned)
-
-
-def _flat_sections(text: str) -> dict[str, str]:
-    return {k: _normalise(v) for k, v in _sections(text).items()}
-
-
-def _digit_pos(section: str, start: int) -> int:
-    """The index of the first digit at or after `start`.
-
-    Rules capture the magnitude (`\\+(?P<v>26\\.8)`) while the rate scanner captures the
-    sign too (`+26.8`), so the two disagree by one character on every signed number.
-    Anchoring both on the first digit is what makes them comparable.
-    """
-    while start < len(section) and not section[start].isdigit():
-        start += 1
-    return start
-
-
-def check_rate_bindings(text: str, numbers: dict) -> list[str]:
-    """Every rate in the opening and conclusion, bound to its own key or declared."""
-    problems = []
-    for name, section in _flat_sections(text).items():
-        covered: dict[int, str] = {}
-        for pattern, value_path, interval_path, why in RATE_RULES:
-            for match in re.finditer(pattern, section):
-                covered[_digit_pos(section, match.start("v"))] = pattern
-                if value_path is None:
-                    continue
-                quoted, decimals = _parse(match.group("v"))
-                try:
-                    stored_value = 100 * _at_scalar(numbers, value_path)
-                    stored_iv = _at(numbers, interval_path)
-                except (KeyError, IndexError, TypeError) as exc:
-                    problems.append(f"[{name}] path missing for {match.group('v')!r}: "
-                                    f"{value_path} / {interval_path} ({exc})")
-                    continue
-                if round(quoted, decimals) != round(stored_value, decimals):
-                    problems.append(
-                        f"[{name}] {match.group('v')!r} is bound to "
-                        f"{'.'.join(map(str, value_path))} = "
-                        f"{stored_value:.{decimals}f}")
-                lo, dlo = _parse(match.group("lo"))
-                hi, dhi = _parse(match.group("hi"))
-                if not _matches((lo, hi), stored_iv, (dlo, dhi)):
-                    problems.append(
-                        f"[{name}] the interval beside {match.group('v')!r} is "
-                        f"[{lo}, {hi}] but {'.'.join(map(str, interval_path))} is "
-                        f"[{stored_iv[0]:.{dlo}f}, {stored_iv[1]:.{dhi}f}]")
-        for match in _RATE.finditer(section):
-            if _digit_pos(section, match.start(1)) in covered:
-                continue
-            problems.append(f"[{name}] UNBOUND rate {match.group(0)!r}: no rule binds it "
-                            f"to a numbers.json key and none declares it exempt "
-                            f"(...{section[max(0, match.start() - 70):match.end() + 30]})")
-    return problems
-
-
-def _at_scalar(numbers, path):
-    node = numbers
-    for key in path:
-        node = node[key]
-    return node
-
-
-def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys():
-    """Every rate in the opening and conclusion is bound to the array its interval must
-    come from, or explicitly declared a count/exact quantity with a reason.
-
-    Adjacency is not acceptance. Five reviews found bare or wrongly-supported rates here;
-    binding each one to its own key is what makes a fourth instance impossible.
-    """
-    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
-    problems = check_rate_bindings(REPORT.read_text(encoding="utf-8"), numbers)
-    assert not problems, ("rates that are not bound to their own key:\n"
-                          + "\n".join("  " + p for p in problems[:20]))
 
 
 if __name__ == "__main__":
