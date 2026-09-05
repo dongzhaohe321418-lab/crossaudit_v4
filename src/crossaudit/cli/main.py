@@ -1635,20 +1635,24 @@ def cmd_run(args: argparse.Namespace) -> int:
     nothing the commit itself cannot decide. `audit` remains the precise tool;
     `run` is the one you can give a colleague with no explanation."""
     # `crossaudit --lang zh run` narrated the walk-back line in English, because
-    # `run` never selected a language: `_speak()` is per-command by design (D21
-    # — a half-translated screen must not ship) and `run` is not in a shipped
-    # translation wave. Measured: `cmd_run` makes 31 raw `print()` calls and 2
-    # catalogue calls, so it IS that half-translated screen, and that gap is a
-    # slice of its own — reported, not widened here.
+    # `run` never selected a language at all. It now selects one the same way
+    # every other speaking command does.
     #
-    # What is honoured is the EXPLICIT flag only, deliberately not
-    # `_language_for`'s environment fallback: a person who typed `--lang zh`
-    # asked for whatever Chinese exists, and can see the seam they asked for; a
-    # person whose `LANG` merely happens to be zh_CN did not ask, and must not
-    # be opted into a 2-of-33 screen without saying so. `init` refuses the
-    # environment for exactly this reason (see its `--lang` comment).
-    if getattr(args, "lang", None):
-        _speak(args)
+    # An earlier version of this honoured the EXPLICIT flag only, on the grounds
+    # that `run` is 31 raw `print()` calls to 2 catalogue calls and nobody
+    # should be opted into that by their locale. The lead overruled it, and the
+    # review showed why: `_language_for` resolves flag -> environment -> English,
+    # and `cmd_init`, `cmd_doctor` and the central denial handler all call it
+    # unconditionally. So under `LANG=zh_CN.UTF-8` a plain `run` already printed
+    # a Chinese REFUSAL; keeping the narration English made one screen answer in
+    # two languages, which is a sharper version of the same defect. (The parser
+    # comment on `init --lang` that the earlier version cited says the
+    # environment is not consulted; `_language_for` consults it. The executable
+    # behaviour is what counts, and the comment is stale.)
+    #
+    # The wider gap — `run`'s 31 untranslated prints — is real and is filed for
+    # a slice of its own. It is not made better by this line staying English.
+    _speak(args)
 
     try:
         cfg = load()

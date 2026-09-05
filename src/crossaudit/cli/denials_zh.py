@@ -275,6 +275,11 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     # D156. Guidance and the Constitution are exclusive roles for one file: the
     # increment filter drops a skill, and `_committed_constitution` would hand
     # the same bytes to the auditor as law. Refused at configuration time.
+    ("constitution {} is an absolute path. The Constitution is a file "
+     "committed in this repository and cited by commit, so it is written as a "
+     "path inside the project — not a location on one machine's disk.",
+     "constitution {} 是绝对路径。章程是本仓库中已提交、并按提交被引用的文件，"
+     "因此要写成项目内部的路径——而不是某一台机器磁盘上的位置。"),
     ("constitution {} points outside the project. The Constitution is a "
      "committed file in this repository, cited by commit; a path that leaves "
      "the project cannot be.",

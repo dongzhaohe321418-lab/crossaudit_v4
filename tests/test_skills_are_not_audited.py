@@ -51,8 +51,9 @@ from crossaudit import generator as gen
 from crossaudit import skills as skills_mod
 from crossaudit.auditor import dcl_source_digest, run_audit
 from crossaudit.auditor import prompt as pm
-from crossaudit.cli.main import (_is_house_skill, _materialise_tree_scope,
-                                 _skills_manifest, cmd_run)
+from crossaudit.cli.main import (_committed_constitution, _is_house_skill,
+                                 _materialise_tree_scope, _skills_manifest,
+                                 cmd_run)
 from crossaudit.cli.main import main as cli_main
 from crossaudit.cli import i18n
 from crossaudit.config import load as cfg_load
@@ -375,6 +376,15 @@ def test_no_check_reports_a_finding_against_house_guidance(cfg, science):
     MUTATION KILLED: drop the house-skill filter from `_outside_the_increment`
     -> both findings appear against `skills/house.md`.
     """
+    # The registry is populated by IMPORT, so it must be populated here and not
+    # by whichever test happened to run first. The third review found this test
+    # failing in a fresh process — `framework.available()` returned the empty
+    # set and the guard below fired — while it passed in a full run because
+    # something else had already imported the packs. A test whose result depends
+    # on file order is not evidence of anything.
+    from crossaudit.dcl import (builtin, documents,  # noqa: F401
+                                neutral, provenance)
+
     write_increment(science, GOOD_RESULTS, "Work done.", "increment")
     d = science / skills_mod.SKILLS_DIR
     d.mkdir(parents=True, exist_ok=True)
@@ -384,6 +394,10 @@ def test_no_check_reports_a_finding_against_house_guidance(cfg, science):
     sha = git("rev-parse", "HEAD", cwd=science)
 
     every = framework.available()
+    assert len(every) >= 10, (
+        f"the check registry is not fully loaded: {every}. This test asserts a "
+        f"property over EVERY registered check, so a partial registry would "
+        f"silently narrow what it proves.")
     assert {"internal", "complete-strict"} <= set(every), (
         "the two checks the review reproduced findings with are gone; re-derive "
         "this test against whatever replaced them")
@@ -463,11 +477,20 @@ def test_plain_run_walks_back_past_a_guidance_commit_and_says_so(
     The second review found the zh half of this test only called `i18n.t()`
     directly, so the mutation it claimed to kill survived: a raw `print()` in
     `cmd_run` never reaches `t()` at all. The zh half now runs the COMMAND
-    under `--lang zh` through `main()` and reads its output.
+    through `main()` and reads its output.
 
-    MUTATION KILLED (both halves, both verified): `print(f"...")` back in place
-    of `i18n.t("run.walked_back", ...)`; and dropping the `_speak(args)` call
-    from the top of `cmd_run`, which leaves the line English under `--lang zh`.
+    Two zh variants, because `_language_for` has two sources and `cmd_run` used
+    to honour only one. The third review showed why the environment must count:
+    `cmd_init`, `cmd_doctor` and the central denial handler all resolve
+    flag -> environment -> English, so under `LANG=zh_CN.UTF-8` a plain `run`
+    already printed a Chinese refusal. A narration that stayed English made one
+    screen answer in two languages.
+
+    MUTATION KILLED (all three verified): `print(f"...")` back in place of
+    `i18n.t("run.walked_back", ...)`; dropping `_speak(args)` from the top of
+    `cmd_run` (both variants go English); and gating it on an explicit flag,
+    `if getattr(args, "lang", None)`, which leaves the environment variant
+    English while the flag variant passes.
     """
     work_sha = write_increment(science, GOOD_RESULTS, "Work done.", "increment")
     _commit_skill(science)
@@ -490,17 +513,34 @@ def test_plain_run_walks_back_past_a_guidance_commit_and_says_so(
     assert "ledger bookkeeping" not in out, (
         "a guidance commit is not ledger bookkeeping")
 
-    # The zh half, through the command a person actually types. `main()` catches
-    # the provider Denial and returns an exit code, so nothing is suppressed
-    # here; what is read is the narration it printed on the way.
+    # The zh halves, through the command a person actually types. `main()`
+    # catches the provider Denial and returns an exit code, so nothing is
+    # suppressed here; what is read is the narration it printed on the way.
+    expected = i18n.CATALOGUE["zh"]["run.walked_back"].format(sha=work_sha[:12])
+
+    # (a) the explicit flag
     i18n.reset_fallbacks()
     monkeypatch.setattr(i18n, "_language", "en", raising=False)
     capsys.readouterr()
     cli_main(["--lang", "zh", "run"])
-    zh_out = capsys.readouterr().out
-    expected = i18n.CATALOGUE["zh"]["run.walked_back"].format(sha=work_sha[:12])
-    assert expected in zh_out, (
-        f"`crossaudit --lang zh run` narrated the walk-back in English:\n{zh_out}")
+    flag_out = capsys.readouterr().out
+    assert expected in flag_out, (
+        f"`crossaudit --lang zh run` narrated the walk-back in English:\n{flag_out}")
+
+    # (b) the environment, with NO flag — the variant the lead's ruling requires.
+    # Higher-priority locale variables are cleared so `LANG` is the one that
+    # answers, which is what `i18n.from_environment` reads in order.
+    i18n.reset_fallbacks()
+    monkeypatch.setattr(i18n, "_language", "en", raising=False)
+    monkeypatch.delenv("LC_ALL", raising=False)
+    monkeypatch.delenv("LC_MESSAGES", raising=False)
+    monkeypatch.setenv("LANG", "zh_CN.UTF-8")
+    capsys.readouterr()
+    cli_main(["run"])
+    env_out = capsys.readouterr().out
+    assert expected in env_out, (
+        f"a plain `run` under LANG=zh_CN.UTF-8 narrated in English while its "
+        f"refusals are Chinese — one screen, two languages:\n{env_out}")
     assert "run.walked_back" not in i18n.fallbacks()
 
 
@@ -668,11 +708,14 @@ def _with_constitution(science: Path, value: str) -> Path:
 
 
 @pytest.mark.parametrize("spelling", [
-    "skills/house.md",          # canonical
-    "./skills/house.md",        # a leading dot component
-    "SKILLS/house.md",          # case variant — accepted before r3
-    "work/../skills/house.md",  # traversal — accepted before r3
-    "skills/nested/house.md",   # deeper
+    "skills/house.md",           # canonical
+    "./skills/house.md",         # a leading dot component
+    "SKILLS/house.md",           # case variant — accepted before r3
+    "Skills/house.md",           # mixed case
+    "work/../skills/house.md",   # traversal — accepted before r3
+    "skills/../skills/house.md", # traversal that lands back inside
+    "skills//house.md",          # a doubled separator
+    "skills/nested/house.md",    # deeper
 ])
 def test_the_constitution_may_not_be_a_house_skill(science, spelling):
     """P2: `constitution: skills/house.md` handed the auditor a skill as LAW.
@@ -703,7 +746,8 @@ def test_the_constitution_may_not_be_a_house_skill(science, spelling):
     assert i18n.denial_zh(caught.value.reason), "refused only in English"
 
 
-def test_a_constitution_that_only_passes_through_skills_is_not_refused(science):
+def test_a_constitution_that_only_passes_through_skills_loads_and_is_readable(
+        science):
     """`skills/../AUDIT_RULES.md` normalises to `AUDIT_RULES.md` — a fine rulebook.
 
     Stated because normalising CHANGED this case: the raw first-component check
@@ -711,12 +755,51 @@ def test_a_constitution_that_only_passes_through_skills_is_not_refused(science):
     The refusal must be about where the file actually is, not how the path was
     typed, or the guard is a spelling test.
 
+    The third review then found the acceptance was hollow: `Config.constitution`
+    kept the RAW spelling, and `_committed_constitution` raised
+    `IntegrityDenial: ... does not identify exactly one file` because the git
+    reader wants an exact tree path. A value that passes configuration and fails
+    the auditor is worse than a refusal — it fails later, further from the
+    person who wrote it. So the NORMALISED path is what `Config` stores, and
+    this test carries it all the way to the reader rather than stopping at
+    "loads". `normpath` is a no-op on a canonical path, so nothing that already
+    worked changes.
+
     MUTATION KILLED: check the raw value instead of the normalised one -> this
-    legitimate constitution is refused.
+    legitimate constitution is refused. And: store `raw["constitution"]`
+    instead of `const_norm` -> it loads, and the committed reader denies it.
     """
     _with_constitution(science, f"{skills_mod.SKILLS_DIR}/../AUDIT_RULES.md")
     cfg = cfg_load(science / "crossaudit.yml")
-    assert cfg.constitution.endswith("AUDIT_RULES.md")
+    assert cfg.constitution == "AUDIT_RULES.md", (
+        "the raw spelling was stored; the committed reader will refuse it")
+
+    sha = git("rev-parse", "HEAD", cwd=science)
+    text, data = _committed_constitution(cfg, sha)
+    assert data and text.strip(), "the accepted constitution could not be read"
+
+
+@pytest.mark.parametrize("spelling", [
+    "/abs/skills/house.md",   # accepted before r4: first component is "/"
+    "/etc/AUDIT_RULES.md",    # not guidance at all, still not a tree path
+])
+def test_an_absolute_constitution_is_refused(science, spelling):
+    """A Constitution is a path INSIDE the tree, cited by commit.
+
+    The third review found `/abs/skills/house.md` loading: its first component
+    after normalisation is `/`, so the guidance comparison missed it, and the
+    traversal check never looked at absolute paths at all. It walked past both.
+    No auditor exposure was reproduced — the committed reader refuses it later —
+    but an absolute path names a file on one machine's disk, which no receipt
+    can bind and no verifier can re-read, so config load is where it belongs.
+
+    MUTATION KILLED: drop the `posixpath.isabs` check -> both spellings load.
+    """
+    _with_constitution(science, spelling)
+    with pytest.raises(ConfigDenial) as caught:
+        cfg_load(science / "crossaudit.yml")
+    assert "absolute path" in caught.value.reason
+    assert i18n.denial_zh(caught.value.reason), "refused only in English"
 
 
 def test_a_constitution_outside_the_project_is_refused(science):

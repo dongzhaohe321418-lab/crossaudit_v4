@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import posixpath
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import yaml
 
@@ -304,6 +304,18 @@ def load(path: Path | None = None) -> Config:
     from .skills import SKILLS_DIR as _skills_dir
     const_raw = str(raw["constitution"])
     const_norm = posixpath.normpath(const_raw)
+    # ABSOLUTE FIRST, before anything reasons about components. `/abs/skills/x`
+    # has `/` as its first component, so the guidance comparison below misses it
+    # and the traversal check below never looked at it either — an absolute path
+    # walked past both. A Constitution is always a path INSIDE the tree, cited
+    # by commit; an absolute one names a file on somebody's disk, which no
+    # receipt can bind and no verifier can re-read.
+    if posixpath.isabs(const_norm) or PureWindowsPath(const_raw).drive:
+        raise ConfigDenial(
+            f"constitution {const_raw!r} is an absolute path. The Constitution "
+            f"is a file committed in this repository and cited by commit, so it "
+            f"is written as a path inside the project — not a location on one "
+            f"machine's disk.", file=str(p))
     if const_norm == ".." or const_norm.startswith("../"):
         raise ConfigDenial(
             f"constitution {const_raw!r} points outside the project. The "
@@ -316,6 +328,15 @@ def load(path: Path | None = None) -> Config:
             f"Guidance shapes how the generator writes; the Constitution is what "
             f"the auditor judges against. One file cannot be both — move the "
             f"rules out of {_skills_dir!r}.", file=str(p))
+    # STORE THE NORMALISED PATH. The guard is about where the file is, not how
+    # the path was typed — so `skills/../AUDIT_RULES.md` passes it. But the
+    # committed reader is strict (`does not identify exactly one file`), so
+    # keeping the raw spelling left a value that passed configuration and failed
+    # the auditor: accepted and unusable. `normpath` is a no-op on a canonical
+    # path, so nothing that works today changes; what it fixes is every
+    # equivalent spelling of a legitimate location, `./AUDIT_RULES.md` included.
+    # Downstream — the receipt's `constitution_path`, the git pathspec, the
+    # console — all then see the one canonical tree path.
 
     auditor = _role(raw["auditor"] or {}, "auditor", p)
     gen = raw.get("generator") or {}
@@ -484,7 +505,7 @@ def load(path: Path | None = None) -> Config:
         path=p,
         science_repo=raw["science_repo"],
         audit_repo=raw.get("audit_repo"),
-        constitution=raw["constitution"],
+        constitution=const_norm,
         max_rounds=rounds,
         auditor=auditor,
         generator_vendor=generator_vendor,
