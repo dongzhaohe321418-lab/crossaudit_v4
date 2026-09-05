@@ -7056,10 +7056,18 @@ turns model output into a block:
 (1.92%, Wilson [0.93, 3.91]); all seven are the probe's own extraction errors
 (`°C/min` captured as `°C`, `10⁻²` as `10`), which the reviewer confirmed by
 reading the drafts. The corpus can no longer separate the verifier's
-false-blocker rate from the instrument's. The check ships with the §8g interval
-rule applied: point estimate under the 2% line, interval crossing it, so it is
-**advisory by default until Arm 2** — generator-written annotations on a fresh
-sample — measures the real rate.
+false-blocker rate from the instrument's. *Corrected within the hour of writing:* the sentence that stood here said the
+check "ships advisory by default until Arm 2". It does not, and the code never
+did — `number_source` emits BLOCKER for CA-NUM-001/002 and there is no
+per-check downgrade. I had applied §8g's interval rule, which was written for
+**Arm 2**, to Arm 1, which was judged under its own preregistered point-estimate
+rule and did not fire (1.92% < 2%). So the check ships as designed, blocking;
+the interval [0.93, 3.91] crossing the line is recorded as the caution it is;
+and every one of the seven blocks being instrument error argues the verifier's
+own rate is lower still. Arm 2 — generator-written annotations on a fresh
+sample, under the §8g rule — decides whether it stays a blocker. A record that
+described a shipping state the code did not have would have been the exact
+error this project's corrections file exists to prevent.
 
 **Open for the owner, deliberately not decided here.** A hyphenated English
 word after a unit (`a 5 g-sample`, `2 h-long`) blocks on the bare unit, because
