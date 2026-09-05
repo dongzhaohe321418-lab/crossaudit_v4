@@ -1011,8 +1011,12 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path,
         flags_reg = {i: any(draws[family][d].get(i) for d in complete) for i in P}
         out["families"][family] = {
             "k_max": len(complete),
+            # The registered-population figures are the SAME estimand as Table 1's and
+            # Table 5's, on the same data, so they use the SAME seed and are identical to
+            # them. Giving them their own seed produced two different intervals for one
+            # number in two tables — which the fifth review's rate-binding work exposed.
             "union_registered": clustered_rate(flags_reg, P, instances,
-                                               reps or BOOTSTRAP, BOOT_SEED + 14),
+                                               reps or BOOTSTRAP, BOOT_SEED),
             "union_assertion_only": clustered_rate(flags_sub, keep, instances,
                                                    reps or BOOTSTRAP, BOOT_SEED + 12),
         }
@@ -1023,7 +1027,7 @@ def timeout_sensitivity(instances: dict, audit_set: list[str], run_dir: Path,
     never_sub = [i for i in keep if i in set(never_reg)]
     out["residual_registered"] = clustered_rate(
         {i: (i in set(never_reg)) for i in P}, P, instances,
-        reps or BOOTSTRAP, BOOT_SEED + 15)
+        reps or BOOTSTRAP, BOOT_SEED + 4)      # canonical: matches residual.share_block
     out["residual_assertion_only"] = clustered_rate(
         {i: (i in set(never_reg)) for i in keep}, keep, instances,
         reps or BOOTSTRAP, BOOT_SEED + 13)

@@ -7,34 +7,76 @@
   },
   "analysis_seeds": {
     "bootstrap": 20260908,
-    "completeness": "every offset report_ceiling.py uses is listed above; the fourth review found +50+total, +14 and +15 missing while the manifest claimed to be sufficient on its own",
+    "completeness": "every offset report_ceiling.py uses is listed above; the fourth review found +50+total, +14 and +15 missing while the manifest claimed to be sufficient on its own, and the fifth found three of the RANGES wrong. The hand-written entries are now cross-checked against `observed_seeds`, which is recorded by instrumenting the analysis rather than by hand.",
     "derived_offsets": {
-      "+1  primary asymptote difference": 20260909,
+      "+1  primary asymptote difference": "20260909 \u2014 consumed by an inline random.Random in analyse_ceiling1, not by cluster_bootstrap_ci, so it does not appear in observed_seeds.",
       "+11 residual categories": 20260919,
       "+12 timeout sensitivity, assertion-only unions": 20260920,
       "+13 timeout sensitivity, assertion-only residual": 20260921,
-      "+14 timeout sensitivity, registered unions": 20260922,
-      "+15 timeout sensitivity, registered residual": 20260923,
+      "+14 (RETIRED)": "20260922 \u2014 was the timeout sensitivity's registered unions. Retired when those figures were made canonical: they now reuse BOOT_SEED so Table 9's registered column is identical to Table 1's, instead of being a second bootstrap of the same estimand with a different seed.",
+      "+15 (RETIRED)": "20260923 \u2014 was the timeout sensitivity's registered residual. Retired the same way; it now reuses BOOT_SEED + 4, matching residual.share_block.",
       "+2  (unused since amendment 4)": 20260910,
-      "+20+K  union curve at each K": "20260928 .. 20260936 for K = 8 .. 16",
+      "+20+K  union curve at each K": "20260929 .. 20260936 for K = 1 .. 8",
       "+3  draw-1 mean per family": 20260911,
-      "+30+per_family  mixed families": "20260938 .. 20260946",
+      "+30+per_family  mixed families": "20260939 .. 20260946 for 1 .. 8 draws per family",
       "+4  residual share": 20260912,
       "+5/+6  loop flag rates P/C": [
         20260913,
         20260914
       ],
-      "+50+total  Table 4 single-family comparators": "20260958 .. 20260974",
+      "+50+total  Table 4 single-family comparators": "20260960, 20260961, 20260962, 20260964, 20260966 \u2014 totals 2, 3, 4, 6, 8 only",
       "+60 last-step gain": 20260968,
-      "+7  sign-flip sampling fallback": 20260915,
+      "+7  sign-flip sampling fallback": "20260915 \u2014 reached only when a contrast has more than 22 non-zero problem clusters. No contrast in this study does, so every sign-flip p is exact enumeration and this seed is never drawn.",
       "+8/+9  fixed-on-P / broken-on-C": [
         20260916,
         20260917
       ],
       "BOOT_SEED": 20260908
     },
+    "how_observed": "every call to report_ceiling.cluster_bootstrap_ci was wrapped during a 2-resample pass and its seed recorded. This is the set the analysis consumes, not a hand-written range: the fifth cross-vendor review found two hand-written ranges wrong.",
     "loop_sample": 20260907,
-    "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval"
+    "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval",
+    "observed_bootstrap_calls": 196,
+    "observed_seed_count": 32,
+    "observed_seed_range": [
+      20260908,
+      20260968
+    ],
+    "observed_seeds": [
+      20260908,
+      20260911,
+      20260912,
+      20260913,
+      20260914,
+      20260916,
+      20260917,
+      20260919,
+      20260920,
+      20260921,
+      20260929,
+      20260930,
+      20260931,
+      20260932,
+      20260933,
+      20260934,
+      20260935,
+      20260936,
+      20260939,
+      20260940,
+      20260941,
+      20260942,
+      20260943,
+      20260944,
+      20260945,
+      20260946,
+      20260960,
+      20260961,
+      20260962,
+      20260964,
+      20260966,
+      20260968
+    ],
+    "reconciliation": "every seed in observed_seeds is named in derived_offsets. Five named seeds are NOT observed, each for a stated reason: +1 is drawn by an inline generator rather than by cluster_bootstrap_ci; +2 has been unused since amendment 4; +7 is a fallback no contrast in this study reaches; and +14 and +15 were retired when the registered-population figures were made canonical."
   },
   "astra": {
     "bypasses": "the product's provider broker, its metered usage ledger and its same-vendor heterogeneity guard; a measurement of a model, not of the product path",
@@ -52,7 +94,7 @@
       "benchmarks/code/ceiling/PREREGISTRATION.md": "a7aaa5d162f0bf68e3dbd146fdd8c91c9f7cfa9cfb9f5ac79167824f35471e8c",
       "benchmarks/code/explore.py": "e2f405dd083aa317f1ab727e1b15c93a8125d4a9db3f1dfb11f551dcdab3e40d",
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
-      "benchmarks/code/report_ceiling.py": "c736b4fab76d04e6a0d34ed72289866eb84f55e3e281e974bb6895b767d3c03b",
+      "benchmarks/code/report_ceiling.py": "859c6b071437e22c2a2a57026923f7ffd61f28b0aa0d3e363c5b14d66503e60f",
       "benchmarks/code/residual_dump.py": "9e7018afa2153679b5440808aad5f8b128bb73db8db8f703f65a598dd71e7e1c",
       "benchmarks/code/tests/test_ceiling_stats.py": "0683f471216f087c826853966de61a8e64fbafe79434cc0cc0876541b0b25ea7"
     },
@@ -355,8 +397,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "1750bfde3b7bf008016ed16cfb82a9792a295d35",
-  "finalised_utc": "2026-09-05T18:01:47Z",
+  "finalised_on_parent_commit": "273a4056544103b5a6300909a553a78ec1469240",
+  "finalised_utc": "2026-09-05T18:41:54Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",
@@ -2703,12 +2745,6 @@
       "working_tree_at_freeze"
     ],
     "retained_why": "still true and still useful, so kept and re-worded on every finalisation rather than deleted. An earlier version of this record said it had been REMOVED; it had not, and the fourth cross-vendor review caught the discrepancy."
-  },
-  "superseded_fields_removed": {
-    "fields": [
-      "working_tree_at_freeze"
-    ],
-    "why": "written by an earlier finalisation and contradicted by the fields that replaced them (analysis_freeze, provenance_note). Removed rather than left in place; the third cross-vendor review found them still present and reported as renamed when they were not."
   },
   "working_tree_at_freeze": "Both manifests were written by their loops mid-study, so each recorded a DIRTY tree: the study's own uncommitted records and, for the loop manifest, an edited loop.py (the retry passes added after the circuit-breaker run). The meaningful freeze for the PLAN is commit d96cdaf (preregistration) and 87939d2 (amendment 3), both clean and both before the first model call. The meaningful freeze for the ANALYSIS is defined in the `analysis_freeze` field of this manifest, which says how to locate it and what to verify; it is NOT the parent commit recorded in `finalised_on_parent_commit`.",
   "written_utc": "2026-09-05T12:17:15Z"

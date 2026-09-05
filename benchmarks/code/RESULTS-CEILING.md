@@ -1,9 +1,12 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Fifth version.** Four independent cross-vendor reviews have read this study. Rounds 1
+> **Sixth version.** Five independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2, and no
-> point estimate has changed since the first version. Round 1 found that the headline's "95% exact" interval had
+> point estimate has changed since the first version. Round 5's corrections included one
+> substantive discovery: the report was quoting **two different bootstrap intervals for the
+> same number**, because two code paths bootstrapped the same estimand under different
+> seeds. That is fixed at the source. Round 1 found that the headline's "95% exact" interval had
 > 0.416 coverage. Round 2 found that **its replacement was also wrong** — both check
 > intervals bounded the nuisance parameter by `(1 − |δ|)/2` instead of `(1 − δ)/2`, which
 > is correct only for a non-negative difference and gave 0.075 coverage in the other
@@ -52,9 +55,9 @@ Four further results, in the order they matter.
 readings by the shipped cross-vendor auditor lifts recall on the defect population from
 **10.7% [5.1, 17.4]** to **30.0% (33 of 110) [20.0, 40.7]**, while false positives on
 correct code go from **4.5% [2.4, 7.0]** to **16.0% [10.1, 22.3]**. Its fitted asymptote is
-31.5% [21.7, 45.6], **but that curve has not flattened** — it still gained 1.93 points from
-K = 7 to K = 8, failing the preregistered flattening bar — **so 31.5% is an extrapolation
-and 30.0% is the number to quote.** The generator's own model does flatten, and far lower:
+31.5% [21.7, 45.6], **but that curve has not flattened** — it still gained 1.93 points [1.14, 2.78]
+from K = 7 to K = 8, failing the preregistered flattening bar — **so 31.5% [21.7, 45.6] is an
+extrapolation and 30.0% [20.0, 40.7] is the number to quote.** The generator's own model does flatten, and far lower:
 **15.5% [7.1, 24.9]** at one reading, **17.3% (19 of 110) [8.3, 27.3]** at eight, asymptote
 **16.6% [8.1, 26.3]**, at a false-positive rate of **24.0% [17.2, 31.2]**.
 
@@ -115,7 +118,7 @@ the 110 stratum-P instances fail because the hidden suite **did not terminate**.
 registered analysis keeps the registered population; Table 9 narrows it to the 103
 instances with an observed assertion failure, and nothing moves: unions 32 / 18 / 34 against
 33 / 19 / 36, and the residual is 54 of 103 (52.4% [40.4, 64.4]) against 57 of 110
-(51.8% [40.4, 63.6]).
+(51.8% [40.0, 63.3]).
 
 **Total spend: $13.23 of a $20 budget, plus 4,427,530 tokens on a subscription-billed route
 that reports no dollar cost.**
@@ -144,6 +147,20 @@ corrected report.
 **What did not change: any point estimate.** The asymptotes, the union curves, the primary
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
+
+### What the fifth review changed
+
+Round 5 reproduced everything again — 29 tests, the pre-fix estimator table agreeing across
+all three documents, 300 arrays byte-identical, 533 scalars unchanged, 24 events, byte-
+identical regeneration — and approved subject to four corrections. All four reproduced
+first.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | The guard still exempted bare estimates by broad context, and **accepted another quantity's interval**: `(30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])` stayed green because the FP interval sat ten characters from the recall rate | both reproduced | **Every rate in the opening and conclusion is now bound to the specific `numbers.json` array its interval must come from** — 36 binding rules, no context exemption; a rate is either bound or declared a count/exact quantity with a reason. The counterexample, a stripped interval, a value/interval mismatch and **two intervals swapped between rates in one sentence** are all committed as regression tests, and a further test fails if any binding rule stops matching. Fixing this exposed a real defect: **the report quoted [40.4, 63.6] and [40.0, 63.3] for the same residual share**, because `timeout_sensitivity` re-bootstrapped an estimand the residual analysis had already bootstrapped, under a different seed. Both now use the canonical seed and are identical |
+| 2 | `superseded_fields_removed` still said `working_tree_at_freeze` was removed, contradicting the record that it was retained | verified in both manifests | The stale block is dropped on every finalisation, so a superseded record cannot outlive its own correction |
+| 3 | Seed offsets complete but three **ranges wrong**: curve K given as 8–16 when it is 1–8; mixed and comparator ranges likewise | verified | The inventory is now **generated from the code**: every call to the bootstrap is wrapped during a cheap pass and its seed logged, and the manifest records the observed set (32 seeds over 196 calls). The hand-written entries were corrected to match, and the five named-but-unobserved seeds are each reconciled — two of which turned out to be **retired** by the fix in item 1 |
+| 4 | Deviation 18 paired Tango's beneficial coverage with the exact grid's detrimental one in a single unlabelled sentence | verified | Both methods and both scenarios labelled, as the coverage table does |
 
 ### What the fourth review changed
 
@@ -512,10 +529,10 @@ The registered population is every hidden-suite non-pass, which **includes 7 ins
 
 | family | union recall, registered P (n = 110) [95% cluster CI] | union recall, assertion-failure P only (n = 103) [95% cluster CI] | [95% Wilson, too narrow] |
 |---|---|---|---|
-| `cross` (K = 8) | 33/110 (30.0%) [20.0, 40.5] | **32/103** (31.1%) [20.4, 42.2] | [22.9, 40.5] |
-| `self` (K = 8) | 19/110 (17.3%) [8.2, 27.3] | **18/103** (17.5%) [7.8, 27.9] | [11.3, 25.9] |
-| `astra` (K = 4) | 36/110 (32.7%) [20.9, 45.5] | **34/103** (33.0%) [20.4, 45.6] | [24.7, 42.6] |
-| **residual (never flagged)** | 57/110 (51.8%) [40.4, 63.6] | **54/103** (52.4%) [40.4, 64.4] | [42.9, 61.8] |
+| `cross` (K = 8) | 33/110 (30.0%) [20.0, 40.7] | **32/103** (31.1%) [20.4, 42.2] | [22.9, 40.5] |
+| `self` (K = 8) | 19/110 (17.3%) [8.3, 27.3] | **18/103** (17.5%) [7.8, 27.9] | [11.3, 25.9] |
+| `astra` (K = 4) | 36/110 (32.7%) [20.7, 45.0] | **34/103** (33.0%) [20.4, 45.6] | [24.7, 42.6] |
+| **residual (never flagged)** | 57/110 (51.8%) [40.0, 63.3] | **54/103** (52.4%) [40.4, 64.4] | [42.9, 61.8] |
 
 The 3 timeouts that sit inside the residual are `b1:Mbpp/267`, `b2:Mbpp/267`, `b2:Mbpp/765`.
 ---
@@ -642,9 +659,13 @@ are `d96cdaf`/`87939d2` for the plan and the finalisation commit for the analysi
 **18. The replacement interval methods were themselves defective, and were fixed after the
 second review.** Both `tango_score_interval` and `exact_unconditional_interval` bounded the
 nuisance `q = p_c` by `(1 − |δ|)/2` where the feasible bound is `(1 − δ)/2`. Equal for a
-non-negative difference; badly wrong for a negative one. Measured consequence: coverage
-0.960 in the beneficial direction and **0.075** in the detrimental direction, and
-`tango_score_interval(20, 70, 112)` off by nearly 4 points at each end. **No number in this
+non-negative difference; badly wrong for a negative one. Measured consequence, **by method
+and by scenario**, because an earlier version of this deviation paired one method's
+beneficial figure with the other's detrimental one: pre-fix **Tango** covered **0.960**
+beneficial and **0.953** detrimental; the pre-fix **exact grid** covered **0.997**
+beneficial and **0.075** detrimental. The coverage collapse was the exact grid's alone —
+and Tango, whose coverage was fine, still returned intervals off by nearly 4 points at each
+end (`tango_score_interval(20, 70, 112)`). **No number in this
 study was affected** — every paired difference here has b ≥ c except `self-loop − cross-loop`
 (b = 3, c = 5), whose Tango interval was recomputed and is unchanged to the displayed
 precision — but the method was wrong and would have been wrong for anyone reusing it.
@@ -717,6 +738,23 @@ the opening and a `51.8%` whose interval sat too far away to read as attached �
 test-of-the-test exposed that a first version of the rule accepted any interval later in
 the sentence, including one belonging to a different rate.
 
+**26. Two code paths bootstrapped the same estimand under different seeds, and the report
+quoted both.** The residual share (57 of 110) was computed once by the residual analysis
+(seed 20260912 → [40.0, 63.3]) and again by the timeout sensitivity's registered column
+(seed 20260923 → [40.4, 63.6]), and the report quoted each in different places as *the*
+interval for that number. The same was true of the registered union recalls. **Both now
+reuse the canonical seed**, so Table 9's registered column is identical to Tables 1 and 5
+rather than a second bootstrap of the same thing. Found while binding every rate in the
+opening and conclusion to its own key — no reviewer had caught it, and no earlier guard
+could have, because both intervals were real numbers present in the record.
+
+**27. The seed inventory is now generated from the code rather than written by hand.**
+Hand-written ranges were wrong twice: `+50+total` was listed as a contiguous range when
+only totals 2, 3, 4, 6 and 8 occur, and the union-curve range was given as K = 8..16 when
+the curve uses K = 1..8. Every bootstrap call is now wrapped during a cheap pass and its
+seed recorded; the manifest carries the observed set (32 seeds across 196 calls) and
+reconciles every hand-written entry against it.
+
 ### The beta-tail defect, stated exactly
 
 The first version said a swapped Clopper–Pearson tail was "caught by my own tests" and that
@@ -764,7 +802,7 @@ repetition saturates quickly, and on a temperature-0 route almost immediately; t
 frontier reading matched eight shipped readings on recall (30.2% [19.3, 42.0] against
 30.0% [20.0, 40.7]) at lower false-positive cost (9.7% [5.3, 14.5] against 16.0%
 [10.1, 22.3]); and
-that **51.8% [40.4, 63.6] of this defect population (57 of 110) was flagged by no reading
+that **51.8% [40.0, 63.3] of this defect population (57 of 110) was flagged by no reading
 of any family**, dominated by inputs the visible tests never construct.
 
 **It does not license** the claim that those defects cannot be found. It shows that these

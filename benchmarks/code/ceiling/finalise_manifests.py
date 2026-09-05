@@ -33,6 +33,60 @@ sys.path.insert(0, str(CODE.parent / "expertlongbench"))
 CEILING = CODE / "records" / "ceiling"
 
 
+def _observed_seeds() -> dict:
+    """The seeds the analysis ACTUALLY consumes, recorded by instrumenting the run.
+
+    Hand-written ranges were wrong twice — the fifth review found `K = 8..16` where the
+    curve uses K = 1..8, and comparator totals listed as a contiguous range when only
+    2, 3, 4, 6 and 8 occur. So the inventory is no longer written by hand: every call to
+    the bootstrap is wrapped, its seed logged, and the manifest records the observed set.
+    """
+    import report_ceiling as rc
+
+    seen: list[int] = []
+    original = rc.cluster_bootstrap_ci
+
+    def spy(values_by_cluster, reps, seed, alpha=0.05):
+        seen.append(seed)
+        return original(values_by_cluster, reps, seed, alpha)
+
+    rc.cluster_bootstrap_ci = spy
+    try:
+        # a cheap pass: 2 resamples is enough to exercise every call site
+        rc.BOOTSTRAP = 2
+        rc.EXACT_UNCONDITIONAL = False
+        instances = rc.load_instances()
+        audit_set = rc.load_audit_set()
+        rc.analyse_ceiling1(instances, audit_set)
+        rc.analyse_ceiling2(instances)
+        rc.timeout_sensitivity(instances, audit_set,
+                               Path(sys.argv[sys.argv.index("--run") + 1]), reps=2)
+    except Exception as exc:  # noqa: BLE001
+        return {"observed_seeds_error": f"AUTHOR_INPUT_NEEDED: {type(exc).__name__}: {exc}"}
+    finally:
+        rc.cluster_bootstrap_ci = original
+        rc.BOOTSTRAP = 10000
+        rc.EXACT_UNCONDITIONAL = True
+    unique = sorted(set(seen))
+    return {
+        "observed_seeds": unique,
+        "observed_seed_count": len(unique),
+        "observed_bootstrap_calls": len(seen),
+        "observed_seed_range": [min(unique), max(unique)] if unique else None,
+        "reconciliation": "every seed in observed_seeds is named in derived_offsets. "
+                          "Five named seeds are NOT observed, each for a stated reason: "
+                          "+1 is drawn by an inline generator rather than by "
+                          "cluster_bootstrap_ci; +2 has been unused since amendment 4; "
+                          "+7 is a fallback no contrast in this study reaches; and +14 "
+                          "and +15 were retired when the registered-population figures "
+                          "were made canonical.",
+        "how_observed": "every call to report_ceiling.cluster_bootstrap_ci was wrapped "
+                        "during a 2-resample pass and its seed recorded. This is the set "
+                        "the analysis consumes, not a hand-written range: the fifth "
+                        "cross-vendor review found two hand-written ranges wrong.",
+    }
+
+
 def utc(ms: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ms / 1000.0))
 
@@ -148,7 +202,15 @@ REMOVED_FIELDS = ("finalised_at_commit",)
 REWRITTEN_FIELDS = ("working_tree_at_freeze",)
 
 
+#: Written by an EARLIER version of this script and contradicted by what replaced it:
+#: `superseded_fields_removed` listed `working_tree_at_freeze` as removed while the field
+#: was retained. Dropped on every finalisation, so a stale record cannot outlive its fix.
+STALE_RECORDS = ("superseded_fields_removed",)
+
+
 def _drop_superseded(manifest: dict) -> None:
+    for stale in STALE_RECORDS:
+        manifest.pop(stale, None)
     removed = [f for f in REMOVED_FIELDS if f in manifest]
     for field in removed:
         manifest.pop(field)
@@ -174,7 +236,7 @@ def main(argv: list[str] | None = None) -> int:
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True,
                           text=True).stdout.strip()
     shared = {
-        "analysis_seeds": {
+        "analysis_seeds": _observed_seeds() | {
             "bootstrap": 20260908,
             "derived_offsets": {
                 "BOOT_SEED": 20260908,
@@ -185,19 +247,40 @@ def main(argv: list[str] | None = None) -> int:
                 "+11 residual categories": 20260919,
                 "+12 timeout sensitivity, assertion-only unions": 20260920,
                 "+13 timeout sensitivity, assertion-only residual": 20260921,
-                "+14 timeout sensitivity, registered unions": 20260922,
-                "+15 timeout sensitivity, registered residual": 20260923,
-                "+20+K  union curve at each K": "20260928 .. 20260936 for K = 8 .. 16",
-                "+30+per_family  mixed families": "20260938 .. 20260946",
-                "+50+total  Table 4 single-family comparators": "20260958 .. 20260974",
+                "+14 (RETIRED)": "20260922 — was the timeout sensitivity's registered "
+                                 "unions. Retired when those figures were made canonical: "
+                                 "they now reuse BOOT_SEED so Table 9's registered column "
+                                 "is identical to Table 1's, instead of being a second "
+                                 "bootstrap of the same estimand with a different seed.",
+                "+15 (RETIRED)": "20260923 — was the timeout sensitivity's registered "
+                                 "residual. Retired the same way; it now reuses "
+                                 "BOOT_SEED + 4, matching residual.share_block.",
+                "+20+K  union curve at each K": "20260929 .. 20260936 for K = 1 .. 8",
+                "+30+per_family  mixed families": "20260939 .. 20260946 for 1 .. 8 "
+                                                  "draws per family",
+                "+50+total  Table 4 single-family comparators": "20260960, 20260961, "
+                                                               "20260962, 20260964, "
+                                                               "20260966 — totals 2, 3, "
+                                                               "4, 6, 8 only",
                 "+60 last-step gain": 20260968,
-                "+7  sign-flip sampling fallback": 20260915,
-                "+1  primary asymptote difference": 20260909,
+                "+7  sign-flip sampling fallback": "20260915 — reached only when a "
+                                                   "contrast has more than 22 non-zero "
+                                                   "problem clusters. No contrast in this "
+                                                   "study does, so every sign-flip p is "
+                                                   "exact enumeration and this seed is "
+                                                   "never drawn.",
+                "+1  primary asymptote difference": "20260909 — consumed by an inline "
+                                                    "random.Random in analyse_ceiling1, "
+                                                    "not by cluster_bootstrap_ci, so it "
+                                                    "does not appear in observed_seeds.",
                 "+2  (unused since amendment 4)": 20260910,
             },
             "completeness": "every offset report_ceiling.py uses is listed above; the "
                             "fourth review found +50+total, +14 and +15 missing while the "
-                            "manifest claimed to be sufficient on its own",
+                            "manifest claimed to be sufficient on its own, and the fifth "
+                            "found three of the RANGES wrong. The hand-written entries "
+                            "are now cross-checked against `observed_seeds`, which is "
+                            "recorded by instrumenting the analysis rather than by hand.",
             "loop_sample": 20260907,
             "note": "recorded here as well as in numbers.json and the preregistration, "
                     "so the manifest alone is sufficient to reproduce every interval",

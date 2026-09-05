@@ -59,6 +59,8 @@ HISTORICAL = {
                      "bite, quoted in the round-3 audit table",
     (6.3, 43.8): "the erroneous prose value this guard caught, quoted in the round-3 "
                  "audit table as the error it found",
+    (40.4, 63.6): "the duplicate residual-share interval withdrawn in deviation 26 and "
+                  "CORRECTIONS #24, quoted there as the number that was wrong",
 }
 
 #: Spans of prose whose intervals are bound, in order, to specific numbers.json paths.
@@ -66,6 +68,8 @@ HISTORICAL = {
 #: several sentences about different quantities, and binding on it attached the primary
 #: outcome's interval to the headline's estimand. A span is unambiguous.
 BOUND_SPANS: list[tuple[str, list[tuple]]] = [
+    # NB: BOUND_SPANS matches the RAW report text, so markdown emphasis is present here
+    # and must be matched. The rate bindings below run on normalised text and must not.
     (r"passing a hidden test suite by \*\*\+0\.89 percentage points.{0,220}?exact "
      r"McNemar",
      [("ceiling2", "arms", "self-loop", "net_primary", "ci95"),
@@ -252,99 +256,609 @@ def test_report_states_the_correction_threshold_once_in_live_prose():
 # the conclusion by hand; this finds them forever.
 # ---------------------------------------------------------------------------------
 
-#: A rate in these sections must be followed, in the same sentence, by a bracketed
-#: interval — or be one of the exceptions below, each of which is a rate that HAS no
-#: interval rather than one whose interval was forgotten.
-_RATE = re.compile(r"(?<![\w.])([+" + MINUS + r"\-]?\d+(?:\.\d+)?)\s*(%|pp\b|points\b|"
-                   r"percentage points\b)")
+#: A rate in the opening or the conclusion is matched by exactly one rule below. There is
+#: no context-based exemption: a number is either **bound** to the `numbers.json` array its
+#: interval must come from, or **declared** as a count / exact quantity with a reason. The
+#: fifth review showed why adjacency is not enough — this displacement stayed green:
+#:
+#:     (30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])
+#:
+#: because the guard accepted the false-positive interval sitting ten characters from the
+#: recall rate. Binding each rate to its own key is the only rule that rejects it, and the
+#: displacement is committed below as a regression test.
+_RATE = re.compile(r"(?<![\w.$])([+" + MINUS + r"\-]?\d+(?:\.\d+)?)\s*(%|pp\b|"
+                   r"percentage points\b|points\b)")
 
-ALLOWED_BARE = {
-    # denominators, counts and sizes — not estimates
-    "112", "110", "150", "260", "290", "96", "56", "57", "68", "46", "40", "20", "16",
-    "8", "4", "3", "2", "1", "0", "5", "6", "7", "11", "25", "10", "13", "12", "103",
-    "179", "178", "19", "17", "36", "33", "32", "34", "54", "18", "55", "27",
-    # exact/threshold quantities that are not interval-bearing
-    "0.05", "1.0", "95", "0.00313",
-}
-
-#: Phrases whose numbers are structural rather than estimates: budgets, K values, counts
-#: of instances, coverage figures (which are exact enumerations, not estimates), power
-#: (also exact), and the flattening bar.
-#: An interval written in prose rather than brackets, e.g. "interval −3.54 to +5.88".
-_PROSE_INTERVAL = re.compile(
-    r"interval\s+[+" + MINUS + r"\-]?\d+(?:\.\d+)?\s+to\s+[+" + MINUS + r"\-]?\d+(?:\.\d+)?")
-
-BARE_OK_CONTEXT = re.compile(
-    r"coverage|power|budget|spend|tokens|threshold|K = |draws|readings|instances|"
-    r"problems|files|bar \(|flatten|Bonferroni|seed|of a \$|points? of recall|"
-    r"under-cover|nominal|last-step|gain from|version|round|deviation|item",
-    re.I)
+#: (regex over the flattened section, value path or None, interval path or None, why).
+#: The regex must capture the rate as group "v" and, for a bound rule, its interval as
+#: groups "lo" and "hi". Every rate the regexes do not cover is a failure.
+_IV = r"\[\s*(?P<lo>[+" + MINUS + r"\-]?\d+\.\d+)\s*,\s*(?P<hi>[+" + MINUS + r"\-]?\d+\.\d+)\s*\]"
+#: Markdown emphasis may sit between a rate and its interval; it is not text.
+_MD = r"[\s*]*"
+C1 = ("ceiling1", "families")
+RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
+    # ---- bound: value and interval both checked against numbers.json ----------------
+    (r"from (?P<v>10\.7)% " + _IV, C1 + ("cross", "P", "draw1_block", "rate"),
+     C1 + ("cross", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"to (?P<v>30\.0)% \(33 of 110\) " + _IV,
+     C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"go from (?P<v>4\.5)% " + _IV, C1 + ("cross", "C", "draw1_block", "rate"),
+     C1 + ("cross", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"to (?P<v>16\.0)% " + _IV + r"\. Its fitted",
+     C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"fitted asymptote is (?P<v>31\.5)% " + _IV, C1 + ("cross", "P", "fit", "A"),
+     C1 + ("cross", "P", "fit_A_ci95"), ""),
+    (r"gained (?P<v>1\.93) points " + _IV,
+     C1 + ("cross", "P", "marginal_gain_last_step"),
+     C1 + ("cross", "P", "last_step_gain_block", "cluster_ci95"), ""),
+    (r"so (?P<v>31\.5)% " + _IV + r" is an\s*extrapolation", C1 + ("cross", "P", "fit", "A"),
+     C1 + ("cross", "P", "fit_A_ci95"), ""),
+    (r"and (?P<v>30\.0)% " + _IV + r" is the number to quote",
+     C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"far lower: (?P<v>15\.5)% " + _IV, C1 + ("self", "P", "draw1_block", "rate"),
+     C1 + ("self", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"(?P<v>17\.3)% \(19 of 110\) " + _IV, C1 + ("self", "P", "union_at_kmax"),
+     C1 + ("self", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"asymptote (?P<v>16\.6)% " + _IV, C1 + ("self", "P", "fit", "A"),
+     C1 + ("self", "P", "fit_A_ci95"), ""),
+    (r"false-positive rate of (?P<v>24\.0)% " + _IV,
+     C1 + ("self", "C", "union_at_kmax"),
+     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"stratum P, is (?P<v>" + MINUS + r"14\.9) points, 95% problem-cluster bootstrap CI " + _IV,
+     ("ceiling1", "primary_ceiling1", "P", "A_self_minus_cross"),
+     ("ceiling1", "primary_ceiling1", "P", "ci95"), ""),
+    (r"(?P<v>" + MINUS + r"12\.7) points " + _IV,
+     ("ceiling1", "primary_ceiling1", "P", "raw_union_diff_at_k_common"),
+     ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"), ""),
+    (r"recalls (?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
+     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"at (?P<v>9\.7)% " + _IV + r" false positives",
+     C1 + ("astra", "C", "draw1_block", "rate"),
+     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"cost \((?P<v>30\.0)% " + _IV, C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"at (?P<v>16\.0)% " + _IV + r"\)\.", C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"56: \+(?P<v>26\.8) points" + r", cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"stratum-P flags \(\+(?P<v>26\.8) points " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"pooled P \+ C flags\s*\(\+(?P<v>19\.6) points " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
+      "ci95"), ""),
+    (r"nets \+(?P<v>8\.04) pp, cluster CI " + _IV,
+     ("ceiling2", "arms", "referent-loop", "net_primary", "delta"),
+     ("ceiling2", "arms", "referent-loop", "net_primary", "ci95"), ""),
+    (r"is \+(?P<v>5\.36) pp, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
+    (r"\((?P<v>51\.8)%, cluster CI " + _IV + r"\) were flagged",
+     ("ceiling1", "residual", "all_families", "share"),
+     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
+    (r"\((?P<v>80\.7)%, problem-cluster CI " + _IV,
+     ("ceiling1", "residual_classified", "all_families", "shares", "unexercised-edge"),
+     ("ceiling1", "residual_classified", "all_families", "cluster_ci95",
+      "unexercised-edge"), ""),
+    (r"54 of 103 \((?P<v>52\.4)% " + _IV,
+     ("timeout_sensitivity", "residual_assertion_only", "rate"),
+     ("timeout_sensitivity", "residual_assertion_only", "cluster_ci95"), ""),
+    (r"57 of 110 \((?P<v>51\.8)% " + _IV + r"\)\.",
+     ("timeout_sensitivity", "residual_registered", "rate"),
+     ("timeout_sensitivity", "residual_registered", "cluster_ci95"), ""),
+    (r"accuracy \(\+(?P<v>0\.89) pp, cluster\s+CI " + _IV,
+     ("ceiling2", "arms", "self-loop", "net_primary", "delta"),
+     ("ceiling2", "arms", "self-loop", "net_primary", "ci95"), ""),
+    (r"higher\s*\((?P<v>24\.0)% " + _IV, C1 + ("self", "C", "union_at_kmax"),
+     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"against (?P<v>16\.0)% " + _IV + r"\);", C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"recall \((?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
+     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"against (?P<v>30\.0)% " + _IV + r"\)", C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"cost \((?P<v>9\.7)% " + _IV, C1 + ("astra", "C", "draw1_block", "rate"),
+     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"that (?P<v>51\.8)% " + _IV + r" of this defect population",
+     ("ceiling1", "residual", "all_families", "share"),
+     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
+    (r"flagged, by more than anything else tried \(\+(?P<v>26\.8) points on "
+     r"stratum-P flags, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"\(\+(?P<v>5\.36) pp against cross-loop, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
+    # ---- declared: not estimates, so no interval is owed. Each says why. -------------
+    (r'headline\'s "(?P<v>95)% exact" interval', None, None,
+     "a nominal confidence level, not an estimate"),
+    (r"suite by \+(?P<v>0\.89) percentage points \(95% problem-cluster", None, None,
+     "bound by BOUND_SPANS, which checks all three headline intervals together"),
+    (r"\+0\.89 percentage points \((?P<v>95)% problem-cluster", None, None,
+     "a nominal confidence level, not an estimate"),
+    (r"accuracy by \+(?P<v>0\.89) percentage points \(problem-cluster percentile "
+     r"interval", None, None,
+     "the reader sentence, whose interval is stated in prose and checked by BOUND_SPANS"),
+    (r"0\.32 at \+(?P<v>5) points is limited", None, None,
+     "a power-curve abscissa: an exact quantity from numbers.json/power, not an estimate"),
+    (r"below about (?P<v>7) points would probably", None, None,
+     "a rounded reading of the power curve, stated as approximate in the sentence"),
+    (r"is " + MINUS + r"14\.9 points, (?P<v>95)% problem-cluster", None, None,
+     "a nominal confidence level, not an estimate"),
+]
 
 
 def _sections(text: str) -> dict[str, str]:
-    """The opening (before 'What the review changed') and the conclusion."""
+    """The opening (before the audit trail) and the conclusion.
+
+    These are the two places a reader meets a number without a table around it, so they
+    are where every rate must be bound. The audit trail and the deviations quote withdrawn
+    figures on purpose and are excluded.
+    """
     opening = text.split("## What the review changed", 1)[0]
     tail = text.split("## What this study licenses, and what it does not", 1)
-    conclusion = tail[1].split("### Where this sits beside the earlier record", 1)[0] \
-        if len(tail) > 1 else ""
+    conclusion = (tail[1].split("### Where this sits beside the earlier record", 1)[0]
+                  if len(tail) > 1 else "")
     return {"opening": opening, "conclusion": conclusion}
 
 
-def test_rates_in_the_opening_and_conclusion_carry_intervals():
-    """Every percentage or signed pp value in these two sections is followed, in the same
-    sentence, by a bracketed interval — or is a count, a denominator, or an exact
-    quantity that has no sampling interval.
+def _normalise(section: str) -> str:
+    """Flatten and strip markdown, so a binding pattern is written against prose.
 
-    Four consecutive reviews found bare rates here by hand. This is the rule that replaces
-    the hand search.
+    Emphasis, code ticks and blockquote markers carry no meaning for a number and made
+    every pattern brittle: `**+26.8 points**, cluster CI [...]` needed a different regex
+    from `+26.8 points [...]` for the same claim. Removing them once is more robust than
+    encoding them 36 times, and it keeps the rate scan and the rule matching on identical
+    offsets.
+    """
+    cleaned = section.replace("\n", " ")
+    cleaned = re.sub(r"[*`>]", "", cleaned)
+    return re.sub(r"\s+", " ", cleaned)
+
+
+def _flat_sections(text: str) -> dict[str, str]:
+    return {k: _normalise(v) for k, v in _sections(text).items()}
+
+
+def _digit_pos(section: str, start: int) -> int:
+    """The index of the first digit at or after `start`.
+
+    Rules capture the magnitude (`\\+(?P<v>26\\.8)`) while the rate scanner captures the
+    sign too (`+26.8`), so the two disagree by one character on every signed number.
+    Anchoring both on the first digit is what makes them comparable.
+    """
+    while start < len(section) and not section[start].isdigit():
+        start += 1
+    return start
+
+
+def check_rate_bindings(text: str, numbers: dict) -> list[str]:
+    """Every rate in the opening and conclusion, bound to its own key or declared."""
+    problems = []
+    for name, section in _flat_sections(text).items():
+        covered: dict[int, str] = {}
+        for pattern, value_path, interval_path, why in RATE_RULES:
+            for match in re.finditer(pattern, section):
+                covered[_digit_pos(section, match.start("v"))] = pattern
+                if value_path is None:
+                    continue
+                quoted, decimals = _parse(match.group("v"))
+                try:
+                    stored_value = 100 * _at_scalar(numbers, value_path)
+                    stored_iv = _at(numbers, interval_path)
+                except (KeyError, IndexError, TypeError) as exc:
+                    problems.append(f"[{name}] path missing for {match.group('v')!r}: "
+                                    f"{value_path} / {interval_path} ({exc})")
+                    continue
+                if round(quoted, decimals) != round(stored_value, decimals):
+                    problems.append(
+                        f"[{name}] {match.group('v')!r} is bound to "
+                        f"{'.'.join(map(str, value_path))} = "
+                        f"{stored_value:.{decimals}f}")
+                lo, dlo = _parse(match.group("lo"))
+                hi, dhi = _parse(match.group("hi"))
+                if not _matches((lo, hi), stored_iv, (dlo, dhi)):
+                    problems.append(
+                        f"[{name}] the interval beside {match.group('v')!r} is "
+                        f"[{lo}, {hi}] but {'.'.join(map(str, interval_path))} is "
+                        f"[{stored_iv[0]:.{dlo}f}, {stored_iv[1]:.{dhi}f}]")
+        for match in _RATE.finditer(section):
+            if _digit_pos(section, match.start(1)) in covered:
+                continue
+            problems.append(f"[{name}] UNBOUND rate {match.group(0)!r}: no rule binds it "
+                            f"to a numbers.json key and none declares it exempt "
+                            f"(...{section[max(0, match.start() - 70):match.end() + 30]})")
+    return problems
+
+
+def _at_scalar(numbers, path):
+    node = numbers
+    for key in path:
+        node = node[key]
+    return node
+
+
+def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys():
+    """Every rate in the opening and conclusion is bound to the array its interval must
+    come from, or explicitly declared a count/exact quantity with a reason.
+
+    Adjacency is not acceptance. Five reviews found bare or wrongly-supported rates here;
+    binding each one to its own key is what makes a fourth instance impossible.
+    """
+    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
+    problems = check_rate_bindings(REPORT.read_text(encoding="utf-8"), numbers)
+    assert not problems, ("rates that are not bound to their own key:\n"
+                          + "\n".join("  " + p for p in problems[:20]))
+
+
+def _binding_problems(mutated: str) -> list[str]:
+    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
+    return check_rate_bindings(mutated, numbers)
+
+
+def test_the_binding_rejects_another_quantitys_interval():
+    """The fifth review's counterexample, committed as a regression test.
+
+    This displacement kept every earlier guard green, because the false-positive interval
+    sat ten characters from the recall rate and adjacency was acceptance:
+
+        (30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])
+
+    Binding each rate to its own key is the only rule that rejects it.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    mutated = original.replace(
+        "(30.0% [20.0, 40.7] at 16.0% [10.1, 22.3])",
+        "(30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])", 1)
+    assert mutated != original, "the opening sentence changed shape; update this test"
+    assert _binding_problems(mutated), \
+        "the guard accepted another quantity's interval as a rate's uncertainty"
+
+
+def test_the_binding_rejects_a_stripped_interval():
+    original = REPORT.read_text(encoding="utf-8")
+    mutated = original.replace("30.0% (33 of 110) [20.0, 40.7]", "30.0% (33 of 110)", 1)
+    assert mutated != original
+    assert _binding_problems(mutated), "the guard stayed green with an interval removed"
+
+
+def test_the_binding_rejects_two_intervals_swapped_between_rates():
+    """Both intervals are real and both belong to the sentence — but to the other rate.
+
+    Nothing that checks only "is this interval in numbers.json" can catch this.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    mutated = original.replace(
+        "**10.7% [5.1, 17.4]** to **30.0% (33 of 110) [20.0, 40.7]**",
+        "**10.7% [20.0, 40.7]** to **30.0% (33 of 110) [5.1, 17.4]**", 1)
+    assert mutated != original, "the opening sentence changed shape; update this test"
+    problems = _binding_problems(mutated)
+    assert len(problems) >= 2, f"swapping two intervals produced {len(problems)} problems"
+
+
+def test_the_binding_rejects_a_wrong_value_with_a_right_interval():
+    """A rate mistyped beside its own correct interval."""
+    original = REPORT.read_text(encoding="utf-8")
+    mutated = original.replace("to **30.0% (33 of 110) [20.0, 40.7]**",
+                               "to **31.0% (33 of 110) [20.0, 40.7]**", 1)
+    assert mutated != original
+    assert _binding_problems(mutated), "the guard accepted a rate that is not its key"
+
+
+def test_every_bound_rule_actually_fires():
+    """A rule that matches nothing is a rule that guards nothing.
+
+    Without this, deleting a sentence would silently retire its binding and the guard
+    would still pass.
     """
     text = REPORT.read_text(encoding="utf-8")
-    bare = []
-    for name, section in _sections(text).items():
-        # split into sentences, keeping it crude on purpose: a rate and its interval must
-        # be close together for a reader to connect them anyway
-        for sentence in re.split(r"(?<=[.;:])\s", section.replace("\n", " ")):
-            if "|" in sentence:            # generated table rows carry their own intervals
-                continue
-            # An interval may be written in brackets, or in prose ("interval −3.54 to
-            # +5.88" — the form the reviewer's reader sentence uses). Both count.
-            intervals = list(_INTERVAL.finditer(sentence)) + list(_PROSE_INTERVAL.finditer(sentence))
-            for match in _RATE.finditer(sentence):
-                value = match.group(1).replace(MINUS, "-").lstrip("+")
-                if value.lstrip("-") in ALLOWED_BARE:
-                    continue
-                before = sentence[max(0, match.start() - 90):match.start()]
-                if BARE_OK_CONTEXT.search(before) or BARE_OK_CONTEXT.search(
-                        sentence[match.end():match.end() + 60]):
-                    continue
-                # The interval must be ADJACENT to the rate, not merely somewhere later
-                # in the sentence: a sentence quoting three rates and one interval would
-                # otherwise pass. 48 characters is about as far as "30.0% (33 of 110)
-                # [20.0, 40.7]" reaches, and further than that a reader stops connecting
-                # them anyway.
-                if any(0 <= iv.start() - match.end() <= 48 for iv in intervals):
-                    continue
-                bare.append(f"[{name}] {match.group(0)!r} in: ...{sentence.strip()[:150]}")
-    assert not bare, ("rates without an interval in the opening or conclusion:\n"
-                      + "\n".join("  " + b for b in bare[:15]))
+    sections = _flat_sections(text)
+    dead = []
+    for pattern, value_path, _interval_path, _why in RATE_RULES:
+        if not any(re.search(pattern, section) for section in sections.values()):
+            dead.append(pattern[:70])
+    assert not dead, ("binding rules that match nothing in the report:\n"
+                      + "\n".join("  " + d for d in dead))
 
 
-def test_the_completeness_rule_goes_red_on_a_stripped_interval():
-    """A test of the test: remove an interval from the opening and the rule must fire."""
+def _current_claims() -> str:
+    """The report minus its audit trail and deviations, with quoted spans removed.
+
+    The review tables and the deviations quote withdrawn wording on purpose. Quoted spans
+    are denials, not assertions. What remains is what the report says in its own voice.
+    """
     text = REPORT.read_text(encoding="utf-8")
-    stripped = text.replace("**30.0% (33 of 110) [20.0, 40.7]**", "**30.0% (33 of 110)**", 1)
-    assert stripped != text, "the opening sentence changed shape; update this test"
-    saved = REPORT.read_text(encoding="utf-8")
-    try:
-        REPORT.write_text(stripped, encoding="utf-8")
-        fired = False
-        try:
-            test_rates_in_the_opening_and_conclusion_carry_intervals()
-        except AssertionError:
-            fired = True
-        assert fired, "the completeness rule stayed green after an interval was removed"
-    finally:
-        REPORT.write_text(saved, encoding="utf-8")
+    body = text.split("## What was run", 1)[-1]
+    body = body.split("## Deviations from the plan", 1)[0]
+    body = re.sub(r"[“\"][^”\"\n]{0,200}[”\"]", " ", body)
+    return body.lower()
+
+
+def test_report_does_not_claim_exactly_one_contrast_survives():
+    for phrase in ("exactly one contrast clears",
+                   "the only contrast in this study that clears",
+                   "exactly one secondary contrast"):
+        assert phrase not in _current_claims(), phrase
+
+
+def test_report_does_not_reassert_any_withdrawn_claim():
+    for phrase in ("in the limit of unlimited readings", "cannot be seen",
+                   "did not raise accuracy", "never under-covers", "0.95 nominal",
+                   "byte-identical output", "bonferroni/12", "0.00417",
+                   "could not have detected a small one",
+                   "every interval in this report is roughly"):
+        assert phrase not in _current_claims(), phrase
+
+
+def test_report_states_the_correction_threshold_once_in_live_prose():
+    """Once live, plus once in the historical correction table. Both are intended."""
+    text = REPORT.read_text(encoding="utf-8")
+    assert text.count("0.00313") <= 2, text.count("0.00313")
+    assert _current_claims().count("0.00313") == 1, _current_claims().count("0.00313")
+
+
+# ---------------------------------------------------------------------------------
+# Interval completeness, mechanically. Four reviews found bare rates in the opening and
+# the conclusion by hand; this finds them forever.
+# ---------------------------------------------------------------------------------
+
+#: A rate in the opening or the conclusion is matched by exactly one rule below. There is
+#: no context-based exemption: a number is either **bound** to the `numbers.json` array its
+#: interval must come from, or **declared** as a count / exact quantity with a reason. The
+#: fifth review showed why adjacency is not enough — this displacement stayed green:
+#:
+#:     (30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])
+#:
+#: because the guard accepted the false-positive interval sitting ten characters from the
+#: recall rate. Binding each rate to its own key is the only rule that rejects it, and the
+#: displacement is committed below as a regression test.
+_RATE = re.compile(r"(?<![\w.$])([+" + MINUS + r"\-]?\d+(?:\.\d+)?)\s*(%|pp\b|"
+                   r"percentage points\b|points\b)")
+
+#: (regex over the flattened section, value path or None, interval path or None, why).
+#: The regex must capture the rate as group "v" and, for a bound rule, its interval as
+#: groups "lo" and "hi". Every rate the regexes do not cover is a failure.
+_IV = r"\[\s*(?P<lo>[+" + MINUS + r"\-]?\d+\.\d+)\s*,\s*(?P<hi>[+" + MINUS + r"\-]?\d+\.\d+)\s*\]"
+#: Markdown emphasis may sit between a rate and its interval; it is not text.
+_MD = r"[\s*]*"
+C1 = ("ceiling1", "families")
+RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
+    # ---- bound: value and interval both checked against numbers.json ----------------
+    (r"from (?P<v>10\.7)% " + _IV, C1 + ("cross", "P", "draw1_block", "rate"),
+     C1 + ("cross", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"to (?P<v>30\.0)% \(33 of 110\) " + _IV,
+     C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"go from (?P<v>4\.5)% " + _IV, C1 + ("cross", "C", "draw1_block", "rate"),
+     C1 + ("cross", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"to (?P<v>16\.0)% " + _IV + r"\. Its fitted",
+     C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"fitted asymptote is (?P<v>31\.5)% " + _IV, C1 + ("cross", "P", "fit", "A"),
+     C1 + ("cross", "P", "fit_A_ci95"), ""),
+    (r"gained (?P<v>1\.93) points " + _IV,
+     C1 + ("cross", "P", "marginal_gain_last_step"),
+     C1 + ("cross", "P", "last_step_gain_block", "cluster_ci95"), ""),
+    (r"so (?P<v>31\.5)% " + _IV + r" is an\s*extrapolation", C1 + ("cross", "P", "fit", "A"),
+     C1 + ("cross", "P", "fit_A_ci95"), ""),
+    (r"and (?P<v>30\.0)% " + _IV + r" is the number to quote",
+     C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"far lower: (?P<v>15\.5)% " + _IV, C1 + ("self", "P", "draw1_block", "rate"),
+     C1 + ("self", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"(?P<v>17\.3)% \(19 of 110\) " + _IV, C1 + ("self", "P", "union_at_kmax"),
+     C1 + ("self", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"asymptote (?P<v>16\.6)% " + _IV, C1 + ("self", "P", "fit", "A"),
+     C1 + ("self", "P", "fit_A_ci95"), ""),
+    (r"false-positive rate of (?P<v>24\.0)% " + _IV,
+     C1 + ("self", "C", "union_at_kmax"),
+     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"stratum P, is (?P<v>" + MINUS + r"14\.9) points, 95% problem-cluster bootstrap CI " + _IV,
+     ("ceiling1", "primary_ceiling1", "P", "A_self_minus_cross"),
+     ("ceiling1", "primary_ceiling1", "P", "ci95"), ""),
+    (r"(?P<v>" + MINUS + r"12\.7) points " + _IV,
+     ("ceiling1", "primary_ceiling1", "P", "raw_union_diff_at_k_common"),
+     ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"), ""),
+    (r"recalls (?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
+     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"at (?P<v>9\.7)% " + _IV + r" false positives",
+     C1 + ("astra", "C", "draw1_block", "rate"),
+     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"cost \((?P<v>30\.0)% " + _IV, C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"at (?P<v>16\.0)% " + _IV + r"\)\.", C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"56: \+(?P<v>26\.8) points" + r", cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"stratum-P flags \(\+(?P<v>26\.8) points " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"pooled P \+ C flags\s*\(\+(?P<v>19\.6) points " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
+      "ci95"), ""),
+    (r"nets \+(?P<v>8\.04) pp, cluster CI " + _IV,
+     ("ceiling2", "arms", "referent-loop", "net_primary", "delta"),
+     ("ceiling2", "arms", "referent-loop", "net_primary", "ci95"), ""),
+    (r"is \+(?P<v>5\.36) pp, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
+    (r"\((?P<v>51\.8)%, cluster CI " + _IV + r"\) were flagged",
+     ("ceiling1", "residual", "all_families", "share"),
+     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
+    (r"\((?P<v>80\.7)%, problem-cluster CI " + _IV,
+     ("ceiling1", "residual_classified", "all_families", "shares", "unexercised-edge"),
+     ("ceiling1", "residual_classified", "all_families", "cluster_ci95",
+      "unexercised-edge"), ""),
+    (r"54 of 103 \((?P<v>52\.4)% " + _IV,
+     ("timeout_sensitivity", "residual_assertion_only", "rate"),
+     ("timeout_sensitivity", "residual_assertion_only", "cluster_ci95"), ""),
+    (r"57 of 110 \((?P<v>51\.8)% " + _IV + r"\)\.",
+     ("timeout_sensitivity", "residual_registered", "rate"),
+     ("timeout_sensitivity", "residual_registered", "cluster_ci95"), ""),
+    (r"accuracy \(\+(?P<v>0\.89) pp, cluster\s+CI " + _IV,
+     ("ceiling2", "arms", "self-loop", "net_primary", "delta"),
+     ("ceiling2", "arms", "self-loop", "net_primary", "ci95"), ""),
+    (r"higher\s*\((?P<v>24\.0)% " + _IV, C1 + ("self", "C", "union_at_kmax"),
+     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"against (?P<v>16\.0)% " + _IV + r"\);", C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"recall \((?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
+     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
+    (r"against (?P<v>30\.0)% " + _IV + r"\)", C1 + ("cross", "P", "union_at_kmax"),
+     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"cost \((?P<v>9\.7)% " + _IV, C1 + ("astra", "C", "draw1_block", "rate"),
+     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
+    (r"that (?P<v>51\.8)% " + _IV + r" of this defect population",
+     ("ceiling1", "residual", "all_families", "share"),
+     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
+    (r"flagged, by more than anything else tried \(\+(?P<v>26\.8) points on "
+     r"stratum-P flags, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
+      "ci95"), ""),
+    (r"\(\+(?P<v>5\.36) pp against cross-loop, cluster CI " + _IV,
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
+     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
+    # ---- declared: not estimates, so no interval is owed. Each says why. -------------
+    (r'headline\'s "(?P<v>95)% exact" interval', None, None,
+     "a nominal confidence level, not an estimate"),
+    (r"suite by \+(?P<v>0\.89) percentage points \(95% problem-cluster", None, None,
+     "bound by BOUND_SPANS, which checks all three headline intervals together"),
+    (r"\+0\.89 percentage points \((?P<v>95)% problem-cluster", None, None,
+     "a nominal confidence level, not an estimate"),
+    (r"accuracy by \+(?P<v>0\.89) percentage points \(problem-cluster percentile "
+     r"interval", None, None,
+     "the reader sentence, whose interval is stated in prose and checked by BOUND_SPANS"),
+    (r"0\.32 at \+(?P<v>5) points is limited", None, None,
+     "a power-curve abscissa: an exact quantity from numbers.json/power, not an estimate"),
+    (r"below about (?P<v>7) points would probably", None, None,
+     "a rounded reading of the power curve, stated as approximate in the sentence"),
+    (r"is " + MINUS + r"14\.9 points, (?P<v>95)% problem-cluster", None, None,
+     "a nominal confidence level, not an estimate"),
+]
+
+
+def _sections(text: str) -> dict[str, str]:
+    """The opening (before the audit trail) and the conclusion.
+
+    These are the two places a reader meets a number without a table around it, so they
+    are where every rate must be bound. The audit trail and the deviations quote withdrawn
+    figures on purpose and are excluded.
+    """
+    opening = text.split("## What the review changed", 1)[0]
+    tail = text.split("## What this study licenses, and what it does not", 1)
+    conclusion = (tail[1].split("### Where this sits beside the earlier record", 1)[0]
+                  if len(tail) > 1 else "")
+    return {"opening": opening, "conclusion": conclusion}
+
+
+def _normalise(section: str) -> str:
+    """Flatten and strip markdown, so a binding pattern is written against prose.
+
+    Emphasis, code ticks and blockquote markers carry no meaning for a number and made
+    every pattern brittle: `**+26.8 points**, cluster CI [...]` needed a different regex
+    from `+26.8 points [...]` for the same claim. Removing them once is more robust than
+    encoding them 36 times, and it keeps the rate scan and the rule matching on identical
+    offsets.
+    """
+    cleaned = section.replace("\n", " ")
+    cleaned = re.sub(r"[*`>]", "", cleaned)
+    return re.sub(r"\s+", " ", cleaned)
+
+
+def _flat_sections(text: str) -> dict[str, str]:
+    return {k: _normalise(v) for k, v in _sections(text).items()}
+
+
+def _digit_pos(section: str, start: int) -> int:
+    """The index of the first digit at or after `start`.
+
+    Rules capture the magnitude (`\\+(?P<v>26\\.8)`) while the rate scanner captures the
+    sign too (`+26.8`), so the two disagree by one character on every signed number.
+    Anchoring both on the first digit is what makes them comparable.
+    """
+    while start < len(section) and not section[start].isdigit():
+        start += 1
+    return start
+
+
+def check_rate_bindings(text: str, numbers: dict) -> list[str]:
+    """Every rate in the opening and conclusion, bound to its own key or declared."""
+    problems = []
+    for name, section in _flat_sections(text).items():
+        covered: dict[int, str] = {}
+        for pattern, value_path, interval_path, why in RATE_RULES:
+            for match in re.finditer(pattern, section):
+                covered[_digit_pos(section, match.start("v"))] = pattern
+                if value_path is None:
+                    continue
+                quoted, decimals = _parse(match.group("v"))
+                try:
+                    stored_value = 100 * _at_scalar(numbers, value_path)
+                    stored_iv = _at(numbers, interval_path)
+                except (KeyError, IndexError, TypeError) as exc:
+                    problems.append(f"[{name}] path missing for {match.group('v')!r}: "
+                                    f"{value_path} / {interval_path} ({exc})")
+                    continue
+                if round(quoted, decimals) != round(stored_value, decimals):
+                    problems.append(
+                        f"[{name}] {match.group('v')!r} is bound to "
+                        f"{'.'.join(map(str, value_path))} = "
+                        f"{stored_value:.{decimals}f}")
+                lo, dlo = _parse(match.group("lo"))
+                hi, dhi = _parse(match.group("hi"))
+                if not _matches((lo, hi), stored_iv, (dlo, dhi)):
+                    problems.append(
+                        f"[{name}] the interval beside {match.group('v')!r} is "
+                        f"[{lo}, {hi}] but {'.'.join(map(str, interval_path))} is "
+                        f"[{stored_iv[0]:.{dlo}f}, {stored_iv[1]:.{dhi}f}]")
+        for match in _RATE.finditer(section):
+            if _digit_pos(section, match.start(1)) in covered:
+                continue
+            problems.append(f"[{name}] UNBOUND rate {match.group(0)!r}: no rule binds it "
+                            f"to a numbers.json key and none declares it exempt "
+                            f"(...{section[max(0, match.start() - 70):match.end() + 30]})")
+    return problems
+
+
+def _at_scalar(numbers, path):
+    node = numbers
+    for key in path:
+        node = node[key]
+    return node
+
+
+def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys():
+    """Every rate in the opening and conclusion is bound to the array its interval must
+    come from, or explicitly declared a count/exact quantity with a reason.
+
+    Adjacency is not acceptance. Five reviews found bare or wrongly-supported rates here;
+    binding each one to its own key is what makes a fourth instance impossible.
+    """
+    numbers = json.loads(NUMBERS.read_text(encoding="utf-8"))
+    problems = check_rate_bindings(REPORT.read_text(encoding="utf-8"), numbers)
+    assert not problems, ("rates that are not bound to their own key:\n"
+                          + "\n".join("  " + p for p in problems[:20]))
 
 
 if __name__ == "__main__":

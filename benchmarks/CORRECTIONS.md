@@ -490,3 +490,34 @@ conclusion. It is now struck through in place and marked superseded, rather than
 so the deviation record shows what it said. **The live claim is the per-method,
 per-scenario coverage table, plus the statement that coverage under the actual clustered
 design is unvalidated.**
+
+**24. Study 8 published two different intervals for the same number.**
+The residual share — 57 of 110 stratum-P instances flagged by no reading — was bootstrapped
+twice: once by the residual analysis (seed 20260912, **[40.0, 63.3]**) and again by the
+timeout-sensitivity table's registered column (seed 20260923, **[40.4, 63.6]**). Both are
+valid bootstrap estimates of the same estimand on the same data; they differ only by seed.
+The report quoted each in different places as *the* interval for that number. The same
+duplication affected the registered union recalls.
+
+**Both code paths now use the canonical seed**, so the sensitivity table's registered column
+is identical to the tables it is meant to be compared against, rather than a second
+bootstrap of the same quantity. The published figure for the residual share is
+**51.8% (57 of 110), problem-cluster CI [40.0, 63.3]**.
+
+This was found while binding every rate in the report's opening and conclusion to the
+specific `numbers.json` array its interval must come from. **No reviewer had caught it, and
+no earlier guard could have**: both intervals were real numbers genuinely present in the
+record, and every check up to that point asked only whether a quoted interval existed
+somewhere — not whether it belonged to the number beside it.
+
+**25. A note on how the last four of these corrections were found.**
+Items 15, 17, 20 and 21 were found by cross-vendor review. Items 22–24 were found by
+**tests written in response to those reviews**, after each review's specific complaint was
+generalised into a rule the machine could apply: pin the withdrawn methods' coverages, bind
+every rate to its own key, generate the seed inventory from the code. Two of those three
+rules found defects nobody had reported.
+
+The generalisable lesson for this programme, stated because it is the programme's own
+subject: **the reviews did not just find defects, they identified the class of defect the
+author's checks could not see. Converting each finding into a mechanical rule — rather than
+fixing the instance — is what turned an external check into an internal one.**
