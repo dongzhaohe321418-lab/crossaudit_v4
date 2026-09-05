@@ -310,17 +310,21 @@ RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
     (r"stratum P, is (?P<v>" + MINUS + r"14\.9) points, 95% problem-cluster bootstrap CI " + _IV,
      ("ceiling1", "primary_ceiling1", "P", "A_self_minus_cross"),
      ("ceiling1", "primary_ceiling1", "P", "ci95"), ""),
-    (r"(?P<v>" + MINUS + r"12\.7) points " + _IV,
+    (r"readings, is (?P<v>" + MINUS + r"12\.7) points " + _IV,
+     ("ceiling1", "primary_ceiling1", "P", "raw_union_diff_at_k_common"),
+     ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"), ""),
+    (r"stranger's \(raw (?P<v>" + MINUS + r"12\.7) points " + _IV,
      ("ceiling1", "primary_ceiling1", "P", "raw_union_diff_at_k_common"),
      ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"), ""),
     (r"recalls (?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
      C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"at (?P<v>9\.7)% " + _IV + r" false positives",
+    (r"recalls 30\.2% \[[^\]]*\] at (?P<v>9\.7)% " + _IV + r" false positives",
      C1 + ("astra", "C", "draw1_block", "rate"),
      C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
     (r"cost \((?P<v>30\.0)% " + _IV, C1 + ("cross", "P", "union_at_kmax"),
      C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"at (?P<v>16\.0)% " + _IV + r"\)\.", C1 + ("cross", "C", "union_at_kmax"),
+    (r"false-positive cost \(30\.0% \[[^\]]*\] at (?P<v>16\.0)% " + _IV + r"\)\.",
+     C1 + ("cross", "C", "union_at_kmax"),
      C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
     (r"56: \+(?P<v>26\.8) points" + r", cluster CI " + _IV,
      ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
@@ -359,15 +363,23 @@ RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
     (r"accuracy \(\+(?P<v>0\.89) pp, cluster\s+CI " + _IV,
      ("ceiling2", "arms", "self-loop", "net_primary", "delta"),
      ("ceiling2", "arms", "self-loop", "net_primary", "ci95"), ""),
-    (r"higher\s*\((?P<v>24\.0)% " + _IV, C1 + ("self", "C", "union_at_kmax"),
-     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"against (?P<v>16\.0)% " + _IV + r"\);", C1 + ("cross", "C", "union_at_kmax"),
+    (r"higher \(24\.0% \[[^\]]*\] against (?P<v>16\.0)% " + _IV + r"\);",
+     C1 + ("cross", "C", "union_at_kmax"),
      C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"recall \((?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
+    (r"false-positive rate was higher \((?P<v>24\.0)% " + _IV,
+     C1 + ("self", "C", "union_at_kmax"),
+     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"cost \(9\.7% \[[^\]]*\] against (?P<v>16\.0)% " + _IV + r"\);",
+     C1 + ("cross", "C", "union_at_kmax"),
+     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
+    (r"one frontier reading matched eight shipped readings on recall \((?P<v>30\.2)% "
+     + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
      C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"against (?P<v>30\.0)% " + _IV + r"\)", C1 + ("cross", "P", "union_at_kmax"),
+    (r"on recall \(30\.2% \[[^\]]*\] against (?P<v>30\.0)% " + _IV + r"\)",
+     C1 + ("cross", "P", "union_at_kmax"),
      C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"cost \((?P<v>9\.7)% " + _IV, C1 + ("astra", "C", "draw1_block", "rate"),
+    (r"at lower false-positive cost \((?P<v>9\.7)% " + _IV,
+     C1 + ("astra", "C", "draw1_block", "rate"),
      C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
     (r"that (?P<v>51\.8)% " + _IV + r" of this defect population",
      ("ceiling1", "residual", "all_families", "share"),
@@ -388,9 +400,16 @@ RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
      "bound by BOUND_SPANS, which checks all three headline intervals together"),
     (r"\+0\.89 percentage points \((?P<v>95)% problem-cluster", None, None,
      "a nominal confidence level, not an estimate"),
+    # The reader sentence states its interval in prose, so it needs a prose-form rule.
+    # It previously carried a DECLARATION claiming BOUND_SPANS checked it; BOUND_SPANS
+    # checks the separate headline, so the reader sentence's interval was unbound and
+    # could be replaced with "+1.00 to +2.00" or deleted outright with every test green.
+    # The sixth cross-vendor review found that. Both mutations are now regression tests.
     (r"accuracy by \+(?P<v>0\.89) percentage points \(problem-cluster percentile "
-     r"interval", None, None,
-     "the reader sentence, whose interval is stated in prose and checked by BOUND_SPANS"),
+     r"interval (?P<lo>[+" + MINUS + r"\-]?\d+\.\d+) to (?P<hi>[+" + MINUS +
+     r"\-]?\d+\.\d+);",
+     ("ceiling2", "arms", "self-loop", "net_primary", "delta"),
+     ("ceiling2", "arms", "self-loop", "net_primary", "ci95"), ""),
     (r"0\.32 at \+(?P<v>5) points is limited", None, None,
      "a power-curve abscissa: an exact quantity from numbers.json/power, not an estimate"),
     (r"below about (?P<v>7) points would probably", None, None,
@@ -557,6 +576,57 @@ def test_the_binding_rejects_a_wrong_value_with_a_right_interval():
     assert _binding_problems(mutated), "the guard accepted a rate that is not its key"
 
 
+def test_the_binding_rejects_a_tampered_reader_sentence():
+    """The sixth review's two counterexamples, committed.
+
+    The reader sentence states its interval in prose, and a declaration used to claim
+    BOUND_SPANS checked it. BOUND_SPANS checks the separate headline, so this sentence's
+    interval was unbound: it could be replaced with a fabricated range, or deleted, with
+    all twelve tests green. It is the single sentence the report asks a reader to carry
+    away, which makes it the worst possible thing to leave unchecked.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    for before, after in (
+            ("percentile interval " + MINUS + "3.54 to +5.88",
+             "percentile interval +1.00 to +2.00"),
+            ("percentile interval " + MINUS + "3.54 to +5.88;",
+             "percentile interval omitted;")):
+        mutated = original.replace(before, after, 1)
+        assert mutated != original, f"the reader sentence changed shape: {before!r}"
+        assert _binding_problems(mutated), \
+            f"the guard stayed green after {after!r}"
+
+
+def test_the_binding_rejects_a_reused_label_on_the_wrong_family():
+    """The sixth review's insertion, committed.
+
+    A rule anchored on "cost (" bound this sentence to *astra's one-reading* array, when
+    the shipped auditor's eight-reading value is 16.0% [10.1, 22.3]. A label that occurs
+    for more than one family or reading count must match on family and reading count.
+    """
+    original = REPORT.read_text(encoding="utf-8")
+    insertion = ("The shipped auditor's eight-reading false-positive cost "
+                 "(9.7% [5.3, 14.5]) was lower still. ")
+    anchor_text = "**It does not license** the claim that those defects cannot be found."
+    assert anchor_text in original, "the conclusion changed shape; update this test"
+    mutated = original.replace(anchor_text, insertion + anchor_text, 1)
+    assert _binding_problems(mutated), \
+        "a false claim bound itself to another family's array and passed"
+
+
+def test_no_binding_rule_matches_more_than_once():
+    """Each rule identifies one occurrence. A second match means new prose slipped under
+    an existing rule's anchor — which is how the reused-label counterexample got in."""
+    sections = _flat_sections(REPORT.read_text(encoding="utf-8"))
+    multiple = []
+    for pattern, _value, _interval, _why in RATE_RULES:
+        hits = sum(len(re.findall(pattern, section)) for section in sections.values())
+        if hits > 1:
+            multiple.append(f"{hits} matches: {pattern[:70]}")
+    assert not multiple, ("binding rules matching more than once:\n"
+                          + "\n".join("  " + m for m in multiple))
+
+
 def test_every_bound_rule_actually_fires():
     """A rule that matches nothing is a rule that guards nothing.
 
@@ -614,148 +684,6 @@ def test_report_states_the_correction_threshold_once_in_live_prose():
 # the conclusion by hand; this finds them forever.
 # ---------------------------------------------------------------------------------
 
-#: A rate in the opening or the conclusion is matched by exactly one rule below. There is
-#: no context-based exemption: a number is either **bound** to the `numbers.json` array its
-#: interval must come from, or **declared** as a count / exact quantity with a reason. The
-#: fifth review showed why adjacency is not enough — this displacement stayed green:
-#:
-#:     (30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])
-#:
-#: because the guard accepted the false-positive interval sitting ten characters from the
-#: recall rate. Binding each rate to its own key is the only rule that rejects it, and the
-#: displacement is committed below as a regression test.
-_RATE = re.compile(r"(?<![\w.$])([+" + MINUS + r"\-]?\d+(?:\.\d+)?)\s*(%|pp\b|"
-                   r"percentage points\b|points\b)")
-
-#: (regex over the flattened section, value path or None, interval path or None, why).
-#: The regex must capture the rate as group "v" and, for a bound rule, its interval as
-#: groups "lo" and "hi". Every rate the regexes do not cover is a failure.
-_IV = r"\[\s*(?P<lo>[+" + MINUS + r"\-]?\d+\.\d+)\s*,\s*(?P<hi>[+" + MINUS + r"\-]?\d+\.\d+)\s*\]"
-#: Markdown emphasis may sit between a rate and its interval; it is not text.
-_MD = r"[\s*]*"
-C1 = ("ceiling1", "families")
-RATE_RULES: list[tuple[str, tuple | None, tuple | None, str]] = [
-    # ---- bound: value and interval both checked against numbers.json ----------------
-    (r"from (?P<v>10\.7)% " + _IV, C1 + ("cross", "P", "draw1_block", "rate"),
-     C1 + ("cross", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"to (?P<v>30\.0)% \(33 of 110\) " + _IV,
-     C1 + ("cross", "P", "union_at_kmax"),
-     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"go from (?P<v>4\.5)% " + _IV, C1 + ("cross", "C", "draw1_block", "rate"),
-     C1 + ("cross", "C", "draw1_block", "cluster_ci95"), ""),
-    (r"to (?P<v>16\.0)% " + _IV + r"\. Its fitted",
-     C1 + ("cross", "C", "union_at_kmax"),
-     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"fitted asymptote is (?P<v>31\.5)% " + _IV, C1 + ("cross", "P", "fit", "A"),
-     C1 + ("cross", "P", "fit_A_ci95"), ""),
-    (r"gained (?P<v>1\.93) points " + _IV,
-     C1 + ("cross", "P", "marginal_gain_last_step"),
-     C1 + ("cross", "P", "last_step_gain_block", "cluster_ci95"), ""),
-    (r"so (?P<v>31\.5)% " + _IV + r" is an\s*extrapolation", C1 + ("cross", "P", "fit", "A"),
-     C1 + ("cross", "P", "fit_A_ci95"), ""),
-    (r"and (?P<v>30\.0)% " + _IV + r" is the number to quote",
-     C1 + ("cross", "P", "union_at_kmax"),
-     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"far lower: (?P<v>15\.5)% " + _IV, C1 + ("self", "P", "draw1_block", "rate"),
-     C1 + ("self", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"(?P<v>17\.3)% \(19 of 110\) " + _IV, C1 + ("self", "P", "union_at_kmax"),
-     C1 + ("self", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"asymptote (?P<v>16\.6)% " + _IV, C1 + ("self", "P", "fit", "A"),
-     C1 + ("self", "P", "fit_A_ci95"), ""),
-    (r"false-positive rate of (?P<v>24\.0)% " + _IV,
-     C1 + ("self", "C", "union_at_kmax"),
-     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"stratum P, is (?P<v>" + MINUS + r"14\.9) points, 95% problem-cluster bootstrap CI " + _IV,
-     ("ceiling1", "primary_ceiling1", "P", "A_self_minus_cross"),
-     ("ceiling1", "primary_ceiling1", "P", "ci95"), ""),
-    (r"(?P<v>" + MINUS + r"12\.7) points " + _IV,
-     ("ceiling1", "primary_ceiling1", "P", "raw_union_diff_at_k_common"),
-     ("ceiling1", "primary_ceiling1", "P", "raw_diff_ci95"), ""),
-    (r"recalls (?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
-     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"at (?P<v>9\.7)% " + _IV + r" false positives",
-     C1 + ("astra", "C", "draw1_block", "rate"),
-     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
-    (r"cost \((?P<v>30\.0)% " + _IV, C1 + ("cross", "P", "union_at_kmax"),
-     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"at (?P<v>16\.0)% " + _IV + r"\)\.", C1 + ("cross", "C", "union_at_kmax"),
-     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"56: \+(?P<v>26\.8) points" + r", cluster CI " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "ci95"), ""),
-    (r"stratum-P flags \(\+(?P<v>26\.8) points " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "ci95"), ""),
-    (r"pooled P \+ C flags\s*\(\+(?P<v>19\.6) points " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
-      "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "all",
-      "ci95"), ""),
-    (r"nets \+(?P<v>8\.04) pp, cluster CI " + _IV,
-     ("ceiling2", "arms", "referent-loop", "net_primary", "delta"),
-     ("ceiling2", "arms", "referent-loop", "net_primary", "ci95"), ""),
-    (r"is \+(?P<v>5\.36) pp, cluster CI " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
-    (r"\((?P<v>51\.8)%, cluster CI " + _IV + r"\) were flagged",
-     ("ceiling1", "residual", "all_families", "share"),
-     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
-    (r"\((?P<v>80\.7)%, problem-cluster CI " + _IV,
-     ("ceiling1", "residual_classified", "all_families", "shares", "unexercised-edge"),
-     ("ceiling1", "residual_classified", "all_families", "cluster_ci95",
-      "unexercised-edge"), ""),
-    (r"54 of 103 \((?P<v>52\.4)% " + _IV,
-     ("timeout_sensitivity", "residual_assertion_only", "rate"),
-     ("timeout_sensitivity", "residual_assertion_only", "cluster_ci95"), ""),
-    (r"57 of 110 \((?P<v>51\.8)% " + _IV + r"\)\.",
-     ("timeout_sensitivity", "residual_registered", "rate"),
-     ("timeout_sensitivity", "residual_registered", "cluster_ci95"), ""),
-    (r"accuracy \(\+(?P<v>0\.89) pp, cluster\s+CI " + _IV,
-     ("ceiling2", "arms", "self-loop", "net_primary", "delta"),
-     ("ceiling2", "arms", "self-loop", "net_primary", "ci95"), ""),
-    (r"higher\s*\((?P<v>24\.0)% " + _IV, C1 + ("self", "C", "union_at_kmax"),
-     C1 + ("self", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"against (?P<v>16\.0)% " + _IV + r"\);", C1 + ("cross", "C", "union_at_kmax"),
-     C1 + ("cross", "C", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"recall \((?P<v>30\.2)% " + _IV, C1 + ("astra", "P", "draw1_block", "rate"),
-     C1 + ("astra", "P", "draw1_block", "cluster_ci95"), ""),
-    (r"against (?P<v>30\.0)% " + _IV + r"\)", C1 + ("cross", "P", "union_at_kmax"),
-     C1 + ("cross", "P", "union_at_kmax_block", "cluster_ci95"), ""),
-    (r"cost \((?P<v>9\.7)% " + _IV, C1 + ("astra", "C", "draw1_block", "rate"),
-     C1 + ("astra", "C", "draw1_block", "cluster_ci95"), ""),
-    (r"that (?P<v>51\.8)% " + _IV + r" of this defect population",
-     ("ceiling1", "residual", "all_families", "share"),
-     ("ceiling1", "residual", "all_families", "share_block", "cluster_ci95"), ""),
-    (r"flagged, by more than anything else tried \(\+(?P<v>26\.8) points on "
-     r"stratum-P flags, cluster CI " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "flag_discordance", "P",
-      "ci95"), ""),
-    (r"\(\+(?P<v>5\.36) pp against cross-loop, cluster CI " + _IV,
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "delta"),
-     ("ceiling2", "contrasts", "referent-loop__vs__cross-loop", "ci95"), ""),
-    # ---- declared: not estimates, so no interval is owed. Each says why. -------------
-    (r'headline\'s "(?P<v>95)% exact" interval', None, None,
-     "a nominal confidence level, not an estimate"),
-    (r"suite by \+(?P<v>0\.89) percentage points \(95% problem-cluster", None, None,
-     "bound by BOUND_SPANS, which checks all three headline intervals together"),
-    (r"\+0\.89 percentage points \((?P<v>95)% problem-cluster", None, None,
-     "a nominal confidence level, not an estimate"),
-    (r"accuracy by \+(?P<v>0\.89) percentage points \(problem-cluster percentile "
-     r"interval", None, None,
-     "the reader sentence, whose interval is stated in prose and checked by BOUND_SPANS"),
-    (r"0\.32 at \+(?P<v>5) points is limited", None, None,
-     "a power-curve abscissa: an exact quantity from numbers.json/power, not an estimate"),
-    (r"below about (?P<v>7) points would probably", None, None,
-     "a rounded reading of the power curve, stated as approximate in the sentence"),
-    (r"is " + MINUS + r"14\.9 points, (?P<v>95)% problem-cluster", None, None,
-     "a nominal confidence level, not an estimate"),
-]
 
 
 def _sections(text: str) -> dict[str, str]:

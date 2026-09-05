@@ -33,57 +33,67 @@ sys.path.insert(0, str(CODE.parent / "expertlongbench"))
 CEILING = CODE / "records" / "ceiling"
 
 
-def _observed_seeds() -> dict:
-    """The seeds the analysis ACTUALLY consumes, recorded by instrumenting the run.
+def _observed_seeds(run_dir: Path) -> dict:
+    """Every seed the analysis ACTUALLY consumes, by instrumenting `random.Random`.
 
-    Hand-written ranges were wrong twice — the fifth review found `K = 8..16` where the
-    curve uses K = 1..8, and comparator totals listed as a contiguous range when only
-    2, 3, 4, 6 and 8 occur. So the inventory is no longer written by hand: every call to
-    the bootstrap is wrapped, its seed logged, and the manifest records the observed set.
+    An earlier version wrapped only `cluster_bootstrap_ci`, and therefore missed every
+    generator built anywhere else — including the sampled sign-flip fallback. The manifest
+    then declared seed BOOT_SEED + 7 unused, while `numbers.json` recorded, in plain text,
+    that the pooled self-cross flag contrast has 25 non-zero clusters and used
+    "sampled, 200000 draws, seed 20260915". A claim contradicted by the same file it
+    shipped in. The sixth cross-vendor review found it.
+
+    Instrumenting the *constructor* rather than one call site is what makes the inventory
+    a measurement instead of an assertion: any future random path is caught without
+    anyone remembering to wrap it.
     """
+    import random as _random
     import report_ceiling as rc
 
-    seen: list[int] = []
-    original = rc.cluster_bootstrap_ci
+    seen: list = []
 
-    def spy(values_by_cluster, reps, seed, alpha=0.05):
-        seen.append(seed)
-        return original(values_by_cluster, reps, seed, alpha)
+    class _SpyRandom(_random.Random):
+        def __init__(self, seed=None, *args, **kwargs):
+            seen.append(seed)
+            super().__init__(seed, *args, **kwargs)
 
-    rc.cluster_bootstrap_ci = spy
+    class _ShimModule:
+        """`random`, with Random instrumented. Everything else passes through."""
+
+        Random = _SpyRandom
+
+        def __getattr__(self, name):
+            return getattr(_random, name)
+
+    original_module = rc.random
+    saved_bootstrap, saved_exact = rc.BOOTSTRAP, rc.EXACT_UNCONDITIONAL
+    rc.random = _ShimModule()
     try:
-        # a cheap pass: 2 resamples is enough to exercise every call site
-        rc.BOOTSTRAP = 2
+        rc.BOOTSTRAP = 2               # 2 resamples exercises every call site cheaply
         rc.EXACT_UNCONDITIONAL = False
         instances = rc.load_instances()
         audit_set = rc.load_audit_set()
         rc.analyse_ceiling1(instances, audit_set)
         rc.analyse_ceiling2(instances)
-        rc.timeout_sensitivity(instances, audit_set,
-                               Path(sys.argv[sys.argv.index("--run") + 1]), reps=2)
+        rc.timeout_sensitivity(instances, audit_set, run_dir, reps=2)
     except Exception as exc:  # noqa: BLE001
         return {"observed_seeds_error": f"AUTHOR_INPUT_NEEDED: {type(exc).__name__}: {exc}"}
     finally:
-        rc.cluster_bootstrap_ci = original
-        rc.BOOTSTRAP = 10000
-        rc.EXACT_UNCONDITIONAL = True
-    unique = sorted(set(seen))
+        rc.random = original_module
+        rc.BOOTSTRAP, rc.EXACT_UNCONDITIONAL = saved_bootstrap, saved_exact
+
+    numeric = sorted({s for s in seen if isinstance(s, int)})
     return {
-        "observed_seeds": unique,
-        "observed_seed_count": len(unique),
-        "observed_bootstrap_calls": len(seen),
-        "observed_seed_range": [min(unique), max(unique)] if unique else None,
-        "reconciliation": "every seed in observed_seeds is named in derived_offsets. "
-                          "Five named seeds are NOT observed, each for a stated reason: "
-                          "+1 is drawn by an inline generator rather than by "
-                          "cluster_bootstrap_ci; +2 has been unused since amendment 4; "
-                          "+7 is a fallback no contrast in this study reaches; and +14 "
-                          "and +15 were retired when the registered-population figures "
-                          "were made canonical.",
-        "how_observed": "every call to report_ceiling.cluster_bootstrap_ci was wrapped "
-                        "during a 2-resample pass and its seed recorded. This is the set "
-                        "the analysis consumes, not a hand-written range: the fifth "
-                        "cross-vendor review found two hand-written ranges wrong.",
+        "observed_seeds": numeric,
+        "observed_seed_count": len(numeric),
+        "observed_generator_constructions": len(seen),
+        "observed_seed_range": [min(numeric), max(numeric)] if numeric else None,
+        "how_observed": "`random.Random` was replaced by an instrumented subclass for a "
+                        "2-resample pass over analyse_ceiling1, analyse_ceiling2 and "
+                        "timeout_sensitivity, and every constructed seed recorded. This "
+                        "counts EVERY generator, not only the bootstrap: an earlier "
+                        "version wrapped one call site and wrongly declared "
+                        "BOOT_SEED + 7 unused.",
     }
 
 
@@ -236,7 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True,
                           text=True).stdout.strip()
     shared = {
-        "analysis_seeds": _observed_seeds() | {
+        "analysis_seeds": _observed_seeds(run_dir) | {
             "bootstrap": 20260908,
             "derived_offsets": {
                 "BOOT_SEED": 20260908,
@@ -263,12 +273,17 @@ def main(argv: list[str] | None = None) -> int:
                                                                "20260966 — totals 2, 3, "
                                                                "4, 6, 8 only",
                 "+60 last-step gain": 20260968,
-                "+7  sign-flip sampling fallback": "20260915 — reached only when a "
-                                                   "contrast has more than 22 non-zero "
-                                                   "problem clusters. No contrast in this "
-                                                   "study does, so every sign-flip p is "
-                                                   "exact enumeration and this seed is "
-                                                   "never drawn.",
+                "+7  sign-flip sampling fallback": "20260915 — CONSUMED. The pooled "
+                                                   "self-cross flag contrast has 25 "
+                                                   "non-zero problem clusters, above the "
+                                                   "22-cluster exact-enumeration bound, "
+                                                   "so its sign-flip p is sampled: "
+                                                   "200,000 draws, p = 0.1237. An earlier "
+                                                   "version of this inventory declared "
+                                                   "this seed never drawn, contradicting "
+                                                   "numbers.json, which records the "
+                                                   "sampling in plain text. Found by the "
+                                                   "sixth cross-vendor review.",
                 "+1  primary asymptote difference": "20260909 — consumed by an inline "
                                                     "random.Random in analyse_ceiling1, "
                                                     "not by cluster_bootstrap_ci, so it "

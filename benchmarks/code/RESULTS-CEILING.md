@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Sixth version.** Five independent cross-vendor reviews have read this study. Rounds 1
+> **Seventh version.** Six independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2, and no
 > point estimate has changed since the first version. Round 5's corrections included one
@@ -147,6 +147,21 @@ corrected report.
 **What did not change: any point estimate.** The asymptotes, the union curves, the primary
 difference, the arm nets, the residual counts and the classification are identical to the
 first version. What changed is what may be claimed around them.
+
+### What the sixth review changed
+
+Round 6 reproduced everything — the four changed arrays equalling their canonical
+counterparts, 302 byte-identical, 533 scalars unchanged, five mutations red, 32 seeds over
+196 bootstrap calls with the three corrected ranges, 33 tests, byte-identical regeneration
+— and approved subject to three corrections. All three reproduced first.
+
+| # | Finding | Reproduced | What changed |
+|---|---|---|---|
+| 1 | **The reader sentence's interval was never bound.** A declaration claimed the headline mechanism checked it; that mechanism checks a different sentence. Replacing `−3.54 to +5.88` with `+1.00 to +2.00`, or deleting it, left all 12 tests green. And a **reused label** bound a rate to the wrong family: an inserted sentence attributing astra's 9.7% [5.3, 14.5] to the shipped auditor's eight readings (16.0% [10.1, 22.3]) also passed | all three reproduced | The reader sentence is bound to `ceiling2.arms.self-loop.net_primary.ci95`, with its prose "to"-form parsed. Every reused label now carries its discriminating family and reading count. A further test fails if **any binding rule matches more than once** — which is how new prose slips under an existing anchor — and that test immediately found a legitimate duplicate to split. All three counterexamples are committed |
+| 2 | **Seed 20260915 is consumed**, not unused: the pooled self−cross flag contrast has 25 non-zero clusters and uses the sampled sign-flip path. The manifest's claim was contradicted by `numbers.json` in plain text | verified | The inventory now instruments **`random.Random` itself**, not one call site, so every generator is counted whatever builds it: **34 seeds over 205 constructions**, against 32 over 196 from the narrower instrument. `+7` is recorded as consumed with its sample size and p |
+| 3 | **`CORRECTIONS.md` #25 misattributed discoveries**, crediting tests for what round 4 had explicitly reported | verified against round 4's report | #25 is replaced with a per-item table naming who found each defect. Six of the nine were cross-vendor findings; one was the author's, and only because a reviewer had demanded the mechanism that exposed it |
+
+While fixing item 1, a defect in the test file itself came to light: **the binding rules had been duplicated**, with the second copy silently overriding the first. Both copies were identical, so no check was wrong — but the file was 142 lines of dead code that could have diverged. Deduplicated.
 
 ### What the fifth review changed
 
@@ -754,6 +769,29 @@ only totals 2, 3, 4, 6 and 8 occur, and the union-curve range was given as K = 8
 the curve uses K = 1..8. Every bootstrap call is now wrapped during a cheap pass and its
 seed recorded; the manifest carries the observed set (32 seeds across 196 calls) and
 reconciles every hand-written entry against it.
+
+**28. The single sentence the report asks a reader to carry away was the one sentence no
+check covered.** A declaration in the consistency guard said the reader sentence's interval
+was verified by the mechanism that binds the headline; that mechanism binds a different
+sentence. The interval could be replaced with a fabricated range, or removed, with every
+test passing. Fixed by binding it explicitly and parsing its prose "to"-form. *There is no
+bias direction here: the sentence was correct throughout. What was wrong was the claim that
+anything was checking it.*
+
+**29. A binding label was reused across families, so a rate could be bound to another
+family's array.** A rule anchored on the words "cost (" matched any family's
+false-positive cost. The sixth review inserted a sentence attributing `astra`'s
+one-reading 9.7% [5.3, 14.5] to the shipped auditor's eight readings — whose value is
+16.0% [10.1, 22.3] — and it passed. Every reused label now carries its family and reading
+count, and a test fails if any rule matches more than once.
+
+**30. The seed inventory instrumented one call site instead of the constructor, and so
+declared a consumed seed unused.** Both manifests said no contrast exceeds 22 non-zero
+clusters and `BOOT_SEED + 7` is never drawn. `numbers.json` recorded, in the same commit,
+that the pooled self−cross flag contrast has 25 non-zero clusters and used "sampled,
+200000 draws, seed 20260915". The instrument now wraps `random.Random` itself: **34 seeds
+over 205 constructions**. *A claim contradicted by the file it shipped beside is the
+cheapest kind of defect to prevent and this study shipped it twice — see also deviation 26.*
 
 ### The beta-tail defect, stated exactly
 

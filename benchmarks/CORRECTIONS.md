@@ -510,14 +510,64 @@ no earlier guard could have**: both intervals were real numbers genuinely presen
 record, and every check up to that point asked only whether a quoted interval existed
 somewhere — not whether it belonged to the number beside it.
 
-**25. A note on how the last four of these corrections were found.**
-Items 15, 17, 20 and 21 were found by cross-vendor review. Items 22–24 were found by
-**tests written in response to those reviews**, after each review's specific complaint was
-generalised into a rule the machine could apply: pin the withdrawn methods' coverages, bind
-every rate to its own key, generate the seed inventory from the code. Two of those three
-rules found defects nobody had reported.
+**25. Who found what, corrected.**
+An earlier version of this entry said that items 22, 23 and 24 "were found by tests written
+in response to reviews". **That is false for 22 and 23, and it took credit that belongs to a
+reviewer.** The fourth cross-vendor review reported both explicitly, as its findings 1 and
+2: the coverage figure attributed to the wrong withdrawn method, and the blanket
+under-coverage claim surviving inside deviation 19. The sixth review caught the
+misattribution. The record, accurately:
 
-The generalisable lesson for this programme, stated because it is the programme's own
-subject: **the reviews did not just find defects, they identified the class of defect the
-author's checks could not see. Converting each finding into a mechanical rule — rather than
-fixing the instance — is what turned an external check into an internal one.**
+| item | what | found by |
+|---|---|---|
+| 15 | the paired interval's 0.416 coverage | **cross-vendor review, round 1** |
+| 17 | the nuisance-bound defect; overstated replacement coverage | **cross-vendor review, round 2** |
+| 20 | coverage mislabelled by scenario; the over-generalisation | **cross-vendor review, round 3** |
+| 21 | the consistency guard did not bite | **cross-vendor review, round 3** |
+| 22 | 0.960 attributed to the exact grid when it is Tango's | **cross-vendor review, round 4** |
+| 23 | the blanket claim surviving in deviation 19 | **cross-vendor review, round 4** |
+| 24 | two different bootstrap intervals for the same number | **the author**, while rewriting the rate bindings that round 5 required |
+| 26 | the reader sentence's interval was never bound; a reused label bound a rate to another family's array | **cross-vendor review, round 6** |
+| 27 | seed BOOT_SEED + 7 declared unused while `numbers.json` recorded it as consumed | **cross-vendor review, round 6** |
+
+**Every defect in this study's statistical machinery, and all but one defect in its
+reporting apparatus, was found by cross-vendor review.** The single exception, item 24, was
+found by the author only because a reviewer had demanded a mechanism strong enough to
+expose it — the rate-to-key binding — and the reviewer's requirement, not the author's
+insight, is what made that discovery possible.
+
+That is the study's own thesis, tested on the study, over six rounds. The honest summary is
+not "tests written after reviews found further defects". It is: **a reader who did not share
+the author's assumptions found essentially everything, and the author's checks improved only
+when a reader specified what they had to catch.**
+
+**26. Study 8's reader sentence was not covered by any check, and a reused label bound a
+rate to the wrong family.**
+`RESULTS-CEILING.md` carries a single sentence it asks a reader to carry away, quoting the
+headline as **+0.89 pp with a problem-cluster interval of −3.54 to +5.88**. A declaration in
+the consistency guard claimed that sentence's interval was checked by the mechanism that
+binds the headline. It was not: that mechanism checks a different sentence. Replacing the
+reader sentence's interval with a fabricated "+1.00 to +2.00", or deleting it, left every
+test green. Separately, a binding rule anchored on the words "cost (" bound any matching
+rate to **astra's one-reading false-positive array**, so an inserted sentence attributing
+astra's 9.7% [5.3, 14.5] to the shipped auditor's eight readings — whose value is 16.0%
+[10.1, 22.3] — also passed.
+
+Both were found by the sixth cross-vendor review, reproduced, and fixed: the reader
+sentence is now bound to `ceiling2.arms.self-loop.net_primary.ci95` with its prose "to"-form
+parsed, every reused label carries its discriminating family and reading count, and a
+further test fails if any binding rule matches more than once — which is how a sentence
+slips under an existing rule's anchor. All three counterexamples are committed as tests.
+
+**27. Study 8 declared a seed unused that its own records showed to be consumed.**
+Both manifests stated that no contrast in the study exceeds 22 non-zero problem clusters,
+so the sampled sign-flip path is never taken and `BOOT_SEED + 7` (20260915) is never drawn.
+**`numbers.json` records the opposite, in plain text**: the pooled self-cross flag contrast
+has **25 non-zero clusters** and its p value is annotated `"sampled, 200000 draws, seed
+20260915"`. The claim was contradicted by the same file it shipped beside.
+
+The cause was that the seed inventory instrumented one call site — the bootstrap — rather
+than the random-number constructor. It now wraps `random.Random` itself, so every generator
+is counted whatever path builds it: **34 distinct seeds over 205 constructions**, against
+the 32 over 196 the narrower instrument had reported. Found by the sixth cross-vendor
+review.

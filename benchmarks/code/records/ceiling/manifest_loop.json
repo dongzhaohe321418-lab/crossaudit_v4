@@ -26,28 +26,30 @@
       ],
       "+50+total  Table 4 single-family comparators": "20260960, 20260961, 20260962, 20260964, 20260966 \u2014 totals 2, 3, 4, 6, 8 only",
       "+60 last-step gain": 20260968,
-      "+7  sign-flip sampling fallback": "20260915 \u2014 reached only when a contrast has more than 22 non-zero problem clusters. No contrast in this study does, so every sign-flip p is exact enumeration and this seed is never drawn.",
+      "+7  sign-flip sampling fallback": "20260915 \u2014 CONSUMED. The pooled self-cross flag contrast has 25 non-zero problem clusters, above the 22-cluster exact-enumeration bound, so its sign-flip p is sampled: 200,000 draws, p = 0.1237. An earlier version of this inventory declared this seed never drawn, contradicting numbers.json, which records the sampling in plain text. Found by the sixth cross-vendor review.",
       "+8/+9  fixed-on-P / broken-on-C": [
         20260916,
         20260917
       ],
       "BOOT_SEED": 20260908
     },
-    "how_observed": "every call to report_ceiling.cluster_bootstrap_ci was wrapped during a 2-resample pass and its seed recorded. This is the set the analysis consumes, not a hand-written range: the fifth cross-vendor review found two hand-written ranges wrong.",
+    "how_observed": "`random.Random` was replaced by an instrumented subclass for a 2-resample pass over analyse_ceiling1, analyse_ceiling2 and timeout_sensitivity, and every constructed seed recorded. This counts EVERY generator, not only the bootstrap: an earlier version wrapped one call site and wrongly declared BOOT_SEED + 7 unused.",
     "loop_sample": 20260907,
     "note": "recorded here as well as in numbers.json and the preregistration, so the manifest alone is sufficient to reproduce every interval",
-    "observed_bootstrap_calls": 196,
-    "observed_seed_count": 32,
+    "observed_generator_constructions": 205,
+    "observed_seed_count": 34,
     "observed_seed_range": [
       20260908,
       20260968
     ],
     "observed_seeds": [
       20260908,
+      20260909,
       20260911,
       20260912,
       20260913,
       20260914,
+      20260915,
       20260916,
       20260917,
       20260919,
@@ -75,8 +77,7 @@
       20260964,
       20260966,
       20260968
-    ],
-    "reconciliation": "every seed in observed_seeds is named in derived_offsets. Five named seeds are NOT observed, each for a stated reason: +1 is drawn by an inline generator rather than by cluster_bootstrap_ci; +2 has been unused since amendment 4; +7 is a fallback no contrast in this study reaches; and +14 and +15 were retired when the registered-population figures were made canonical."
+    ]
   },
   "arm_ledger_events_not_in_any_window": {
     "by_run_id": {
@@ -225,8 +226,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "273a4056544103b5a6300909a553a78ec1469240",
-  "finalised_utc": "2026-09-05T18:41:54Z",
+  "finalised_on_parent_commit": "ba1f23291b9bdf7fe719775dbc31cea4af0223b2",
+  "finalised_utc": "2026-09-05T19:18:33Z",
   "package_versions": {
     "anthropic": "not installed",
     "certifi": "2026.7.22",
