@@ -27,8 +27,8 @@ from .. import doctor_shared
 from ..config import CONFIG_NAME
 from ..errors import ConfigDenial, Denial
 from ..scaffold import (AUDIT_TREE, CONFIG_TEMPLATE, GENERAL_CHECKS,
-                        SCIENCE_CHECKS, SCIENCE_TREE,
-                        read, write_tree)
+                        SCIENCE_CHECKS, SCIENCE_TREE, annotation_skill_tree,
+                        prune_legacy_annotation_skill, read, write_tree)
 from ..providers.specs import SPECS
 from . import tui
 from .i18n import t
@@ -183,6 +183,50 @@ def prepare(target: Path) -> list[str]:
                      + "\n".join(missing_state) + "\n")
         done.append(t("prepare.gitignore"))
     return done
+
+
+def tracked_paths(target: Path, paths: list[str]) -> list[str]:
+    """The subset git already knows about.
+
+    `git add -- <path>` stages a DELETION when the path is tracked and fails
+    with "pathspec did not match any files" when it is neither on disk nor in
+    the index. A removal we report for staging is therefore only safe to stage
+    if the file was committed; an untracked leftover would turn setup into a
+    denial for a file nobody was tracking anyway.
+    """
+    if not paths:
+        return []
+    listed = subprocess.run(["git", "ls-files", "--", *paths], cwd=str(target),
+                            capture_output=True, text=True)
+    if listed.returncode != 0:
+        return []
+    known = {line for line in listed.stdout.splitlines() if line}
+    return [p for p in paths if p in known]
+
+
+def annotation_skills_owned(target: Path, checks) -> list[str]:
+    """Write the annotation skills these checks need, clear the pre-split one,
+    and return every path the setup commit must stage — written and REMOVED.
+
+    One function because both creation paths must do the identical thing and one
+    of them not doing it is invisible: the first version returned the removal
+    and both callers dropped it, so the file was deleted from the tree and left
+    alive in the commit. A removal only counts once it is staged, and it is only
+    safe to stage when git already tracks it (`tracked_paths`).
+
+    **The directory is resolved before anything is written.** Pruning validated
+    it and writing did not, so on `skills -> work/guidance` this wrote
+    `work/guidance/provenance-numbers.md` and `-sources.md` into somebody's WORK
+    and only then refused — the denial arriving after the damage it exists to
+    prevent, and on a path where the two files are audited as work rather than
+    read as guidance. Setup either writes guidance into the one directory
+    `house_dir` accepts, or it writes nothing and says why.
+    """
+    from .. import skills as skills_mod
+
+    skills_mod.house_dir(Path(target))          # denies an alias before a write
+    written = write_tree(target, annotation_skill_tree(checks))
+    return written + tracked_paths(target, prune_legacy_annotation_skill(target))
 
 
 def commit_setup(target: Path, paths: list[str]) -> str:
@@ -842,6 +886,11 @@ def run(target: Path, *, mode: str, force: bool = False,
     if not gitignore_existed:
         owned.append(".gitignore")
     owned.extend(write_tree(target, SCIENCE_TREE))
+    # A check that reads a generator-emitted block ships with the house skill
+    # that asks for one, or it is a name that lies (PROVENANCE_CHECKS.md §5.4).
+    # Writes the skills and stages the pre-split removal. Staged, not merely
+    # deleted: `commit_setup` records exactly `owned`.
+    owned.extend(annotation_skills_owned(target, STARTING_CHECKS[starting_point]))
     if mode == "local":
         owned.extend(write_tree(target, AUDIT_TREE))
 

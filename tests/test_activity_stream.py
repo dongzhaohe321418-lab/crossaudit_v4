@@ -1575,6 +1575,10 @@ GOOD_INCREMENT = {
         "convergence": {"converged": True, "achieved": 7.4e-07, "threshold": 1e-06},
     }, indent=1),
     "experiments/demo/SUMMARY.md": "attempt one\n",
+    # The declared input, actually committed: `check_provenance` verifies
+    # that an input EXISTS (PROVENANCE_CHECKS.md §1) and this increment
+    # named a script nobody had written.
+    "experiments/demo/scripts/run_demo.py": "print('demo')\n",
 }
 PASS_REPLY = {"verdict": "PASS",
               "sections_applied": ["CA-DATA-001", "CA-METH-002"], "findings": []}

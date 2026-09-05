@@ -10,7 +10,8 @@ check names, a project can name a profile:
     general  the domain-neutral pack — the light default: parses, dangling
              declarations, broken links (advisory), leftover placeholders
              (advisory). Binds no data format; fits code, docs, web, contracts.
-    science  structured-science rigor: schema, units, convergence, provenance.
+    science  structured-science rigor: schema, units, convergence, provenance
+             (inputs that exist and are cited exactly), declared number sources.
 
 An explicit list is still accepted verbatim, so a project can compose its own mix
 (e.g. the general pack plus ``complete-strict`` to make placeholders hard-fail).
@@ -24,10 +25,17 @@ from ..errors import ConfigDenial
 PROFILES: dict[str, list[str]] = {
     "off": [],
     "general": ["parseable", "declared", "internal", "complete"],
-    "science": ["schema", "units", "convergence", "provenance"],
+    # §1's gap — a quantity citing an input that is listed and does not exist —
+    # is closed INSIDE `check_provenance`, not by adding the neutral pack's
+    # `declared` here. `declared` reads every YAML's `sources`, `requires` and
+    # `depends_on` as filenames as well, so bringing it into science blocked
+    # legitimate metadata (`sources: [doi:10.1234/x]`); the profile stays as it
+    # was and the check got stronger, which is the direction that is allowed.
+    "science": ["schema", "units", "convergence", "provenance", "number_source"],
     # The general pack plus the opt-in, deterministic citation-provenance check:
     # a report may only cite sources it fetched through a governed research tool.
-    "research": ["parseable", "declared", "internal", "complete", "source_provenance"],
+    "research": ["parseable", "declared", "internal", "complete", "source_provenance",
+                 "number_source"],
 }
 
 DEFAULT_PROFILE = "general"

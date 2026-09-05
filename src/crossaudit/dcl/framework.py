@@ -142,6 +142,16 @@ def register(name: str, fn: CheckFn, contract: str = "", *,
 
 
 def available() -> list[str]:
+    """Every registered check name.
+
+    Registration happens on import, so this imports the builtin packs first —
+    otherwise the answer depends on what the caller happened to import already,
+    and `available()` would say a shipped check does not exist. `contracts()`
+    has always done this; this did not, and the profile-registry guard read as
+    order-dependent because of it.
+    """
+    from . import builtin, neutral, numbers, provenance  # noqa: F401
+
     return sorted(_REGISTRY)
 
 
@@ -151,7 +161,7 @@ def contracts(names: list[str]) -> dict[str, str]:
     Importing here keeps the registry lazy while ensuring this view and the
     runner can never disagree about which implementation is enabled.
     """
-    from . import builtin, neutral, provenance  # noqa: F401
+    from . import builtin, neutral, numbers, provenance  # noqa: F401
 
     missing = [n for n in names if n not in _REGISTRY]
     if missing:
@@ -184,7 +194,7 @@ def run_checks(files: Mapping[str, bytes], names: list[str],
     0)`` before each check runs and ``(name, "finished", n_findings)`` after;
     it observes and never decides — the result is the same with or without it.
     """
-    from . import builtin, neutral, provenance  # noqa: F401  (registration on import)
+    from . import builtin, neutral, numbers, provenance  # noqa: F401  (registration on import)
     from .plugins import load_allowed
 
     load_allowed(plugins)

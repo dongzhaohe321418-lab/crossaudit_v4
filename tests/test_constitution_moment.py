@@ -299,7 +299,8 @@ def test_no_placeholder_token_survives_into_a_committed_file(
 
 
 @pytest.mark.parametrize("profile,expected_checks,marker", [
-    ("science", "schema, units, convergence, provenance", "metadata.yml"),
+    ("science", "schema, units, convergence, provenance, number_source",
+     "metadata.yml"),
     ("general", "parseable, declared, internal, complete", "TODO"),
 ])
 def test_an_explicit_profile_is_honoured(tmp_path, monkeypatch, capsys,

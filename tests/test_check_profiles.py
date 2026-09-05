@@ -23,7 +23,18 @@ def test_off_profile_disables_all_checks():
 
 
 def test_science_profile_is_the_structured_science_pack():
-    assert resolve("science") == ["schema", "units", "convergence", "provenance"]
+    # §1's existence gap is closed inside `check_provenance`, not by adding the
+    # neutral pack's `declared` here — that reads `sources`/`requires` as
+    # filenames too and blocked legitimate metadata. `number_source` joined with
+    # §2.1's span contract. `general` is untouched, so no existing
+    # default-profile project changes behaviour.
+    assert resolve("science") == ["schema", "units", "convergence", "provenance",
+                                  "number_source"]
+
+
+def test_research_profile_is_the_general_pack_plus_the_provenance_checks():
+    assert resolve("research") == ["parseable", "declared", "internal", "complete",
+                                   "source_provenance", "number_source"]
 
 
 def test_an_explicit_list_passes_through_verbatim():

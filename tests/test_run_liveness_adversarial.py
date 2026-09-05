@@ -172,6 +172,10 @@ CLEAN_INCREMENT = {
         "convergence": {"converged": True, "achieved": 7.4e-07,
                         "threshold": 1e-06}}).encode(),
     "experiments/demo/SUMMARY.md": b"# Demo\nA converged binding energy.\n",
+    # The declared input, actually committed: `check_provenance` verifies
+    # that an input EXISTS (PROVENANCE_CHECKS.md §1) and this increment
+    # named a script nobody had written.
+    "experiments/demo/scripts/run_demo.py": b"print('demo')\n",
 }
 
 
@@ -275,6 +279,7 @@ def test_auditor_route_exhaustion_parks_the_real_build_loop(
             "convergence": {"converged": True, "achieved": 7.4e-07,
                             "threshold": 1e-06}}, indent=1),
         "experiments/demo/SUMMARY.md": "# Demo\nA converged binding energy.\n",
+        "experiments/demo/scripts/run_demo.py": "print('demo')\n",
     })
     monkeypatch.setattr(build_mod, "_generator_complete",
                         lambda *_a, **_k: object())

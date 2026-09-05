@@ -88,7 +88,26 @@ def check_declared(files: Mapping[str, bytes]) -> list[Finding]:
         if not isinstance(doc, dict):
             continue
         for key in ("inputs", "sources", "requires", "depends_on"):
-            for item in doc.get(key) or []:
+            raw = doc.get(key)
+            if raw is None:
+                continue
+            # Base iterated the value directly, which was right for a list and
+            # wrong twice: a scalar string `sources: runs.csv@v3` was walked
+            # character by character and produced one BLOCKER per letter, and
+            # `requires: 3` raised TypeError straight out of `run_checks` — in
+            # the pack every project runs by default.
+            #
+            # A dict still yields its keys, exactly as base did. Everything that
+            # is not a collection is ONE entry. Severity is unchanged: every
+            # entry is coerced with `str()` and a path that is not in scope is a
+            # BLOCKER, so `requires: [3]` still blocks on the missing path '3'.
+            # Reporting an unreadable shape as advisory instead was a weakening,
+            # however small, and this layer does not get to do that.
+            if isinstance(raw, (list, tuple, set, dict)):
+                items = list(raw)
+            else:
+                items = [raw]
+            for item in items:
                 ref = str(item).split("@")[0].strip()
                 if not ref or ref.startswith(("http://", "https://")):
                     continue

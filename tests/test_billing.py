@@ -925,6 +925,10 @@ GOOD_WORK = (
     + _envelope("experiments/demo/metadata.yml", METADATA)
     + _envelope("experiments/demo/results.json", json.dumps(GOOD_RESULTS, indent=1))
     + _envelope("experiments/demo/SUMMARY.md", "Attractive binding of -3.65 kcal/mol.")
+    # METADATA declares this script; `check_provenance` now verifies that a
+    # declared input EXISTS (PROVENANCE_CHECKS.md §1), and without it round 1
+    # blocks and the run costs two rounds instead of one.
+    + _envelope("experiments/demo/scripts/run_demo.py", "print('demo')")
     + "NOTES:")
 
 

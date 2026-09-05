@@ -522,6 +522,11 @@ def test_default_check_uses_the_declared_scope_and_skips_the_scaffold(
     increment.mkdir()
     (increment / "metadata.yml").write_text(
         "code_version: v1\ninputs:\n  - input.csv@v1\n")
+    # `check_provenance` now verifies that a declared input EXISTS
+    # (PROVENANCE_CHECKS.md §1), so the input this increment names has to be
+    # here. Before that fix this fixture passed while citing a file nobody had
+    # written, which is the gap and not the scope behaviour under test.
+    (increment / "input.csv").write_text("x\n1\n")
     (increment / "results.json").write_text(
         '{"quantities":[{"name":"x","value":1,"unit":"count",'
         '"source":"input.csv@v1"}]}')

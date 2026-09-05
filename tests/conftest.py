@@ -258,6 +258,14 @@ def write_increment(repo: Path, results: dict, summary: str, message: str) -> st
     d = repo / "experiments" / "demo"
     d.mkdir(parents=True, exist_ok=True)
     (d / "metadata.yml").write_text(METADATA)
+    # The input METADATA declares, actually written. `check_provenance` verifies
+    # that a declared input EXISTS and not merely that a quantity cites one
+    # (PROVENANCE_CHECKS.md §1), and SCIENCE_TREE's own README says an increment
+    # "must stand alone". Every increment in this suite named a script nobody had
+    # committed — 41 tests' worth of the exact defect that fix closes, and none of
+    # them was about declaring inputs.
+    (d / "scripts").mkdir(exist_ok=True)
+    (d / "scripts" / "run_demo.py").write_text("print('demo')\n")
     (d / "results.json").write_text(json.dumps(results, indent=1))
     (d / "SUMMARY.md").write_text(summary)
     git("add", "-A", cwd=repo)

@@ -791,7 +791,8 @@ def run_loop(cfg, task: str, *, on_event=None, attachments: str = "",
              f"Reading the workspace · {_workspace_file_count(cfg)} files",
              state=RunState.GENERATING)
         current = _current_work(cfg, task, findings, context_report)
-        in_force = skills_mod.select(house, list(current) or cfg.scope_dirs)
+        in_force = skills_mod.select(house, list(current) or cfg.scope_dirs,
+                                     checks=cfg.checks)
         emit("prompt_ready", "generator", "Asking the generator to write",
              state=RunState.GENERATING)
         emit("generation_started", "generator", "writing",
