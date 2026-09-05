@@ -91,24 +91,24 @@ def check_declared(files: Mapping[str, bytes]) -> list[Finding]:
             raw = doc.get(key)
             if raw is None:
                 continue
-            # A scalar is ONE entry, not a string to walk. `sources: runs.csv@v3`
-            # used to be iterated character by character and produced a BLOCKER
-            # per letter — "declares 'r', which is not in the audited scope" — and
-            # `requires: 3` raised TypeError straight out of `run_checks`. Both
-            # are in the pack every project runs by default.
-            items = raw if isinstance(raw, list) else [raw]
+            # Base iterated the value directly, which was right for a list and
+            # wrong twice: a scalar string `sources: runs.csv@v3` was walked
+            # character by character and produced one BLOCKER per letter, and
+            # `requires: 3` raised TypeError straight out of `run_checks` — in
+            # the pack every project runs by default.
+            #
+            # A dict still yields its keys, exactly as base did. Everything that
+            # is not a collection is ONE entry. Severity is unchanged: every
+            # entry is coerced with `str()` and a path that is not in scope is a
+            # BLOCKER, so `requires: [3]` still blocks on the missing path '3'.
+            # Reporting an unreadable shape as advisory instead was a weakening,
+            # however small, and this layer does not get to do that.
+            if isinstance(raw, (list, tuple, set, dict)):
+                items = list(raw)
+            else:
+                items = [raw]
             for item in items:
-                if not isinstance(item, str):
-                    # A shape this check cannot read is not a missing file. It is
-                    # advisory, so a mapping or a number under these keys is
-                    # visible without hard-failing work that may be perfectly
-                    # correct under a convention this check does not know.
-                    out.append(Finding(
-                        ADVISORY, "CA-FILE-002", path,
-                        f"{key} contains {type(item).__name__} {item!r}, which is "
-                        f"not a path this check can look for"))
-                    continue
-                ref = item.split("@")[0].strip()
+                ref = str(item).split("@")[0].strip()
                 if not ref or ref.startswith(("http://", "https://")):
                     continue
                 if not any(p == ref or p.endswith("/" + ref) for p in files):

@@ -61,16 +61,16 @@ import re
 from typing import Mapping
 
 from .framework import ADVISORY, BLOCKER, Finding, register
+from .quantities import (declared_inputs, is_number_shape, normalise_number,
+                         results_files)
 
 #: A fenced ```crossaudit-numbers block; its body is a JSON array of rows.
 _FENCE = re.compile(r"```crossaudit-numbers[^\n]*\n(.*?)\n```", re.S)
 #: Every opening, closed or not. A block whose closing fence was never written
 #: is not "no annotation" — it is an annotation that went missing, and silence
 #: over it is the §5.4 failure in miniature.
-_FENCE_OPEN = re.compile(r"```crossaudit-numbers[^\n]*\n")
+_FENCE_OPEN = re.compile(r"```crossaudit-numbers[^\n]*(?:\n|\Z)")
 _TEXT_SUFFIXES = (".md", ".txt", ".rst", ".tex")
-#: Structured quantities carry their locator in `source` instead of a fence.
-_RESULTS = "results.json"
 
 #: Line numbers are bounded at nine digits. Not a style rule: `int()` refuses a
 #: string of more than 4300 digits outright, so an unbounded `\d+` turns a
@@ -99,37 +99,55 @@ _SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?$")
 #: "1" that happens to be followed by a comma — and `contains_pair` tries both
 #: rather than picking one, because which reading a transcription meant is not
 #: something this layer can know and guessing wrong would block correct work.
-_NUMBER = re.compile(r"(?<![\w.])([+-]?\d+(?:,\d{3})*(?:\.\d+)?)")
-#: A decimal number, for validating a transcription before comparing it.
-_DECIMAL = re.compile(r"[+-]?\d+(?:\.\d+)?")
-#: Any run of whitespace between a number and its unit, including none and the
-#: non-breaking space that a copied table cell carries.
-_GAP = r"[\s\u00a0]*"
+_NUMBER = re.compile(r"(?<![\w.])([+\-−]?[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?"
+                     r"(?:[eE][+\-−]?[0-9]{1,4})?)")
+#: Any run of whitespace between a number and its unit, or none at all. Plain
+#: `\s`, because Python's `\s` on a str pattern is the Unicode definition and
+#: already covers U+00A0, U+2003 and U+202F — the three a copied table cell, a
+#: typeset paper and a spreadsheet respectively produce. A hand-written list of
+#: the ones somebody thought of is how the first two got in and the third did
+#: not.
+_GAP = r"\s*"
 
-#: What may follow a number and count as its unit. Several readings are taken
-#: and any of them may match, because the failure this list exists to prevent is
-#: a blocker on a correct transcription, and an extra reading can only ever turn
-#: a block into a pass. Plain run (``°C``, ``h``, ``hours``, ``μm``); a word
-#: split from a percent sign (``wt %``); a compound joined by an explicit
-#: connector (``mg/mL``, ``m·s^-1``) — the connector is required so that
-#: ``°C-10`` in a range is not swallowed as one unit; and an exponent written
-#: with superscripts or a hyphen (``cm⁻¹``, ``cm-1``, ``m²``).
+#: What follows a number and counts as its unit. THE TOKEN IS MAXIMAL, and that
+#: is the whole point: taking a shorter reading as well let `5 mg/mL` satisfy an
+#: annotation of `mg` and `5 cm-1` satisfy `cm` — the check accepting a
+#: transcription of a different quantity, which is the direction that must never
+#: be permitted. One maximal token, plus exactly two alternates that are longer
+#: rather than shorter than it:
+#:
+#: * the word split from a percent sign (`wt %`), which the space would
+#:   otherwise cut short;
+#: * a purely numeric token, because `1` is a legitimate dimensionless marker
+#:   and `{"value": 0.42, "unit": "1"}` against a line reading `0.42 1` is a
+#:   correct citation that had no reading at all.
 _UNIT_BODY = r"A-Za-zµμ°ÅΩ%‰"
-_UNIT_READINGS = (
-    re.compile(rf"[{_UNIT_BODY}]+"),
-    re.compile(rf"[A-Za-z]+{_GAP}[%‰]"),
-    re.compile(rf"[{_UNIT_BODY}]+(?:[/·⋅∙*^][{_UNIT_BODY}0-9()⁻⁰¹²³⁴⁵⁶⁷⁸⁹+-]+)+"),
-    re.compile(rf"[{_UNIT_BODY}]+[⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+"),
-    re.compile(rf"[{_UNIT_BODY}]+-\d{{1,3}}"),
-)
+_UNIT_TAIL = r"A-Za-zµμ°ÅΩ%‰0-9()⁻⁰¹²³⁴⁵⁶⁷⁸⁹+\-"
+#: Maximal: letters/symbols, then any number of connector-joined parts, then an
+#: optional exponent written as superscripts or as `-1` / `2`.
+#:
+#: The `-1` / `2` exponent tail is taken only where nothing unit-shaped follows
+#: it. Without that guard a range — `(20°C-25°C)`, which is how a source states
+#: an ambient window — read as the single unit `°C-25`, and a draft citing
+#: `20 °C` off that line was blocked for transcribing it correctly. A hyphen
+#: between two units is a range; a hyphen before the end of the token is an
+#: exponent; the lookahead is the only thing that can tell them apart.
+_EXPONENT_TAIL = rf"(?:[⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+|-?[0-9]{{1,3}}(?![0-9]*[{_UNIT_BODY}]))?"
+_UNIT_MAXIMAL = re.compile(
+    rf"[{_UNIT_BODY}]+(?:[/·⋅∙*^][{_UNIT_TAIL}]+)*{_EXPONENT_TAIL}")
+_UNIT_SPLIT_PERCENT = re.compile(rf"[A-Za-z]+{_GAP}[%‰]")
+#: A dimensionless numeric marker, and nothing that continues into a word.
+_UNIT_NUMERIC = re.compile(rf"[0-9]+(?:\.[0-9]+)?(?![{_UNIT_BODY}0-9.])")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
 #: archived drafts (`benchmarks/expertlongbench/provenance_arm1.py`): deleting it
-#: turns 6 of 365 correctly-cited numbers into non-overridable blockers — 1.64%,
-#: 95% Wilson 0.76–3.54%, an interval that crosses §6's 2% kill line — every one
-#: of them a draft writing `hours`, `minutes` or `wt%` where its source wrote
-#: `h`, `min` or `wt %`. With the table, 0 of 365.
+#: takes the primary false-blocker rate from 6 of 365 (1.64%) to 12 of 365
+#: (3.29%, 95% Wilson 1.89–5.66%) — past §6's 2% kill line — and the six it adds
+#: are every draft that wrote `hours`, `minutes` or `wt%` where its source wrote
+#: `h`, `min` or `wt %`. The six that remain either way are an artefact of the
+#: harness's own unit vocabulary, measured and reported there rather than
+#: corrected.
 #:
 #: It is fixed, and it is small on purpose. Growing it against a failing corpus
 #: would be tuning a measurement to pass its own test; entries belong here only
@@ -156,38 +174,17 @@ def normalise_unit(unit: str) -> str:
     return SYNONYMS.get(folded, folded)
 
 
-def normalise_number(token) -> str | None:
-    """One canonical DECIMAL STRING for a transcribed number, or None.
-
-    Never `float`. Two integers 2**53 apart round to the same double, so
-    `float` would report a span containing 9007199254740992 as containing
-    9007199254740993 — a check that says it verified a number literally, while
-    accepting a different one. Comparing canonical strings cannot do that, and
-    it also cannot raise on a number with five thousand digits.
-
-    Canonical means: separators dropped, a leading `+` dropped, leading zeros
-    before the point dropped, trailing zeros after the point dropped, and a
-    negative zero folded onto zero.
-    """
-    text = str(token).strip().replace(",", "").replace("_", "")
-    if not _DECIMAL.fullmatch(text):
-        return None
-    negative = text.startswith("-")
-    digits = text.lstrip("+-")
-    whole, _, frac = digits.partition(".")
-    frac = frac.rstrip("0")
-    whole = whole.lstrip("0") or "0"
-    out = whole + ("." + frac if frac else "")
-    return out if out == "0" else (("-" if negative else "") + out)
-
-
 def _unit_candidates(rest: str) -> list[str]:
-    """Every reading of what follows a number, after any run of whitespace."""
-    tail = rest[len(rest) - len(rest.lstrip(" \t\n\r\f\v\u00a0")):]
+    """Every reading of what follows a number, after any run of whitespace.
+
+    The first is maximal, so a shorter prefix of a compound unit is never a
+    candidate. The other two are longer than it, not shorter.
+    """
+    tail = rest[re.match(_GAP, rest).end():]
     out: list[str] = []
-    for pattern in _UNIT_READINGS:
+    for pattern in (_UNIT_MAXIMAL, _UNIT_SPLIT_PERCENT, _UNIT_NUMERIC):
         m = pattern.match(tail)
-        if m:
+        if m and m.group(0):
             out.append(m.group(0))
     return out
 
@@ -196,16 +193,20 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
     """Whether the transcribed (value, unit) pair occurs in this text.
 
     Exact, and deliberately so: the number must appear as a number, and where a
-    unit was transcribed it must follow that occurrence of the number under the
-    synonym table. A value stated in words, converted, or read off a plot is not
-    matched and must not be — that is what `uncited` is for.
+    unit was transcribed it must be the whole of the unit token following that
+    occurrence, under the synonym table. A value stated in words, converted, or
+    read off a plot is not matched and must not be — that is what `uncited` is
+    for.
+
+    A value that does not normalise as a number returns False, and the caller
+    turns that into CA-NUM-001. There is no substring fallback: the one that
+    used to be here ignored the unit entirely, so source `1e3 K` satisfied an
+    annotation of `1e3` with unit `g`.
     """
     wanted_unit = normalise_unit(unit)
     wanted_value = normalise_number(value)
     if wanted_value is None:
-        # Not a number at all; fall back to plain containment so a malformed
-        # transcription fails on the bytes rather than on the parser.
-        return str(value or "") in span
+        return False
     for m in _NUMBER.finditer(span):
         token = m.group(1)
         if normalise_number(token) == wanted_value:
@@ -215,8 +216,8 @@ def contains_pair(span: str, value: str, unit: str) -> bool:
             if any(normalise_unit(c) == wanted_unit for c in _unit_candidates(rest)):
                 return True
         if "," in token and not wanted_unit:
-            # The other reading: the digits before the separator, which are
-            # followed by a comma and so can carry no unit.
+            # The other reading of a grouped token: the digits before the
+            # separator, which are followed by a comma and so carry no unit.
             if normalise_number(token.split(",")[0]) == wanted_value:
                 return True
     return False
@@ -284,6 +285,13 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict) -> list[Find
                         "row names v, u, at and src")]
     shown = f'"{v} {u}"' if u else f'"{v}"'
     where = f"line {at}"
+    if normalise_number(v) is None:
+        # A transcription that is not a number cannot be looked for. It used to
+        # fall through to a substring test that ignored the unit entirely, so
+        # source `1e3 K` satisfied an annotation of `1e3` with unit `g`.
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} transcribes {v!r}, which is not a number; write the "
+                        f"number alone, or name no source with \"uncited\"")]
 
     if src == "uncited":
         return [Finding(ADVISORY, "CA-NUM-003", path,
@@ -351,8 +359,8 @@ def _verify_locator(path: str, files: Mapping[str, bytes], locator: str,
     return []
 
 
-def _results_findings(path: str, files: Mapping[str, bytes],
-                      data: bytes) -> list[Finding]:
+def _results_findings(path: str, files: Mapping[str, bytes], data: bytes,
+                      opaque: frozenset) -> list[Finding]:
     """The structured half: a `results.json` quantity whose `source` names a span.
 
     §2.1 widens a quantity's `source` from `path@revision` to
@@ -361,13 +369,28 @@ def _results_findings(path: str, files: Mapping[str, bytes],
     line, and the widening would have accepted a claim no code checks. A source
     with no `#L…` fragment is the world before the widening and is left exactly
     as it was.
+
+    Two rules learned from the review, both of which had made the compensation
+    partial rather than real:
+
+    * **A row this cannot read is a finding, never a skip.** It used to skip a
+      value of the wrong shape "reported by units", and `check_units` has never
+      looked at `value` at all — so a null value citing line 999 of a two-line
+      file passed the complete science profile in silence.
+    * **Whole-string precedence.** If the entire source string is itself an
+      exact declared input, someone declared a revision that happens to contain
+      `#L…`; it is opaque, and `check_provenance` already accepted it as a
+      member. Reading a fragment out of it here would block on a shape the
+      other check just approved.
     """
     out: list[Finding] = []
     text = _text(data)
     if text is None:
         return out
     try:
-        doc = json.loads(text)
+        # As in the fence: no literal is rounded through a float before the
+        # canonical-decimal comparison sees it.
+        doc = json.loads(text, parse_float=str, parse_int=str)
     except ValueError:
         return out                              # reported by parseable / schema
     if not isinstance(doc, dict) or not isinstance(doc.get("quantities"), list):
@@ -375,28 +398,43 @@ def _results_findings(path: str, files: Mapping[str, bytes],
     for i, q in enumerate(doc["quantities"]):
         if not isinstance(q, dict):
             continue
-        src = str(q.get("source") or "")
+        raw_src = q.get("source")
+        if not isinstance(raw_src, str):
+            continue                            # not a locator; provenance blocks it
+        src = raw_src.strip()
+        if src in opaque:
+            continue                            # declared verbatim, so opaque
         fragment = _SOURCE_FRAGMENT.search(src)
         if not fragment:
             continue
+        where = f"quantities[{i}]"
         v, u = q.get("value"), q.get("unit")
-        if not isinstance(v, _SCALAR) or not isinstance(u, _SCALAR):
-            continue                            # reported by units
+        if not is_number_shape(v) or not isinstance(u, str):
+            out.append(Finding(
+                BLOCKER, "CA-NUM-001", path,
+                f"{where} names a line for a value this check cannot read; a "
+                f"quantity citing a line needs a numeric value and a text unit"))
+            continue
         v, u = str(v), str(u)
         named = src[:fragment.start()].rpartition("@")[0] or src[:fragment.start()]
         shown = f'"{v} {u}"' if u else f'"{v}"'
         out.extend(_verify_locator(
-            path, files, named + fragment.group(0), v, u, shown,
-            f"quantities[{i}]", src))
+            path, files, named + fragment.group(0), v, u, shown, where, src))
     return out
 
 
 def check_number_source(files: Mapping[str, bytes]) -> list[Finding]:
     """CA-NUM-001/002: a number's declared source span must resolve and contain it."""
     out: list[Finding] = []
+    # The same discovery the builtin checks use, so a file they read is never a
+    # file this one silently ignores: `myresults.json` was recognised by
+    # `_results_files` and not by the exact-basename test that used to be here.
+    structured = set(results_files(files))
+    # A source string declared verbatim as an input is opaque (see below).
+    opaque = frozenset(item for _meta, item in declared_inputs(files))
     for path, data in sorted(files.items()):
-        if path == _RESULTS or path.endswith("/" + _RESULTS):
-            out.extend(_results_findings(path, files, data))
+        if path in structured:
+            out.extend(_results_findings(path, files, data, opaque))
             continue
         if not path.endswith(_TEXT_SUFFIXES):
             continue
@@ -414,7 +452,11 @@ def check_number_source(files: Mapping[str, bytes]) -> list[Finding]:
                 "annotation cannot be read"))
         for body in bodies:
             try:
-                rows = json.loads(body)
+                # Every literal arrives as text. `json.loads` would otherwise
+                # round `9007199254740993.0` through a double before the string
+                # comparison ever saw it, so the precision the canonical-decimal
+                # comparison exists to preserve would already be gone.
+                rows = json.loads(body, parse_float=str, parse_int=str)
             except ValueError as exc:
                 # ValueError, not JSONDecodeError: a literal with more than
                 # 4300 digits raises the plain base class, and letting it escape

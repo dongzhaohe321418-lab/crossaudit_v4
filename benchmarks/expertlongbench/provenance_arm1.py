@@ -63,6 +63,15 @@ SOURCE_PATH = "work/synthesis/RECIPE.md"
 DRAFT_PATH = "work/explanation.md"
 
 
+#: A character that continues a unit token past where the probe's fixed
+#: alternation stops. `NUM` knows `°C` and not `°C/min`, so on a ramp rate it
+#: captures `("5", "°C")` and the annotation it derives is NOT what the draft
+#: wrote. That is an instrument limit, and it is measured rather than corrected:
+#: rebuilding the annotation with the product's own unit grammar would be
+#: feeding the checker its own reading and calling the agreement a result.
+_CONTINUES = re.compile(r"[/·⋅∙^A-Za-zµμ°ÅΩ]")
+
+
 def draft_pairs(text: str):
     """Every (value, unit-as-written, line) the probe's extractor sees.
 
@@ -74,8 +83,9 @@ def draft_pairs(text: str):
     """
     out = []
     for m in NUM.finditer(text):
+        truncated = bool(m.group(2)) and bool(_CONTINUES.match(text[m.end():m.end() + 1]))
         out.append((m.group(1), (m.group(2) or "").strip(),
-                    text[:m.start()].count("\n") + 1))
+                    text[:m.start()].count("\n") + 1, truncated))
     return out
 
 
@@ -110,7 +120,7 @@ def main() -> int:
     runs = os.path.expanduser(RUNS)
 
     instances = uncited = 0
-    exact = exact_blocked = derived = derived_blocked = 0
+    exact = exact_blocked = derived = derived_blocked = exact_truncated = 0
     by_rule: dict[str, int] = {}
     examples: list[str] = []
     derived_examples: list[str] = []
@@ -131,8 +141,8 @@ def main() -> int:
         source = "\n".join(lines) + "\n"
 
         draft = open(draft_file).read()
-        pair_rows, value_rows = [], []
-        for value, unit, at in draft_pairs(draft):
+        pair_rows, value_rows, truncated_at = [], [], set()
+        for value, unit, at, truncated in draft_pairs(draft):
             folded = SYNONYM.get(unit, unit)
             owners = [i for i, s in enumerate(per_line) if (value, folded) in s]
             stratum = "pair"
@@ -151,6 +161,8 @@ def main() -> int:
                 continue                     # §3.4 routes these to the auditor
             annotation = {"v": value, "u": unit, "at": f"#L{at}",
                           "src": f"{SOURCE_PATH}#L{owners[0] + 1}"}
+            if truncated and stratum == "pair":
+                truncated_at.add((at, value, unit))
             (pair_rows if stratum == "pair" else value_rows).append(annotation)
         exact += len(pair_rows)
         derived += len(value_rows)
@@ -164,6 +176,9 @@ def main() -> int:
 
         for f in run(pair_rows):
             exact_blocked += 1
+            at = re.search(r"line (\d+)", f.observation)
+            if at and any(str(a) == at.group(1) for a, _v, _u in truncated_at):
+                exact_truncated += 1
             by_rule[f.rule] = by_rule.get(f.rule, 0) + 1
             if len(examples) < 8:
                 examples.append(f"    [pair-matched] {name}: {f.observation}")
@@ -204,6 +219,13 @@ def main() -> int:
           "line by value alone,")
     print("  so a block here can mean the citation was wrong, and each one below "
           "says which.")
+    print(f"  of those {exact_blocked}, {exact_truncated} annotate a number whose unit "
+          f"the DRAFT continues past")
+    print("  the probe's fixed alternation (a ramp rate written °C/min, captured "
+          "as °C): the harness's")
+    print("  transcription, not the draft's. Left in the numerator; correcting "
+          "it with the product's own")
+    print("  unit grammar would be feeding the checker its own reading.")
     if by_rule:
         print("  primary by rule: "
               + ", ".join(f"{r}×{n}" for r, n in sorted(by_rule.items())))

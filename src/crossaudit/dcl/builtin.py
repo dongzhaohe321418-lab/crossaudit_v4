@@ -13,6 +13,7 @@ import yaml
 
 from .framework import (ADVISORY, BLOCKER, Finding, register,
                         scope_started)
+from .quantities import declared_inputs, is_number_shape, results_files
 
 
 def _load_json(files: Mapping[str, bytes], name: str) -> tuple[dict | None, list[Finding]]:
@@ -26,31 +27,27 @@ def _load_json(files: Mapping[str, bytes], name: str) -> tuple[dict | None, list
 
 
 def _results_files(files: Mapping[str, bytes]) -> list[str]:
-    return [p for p in files if p.endswith("results.json")]
+    return results_files(files)
 
 
 #: The one source-locator fragment `check_provenance` will look past: a line
-#: span, anchored to the end. Digits are bounded because `int()` refuses a
-#: 4301-digit string, and an unbounded pattern is only ever matched here to be
-#: discarded. Nothing else containing `#` is treated as a fragment.
-_SPAN_FRAGMENT = re.compile(r"#L\d{1,9}(?:-L\d{1,9})?$")
+#: span, anchored to the ABSOLUTE end of the string.
+#:
+#: `\Z` and not `$`, because `$` also matches before a final newline, so
+#: `runs.csv@v3#L2\n` slipped through a rule meant to permit `runs.csv@v3#L2`.
+#: `[0-9]` and not `\d`, because `\d` matches Arabic-Indic and Devanagari
+#: digits, which `int()` accepts and which no transcription of a source's bytes
+#: would ever mean: `runs.csv@v3#L٢` was being read as line two.
+#:
+#: Digits are bounded because `int()` refuses a 4301-digit string, and an
+#: unbounded pattern is only ever matched here in order to be discarded.
+_SPAN_FRAGMENT = re.compile(r"#L[0-9]{1,9}(?:-L[0-9]{1,9})?\Z")
 
-
-def _declared_inputs(files: Mapping[str, bytes]) -> list[tuple[str, str]]:
-    """Every `(metadata path, inputs entry)` pair, in file order."""
-    out: list[tuple[str, str]] = []
-    for m in sorted(p for p in files if p.endswith("metadata.yml")):
-        try:
-            doc = yaml.safe_load(files[m].decode("utf-8")) or {}
-        except Exception:                                  # reported by check_schema
-            continue
-        if not isinstance(doc, dict):
-            continue
-        raw = doc.get("inputs")
-        for item in (raw if isinstance(raw, list) else []):
-            if isinstance(item, str) and item.strip():
-                out.append((m, item.strip()))
-    return out
+#: A reference that names a scheme rather than a file. Matched case-insensitively
+#: and by SCHEME, not by a lowercase `http`/`https` prefix: `HTTPS://…`,
+#: `ftp://…`, `doi:…` and `pkg:pypi/numpy` were all being looked for on disk and
+#: reported as missing files, which they are not.
+_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.\-]*://|(?:doi|pkg):", re.I)
 
 
 def check_schema(files: Mapping[str, bytes]) -> list[Finding]:
@@ -168,9 +165,9 @@ def check_provenance(files: Mapping[str, bytes]) -> list[Finding]:
     a guess.
     """
     out: list[Finding] = []
-    for meta, item in _declared_inputs(files):
+    for meta, item in declared_inputs(files):
         ref = item.rpartition("@")[0] or item
-        if ref.startswith(("http://", "https://")):
+        if _SCHEME.match(ref):
             continue
         if not any(p == ref or p.endswith("/" + ref) for p in files):
             out.append(Finding(
@@ -215,8 +212,19 @@ def check_provenance(files: Mapping[str, bytes]) -> list[Finding]:
             # accepted `runs.csv@v3#garbage` and `runs.csv@v3#other@evil`, both
             # of which used to block, and broke the hash-named file. Everything
             # that is not that one shape keeps the old behaviour exactly.
+            #
+            # And the fragment is only permitted where `number_source` can go
+            # and look. It reads a quantity's `value` and `unit`; if `value` is
+            # not a number or `unit` is not text, that check has nothing to
+            # verify, so accepting the widened shape here would trade a
+            # CA-DATA-003 for nothing at all. Nothing else established this:
+            # `check_units` tests that `unit` and `source` are truthy and has
+            # never looked at `value`, so a null value citing line 999 of a
+            # two-line file passed the whole science profile in silence.
             candidate = src
-            if candidate not in declared:
+            if (candidate not in declared
+                    and is_number_shape(q.get("value"))
+                    and isinstance(q.get("unit"), str)):
                 fragment = _SPAN_FRAGMENT.search(candidate)
                 if fragment:
                     candidate = candidate[:fragment.start()]

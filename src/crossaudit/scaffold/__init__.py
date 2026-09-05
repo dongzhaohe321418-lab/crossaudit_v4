@@ -25,20 +25,33 @@ DEFAULT_CHECKS = SCIENCE_CHECKS
 #: `skills.load`, rendered into the generator prompt by `skills.render`, hashed
 #: into the receipt, and never shown to the auditor.
 PROVENANCE_SKILL_PATH = "skills/provenance.md"
-ANNOTATION_CHECKS = ("number_source", "source_provenance")
+
+#: One fragment per check, because a fragment is instruction about a check that
+#: will run. A combined file told a project configured with only
+#: `source_provenance` to annotate every number in a fence nothing would ever
+#: read — guidance that describes a check the project does not have, and output
+#: the generator pays for on every round.
+ANNOTATION_SKILLS: dict[str, str] = {
+    "number_source": "PROVENANCE_NUMBERS_SKILL.md",
+    "source_provenance": "PROVENANCE_SOURCES_SKILL.md",
+}
+ANNOTATION_CHECKS = tuple(ANNOTATION_SKILLS)
 
 
 def annotation_skill_tree(checks) -> dict[str, str]:
     """The house skill a project's checks need, or nothing at all.
 
-    Keyed off the check list rather than the project type, so a project that
-    composes its own mix gets the instruction exactly when a check would read
-    for it — and a `general` project, which enables neither, gets no advice
-    about annotating numbers it has no reason to annotate.
+    Keyed off the resolved check list rather than the project type, so a project
+    that composes its own mix is told exactly what its own checks will read —
+    and a `general` project, which enables neither, gets no advice about
+    annotating numbers it has no reason to annotate.
     """
-    if not any(name in ANNOTATION_CHECKS for name in (checks or ())):
+    enabled = [name for name in ANNOTATION_SKILLS if name in (checks or ())]
+    if not enabled:
         return {}
-    return {PROVENANCE_SKILL_PATH: read("PROVENANCE_SKILL.md")}
+    parts = [read("PROVENANCE_SKILL_HEADER.md")]
+    parts.extend(read(ANNOTATION_SKILLS[name]) for name in enabled)
+    return {PROVENANCE_SKILL_PATH: "\n".join(parts)}
 
 
 def read(name: str) -> str:

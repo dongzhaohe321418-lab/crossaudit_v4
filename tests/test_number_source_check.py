@@ -356,9 +356,9 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
         assert PROVENANCE_SKILL_PATH in annotation_skill_tree(checks)
 
     body = annotation_skill_tree(SCIENCE_CHECKS)[PROVENANCE_SKILL_PATH]
-    # It names both fences, and it tells the generator to transcribe and to
-    # locate. It must never ask it to assess (D155).
-    assert "```crossaudit-numbers" in body and "```crossaudit-sources" in body
+    # It tells the generator to transcribe and to locate. It must never ask it
+    # to assess (D155).
+    assert "```crossaudit-numbers" in body
     assert "uncited" in body and "#L11" in body
     assert "you name a location, you never say what is at it" in body.lower()
 
@@ -378,6 +378,31 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
     assert skill.applies_to == ()
     for touched in (["experiments"], ["work"], [], ["experiments/demo/x.md"]):
         assert skills_mod.select([skill], touched) == [skill], touched
+
+
+@pytest.mark.parametrize("checks,numbers,sources", [
+    (["number_source"], True, False),
+    (["source_provenance"], False, True),
+    (["parseable", "declared", "internal", "complete", "source_provenance",
+      "number_source"], True, True),
+])
+def test_the_skill_only_instructs_for_checks_the_project_actually_runs(
+        checks, numbers, sources):
+    """MUTATION: ship one combined file for either check.
+
+    Selection has no profile gate — a skill in `skills/` is in force for the
+    round — so a project configured with only `source_provenance` was handed the
+    whole number-annotation contract for a fence nothing would ever read. That
+    is guidance describing a check the project does not have, and output the
+    generator pays for every round. One fragment per check, composed at scaffold
+    time from the resolved list."""
+    from crossaudit.scaffold import PROVENANCE_SKILL_PATH, annotation_skill_tree
+
+    body = annotation_skill_tree(checks)[PROVENANCE_SKILL_PATH]
+    assert ("```crossaudit-numbers" in body) is numbers
+    assert ("```crossaudit-sources" in body) is sources
+    # The one rule is in every composition, whichever fragments were chosen.
+    assert "you name a location, you never say what is at it" in body.lower()
 
 
 # ------------------------------------------------- the review's five, and more
@@ -623,3 +648,215 @@ def test_a_fresh_science_project_carries_the_skill_in_its_first_prompt(
     assert "you name a location, you never say what is at it" in prompt.lower()
     # And it arrives as guidance, never as law.
     assert "HOUSE SKILLS" in prompt
+
+
+# ------------------------------------------- the second review's two root causes
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # Round two's regressions, and the sign and compound cases behind them.
+    ("1e3 K",   "1e3",  "g",     ["CA-NUM-002"], "the substring fallback ignored the unit"),
+    ("1e3 K",   "1e3",  "K",     [],             "and the same pair is a match"),
+    ("1e3 K",   "1000", "K",     [],             "exponent and decimal are one number"),
+    ("1000 K",  "1e3",  "K",     [],             "in both directions"),
+    ("−5 °C",   "-5",   "°C",    [],             "U+2212 MINUS SIGN is a minus"),
+    ("−5 °C",   "5",    "°C",    ["CA-NUM-002"], "and minus five is still not five"),
+    ("5 mg/mL", "5",    "mg",    ["CA-NUM-002"], "a prefix of a compound unit"),
+    ("5 cm-1",  "5",    "cm",    ["CA-NUM-002"], "a prefix of an exponent unit"),
+    ("5 °C",   "5",    "°C",    [],             "U+2003 EM SPACE"),
+    ("5 °C",   "5",    "°C",    [],             "U+202F NARROW NO-BREAK SPACE"),
+    ("0.42 1",  "0.42", "1",     [],             "a dimensionless numeric unit"),
+    ("5 m2",    "5",    "m2",    [],             "an exponent written as a digit"),
+    ("about 950", "~950", "°C",  ["CA-NUM-001"], "a value that is not a number"),
+    ("about 950", "9-50", "",    ["CA-NUM-001"], "nor is a range"),
+])
+def test_the_matcher_after_the_second_review(span, v, u, expected, why):
+    """MUTATION: restore the substring fallback at the foot of `contains_pair`,
+    drop U+2212 from `_NUMBER`, hand-list the whitespace characters instead of
+    using `\\s`, or take a non-maximal unit reading. Each brings back one row.
+
+    The fallback is the one that mattered most. A value that failed decimal
+    validation fell through to `value in span` and **ignored the unit entirely**,
+    so source `1e3 K` satisfied an annotation of `1e3` with unit `g`: the check
+    reporting that it had verified a literal pair while accepting a different
+    quantity. There is no fallback now — a value that does not normalise is
+    CA-NUM-001 — and normalisation is complete enough that legitimate forms do
+    not reach that path."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_precision_survives_the_json_parse():
+    """MUTATION: parse the fence with a plain `json.loads`.
+
+    Comparing canonical decimal strings buys nothing if the literal was already
+    rounded through a double on the way in: `9007199254740993.0` arrives as
+    9007199254740992.0 and matches a span that says 9007199254740992. The fence
+    and `results.json` are both parsed with `parse_float=str, parse_int=str`, so
+    the transcription reaches the comparison as the characters that were
+    written."""
+    body = ('[{"v": 9007199254740993.0, "u": "g", "at": "#L3", '
+            f'"src": "{RECIPE_PATH}#L1"}}]')
+    files = {RECIPE_PATH: b"9007199254740992 g\n",
+             DRAFT_PATH: f"# E\n\n```crossaudit-numbers\n{body}\n```\n".encode()}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
+
+    exact = body.replace("9007199254740993.0", "9007199254740992.0")
+    files[DRAFT_PATH] = f"# E\n\n```crossaudit-numbers\n{exact}\n```\n".encode()
+    assert findings(files) == []
+
+
+@pytest.mark.parametrize("value,unit", [
+    (None, "K"), ({"a": 1}, "K"), ([1], "K"), (True, "K"),
+    (0.42, {"a": 1}), (0.42, [1]), (0.42, None),
+])
+def test_a_quantity_this_check_cannot_read_may_not_carry_a_span(value, unit):
+    """MUTATION: skip an unreadable value or unit "reported by units", and drop
+    the `is_number_shape` gate on the fragment strip in `check_provenance`.
+
+    `check_units` tests that `unit` and `source` are TRUTHY and has never looked
+    at `value`. Trusting it meant a quantity with a null value citing line 999
+    of a two-line file passed the complete science profile with no finding at
+    all — where the code before the span widening blocked it with CA-DATA-003.
+    Two independent guards, because one of them believing the other is what
+    opened the hole: `check_provenance` only looks past a fragment for a row
+    `number_source` can actually go and read, and `number_source` reports a row
+    it cannot read rather than skipping it."""
+    from crossaudit.dcl.profiles import resolve
+
+    q = {"name": "y", "source": "runs.csv@v3#L999"}
+    if value is not None or unit is None:
+        q["value"] = value
+    q["unit"] = unit
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": b"run,y\n1,0.42\n",
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [q], "convergence": {"converged": True}}).encode()}
+    result = run_checks(files, resolve("science"))
+    assert result.hard_failures >= 1
+    assert {"CA-DATA-003", "CA-NUM-001"} <= {f.rule for f in result.findings}
+
+
+def test_every_file_the_builtin_checks_read_is_a_file_this_one_reads():
+    """MUTATION: match the exact basename `results.json` again.
+
+    `builtin._results_files` accepts any path ENDING in `results.json`, so
+    `myresults.json` was a file `check_provenance` widened for and
+    `number_source` never opened — the compensation missing for exactly the
+    files the other check had accepted. One helper, in `dcl/quantities.py`,
+    used by both."""
+    from crossaudit.dcl.builtin import _results_files
+    from crossaudit.dcl.quantities import results_files
+
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": b"run,y\n1,0.42\n",
+             "experiments/e1/myresults.json": json.dumps(
+                 {"quantities": [{"name": "y", "value": 0.42, "unit": "K",
+                                  "source": "runs.csv@v3#L999"}],
+                  "convergence": {"converged": True}}).encode()}
+    assert _results_files(files) == results_files(files) == ["experiments/e1/myresults.json"]
+    assert [f.rule for f in run_checks(files, ["number_source"]).findings] == ["CA-NUM-001"]
+
+
+def test_a_source_declared_verbatim_is_opaque_to_both_checks():
+    """MUTATION: drop the `opaque` set in `_results_findings`.
+
+    Whole-string precedence has to hold in both checks or they contradict each
+    other. If somebody literally declares `runs.csv@v3#L999` as an input, then
+    `check_provenance` accepts the source as an exact member — a revision string
+    that happens to contain a `#` — and `number_source` reading a line number
+    out of it would hard-block a shape the other check just approved. Base
+    accepted this with only the code_version advisory, and so does head."""
+    from crossaudit.dcl.profiles import resolve
+
+    files = {"experiments/e1/metadata.yml":
+                 b"code_version: v3\ninputs:\n  - runs.csv@v3#L999\n",
+             "experiments/e1/runs.csv": b"run,y\n1,0.42\n",
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "y", "value": 0.42, "unit": "K",
+                                  "source": "runs.csv@v3#L999"}],
+                  "convergence": {"converged": True}}).encode()}
+    result = run_checks(files, resolve("science"))
+    assert result.hard_failures == 0
+    assert [(f.severity, f.rule) for f in result.findings] == [(ADVISORY, "CA-DATA-003")]
+
+
+@pytest.mark.parametrize("locator,blocks", [
+    ("runs.csv@v3#L2", False),
+    ("runs.csv@v3#L2\n", True),
+    ("runs.csv@v3#L٢", True),
+])
+def test_the_fragment_is_ascii_and_at_the_absolute_end(locator, blocks):
+    """MUTATION: use `$` instead of `\\Z`, or `\\d` instead of `[0-9]`.
+
+    `$` also matches before a final newline, so `runs.csv@v3#L2\\n` was read as a
+    line fragment; `\\d` matches Arabic-Indic digits, so `#L٢` was read as line
+    two. Neither is a shape a transcription of committed bytes would produce,
+    and both used to be CA-DATA-003."""
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": b"run,y\n1,0.42\n",
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "y", "value": 0.42, "unit": "",
+                                  "source": locator}],
+                  "convergence": {"converged": True}}).encode()}
+    found = [f.rule for f in run_checks(files, ["provenance"]).findings]
+    assert (found == ["CA-DATA-003"]) is blocks
+
+
+@pytest.mark.parametrize("ref,blocks", [
+    ("https://example.org/a@v3", False),
+    ("HTTPS://example.org/a@v3", False),
+    ("ftp://example.org/a@v3", False),
+    ("doi:10.1234/example@v3", False),
+    ("pkg:pypi/numpy@1.0", False),
+    ("data/runs.csv@v3", True),
+])
+def test_the_existence_check_skips_by_scheme_not_by_a_lowercase_prefix(ref, blocks):
+    """MUTATION: go back to `ref.startswith(("http://", "https://"))`.
+
+    A reference that names a scheme is not a file, and the check was looking for
+    `HTTPS://…`, `ftp://…`, `doi:…` and `pkg:pypi/numpy` on disk and reporting
+    them missing — a non-overridable blocker on metadata that is simply not a
+    path. `check_declared` keeps its own base behaviour: widening what IT skips
+    would be a weakening of a check that ships in every default project."""
+    meta = ("code_version: v3\ninputs:\n  - " + ref + "\n").encode()
+    found = [f.rule for f in run_checks({"e/metadata.yml": meta}, ["provenance"]).findings]
+    assert (found == ["CA-DATA-003"]) is blocks
+
+
+def test_a_file_ending_in_an_opening_fence_is_a_finding():
+    """MUTATION: require a trailing newline in `_FENCE_OPEN` again. A file whose
+    last bytes are the opening fence itself produced no finding, so a truncated
+    annotation was indistinguishable from a document that never annotated."""
+    for tail in ("```crossaudit-numbers", "```crossaudit-numbers\n"):
+        out = findings({RECIPE_PATH: RECIPE.encode(),
+                        DRAFT_PATH: ("# E\n\n" + tail).encode()})
+        assert [f.rule for f in out] == ["CA-NUM-001"], tail
+        assert "opened and never closed" in out[0].observation
+
+
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    ("(20°C-25°C)", "20", "°C",     [],             "a range is not one unit token"),
+    ("(20°C-25°C)", "20", "°C-25",  ["CA-NUM-002"], "and its halves are not either"),
+    ("99-102 kPa",  "102", "kPa",   [],             "the second half carries the unit"),
+    ("99-102 kPa",  "99",  "kPa",   ["CA-NUM-002"], "the first half does not"),
+    ("5 cm-1",      "5",  "cm-1",   [],             "a hyphen exponent at end of token"),
+    ("5 cm-1",      "5",  "cm",     ["CA-NUM-002"], "and its prefix is still refused"),
+    ("5°C/min",     "5",  "°C/min", [],             "a ramp rate is its own unit"),
+    ("5°C/min",     "5",  "°C",     ["CA-NUM-002"], "a temperature is not a ramp rate"),
+])
+def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
+    """MUTATION: drop the lookahead from `_EXPONENT_TAIL`.
+
+    Making the unit token maximal — which is what stops `5 mg/mL` satisfying
+    `mg` — read `(20°C-25°C)` as the single unit `°C-25`, so a draft citing
+    `20 °C` off a line stating an ambient window was blocked for transcribing it
+    correctly. Measured, not hypothesised: it cost 1 of 365 on the archived
+    drafts and took the Arm 1 primary rate from 1.64% to 1.92%.
+
+    A hyphen followed by digits and then more unit is a range; a hyphen followed
+    by digits and then the end of the token is an exponent. The lookahead is the
+    only thing that separates them, and both halves are asserted here because
+    loosening it far enough to fix the range would give `cm` back."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+    assert [f.rule for f in findings(files)] == expected, why

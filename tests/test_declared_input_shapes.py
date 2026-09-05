@@ -24,7 +24,7 @@ import json
 
 import pytest
 
-from crossaudit.dcl.framework import ADVISORY, BLOCKER, run_checks
+from crossaudit.dcl.framework import BLOCKER, run_checks
 from crossaudit.dcl.neutral import check_declared
 
 META = b"code_version: v3\ninputs:\n  - data/runs.csv@v3\n"
@@ -85,30 +85,36 @@ def test_a_scalar_declaration_is_one_entry_not_a_string_to_walk():
                            "runs.csv": b"x\n"}) == []
 
 
-@pytest.mark.parametrize("yaml_text,shape", [
-    (b"requires: 3\n", "int"),
-    (b"requires:\n  - 3\n", "int"),
-    (b"inputs:\n  a: b\n", "dict"),
-    (b"depends_on:\n  - [a, b]\n", "list"),
-    (b"sources:\n  - true\n", "bool"),
+@pytest.mark.parametrize("yaml_text,ref", [
+    (b"requires: 3\n", "3"),
+    (b"requires:\n  - 3\n", "3"),
+    (b"inputs:\n  a: b\n", "a"),
+    (b"sources:\n  - true\n", "True"),
 ])
-def test_a_declaration_this_check_cannot_read_is_advisory_never_an_exception(
-        yaml_text, shape):
-    """MUTATION: remove the `isinstance(item, str)` arm. `requires: 3` raises
+def test_a_declaration_this_check_cannot_read_blocks_and_never_raises(yaml_text, ref):
+    """MUTATION: iterate `doc.get(key) or []` again. `requires: 3` raises
     TypeError straight out of `run_checks` — a shape a person can legitimately
-    write turning into a crash of the layer that is supposed to be the one thing
-    that never guesses.
+    write crashing the one layer that is supposed to never guess.
 
-    Advisory rather than blocking, because a shape this check cannot read is not
-    a missing file, and hard-failing correct work over a convention the check
-    does not know is the wrong direction."""
+    **Severity is base severity, and that is the correction.** An earlier draft
+    reported an unreadable shape as ADVISORY, which turned `requires: [3]` from
+    a BLOCKER on the missing path `'3'` into something that permits PASS. Small,
+    and still a weakening of a kernel check, which this layer does not get to
+    do. Every entry is `str()`-coerced and keeps the base outcome; a dict still
+    yields its keys, exactly as base did; the only thing that changes is that a
+    scalar is one entry instead of a crash or a walk over its letters."""
     out = check_declared({"m.yml": yaml_text})
-    assert [f.severity for f in out] == [ADVISORY]
-    assert shape in out[0].observation
-    assert "not a path this check can look for" in out[0].observation
+    assert [(f.severity, f.rule) for f in out] == [(BLOCKER, "CA-FILE-002")]
+    assert repr(ref) in out[0].observation
     # It must reach `run_checks` as a finding rather than as an exception.
     result = run_checks({"m.yml": yaml_text}, ["declared"])
-    assert result.hard_failures == 0 and len(result.findings) == 1
+    assert result.hard_failures == 1
+
+
+def test_an_unreadable_entry_still_passes_when_the_path_it_names_exists():
+    """The other half: coercion is not a licence to block. A committed file
+    named `3` satisfies `requires: [3]`, as it did on base."""
+    assert check_declared({"m.yml": b"requires:\n  - 3\n", "3": b"x\n"}) == []
 
 
 def test_a_revisioned_path_still_has_its_revision_stripped():
