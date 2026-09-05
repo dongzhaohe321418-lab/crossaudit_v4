@@ -264,7 +264,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    **热修复已交**（`fix/number-source-not-default`，f6e6621，全套 3275 通过）：两个配置回到 D157
    前的列表、检查仍注册可显式选用；`uncited` 分支移到 `at` 校验**和**值阻断之前（构建者把
    "uncited 永不阻断"读作完整性质，超出字面指令，已交复核者评判）；新脚手架科研项目无数字技能
-   与指令、显式启用则两者俱全。`src/` 仅三文件。复核（`2026-09-06-number-source-hotfix-astra.md`）：行为全部验证正确，唯一项是一个测试文档字符串声称的变异不会触发它（控制台创建读 `SCIENCE_CHECKS` 而非 `PROFILES`）——构建者修正中；我的主机套件进行中。
+   与指令、显式启用则两者俱全。`src/` 仅三文件。复核（`2026-09-06-number-source-hotfix-astra.md`）：行为全部验证正确，唯一项是一个测试文档字符串声称的变异不会触发它（控制台创建读 `SCIENCE_CHECKS` 而非 `PROFILES`）——构建者修正中；**全套 3275 / 8 已在我的主机上核实（f6e6621）**，文档字符串修正提交后再跑一次。
    **寻址重设计已合并**（`docs/design/PROVENANCE_ADDRESSING.md`）：A 行号渲染上限 150/183=82.0%
    但 `shape_work` 大纲替换制造假行号；B 内容寻址上限 142/183=77.6%（可阻断行 142/166=85.5%）；
    26 行结构性分歧。推荐 B（去 `at`、歧义提示级）。**A vs B 对照实验已按 §8g 派出**（同 24 实例，
