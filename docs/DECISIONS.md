@@ -7010,3 +7010,12 @@ skill bytes. Until it lands, a project that wants the boundary today sets
 Neither of these was found by a test or by a reader from this vendor. Both were
 found by a different vendor's model reading the same tree, in the course of
 reviewing something else. D153 keeps earning its place.
+
+*Landed 2026-09-05 at d5f7266 after five independent review rounds, each of
+which found something real: the loader/filter identity mismatch (case and
+symlink), the constitution alias matrix, the false-premise test, the
+language-selection inconsistency, and finally an untested guard. The suite
+count the sandboxed reviewers could not verify (2772 passed, 8 skipped) was
+re-run on a second host before merge. The boundary as shipped governs CLI
+increment and configured-Constitution ingress; `auditor.prompt.build` itself
+still fences whatever mapping it is handed.*
