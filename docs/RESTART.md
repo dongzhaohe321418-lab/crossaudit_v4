@@ -186,7 +186,13 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    剩一个根因——**单位匹配接受 token 前缀**（`5 m-2s-1` 标 `m` 通过；`1e10001` 截成 `1e1000`
    + "单位" `1`，指数 10000–10099 扫描 100/100 假通过）。第四轮：整 token 提取、整对整比较、
    前缀即不匹配；指数无位数上限、超出 Decimal 合理范围报 CA-NUM-001 而非截断；区间显式拆分。
-   复核者同意 Arm 1 那 6 例是探针注释错误而非验证器假阻断，脚本标签要改词不改数。第四轮进行中。**
+   复核者同意 Arm 1 那 6 例是探针注释错误而非验证器假阻断，脚本标签要改词不改数。
+   第四轮已回（331f2ee，全套 **2892** 通过）：单位改为字符扫描整 token 提取、整对整比较、
+   前缀即 CA-NUM-002；数字 `_NUMBER` 无界 + `normalise_number` 用 `fullmatch`，超界报
+   CA-NUM-001 不截断；`1,000` 只读作一千；所有定位器解析器统一 `[0-9]` + 绝对末尾、去掉
+   `.strip()`；技能门控改为 front-matter `requires_check:`。**注意：本轮改了 `skills.py`
+   （内核外，可加），与 `fix/skills-not-in-audit` 冲突——合并顺序：先 skills 片，本片再 rebase。**
+   第四轮 astra 复核进行中。**
    `skills/` 排除片（D156）已在文件不相交的分支 `fix/skills-not-in-audit` 上并行构建，
    过滤放在 `_materialise_tree_scope` 的 TEMPLATE 过滤旁（无条件），不放 `excluded` 集
    （那只在非显式范围时生效）。**已交付（6bf00e6，全套 2752 通过）**，并发现审计员有
