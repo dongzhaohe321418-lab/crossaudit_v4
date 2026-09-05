@@ -746,33 +746,51 @@ def test_the_constitution_may_not_be_a_house_skill(science, spelling):
     assert i18n.denial_zh(caught.value.reason), "refused only in English"
 
 
-def test_a_constitution_that_only_passes_through_skills_loads_and_is_readable(
-        science):
-    """`skills/../AUDIT_RULES.md` normalises to `AUDIT_RULES.md` — a fine rulebook.
+@pytest.mark.parametrize("spelling, stored", [
+    # A path that only PASSES THROUGH the guidance directory. Normalising
+    # changed this case: the raw first-component check refused it, for the wrong
+    # reason (the literal first component was `skills`).
+    (f"{skills_mod.SKILLS_DIR}/../AUDIT_RULES.md", "AUDIT_RULES.md"),
+    # The two `.`-carrying spellings. Their behaviour was already correct; the
+    # fourth review asked for the matrix to SAY so, which is the point of a
+    # matrix — an untested correct behaviour is indistinguishable from luck.
+    ("./AUDIT_RULES.md", "AUDIT_RULES.md"),
+    ("work/./AUDIT_RULES.md", "work/AUDIT_RULES.md"),
+])
+def test_an_accepted_constitution_is_stored_normalised_and_stays_readable(
+        science, spelling, stored):
+    """An accepted spelling must also be a USABLE one.
 
-    Stated because normalising CHANGED this case: the raw first-component check
-    refused it, for the wrong reason (the literal first component was `skills`).
-    The refusal must be about where the file actually is, not how the path was
-    typed, or the guard is a spelling test.
+    The guard is about where the file is, not how the path was typed, so a value
+    that merely passes through `skills/` is legitimate. The third review then
+    found that acceptance was hollow: `Config.constitution` kept the RAW
+    spelling, and `_committed_constitution` raised `IntegrityDenial: ... does
+    not identify exactly one file`, because the git reader wants an exact tree
+    path. A value that passes configuration and fails the auditor is worse than
+    a refusal — it fails later, further from the person who wrote it.
 
-    The third review then found the acceptance was hollow: `Config.constitution`
-    kept the RAW spelling, and `_committed_constitution` raised
-    `IntegrityDenial: ... does not identify exactly one file` because the git
-    reader wants an exact tree path. A value that passes configuration and fails
-    the auditor is worse than a refusal — it fails later, further from the
-    person who wrote it. So the NORMALISED path is what `Config` stores, and
-    this test carries it all the way to the reader rather than stopping at
-    "loads". `normpath` is a no-op on a canonical path, so nothing that already
-    worked changes.
+    So `Config` stores the NORMALISED path, and each case here is carried all
+    the way to the committed reader rather than stopping at "it loads".
+    `normpath` is a no-op on a canonical path, so nothing that already worked
+    changes; what it fixes is every equivalent spelling of a legitimate
+    location.
 
-    MUTATION KILLED: check the raw value instead of the normalised one -> this
-    legitimate constitution is refused. And: store `raw["constitution"]`
-    instead of `const_norm` -> it loads, and the committed reader denies it.
+    MUTATION KILLED: check the raw value instead of the normalised one -> the
+    pass-through spelling is refused. And: store `raw["constitution"]` instead
+    of `const_norm` -> all three load and the committed reader denies them.
     """
-    _with_constitution(science, f"{skills_mod.SKILLS_DIR}/../AUDIT_RULES.md")
+    if "/" in stored:
+        target = science / stored
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text((science / "AUDIT_RULES.md").read_text())
+        git("add", "--", str(Path(stored).parent), cwd=science)
+        git("commit", "-q", "-m", "rules in a subdirectory", cwd=science)
+
+    _with_constitution(science, spelling)
     cfg = cfg_load(science / "crossaudit.yml")
-    assert cfg.constitution == "AUDIT_RULES.md", (
-        "the raw spelling was stored; the committed reader will refuse it")
+    assert cfg.constitution == stored, (
+        f"{spelling!r} was stored as {cfg.constitution!r}; the committed reader "
+        f"wants an exact tree path and will refuse anything else")
 
     sha = git("rev-parse", "HEAD", cwd=science)
     text, data = _committed_constitution(cfg, sha)
@@ -780,8 +798,15 @@ def test_a_constitution_that_only_passes_through_skills_loads_and_is_readable(
 
 
 @pytest.mark.parametrize("spelling", [
-    "/abs/skills/house.md",   # accepted before r4: first component is "/"
-    "/etc/AUDIT_RULES.md",    # not guidance at all, still not a tree path
+    "/abs/skills/house.md",      # accepted before r4: first component is "/"
+    "/etc/AUDIT_RULES.md",       # not guidance at all, still not a tree path
+    # Windows forms. `posixpath.isabs` says False for both — a drive letter is
+    # not a leading "/" and neither is a UNC share — so they need the separate
+    # `PureWindowsPath(...).drive` arm, which the fourth review found untested:
+    # it removed that arm and both of these became ACCEPTED while all 24 cases
+    # in this file stayed green. Reproduced before adding them.
+    "C:\\x\\AUDIT_RULES.md",  # drive letter
+    "\\\\server\\share\\x.md",  # UNC share
 ])
 def test_an_absolute_constitution_is_refused(science, spelling):
     """A Constitution is a path INSIDE the tree, cited by commit.
@@ -793,7 +818,11 @@ def test_an_absolute_constitution_is_refused(science, spelling):
     but an absolute path names a file on one machine's disk, which no receipt
     can bind and no verifier can re-read, so config load is where it belongs.
 
-    MUTATION KILLED: drop the `posixpath.isabs` check -> both spellings load.
+    MUTATION KILLED: drop the `posixpath.isabs` check -> the two POSIX
+    spellings load. Drop the `PureWindowsPath(const_raw).drive` check -> both
+    WINDOWS forms load. Two arms, two mutations: `isabs` is False for a drive
+    letter and for a UNC share, so neither arm covers the other and a single
+    parametrisation over one of them proves nothing about the other.
     """
     _with_constitution(science, spelling)
     with pytest.raises(ConfigDenial) as caught:
