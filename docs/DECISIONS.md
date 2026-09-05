@@ -6968,9 +6968,19 @@ teeth: a skill that could speak to the auditor would be an unversioned rule, the
 thing P3 exists to prevent. So the code currently contradicts its own stated
 invariant — the isolation is real in the hand-off (nothing passes a skill to the
 auditor deliberately) and absent as an invariant (nothing stops the scope from
-carrying it). And `cycles/`, the state directory and `.github/` are already
-excluded from scope materialisation in the same place, so the fix is one more
-entry in an existing list, not a new mechanism. Shipping the provenance skill
+carrying it). *Corrected while building (2026-09-05, same day): the sentence
+that stood here said `cycles/`, the state directory and `.github/` were
+"already excluded from scope materialisation in the same place, so the fix is
+one more entry in an existing list". That was wrong. `_materialise_tree_scope`
+had exactly one filter, `TEMPLATE`; the `excluded` set is in `cmd_check` and
+governs the working-directory walk; `.github/` and `cycles/` are excluded in a
+third place, `cmd_run`'s `prefix_own`. The predicate is new, and there are
+**two doors, not one**: `cmd_run` builds its increment from the changed paths
+and never passes through the scope reader, so a commit touching only
+`skills/house.md` made the skill itself the increment. Both are closed in
+`fix/skills-not-in-audit`; a skill-only commit now takes the existing "changed
+no science files" refusal. I had written the ruling from a grep of names, not
+from reading which function each name lived in.* Shipping the provenance skill
 into `skills/` by default turns this exposure from hypothetical into routine for
 every science and research project, which is why it is sequenced immediately
 after slice 1 and not later.
