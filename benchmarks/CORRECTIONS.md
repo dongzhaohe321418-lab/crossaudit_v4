@@ -595,9 +595,15 @@ were wrong and were corrected:
 | residual share published as both `[40.4, 63.6]` and `[40.0, 63.3]` | `[40.0, 63.3]` | round 6, item 24 |
 
 The narrow claim that survives: **the synthetic re-attribution counterexamples in rounds 6
-to 8 never appeared in a published version, and no estimate — no asymptote, union, net,
-count or classification — has changed since the first version.** The sentence as written
-generalised that into a claim about the whole history, which the record above contradicts.
+to 8 never appeared in a published version, and no empirical point estimate — no asymptote,
+union, net, count or classification — has changed since the first version. Interval
+estimates did change**, both when the interval method was replaced in rounds 2 and 3 and in
+the individual corrections listed above. The sentence as written generalised the narrow
+claim into one about the whole history, which the record contradicts.
+
+*Superseded 2026-09-06:* the table above lists four corrections; the tenth review showed it
+was incomplete. The complete list, cited by round, is in deviation 34 of
+`RESULTS-CEILING.md` and covers fifteen corrected values across rounds 1 to 8.
 
 **29. The consistency guard's stated scope exceeded what a lexical check can enforce.**
 `RESULTS-CEILING.md` described its guard as failing the build "if any interval quoted in

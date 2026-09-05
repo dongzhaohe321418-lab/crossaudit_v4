@@ -230,7 +230,7 @@
       "benchmarks/code/loop.py": "b88dfae39dec3641440da072bf2647cc652639ca8c00c9ef0bbfdfe69f189921",
       "benchmarks/code/report_ceiling.py": "859c6b071437e22c2a2a57026923f7ffd61f28b0aa0d3e363c5b14d66503e60f",
       "benchmarks/code/residual_dump.py": "9e7018afa2153679b5440808aad5f8b128bb73db8db8f703f65a598dd71e7e1c",
-      "benchmarks/code/tests/test_ceiling_stats.py": "0683f471216f087c826853966de61a8e64fbafe79434cc0cc0876541b0b25ea7"
+      "benchmarks/code/tests/test_ceiling_stats.py": "0ffc5fe8d1b54c709ae43238ce4939d1d1777698ef2c482bafdc9edc5ef90eb3"
     },
     "files_note": "re-hashed at finalisation; the first version's report_ceiling.py hash predated the analysis file",
     "status_porcelain": " M benchmarks/code/records/ceiling/cache/holistic__astra__d2.jsonl\n M benchmarks/code/records/ceiling/cache/holistic__self__d2.jsonl\n M benchmarks/code/records/ceiling/manifest_ceiling1.json\n M benchmarks/code/records/ceiling/numbers.json\n M benchmarks/code/records/ceiling/tables.md\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__astra__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__cross__d8.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d3.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d4.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d5.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d6.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d7.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.failed.jsonl\n?? benchmarks/code/records/ceiling/cache/holistic__self__d8.jsonl\n"
@@ -531,8 +531,8 @@
     "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
     "python": "3.13.5"
   },
-  "finalised_on_parent_commit": "4bea383a70ac656d3bb7b1d4f9df67d000df302f",
-  "finalised_utc": "2026-09-05T20:59:06Z",
+  "finalised_on_parent_commit": "2a5b6b7c2c5fd5c0fc84c4aaa3cc07ea2070d607",
+  "finalised_utc": "2026-09-05T21:45:29Z",
   "generator": "anthropic:claude-haiku-4-5-20251001",
   "must_match_to_reproduce": [
     "records/study2/audit_set.json sha256",

@@ -260,7 +260,9 @@ def test_ideal_bootstrap_coverage_is_measured_not_assumed():
     """The PRIMARY interval under-covers at this n, and the number is pinned.
 
     An infinite-resample percentile bootstrap in the review's scenario covers 0.924, not
-    0.95. The report states that; this test stops the claim drifting back up.
+    0.95. This test measures that; the report's coverage tables are bound to
+    `records/ceiling/coverage.json`, which this suite also checks, so prose and measurement
+    are connected. This test alone does not read the report.
     """
     def ideal(b, c, n, alpha=0.05):
         p = (b + c) / n
@@ -496,8 +498,10 @@ def test_the_withdrawn_methods_coverages_are_attributed_to_the_right_method():
     """0.960 is Tango's; the pre-fix exact grid was 0.997 beneficial and 0.075 detrimental.
 
     The report, the preregistration amendment and the corrections record all make claims
-    about what the *withdrawn* methods covered. Those claims are checked here, because a
-    withdrawn method's number is still a number and the fourth review found it mislabelled.
+    about what the *withdrawn* methods covered, and the fourth review found one mislabelled.
+    This test measures the values; `test_the_measured_coverages_equal_the_committed_artefact`
+    ties them to `records/ceiling/coverage.json`, and the report's tables are checked
+    against that same artefact. **This test does not itself read any prose.**
     """
     assert abs(_scenario_coverage(prefix_tango) - 0.9603704095) < 1e-6
     assert abs(_scenario_coverage(prefix_tango, q=0.5, beneficial=False)
@@ -517,3 +521,41 @@ def test_the_prefix_defect_was_in_the_endpoints_not_only_the_coverage():
     assert abs(lo - (-0.53875)) < 1e-4 and abs(hi - (-0.35766)) < 1e-4, (lo, hi)
     good_lo, good_hi = rc.tango_score_interval(20, 70, 112)
     assert abs(good_lo - (-0.576935)) < 1e-5 and abs(good_hi - (-0.290872)) < 1e-5
+
+
+def test_the_measured_coverages_equal_the_committed_artefact():
+    """This suite's measurements equal `records/ceiling/coverage.json`.
+
+    The artefact is what the report's coverage tables are checked against, so this test is
+    one half of the chain that binds prose to measurement:
+
+        measurement (here)  ->  coverage.json  ->  the report's tables
+
+    Before it existed, the statistics tests measured coverage and the report quoted
+    coverage, and nothing connected the two: editing a published coverage figure left every
+    test green. The tenth cross-vendor review found that.
+    """
+    import json
+    from pathlib import Path
+
+    artefact = json.loads(
+        (Path(__file__).resolve().parent.parent / "records" / "ceiling" /
+         "coverage.json").read_text(encoding="utf-8"))
+    measured = {
+        ("tango", "beneficial"): _scenario_coverage(rc.tango_score_interval),
+        ("tango", "detrimental"): _scenario_coverage(rc.tango_score_interval, q=0.5,
+                                                     beneficial=False),
+        ("exact_grid", "beneficial"): _scenario_coverage(rc.exact_unconditional_interval),
+        ("exact_grid", "detrimental"): _scenario_coverage(rc.exact_unconditional_interval,
+                                                          q=0.5, beneficial=False),
+        ("tango_prefix", "beneficial"): _scenario_coverage(prefix_tango),
+        ("tango_prefix", "detrimental"): _scenario_coverage(prefix_tango, q=0.5,
+                                                            beneficial=False),
+        ("exact_grid_prefix", "beneficial"): _scenario_coverage(prefix_exact),
+        ("exact_grid_prefix", "detrimental"): _scenario_coverage(prefix_exact, q=0.5,
+                                                                 beneficial=False),
+    }
+    for (method, scenario), value in measured.items():
+        stored = artefact["coverage"][method][scenario]
+        assert abs(value - stored) < 1e-9, (method, scenario, value, stored)
+    assert artefact["n"] == 112

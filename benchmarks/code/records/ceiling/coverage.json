@@ -1,0 +1,33 @@
+{
+  "coverage": {
+    "exact_grid": {
+      "beneficial": 0.9968790922279988,
+      "detrimental": 0.9837404185383576
+    },
+    "exact_grid_prefix": {
+      "beneficial": 0.9968790922279988,
+      "detrimental": 0.07522490634277318
+    },
+    "ideal_bootstrap": {
+      "beneficial": 0.923731894539364,
+      "detrimental": 0.9532649318060402
+    },
+    "tango": {
+      "beneficial": 0.960370409515446,
+      "detrimental": 0.9532649318060402
+    },
+    "tango_prefix": {
+      "beneficial": 0.960370409515446,
+      "detrimental": 0.9532649318060402
+    },
+    "withdrawn_conditional": {
+      "beneficial": 0.416268865672669
+    }
+  },
+  "method": "exact enumeration over the binomial; no simulation",
+  "n": 112,
+  "scenarios": {
+    "beneficial": "D ~ Binomial(112, 0.1), every discordance beneficial, true delta = +0.10",
+    "detrimental": "C ~ Binomial(112, 0.5), every discordance detrimental, true delta = -0.50"
+  }
+}
