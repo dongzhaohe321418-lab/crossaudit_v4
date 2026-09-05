@@ -136,6 +136,16 @@ and §3.3 says when it can.
 
 ### 3.1 number → source
 
+**Superseded in its addressing half by `PROVENANCE_ADDRESSING.md` §2 (D158
+ruling 2, D159 ruling 1), and kept as written because the rest of it still
+governs.** `src` in the fence is no longer `path#L11`: it is
+`{"file": …, "quote": …}`, the quote is found by exact whitespace-folded bytes
+within ONE line, there is no length cap, a quote the file says on more than one
+line is ADVISORY CA-NUM-004, and `at` is gone from the row (accepted, ignored).
+The `results.json` locator below is unchanged. Everything from "Says what was
+claimed" onward — the synonym table, the containment rule, where determinism
+ends — is the same rule reading a quoted span instead of a named one.
+
 *Exists* = `src`'s path is a key of the `files` mapping the DCL is handed
 (`dcl/framework.py:172`) and the line range is inside it. *Says what was claimed*
 = the normalised (value, unit) pair occurs **within the named span**.

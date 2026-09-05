@@ -8,17 +8,39 @@ A text artefact carries one fenced block listing the numbers it wrote and where
 each came from:
 
     ```crossaudit-numbers
-    [{"v": "950", "u": "°C", "at": "#L14", "src": "work/synthesis/RECIPE.md#L11"},
-     {"v": "180", "u": "°C", "at": "#L9",  "src": "uncited"}]
+    [{"v": "950", "u": "°C", "src": {"file": "work/synthesis/RECIPE.md",
+                                     "quote": "Calcine at 950 °C for 1 hour."}},
+     {"v": "180", "u": "°C", "src": "uncited"}]
     ```
 
-No field carries a truth value. `v`/`u` transcribe bytes the generator itself
-wrote into its own prose; `at` and `src` are addresses. The check asks two
-mechanical questions and no others:
+No field carries a truth value. `v` and `u` transcribe bytes the generator wrote
+into its own prose; `src` is an address, and since D159 it is a **content**
+address — a file, and a run of characters copied out of one of its lines. The
+check asks two mechanical questions and no others:
 
-1. does `src` resolve — is its path in the audited scope, do its declared bytes
-   still hash to what it declared, is its line range inside the file;
-2. does the **named span** contain the transcribed `(value, unit)` pair.
+1. does `src` resolve — is its file in the audited scope, do its declared bytes
+   still hash to what it declared, do the quoted characters occur on exactly one
+   line of it;
+2. does the **quoted span** contain the transcribed `(value, unit)` pair.
+
+**Why the quote and not a line number (D158, D159).** The generator is never
+shown line numbers (`generator.py:449-450`), so the line-addressed contract
+asked it for a fact it did not have: Arm 2 blocked 24 of 24 drafts and passed 0
+of 215 rows (`benchmarks/expertlongbench/RESULTS-ARM2.md`). Arm 3 then ran both
+redesigned contracts on the same instances. Content addressing false-blocked 2
+of 167 rows (1.20%, Wilson 0.33–4.26%), **both of them the design's own
+80-character cap refusing a correct 97- and 104-character quote**, and the model
+paraphrased its quote 0 times in 192 (`RESULTS-ARM3.md` §1, §3). So the quote is
+copied rather than counted, **there is no length cap**, and the only bound is
+that a quote lies within one line — which is what keeps it a span.
+
+**`at` left the contract.** A row used to name the line of its own draft where
+the number was written — an address a writer that emits a whole file in one
+reply cannot know, and 50 of Arm 2's 215 rows named a line past the end of
+their own draft. The address §7 prints back to a person is DERIVED here
+(`_derive_at`) from the draft and the transcribed pair instead. A row that still
+carries `at` is accepted and its `at` is ignored, so an annotation written under
+the old contract does not break.
 
 The same two questions are asked of a `results.json` quantity whose `source`
 carries a `#L14` fragment (§2.1's additive widening). That belongs here and not
@@ -31,9 +53,28 @@ implementations that have to agree. A source with no fragment is untouched.
 contains the claimed pair 27.7% of the time (596/2150); a *wrong line of the
 right file* contains it 0.0% of the time (0/1825). Checking the file would let a
 plausible-but-wrong citation through a quarter of the time — the
-inverted-executable-check failure D155 killed, in a new costume. `_span` is
-therefore the load-bearing line of this module, and it has a test that asserts
-the check goes green when it is widened.
+inverted-executable-check failure D155 killed, in a new costume. `_quote_span`
+is therefore the load-bearing line of this module — it returns the quoted run
+and never the file — and it has a test that asserts the check goes green when it
+is widened to the whole file. `_span` says the same thing for the `results.json`
+locator, which is still a line range.
+
+**The four codes, and which failure wears which.** CA-NUM-001 is *this row
+cannot be read, or the file it names is not here*: a malformed row, a value that
+is not a number, a `src` that is neither `uncited` nor a file-and-quote, a path
+outside the audited scope, a broken sha pin. CA-NUM-002 is *the locator does not
+land*: under the line contract, a span that resolves without holding the pair;
+under the quote contract, that same failure and the two that are now one step
+earlier — a quotation the file does not contain, and one it writes across two
+lines. **The quote IS the span**, so a quote that is not there is a wrong span
+rather than a missing file, and it carries the wrong-span code; the Arm 3
+harness called it CA-NUM-001 because there the quote was still being read as the
+locator half. CA-NUM-003 is ADVISORY: `uncited`, or a `governed:` source whose
+bytes this project does not keep. CA-NUM-004 is ADVISORY: a quotation the file
+says on more than one line. It resolves and it contains the pair; what is
+unresolved is *which* occurrence, a property of the source and not a defect in
+the annotation, so it is counted, carried to the auditor and never blocks
+(`docs/design/PROVENANCE_ADDRESSING.md` §2.2).
 
 Honest boundary, stated the way A4's is (`provenance.py:16-20`):
 
@@ -72,7 +113,10 @@ _FENCE = re.compile(r"```crossaudit-numbers[^\n]*\n(.*?)\n```", re.S)
 _FENCE_OPEN = re.compile(r"```crossaudit-numbers[^\n]*(?:\n|\Z)")
 _TEXT_SUFFIXES = (".md", ".txt", ".rst", ".tex")
 
-#: Line numbers are bounded at nine digits. Not a style rule: `int()` refuses a
+#: Line numbers are bounded at nine digits. Since D159 the fence carries no line
+#: number at all, so this governs the `results.json` locator and the span parser
+#: it shares — the one place a line range is still written by a deterministic
+#: producer rather than by a model. Not a style rule: `int()` refuses a
 #: string of more than 4300 digits outright, so an unbounded `\d+` turns a
 #: malformed annotation into an uncaught ValueError escaping `run_checks`. A
 #: bounded pattern makes the same input fail the locator match and become an
@@ -88,8 +132,6 @@ _LINE = r"[0-9]{1,9}"
 #: because a committed annotation abbreviates one the way git does.
 _SPAN = re.compile(r"(?P<path>[^@#]+?)(?:@(?P<sha>[0-9a-fA-F]{8,64}))?"
                    rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?")
-#: ``#L<n>`` — where in the enclosing artefact the number was written.
-_AT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?")
 #: The same span fragment where it hangs off a `path@revision` results source.
 _SOURCE_FRAGMENT = re.compile(rf"#L(?P<start>{_LINE})(?:-L(?P<end>{_LINE}))?\Z")
 
@@ -161,21 +203,42 @@ _BOUNDARY = set(',;:!?"\'«»…' + "\u2018\u2019\u201a\u201b\u201c\u201d\u201e\
 _DASHES = set("—–")
 _OPENERS, _CLOSERS = set("([{"), set(")]}")
 
-#: Notation this layer does not parse, sitting DIRECTLY on the end of a number:
-#: a superscript exponent (`10⁵`), or a multiplication sign or caret before a
+#: Notation this layer does not parse, sitting on the end of a number: a
+#: superscript exponent (`10⁵`), or a multiplication sign or caret before a
 #: digit (`5×10³`, `10^5`). The number the source states is not the number the
 #: scanner just read, so the occurrence is not a match for ANY unit — including
 #: the empty one, which is how `10⁵ g` was satisfying an annotation of `10` with
 #: no unit. Narrow on purpose: it fires on the number's own continuation and
 #: never on a word that merely follows, because "a unitless number may not be
 #: followed by anything" would block every `run 5 of 12` in the corpus.
+#:
+#: **A SPACE does not end the continuation, and that hole was a live false pass**
+#: (`docs/design/CONTAINMENT_RULE.md` §4, "Out of band, and not an extension",
+#: verified against the shipped matcher while that note was written). Matched
+#: with no leading-whitespace allowance, `3×10⁻²` was refused and `3 × 10⁻²` was
+#: not, so `contains_pair("… ≈ 3 × 10⁻² mbar", "3", "")` returned True: the
+#: check reporting that a source states three when what it states is 0.03. It is
+#: a NARROWING — strictly fewer occurrences match, so it can remove a pass and
+#: can never add one — which is why it lands here rather than waiting on the
+#: gold the note preregisters for the six extensions.
+#:
+#: The spaced form carries one extra condition the adjacent form does not need:
+#: **the right operand must itself be in exponent notation**. That is what keeps
+#: `5 x 3 grid` prose — an ASCII `x` between two plain integers is a grid, a
+#: window or a matrix, and blocking every one of them to catch a product would
+#: be the false-blocker trade this whole line exists to refuse. `3 × 10⁻²` and
+#: `5 x 10^3` continue into an exponent; `5 x 3` does not, and the difference is
+#: read off the bytes rather than guessed at.
 _SIGNS = r"+\-−±"
 _SUPER = r"⁰¹²³⁴⁵⁶⁷⁸⁹"
 _UNPARSED = re.compile(
-    rf"[{_SUPER}]"                          # 10⁵
-    rf"|[{_SIGNS}⁺⁻][{_SUPER}]"             # 10⁻⁵, 10⁺⁵
-    rf"|[⁺⁻]"                               # a bare superscript sign
-    rf"|[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]")    # 5×10³, 5×-10³, 5^−3
+    rf"\s*[{_SUPER}]"                       # 10⁵, and `10 ⁵`
+    rf"|\s*[{_SIGNS}⁺⁻][{_SUPER}]"          # 10⁻⁵, 10⁺⁵
+    rf"|\s*[⁺⁻]"                            # a bare superscript sign
+    rf"|[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]"     # 5×10³, 5×-10³, 5^−3
+    # `3 × 10⁻²`, `5 x 10^3`: a space before the operator only where the operand
+    # is exponentiated, so a spaced product of two plain integers stays prose.
+    rf"|\s+[×x*^⋅·]\s*[{_SIGNS}]?\s*[0-9]+\s*[{_SUPER}⁺⁻^]")
 
 #: A token of the shape `<unit>-<number><unit>`: a RANGE written closed up, such
 #: as the ambient window `(20°C-25°C)`. Whole-token comparison is what stops a
@@ -353,32 +416,78 @@ def _span(text: str, start: int, end: int) -> str | None:
     return "\n".join(lines[start - 1:end])
 
 
-def _at_span(at, lines: int) -> tuple[int, int] | None:
-    """Where in the enclosing artefact the number was written, or None.
+def _fold(text) -> str:
+    """The one normalisation content addressing performs, on BOTH sides of the
+    comparison: every run of whitespace becomes a single space.
 
-    Validated exactly as `src` is (`_span`), and `lines` is the last clause of
-    "exactly": the line is 1-based so it must be at least 1, a range must be
-    ordered, and **both ends must be inside the artefact that carries the
-    annotation**. `at` was first checked for SYNTAX only, which let `#L0` and
-    `#L5-L2` through; then for positivity and order, which let
-    `#L1-L1000000` through on a four-line draft while the identical `src` was
-    CA-NUM-001. A locator this layer refuses in one field must not be waved
-    through in the field beside it, and `at` is the address §7 prints back to a
-    person.
-
-    Refusing it is not the same as blocking on it. `_row_findings` consults this
-    for a row that NAMES a source; a row whose `src` is `uncited` names none, so
-    it is ADVISORY whatever this returns (D158, §3.4) and the unreadable address
-    is reported inside that advisory instead.
+    It is `normalise_unit`'s own fold (above) applied to a longer string, and it
+    is deliberately the whole list: no case folding, no punctuation stripping,
+    no tokenisation. It is what lets a quote survive a line break the writer put
+    inside it and a double space the source put inside itself, and nothing more.
+    Python folds NBSP, EM SPACE and NARROW NO-BREAK SPACE here because
+    `str.split()` splits on every character `str.isspace()` accepts — the same
+    reason `contains_pair` reads `5\u00a0°C`.
     """
-    m = _AT.fullmatch(str(at or ""))
-    if not m:
-        return None
-    start = int(m.group("start"))
-    end = int(m.group("end") or start)
-    if start < 1 or end < start or end > lines:
-        return None
-    return start, end
+    return " ".join(str(text or "").split())
+
+
+def _quote_span(text: str, quote: str) -> tuple[str | None, int]:
+    """The text a quotation names, and how many lines of the file hold it.
+
+    **The whole check turns on this function**, exactly as `_span` did under the
+    line contract. Returning the whole `text` regardless of the quote is the §4
+    mutation, and it makes a quotation of the wrong line pass — see
+    `tests/test_number_source_check.py::test_the_quote_and_not_the_file_is_what_is_checked`.
+
+    Line-scoped, and that is the only bound the contract has left (D159 removed
+    the 80-character cap, whose two false blockers were correct 97- and
+    104-character quotes). A quotation is a run of ONE line: folding the file as
+    one string instead would let a "quote" run from the top of a file to the
+    bottom, and a file-scoped citation contains the claimed pair by coincidence
+    27.7% of the time.
+
+    The count is over LINES and not over occurrences, which is where this parts
+    company with the Arm 3 harness's file-wide `flat(file).count(flat(quote))`:
+    the same characters twice on ONE line still name that line, and the located
+    text is the same text whichever occurrence was meant, so there is nothing
+    ambiguous for the auditor to weigh. Twice on TWO lines is the ambiguity the
+    design routes to ADVISORY.
+    """
+    needle = _fold(quote)
+    if not needle:
+        return None, 0
+    hits = sum(1 for line in text.split("\n") if needle in _fold(line))
+    return (needle if hits else None), hits
+
+
+def _derive_at(text: str, v: str, u: str) -> int | None:
+    """The line of the annotating artefact where this pair was written, or None.
+
+    D158 dropped `at` from the row because a generator writing a whole file in
+    one reply cannot know where its own sentence will land — but the address is
+    still what §7 prints back to a person, so code derives it: it holds the
+    draft and the transcription, and can look. The fence bodies are blanked
+    first (newline for newline, so the numbering does not move) or every row
+    would locate itself in its own annotation.
+    """
+    blanked = _FENCE.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+    for number, line in enumerate(blanked.split("\n"), 1):
+        if contains_pair(line, v, u):
+            return number
+    return None
+
+
+#: How much of a quotation a finding prints. The contract caps no quote (D159),
+#: so a whole file can arrive as one; the observation is still a line a person
+#: reads. The bound is on the REPORT and never on the comparison.
+_QUOTE_SHOWN = 72
+
+
+def _shown_quote(quote: str) -> str:
+    folded = _fold(quote)
+    if len(folded) > _QUOTE_SHOWN:
+        folded = folded[:_QUOTE_SHOWN] + "…"
+    return repr(folded)
 
 
 #: A transcribed value or unit may arrive as a string or as a JSON number: a
@@ -388,33 +497,38 @@ _SCALAR = (str, int, float)
 
 
 def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
-                  lines: int) -> list[Finding]:
-    # All four fields, present. `u` was previously allowed to be absent and read
-    # as unitless, which let a row opt out of the half of the check that
-    # compares units by simply not writing the key — the contract says four
-    # fields, so a row with three is not a row this check can verify.
-    missing = [k for k in ("v", "u", "at", "src") if k not in row]
+                  text: str) -> list[Finding]:
+    # All three fields, present. `u` was previously allowed to be absent and
+    # read as unitless, which let a row opt out of the half of the check that
+    # compares units by simply not writing the key — the contract says three
+    # fields, so a row with two is not a row this check can verify.
+    #
+    # THREE, not four: `at` left the contract with D159, and a row that still
+    # carries one is accepted with its `at` ignored. Dropping a required field
+    # only ever widens what is accepted, so an annotation written under the old
+    # contract keeps passing; asking for it would be asking the generator for
+    # an address it cannot know, which is what Arm 2 measured failing.
+    missing = [k for k in ("v", "u", "src") if k not in row]
     bad = [k for k in ("v", "u") if k in row and not isinstance(row[k], _SCALAR)]
-    bad += [k for k in ("at", "src") if k in row and not isinstance(row[k], str)]
+    bad += [k for k in ("src",) if k in row and not isinstance(row[k], (str, dict))]
     if missing or bad:
         detail = ("is missing " + ", ".join(missing) if missing
                   else "has a non-text " + ", ".join(bad))
         return [Finding(BLOCKER, "CA-NUM-001", path,
-                        f"a source annotation {detail}; each row names v, u, at "
-                        f"and src, and a row that names fewer cannot be checked")]
+                        f"a source annotation {detail}; each row names v, u and "
+                        f"src, and a row that names fewer cannot be checked")]
     v, u = str(row["v"]), str(row["u"])
-    # Not stripped. A locator is an address, and `"work/x.md#L11\n"` is not the
-    # address `work/x.md#L11` — trailing whitespace was being silently discarded
-    # by the same `.strip()` that made `$` and `\Z` indistinguishable in the
-    # membership test next door.
-    src = str(row["src"])
-    at = _at_span(row["at"], lines)
+    src = row["src"]
     shown = f'"{v} {u}"' if u else f'"{v}"'
-    # Said in a form that survives an `at` this layer cannot read, because the
-    # `uncited` branch below is now reached with an unresolved `at` and its
-    # report still has to name where it is talking about.
-    where = (f"line {at[0]}" if at[0] == at[1] else f"lines {at[0]}-{at[1]}") \
-        if at is not None else f"the row addressed {str(row['at'])!r}"
+    # Derived, never asked for: the generator is not shown its own line numbers
+    # and is no longer asked to guess them (D158/D159, §0 of the addressing
+    # design). Where the draft does not state the pair in prose the finding says
+    # so in words rather than inventing a line.
+    at = _derive_at(text, v, u)
+    # "the row" where the draft does not state the pair in prose at all: an
+    # honest nothing beats a line number code has no evidence for, and the row
+    # is still identified by the value the same sentence goes on to quote.
+    where = f"line {at}" if at is not None else "the row"
 
     # **`uncited` never blocks — D158 ruling 1, and `PROVENANCE_CHECKS.md`
     # §2.1/§3.4 as written.** This branch used to sit BELOW the `at` and value
@@ -435,8 +549,6 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
     # to a person. Advisory and visible, never blocking.
     if src == "uncited":
         wrong = []
-        if at is None:
-            wrong.append(f'its "at" is not a line in this {lines}-line artefact')
         if not v.strip():
             wrong.append("it transcribes no number")
         elif normalise_number(v) is None:
@@ -446,10 +558,10 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
                         f"{where} names no source for {shown}; passed to the "
                         f"auditor{malformed}")]
 
-    if at is None or not v.strip() or not src:
+    if not v.strip():
         return [Finding(BLOCKER, "CA-NUM-001", path,
                         "a source annotation has an empty number or location; each "
-                        "row names v, u, at and src")]
+                        "row names v, u and src")]
     if normalise_number(v) is None:
         # A transcription that is not a number cannot be looked for. It used to
         # fall through to a substring test that ignored the unit entirely, so
@@ -458,19 +570,96 @@ def _row_findings(path: str, files: Mapping[str, bytes], row: dict,
                         f"{where} transcribes {v!r}, which is not a number; write the "
                         f"number alone, or name no source with \"uncited\"")]
 
-    if src.startswith("governed:"):
-        # §1.2: the fetched text is not retained anywhere, so code cannot
-        # re-read it. Saying so is honest; passing in silence would not be.
-        return [Finding(ADVISORY, "CA-NUM-003", path,
-                        f"{where} names a fetched source for {shown}, whose text this "
-                        f"project does not keep; passed to the auditor")]
+    if isinstance(src, str):
+        if src.startswith("governed:"):
+            # §1.2: the fetched text is not retained anywhere, so code cannot
+            # re-read it. Saying so is honest; passing in silence would not be.
+            return [Finding(ADVISORY, "CA-NUM-003", path,
+                            f"{where} names a fetched source for {shown}, whose text "
+                            f"this project does not keep; passed to the auditor")]
+        # Every other string is the old line-addressed locator, or a typo. It is
+        # refused rather than parsed: the contract is a file and a quotation
+        # copied out of it, and a check that also accepted `path#L11` would be
+        # two contracts with one name.
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} names {src!r} for {shown}, which is not a file and "
+                        f"a quotation from it (expected "
+                        f'{{"file": "path/to/file.md", "quote": "…"}})')]
+    return _verify_quote(path, files, src, v, u, shown, where)
 
+
+def _verify_quote(path: str, files: Mapping[str, bytes], src: dict,
+                  v: str, u: str, shown: str, where: str) -> list[Finding]:
+    """Resolve one quotation and look in it. The half of the check that opens a
+    file, under content addressing.
+
+    The disposition order is the design's (`PROVENANCE_ADDRESSING.md` §2.2) and
+    it is load-bearing: absent is a BLOCKER, non-unique is an ADVISORY, and only
+    then is the pair looked for — so an ambiguous source can never be a
+    non-overridable stop on a correct transcription (D155's shape).
+    """
+    named, quote = src.get("file"), src.get("quote")
+    if not isinstance(named, str) or not named.strip():
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} names a source for {shown} with no file; a citation "
+                        f"is a file and a quotation copied out of it")]
+    if not isinstance(quote, str) or not _fold(quote):
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} names {named} for {shown} with no quotation; a "
+                        f"citation is a file and a quotation copied out of it")]
     # `computed:` names a path in this increment exactly as the plain form does.
     # Whether a script CAUSED that value is figure_code's question (§3.2); that
-    # the named span holds it is still this one's, and answering it here closes
-    # the alternative of evading every locator check with a four-word prefix.
-    locator = src[len("computed:"):] if src.startswith("computed:") else src
-    return _verify_locator(path, files, locator, v, u, shown, where, src)
+    # the named quotation holds it is still this one's, and answering it here
+    # closes the alternative of evading every locator check with a prefix.
+    if named.startswith("computed:"):
+        named = named[len("computed:"):]
+    key = _resolve(files, path, named)
+    if key is None:
+        # Traversal, an absolute path and a symlinked path are all refused by
+        # the same clause and for the same reason: the mapping holds the audited
+        # scope, resolution is two dictionary lookups, and this layer never
+        # touches a filesystem it could be walked out of.
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} cites {named} for {shown}, which is not in the "
+                        f"audited scope")]
+    declared_sha = src.get("sha")
+    if declared_sha is not None:
+        if not isinstance(declared_sha, str) or not re.fullmatch(
+                r"[0-9a-fA-F]{8,64}", declared_sha):
+            return [Finding(BLOCKER, "CA-NUM-001", path,
+                            f"{where} cites {named} for {shown} with a pin that is not "
+                            f"a sha256 prefix of at least 8 hex characters")]
+        actual = hashlib.sha256(files[key]).hexdigest()
+        if not actual.startswith(declared_sha.lower()):
+            return [Finding(BLOCKER, "CA-NUM-001", path,
+                            f"{where} cites {named} for {shown}, but that file's bytes "
+                            f"are not the ones the annotation pinned")]
+    body = _text(files[key])
+    if body is None:
+        return [Finding(BLOCKER, "CA-NUM-001", path,
+                        f"{where} cites {named} for {shown}, which is not readable "
+                        f"text")]
+    span, hits = _quote_span(body, quote)
+    said = _shown_quote(quote)
+    if hits == 0:
+        if _fold(quote) in _fold(body):
+            # The file says it, across a line break. Named separately because
+            # the writer's remedy differs: quote less, rather than quote right.
+            return [Finding(BLOCKER, "CA-NUM-002", path,
+                            f"{where} quotes {said} for {shown}, which {named} writes "
+                            f"across a line break; a quotation is a run of one line")]
+        return [Finding(BLOCKER, "CA-NUM-002", path,
+                        f"{where} quotes {said} for {shown}, and {named} does not "
+                        f"contain those characters")]
+    if hits > 1:
+        return [Finding(ADVISORY, "CA-NUM-004", path,
+                        f"{where} quotes {said} for {shown}, which {named} says on "
+                        f"{hits} lines, so it names no one place; passed to the "
+                        f"auditor")]
+    if not contains_pair(span, v, u):
+        return [Finding(BLOCKER, "CA-NUM-002", path,
+                        f"{where} quotes {said} from {named} — {shown} is not in it")]
+    return []
 
 
 def _verify_locator(path: str, files: Mapping[str, bytes], locator: str,
@@ -643,20 +832,31 @@ def check_number_source(files: Mapping[str, bytes]) -> list[Finding]:
                 out.append(Finding(
                     BLOCKER, "CA-NUM-001", path,
                     "a crossaudit-numbers declaration must be a JSON array of "
-                    "{v, u, at, src} rows"))
+                    "{v, u, src} rows"))
                 continue
             for row in rows:
-                out.extend(_row_findings(path, files, row,
-                                         text.count("\n") + 1))
+                out.extend(_row_findings(path, files, row, text))
     return out
 
 
 register("number_source", check_number_source,
          "Opt-in: every number a text artefact declares in a ```crossaudit-numbers "
          "block, and every results.json quantity whose source carries a '#L14' span "
-         "fragment, must name a span — a path and a line range inside the audited "
-         "scope — that resolves and contains the transcribed value and unit. The "
-         "value is compared as a number and not as text (leading and trailing zeros "
+         "fragment, must name a location in the audited scope that resolves and "
+         "contains the transcribed value and unit. A fenced row is {v, u, src}, and "
+         "src is either 'uncited' or {\"file\": a path in the audited scope, "
+         "\"quote\": characters copied from ONE line of that file}; a row that also "
+         "carries the older 'at' field is accepted and its 'at' is ignored. The "
+         "quote IS the span: it is located by exact characters with every run of "
+         "whitespace folded to a single space on both sides, it has NO length "
+         "limit, and the only bound is that it lie within one line. A quotation the "
+         "file does not contain, one the file writes across a line break, and one "
+         "that is found but does not hold the pair are each a blocker; a quotation "
+         "the file says on MORE THAN ONE line is advisory and never blocks, because "
+         "which occurrence was meant is a property of the source rather than a "
+         "defect in the annotation. A results.json source still names a line range, "
+         "because a deterministic producer writes that one. The value is compared "
+         "as a number and not as text (leading and trailing zeros "
          "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
          "number and a reported precision is not preserved); the unit must equal the "
          "WHOLE unit token following that number, under a fixed synonym table, so a "
@@ -668,7 +868,7 @@ register("number_source", check_number_source,
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "
-         "it is unitless. A named span that does not resolve or does not "
+         "it is unitless. A named location that does not resolve or does not "
          "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "

@@ -1,17 +1,26 @@
-"""number → source: the span a generator names must resolve and contain the number.
+"""number → source: the span a generator QUOTES must resolve and contain the number.
 
-`docs/design/PROVENANCE_CHECKS.md` §2.1/§3.1/§3.4, on the right side of D155: the
+`docs/design/PROVENANCE_CHECKS.md` §2.1/§3.1/§3.4 and
+`docs/design/PROVENANCE_ADDRESSING.md` §2, on the right side of D155: the
 generator names a locator, code opens the file and looks, and nothing anywhere
 asks a model what the evidence says.
 
+Since D159 the locator is **content**, not a line number: `src` is
+`{"file": …, "quote": …}`, the quote is characters copied from one line of that
+file, and there is no cap on its length. The generator is never shown line
+numbers, so under the old contract it could not address the lines it was asked
+for — Arm 2 blocked 24 of 24 drafts on that alone. A row that still carries the
+old `at` field is accepted and its `at` is ignored.
+
 D64 — a guard is specified with the mutation that reddens it, and each docstring
 below names its own (`tests/test_repair_guard.py:3-7`). One test is the
-exception that proves the rule: `test_the_span_and_not_the_file_is_what_is_checked`
+exception that proves the rule: `test_the_quote_and_not_the_file_is_what_is_checked`
 asserts its mutation goes **green**, because a check that still passed with the
-span widened to the whole file would be checking nothing the design measured.
+quote widened to the whole file would be checking nothing the design measured.
 
 The fixture is the real shape §4 asks for: a RECIPE.md whose value is on L11, an
-explanation.md citing `#L11`, and the wrong-line case citing `#L12`.
+explanation.md quoting L11, and the wrong-place case quoting L12 — the line the
+value is NOT on, in the file it IS in.
 """
 from __future__ import annotations
 
@@ -56,8 +65,20 @@ def draft(rows: list[dict], prose: str = "Calcined at 950 °C for 1 h.") -> byte
             f"```crossaudit-numbers\n{body}\n```\n").encode()
 
 
-def row(value="950", unit="°C", at="#L3", src=f"{RECIPE_PATH}#L11") -> dict:
-    return {"v": value, "u": unit, "at": at, "src": src}
+#: The two lines the fixtures quote, byte for byte out of RECIPE above. L11
+#: holds the pair; L12 is its neighbour, in the same file, and does not.
+L11 = "3. Calcine at 950 °C for 1 hour."
+L12 = "4. Cool to 25 °C in the furnace."
+
+
+def cite(quote, file=RECIPE_PATH, **extra) -> dict:
+    """A contract-B locator: a file, and characters copied from one of its
+    lines. `extra` carries the optional `sha` pin, and nothing else is read."""
+    return {"file": file, "quote": quote, **extra}
+
+
+def row(value="950", unit="°C", src=None) -> dict:
+    return {"v": value, "u": unit, "src": cite(L11) if src is None else src}
 
 
 def increment(*rows: dict, recipe: str = RECIPE) -> dict[str, bytes]:
@@ -84,20 +105,28 @@ def science_with_numbers() -> list[str]:
 
 # ------------------------------------------------------------- the seven (1/7)
 def test_a_locator_naming_the_wrong_line_is_a_blocker():
-    """MUTATION (§4 row 1): change `#L11` to `#L12`, where the value lives on
-    L11. The check must raise CA-NUM-002 — and the finding must not name the
-    rule id in its own words, because the activity stream shows the observation
-    (ACTIVITY_STREAM.md rule 12, PROVENANCE_CHECKS.md §7)."""
-    good = findings(increment(row(src=f"{RECIPE_PATH}#L11")))
-    assert good == [], "the annotation that names the right line must pass"
+    """MUTATION (§4 row 1, under contract B): quote L12 instead of L11, where
+    the value lives on L11. Both quotations are in the file and only one holds
+    the pair, so this is the same discrimination the line contract bought,
+    bought by copying instead of counting. The check must raise CA-NUM-002 —
+    and the finding must not name the rule id in its own words, because the
+    activity stream shows the observation (ACTIVITY_STREAM.md rule 12,
+    PROVENANCE_CHECKS.md §7).
 
-    bad = findings(increment(row(src=f"{RECIPE_PATH}#L12")))
+    The address the observation opens with is DERIVED (`_derive_at`), never
+    asked of the generator: the draft says "950 °C" on its own line 3 and code
+    can read that for itself."""
+    good = findings(increment(row(src=cite(L11))))
+    assert good == [], "the annotation that quotes the right line must pass"
+
+    bad = findings(increment(row(src=cite(L12))))
     assert len(bad) == 1
     f = bad[0]
     assert f.severity == BLOCKER and f.rule == "CA-NUM-002"
     assert f.artifact == DRAFT_PATH
     assert f.observation == (
-        'line 3 names work/synthesis/RECIPE.md:12 — "950 °C" is not on that line')
+        "line 3 quotes '4. Cool to 25 °C in the furnace.' from "
+        'work/synthesis/RECIPE.md — "950 °C" is not in it')
     assert "CA-NUM" not in f.observation and "number_source" not in f.observation
 
 
@@ -109,7 +138,7 @@ def test_the_unit_synonym_table_is_load_bearing(monkeypatch):
 
     §6 measured this as 8 of 373 traceable numbers (2.1%), over the >2% kill
     condition on its own, which is why the table is code and not a footnote."""
-    hours = row(value="1", unit="h", src=f"{RECIPE_PATH}#L11")
+    hours = row(value="1", unit="h", src=cite(L11))
     assert findings(increment(hours)) == []
 
     monkeypatch.setattr(numbers, "SYNONYMS", {})
@@ -118,26 +147,30 @@ def test_the_unit_synonym_table_is_load_bearing(monkeypatch):
 
 
 # ------------------------------------------------------------- the seven (3/7)
-def test_the_span_and_not_the_file_is_what_is_checked(monkeypatch):
-    """MUTATION (§4 row 3): widen the span check to the whole file. The
-    wrong-line fixture goes **GREEN**, and this test asserts that green.
+def test_the_quote_and_not_the_file_is_what_is_checked(monkeypatch):
+    """MUTATION (§4 row 3, under contract B): widen the quote lookup to the
+    whole file. The wrong-quote fixture goes **GREEN**, and this test asserts
+    that green.
 
     It is the only guard here that proves something by passing. §6 measured a
     wrong *file* containing the claimed pair 27.7% of the time (596/2150) and a
-    wrong *line* 0.0% (0/1825); if the check still blocked with `_span` widened,
-    the span would not be what is doing the work and the whole contract could
-    have named files. The fixture cites L12, which holds "25 °C" and not the
-    pair; the pair is on L11, elsewhere in the same file. Span-scoped that is a
-    blocker, file-scoped it is a pass, and the difference between those two
-    readings is the entire contract."""
-    wrong_line = increment(row(src=f"{RECIPE_PATH}#L12"))
+    wrong *line* 0.0% (0/1825); if the check still blocked with `_quote_span`
+    widened, the quotation would not be what is doing the work and the whole
+    contract could have named files. The fixture quotes L12, which holds
+    "25 °C" and not the pair; the pair is on L11, elsewhere in the same file.
+    Quote-scoped that is a blocker, file-scoped it is a pass, and the difference
+    between those two readings is the entire contract — which is also why the
+    quote must lie within one line now that D159 has removed the length cap: a
+    quotation allowed to run across line breaks is a file-scoped citation
+    wearing a span's clothes."""
+    wrong_line = increment(row(src=cite(L12)))
     assert [f.rule for f in findings(wrong_line)] == ["CA-NUM-002"]
 
-    monkeypatch.setattr(numbers, "_span",
-                        lambda text, start, end: text)          # the mutation
+    monkeypatch.setattr(numbers, "_quote_span",
+                        lambda text, quote: (text, 1))          # the mutation
     assert findings(wrong_line) == [], (
-        "with the span widened to the whole file the wrong line passes; that is "
-        "the coincidence rate the span scoping exists to remove")
+        "with the quote widened to the whole file the wrong line passes; that "
+        "is the coincidence rate the quote scoping exists to remove")
 
 
 # ------------------------------------------------------------- the seven (4/7)
@@ -149,20 +182,29 @@ def test_a_locator_that_does_not_resolve_is_a_blocker():
     the out-of-range and non-span cases pass. Both are the same defect — a
     citation to a location nobody committed stops being a finding.
 
-    CA-NUM-001 is 'the location is not there'; CA-NUM-002 is 'the location is
-    there and the number is not'. Keeping them apart is what lets the stream say
-    which of the two happened without printing either id."""
-    absent = findings(increment(row(src="work/synthesis/MISSING.md#L11")))
+    CA-NUM-001 is 'the FILE is not there, or the row cannot be read';
+    CA-NUM-002 is 'the file is there and the quotation does not land'. Keeping
+    them apart is what lets the stream say which of the two happened without
+    printing either id — and under content addressing the quote is the span, so
+    a quotation the file does not hold is a wrong span (CA-NUM-002, next test)
+    and not a missing file."""
+    absent = findings(increment(row(src=cite(L11, file="work/synthesis/MISSING.md"))))
     assert [(f.severity, f.rule) for f in absent] == [(BLOCKER, "CA-NUM-001")]
     assert "not in the audited scope" in absent[0].observation
 
-    past_end = findings(increment(row(src=f"{RECIPE_PATH}#L99")))
-    assert [f.rule for f in past_end] == ["CA-NUM-001"]
-    assert "ends at line" in past_end[0].observation
+    no_quote = findings(increment(row(src={"file": RECIPE_PATH})))
+    assert [f.rule for f in no_quote] == ["CA-NUM-001"]
+    assert "with no quotation" in no_quote[0].observation
 
-    not_a_span = findings(increment(row(src=RECIPE_PATH)))
-    assert [f.rule for f in not_a_span] == ["CA-NUM-001"]
-    assert "not a line in a file" in not_a_span[0].observation
+    no_file = findings(increment(row(src={"quote": L11})))
+    assert [f.rule for f in no_file] == ["CA-NUM-001"]
+    assert "with no file" in no_file[0].observation
+
+    # The old line-addressed locator is a string, and it is refused rather than
+    # parsed: two grammars under one check name is two contracts.
+    not_a_citation = findings(increment(row(src=f"{RECIPE_PATH}#L11")))
+    assert [f.rule for f in not_a_citation] == ["CA-NUM-001"]
+    assert "not a file and a quotation from it" in not_a_citation[0].observation
 
 
 # ------------------------------------------------------------- the seven (5/7)
@@ -185,7 +227,7 @@ def test_uncited_is_advisory_and_an_unannotated_number_is_nothing():
     assert run_checks(vacuous, ["number_source"]).findings == []
 
 
-def test_an_uncited_row_is_advisory_whatever_its_own_address_says():
+def test_an_uncited_row_is_advisory_whatever_else_the_row_says():
     """MUTATION (D158 ruling 1, §3.4): validate `at` FIRST — put the `at is
     None` blocker back above the `uncited` branch, which is where it stood
     until this hotfix (`numbers.py:406-421`). This test then reddens on its
@@ -204,34 +246,34 @@ def test_an_uncited_row_is_advisory_whatever_its_own_address_says():
     the ordering was the defect. A row that names no source hands this layer
     nothing to open, so there is nothing in it that can fail.
 
-    Advisory is not silence, and the second half asserts that: the address the
-    row got wrong is reported inside the same ADVISORY, so the auditor and the
-    person see it. The third half is the guard against over-reading this — the
-    identical malformed `at` on a row that DOES name a source is still a
-    blocker, so the fix discriminates on `src` and weakens nothing else."""
-    rows = [{"v": "950", "u": "°C", "at": "#L999", "src": "uncited"}]
-    body = json.dumps(rows, ensure_ascii=False)
-    four_line = f"# E\n```crossaudit-numbers\n{body}\n```"
-    assert four_line.count("\n") + 1 == 4, "the fixture must be the 4-line draft"
+    RETIRED WITH D159, and named here rather than deleted: the third assertion
+    used to be "the identical malformed `at` on a row that DOES name a source is
+    still a blocker", and there is no such branch any more. `at` is not read by
+    anything — `_at_span` and `_AT` are gone from the module — so a row cannot
+    be blocked on it, and the ordering defect it guarded cannot recur. What the
+    generator writes beside `uncited` is now junk this check ignores, and the
+    assertions below say exactly that: a legacy `at`, an impossible legacy `at`,
+    an unknown key, `uncited` is ADVISORY through all of them.
 
-    result = run_checks({DRAFT_PATH: four_line.encode()}, ["number_source"])
-    assert result.hard_failures == 0
-    assert [(f.severity, f.rule) for f in result.findings] == [(ADVISORY, "CA-NUM-003")]
-    assert all(f.severity != BLOCKER for f in result.findings)
+    Advisory is not silence, and the value half still asserts that (next test):
+    whatever the row got wrong that this layer can still read is reported inside
+    the same ADVISORY, so the auditor and the person see it."""
+    for extra in ({}, {"at": "#L999"}, {"at": "#L0"}, {"at": 7}, {"nonsense": []}):
+        rows = [{"v": "950", "u": "°C", "src": "uncited", **extra}]
+        body = json.dumps(rows, ensure_ascii=False)
+        four_line = f"# E\n```crossaudit-numbers\n{body}\n```"
+        assert four_line.count("\n") + 1 == 4, "the fixture must be the 4-line draft"
 
-    # Seen, not waved through: the malformed address is in the advisory's own
-    # observation, which is the text §7 prints back to a person.
-    said = result.findings[0].observation
-    assert "names no source" in said and "#L999" in said
-    assert 'its "at" is not a line in this 4-line artefact' in said
+        result = run_checks({DRAFT_PATH: four_line.encode()}, ["number_source"])
+        assert result.hard_failures == 0, extra
+        assert [(f.severity, f.rule) for f in result.findings] == [
+            (ADVISORY, "CA-NUM-003")], extra
+        assert all(f.severity != BLOCKER for f in result.findings), extra
+        assert "names no source" in result.findings[0].observation, extra
+        # It is not repeated back either: `at` is ignored, not reported.
+        assert "at" not in result.findings[0].observation.split("names")[0]
 
-    # The mutation's own branch, still alive: same unreadable `at`, a row that
-    # names a source, and it blocks. `_at_span` still refuses the address — the
-    # reorder changed which rows consult it, never what it accepts.
-    assert numbers._at_span("#L999", 4) is None
-    named = [{"v": "950", "u": "°C", "at": "#L999", "src": f"{RECIPE_PATH}#L11"}]
-    blocked = run_checks(increment(*named), ["number_source"])
-    assert [(f.severity, f.rule) for f in blocked.findings] == [(BLOCKER, "CA-NUM-001")]
+    assert not hasattr(numbers, "_at_span") and not hasattr(numbers, "_AT")
 
 
 def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
@@ -256,7 +298,7 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
     the advisory's own text."""
     for value, expected in [("", "it transcribes no number"),
                             ("about 950", "which is not a number")]:
-        rows = [{"v": value, "u": "°C", "at": "#L3", "src": "uncited"}]
+        rows = [{"v": value, "u": "°C", "src": "uncited"}]
         result = run_checks(increment(*rows), ["number_source"])
         assert result.hard_failures == 0, value
         assert [(f.severity, f.rule) for f in result.findings] == [
@@ -264,7 +306,7 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
         assert expected in result.findings[0].observation, value
 
     # And a row that names a source is refused for the same value, unchanged.
-    cited = [{"v": "about 950", "u": "°C", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}]
+    cited = [{"v": "about 950", "u": "°C", "src": cite(L11)}]
     assert [f.rule for f in findings(increment(*cited))] == ["CA-NUM-001"]
 
 
@@ -327,7 +369,7 @@ def test_the_check_is_registered_and_selectable_and_in_no_profile():
     # Registered, described, and it still runs when it is asked for by name.
     assert "number_source" in available()
     assert resolve(["schema", "number_source"]) == ["schema", "number_source"]
-    assert findings(increment(row(src=f"{RECIPE_PATH}#L12")))[0].rule == "CA-NUM-002"
+    assert findings(increment(row(src=cite(L12))))[0].rule == "CA-NUM-002"
 
 
 # ------------------------------------------------------------- the seven (7/7)
@@ -374,21 +416,36 @@ def test_a_science_project_citing_a_nonexistent_input_is_blocked():
 
 
 # ------------------------------------------------------- the rest of the shape
-def test_a_span_range_and_a_pinned_sha_both_resolve():
-    """MUTATION: ignore the declared sha. A range citation and a byte-pinned one
-    both stop meaning anything, and an annotation survives the file changing
-    underneath it."""
+def test_a_pinned_sha_still_resolves_and_a_stale_one_still_blocks():
+    """MUTATION: ignore the declared `sha`. A byte-pinned citation stops meaning
+    anything and an annotation survives the file changing underneath it.
+
+    RETIRED WITH D159, the first half of the old test: `#L9-L12`, a citation to
+    a RANGE of lines. A quotation is a run of one line by contract now, so there
+    is no multi-line fence locator left to resolve; the range parser lives on
+    for the `results.json` source, where a deterministic producer writes it, and
+    is exercised by
+    `test_provenance_accepts_only_a_line_fragment_and_nothing_else`.
+
+    The pin keeps the grammar `PROVENANCE_ADDRESSING.md` §B.1 kept for it — a
+    sha256 or a prefix of at least 8 hex characters — and a pin that is not one
+    is a malformed row rather than a silently ignored field, which is the mirror
+    case for the clause that reads it (D157 rule 3)."""
     import hashlib
 
-    assert findings(increment(row(src=f"{RECIPE_PATH}#L9-L12"))) == []
-
     sha = hashlib.sha256(RECIPE.encode()).hexdigest()
-    assert findings(increment(row(src=f"{RECIPE_PATH}@{sha}#L11"))) == []
-    assert findings(increment(row(src=f"{RECIPE_PATH}@{sha[:12]}#L11"))) == []
+    assert findings(increment(row(src=cite(L11, sha=sha)))) == []
+    assert findings(increment(row(src=cite(L11, sha=sha[:12])))) == []
+    assert findings(increment(row(src=cite(L11, sha=sha[:12].upper())))) == []
 
-    stale = findings(increment(row(src=f"{RECIPE_PATH}@{'0' * 12}#L11")))
+    stale = findings(increment(row(src=cite(L11, sha="0" * 12))))
     assert [f.rule for f in stale] == ["CA-NUM-001"]
     assert "not the ones the annotation pinned" in stale[0].observation
+
+    for unusable in ("", "abc", "zz" * 8, 12, sha + "0"):
+        bad = findings(increment(row(src=cite(L11, sha=unusable))))
+        assert [f.rule for f in bad] == ["CA-NUM-001"], unusable
+        assert "sha256 prefix" in bad[0].observation, unusable
 
 
 def test_a_computed_locator_is_still_resolved_and_still_read():
@@ -398,9 +455,9 @@ def test_a_computed_locator_is_still_resolved_and_still_read():
     §3.1 defers `computed:` to §3.2, but only for the CAUSAL half — whether a
     script produced the value is figure_code's question. That the named span
     holds it is this check's, and it is answerable today."""
-    ok = findings(increment(row(src=f"computed:{RECIPE_PATH}#L11")))
+    ok = findings(increment(row(src=cite(L11, file=f"computed:{RECIPE_PATH}"))))
     assert ok == []
-    bad = findings(increment(row(src=f"computed:{RECIPE_PATH}#L12")))
+    bad = findings(increment(row(src=cite(L12, file=f"computed:{RECIPE_PATH}"))))
     assert [f.rule for f in bad] == ["CA-NUM-002"]
 
 
@@ -437,7 +494,7 @@ def test_a_malformed_annotation_block_is_a_blocker(body):
 def test_a_span_locator_relative_to_the_annotating_file_resolves():
     """MUTATION: resolve only exact keys. An artefact citing a sibling by its
     own directory's name is blocked for naming the file correctly."""
-    assert findings(increment(row(src="synthesis/RECIPE.md#L11"))) == []
+    assert findings(increment(row(src=cite(L11, file="synthesis/RECIPE.md")))) == []
 
 
 def test_a_results_source_may_name_a_span_and_old_values_keep_passing():
@@ -513,7 +570,12 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
     # It tells the generator to transcribe and to locate. It must never ask it
     # to assess (D155).
     assert "```crossaudit-numbers" in body
-    assert "uncited" in body and "#L11" in body
+    assert "uncited" in body and '"quote"' in body
+    # And it asks for NO line number anywhere — not for the source, and not for
+    # the draft's own position. That is the whole of D159 ruling 1 on the
+    # generator's side: an address the model is never shown is an address it
+    # cannot give, and Arm 2 blocked 24 of 24 drafts proving it.
+    assert "#L" not in body and '"at"' not in body
     assert "you name a location, you never say what is at it" in body.lower()
     # And it says the unit is compared whole, because a half-transcribed
     # compound unit is now a blocker and the generator has to be told.
@@ -632,7 +694,7 @@ def test_the_pair_comparison_is_literal_in_both_directions(span, v, u, expected,
     transcription is non-overridable damage to correct work, and a PASS on a
     different number is the check saying it verified something it did not."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -744,16 +806,36 @@ def test_a_malformed_annotation_becomes_a_finding_and_never_an_exception():
     thousand digits and a JSON integer of five thousand digits both raised an
     uncaught `ValueError` out of `run_checks` — the deterministic layer, which
     runs before any model and decides the verdict, crashing on text a generator
-    can emit. A malformed annotation is a finding; it is never an exception."""
+    can emit. A malformed annotation is a finding; it is never an exception.
+
+    Both halves of the mutation are still live, in the two places a line number
+    can still arrive: the `results.json` locator, which `_LINE` parses, and a
+    JSON literal in the fence, which `normalise_number` reads. The fence's own
+    locator no longer parses a number at all — five thousand digits inside a
+    quotation are five thousand characters the file does not contain."""
     huge = "9" * 5000
-    for body in (json.dumps([{"v": "1", "u": "", "at": "#L3",
-                              "src": f"{RECIPE_PATH}#L{huge}"}]),
-                 '[{"v": ' + huge + ', "u": "", "at": "#L3", '
-                 f'"src": "{RECIPE_PATH}#L1"}}]'):
+    for body, rule in (
+            (json.dumps([{"v": "1", "u": "",
+                          "src": {"file": RECIPE_PATH, "quote": f"#L{huge}"}}]),
+             "CA-NUM-002"),
+            ('[{"v": ' + huge + ', "u": "", '
+             f'"src": {{"file": "{RECIPE_PATH}", "quote": "3. Calcine"}}}}]',
+             "CA-NUM-001")):
         files = {RECIPE_PATH: RECIPE.encode(),
                  DRAFT_PATH: f"# E\n\n```crossaudit-numbers\n{body}\n```\n".encode()}
         out = findings(files)
-        assert out and all(f.rule == "CA-NUM-001" for f in out)
+        assert out and all(f.rule == rule for f in out), body[:40]
+
+    # And the same five thousand digits through the locator that IS still
+    # parsed as a line number, where `_LINE`'s bound is what stops the crash.
+    structured = {"experiments/e1/metadata.yml":
+                  b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+                  "experiments/e1/runs.csv": b"run,y\n1,0.42\n",
+                  "experiments/e1/results.json": json.dumps(
+                      {"quantities": [{"name": "y", "value": 0.42, "unit": "",
+                                       "source": f"runs.csv@v3#L{huge}"}],
+                       "convergence": {"converged": True}}).encode()}
+    assert run_checks(structured, ["number_source"]).findings == []
 
 
 def test_an_unclosed_annotation_block_is_a_finding_not_silence():
@@ -762,7 +844,7 @@ def test_an_unclosed_annotation_block_is_a_finding_not_silence():
     indistinguishable from a document that never annotated, which is exactly the
     silent-pass §5.4 says any slice shipping these checks must not have."""
     unclosed = (f"# E\n\n```crossaudit-numbers\n"
-                f'[{{"v": "950", "u": "°C", "at": "#L3", "src": "{RECIPE_PATH}#L11"}}]\n')
+                f"{json.dumps([row()], ensure_ascii=False)}\n")
     out = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: unclosed.encode()})
     assert [f.rule for f in out] == ["CA-NUM-001"]
     assert "opened and never closed" in out[0].observation
@@ -776,20 +858,31 @@ def test_a_row_that_omits_a_field_cannot_opt_out_of_the_check():
 
     A JSON number for `v` or `u` is still accepted: writing `"v": 950` is a
     transcription, not a judgment, and refusing it would be a non-overridable
-    blocker on a well-formed annotation."""
-    no_unit = {"v": "950", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    blocker on a well-formed annotation. The fields are THREE since D159, and
+    the mutation in the other direction — asking for `at` again — is the one
+    `test_a_legacy_at_is_accepted_and_its_at_is_ignored` reddens."""
+    no_unit = {"v": "950", "src": cite(L11)}
     out = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([no_unit])})
     assert [f.rule for f in out] == ["CA-NUM-001"]
     assert "is missing u" in out[0].observation
+    assert "each row names v, u and src" in out[0].observation
 
-    numeric = {"v": 950, "u": "°C", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    numeric = {"v": 950, "u": "°C", "src": cite(L11)}
     assert findings({RECIPE_PATH: RECIPE.encode(),
                      DRAFT_PATH: draft([numeric])}) == []
 
-    nested = {"v": {"n": 950}, "u": "°C", "at": "#L3", "src": f"{RECIPE_PATH}#L11"}
+    nested = {"v": {"n": 950}, "u": "°C", "src": cite(L11)}
     bad = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([nested])})
     assert [f.rule for f in bad] == ["CA-NUM-001"]
     assert "non-text v" in bad[0].observation
+
+    # `src` is a string or an object, and a row that makes it anything else is
+    # malformed rather than silently unread — the mirror of the type widening
+    # that let the locator become an object in the first place.
+    listed = {"v": "950", "u": "°C", "src": [RECIPE_PATH, L11]}
+    worse = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([listed])})
+    assert [f.rule for f in worse] == ["CA-NUM-001"]
+    assert "non-text src" in worse[0].observation
 
 
 def _first_round_prompt(root) -> str:
@@ -931,7 +1024,7 @@ def test_the_matcher_after_the_second_review(span, v, u, expected, why):
     CA-NUM-001 — and normalisation is complete enough that legitimate forms do
     not reach that path."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -944,8 +1037,8 @@ def test_precision_survives_the_json_parse():
     and `results.json` are both parsed with `parse_float=str, parse_int=str`, so
     the transcription reaches the comparison as the characters that were
     written."""
-    body = ('[{"v": 9007199254740993.0, "u": "g", "at": "#L3", '
-            f'"src": "{RECIPE_PATH}#L1"}}]')
+    body = ('[{"v": 9007199254740993.0, "u": "g", '
+            f'"src": {{"file": "{RECIPE_PATH}", "quote": "9007199254740992 g"}}}}]')
     files = {RECIPE_PATH: b"9007199254740992 g\n",
              DRAFT_PATH: f"# E\n\n```crossaudit-numbers\n{body}\n```\n".encode()}
     assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
@@ -1108,7 +1201,7 @@ def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
     only thing that separates them, and both halves are asserted here because
     loosening it far enough to fix the range would give `cm` back."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -1162,7 +1255,7 @@ def test_a_prefix_of_the_unit_token_never_satisfies(span, v, u, expected, why):
     may be added are ones LONGER than the token — a range split and the `wt %`
     percent split — so nothing can reintroduce a prefix."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -1181,25 +1274,35 @@ def test_the_exponent_sweep_that_gave_a_hundred_false_passes():
         assert contains_pair(f"1e{exponent} g", f"1e{exponent}", "g"), exponent
 
 
-@pytest.mark.parametrize("src,at,blocks", [
-    (f"{RECIPE_PATH}#L11", "#L3", False),
-    (f"{RECIPE_PATH}#L11\n", "#L3", True),
-    (f"{RECIPE_PATH}#L١١", "#L3", True),
-    (f" {RECIPE_PATH}#L11", "#L3", True),
-    (f"{RECIPE_PATH}#L11", "#L3\n", True),
+@pytest.mark.parametrize("locator", [
+    f"{RECIPE_PATH}#L11", f"{RECIPE_PATH}#L11\n", f"{RECIPE_PATH}#L١١",
+    f" {RECIPE_PATH}#L11", f"{RECIPE_PATH}#L9-L12", RECIPE_PATH, "",
 ])
-def test_a_fenced_locator_is_ascii_and_exact(src, at, blocks):
-    """MUTATION: put `\\d` back in `_LINE`, or restore the `.strip()` on `src`
-    and `at`.
+def test_the_fence_locator_is_no_longer_a_line_number_at_all(locator):
+    """MUTATION (D159 ruling 1): keep parsing `path#L<n>` in the fence beside
+    the quotation, "for compatibility". Every one of these rows goes green, and
+    the check has two locator grammars under one name — which is two contracts,
+    and the one this slice removed is the one the generator provably cannot
+    write (Arm 2: 0 of 215 rows passed).
 
-    The ASCII/absolute-end discipline was applied to the `check_provenance`
-    membership test and to nothing else, so the FENCE parser still read `#L٢`
-    as line two and still discarded trailing whitespace inside a locator. A
-    locator is an address; `work/x.md#L11\\n` is not the address
-    `work/x.md#L11`."""
+    RETIRED WITH D159, and recorded here rather than deleted:
+    `test_a_fenced_locator_is_ascii_and_exact`,
+    `test_the_at_locator_is_validated_the_way_the_src_locator_is` and
+    `test_the_at_locator_must_be_inside_the_artefact_that_carries_it` all
+    asserted line-number semantics in the FENCE — ASCII digits, no surrounding
+    whitespace, `#L0` and `#L5-L2` refused, a range inside the artefact. There
+    is no line number in the fence to be exact about any more, and no `at` field
+    to validate. What those tests were really guarding is `_LINE`'s digit and
+    end-anchor discipline, which still governs the `results.json` locator and is
+    still asserted by `test_the_fragment_is_ascii_and_at_the_absolute_end` and
+    `test_a_structured_source_holds_its_own_contract_with_no_other_check_on`.
+    A quotation needs none of it: whitespace is folded on both sides by
+    contract, and every other character is compared as itself."""
     files = {RECIPE_PATH: RECIPE.encode(),
-             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at, "src": src}])}
-    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
+             DRAFT_PATH: draft([{"v": "950", "u": "°C", "src": locator}])}
+    found = findings(files)
+    assert [f.rule for f in found] == ["CA-NUM-001"]
+    assert "not a file and a quotation from it" in found[0].observation
 
 
 def test_the_contract_discloses_what_normalisation_does_to_a_number():
@@ -1280,25 +1383,35 @@ def test_the_boundary_list_is_exhaustive_and_everything_else_is_token(
     half-transcribed unit rather than a pass on one. The boundaries are
     enumerated here in full because the enumeration IS the contract."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
-@pytest.mark.parametrize("at,blocks", [
-    ("#L3", False), ("#L2-L4", False), ("#L1-L1", False),
-    ("#L0", True), ("#L00", True), ("#L5-L2", True), ("#L3\n", True), ("#L٣", True),
-])
-def test_the_at_locator_is_validated_the_way_the_src_locator_is(at, blocks):
-    """MUTATION: check `at` for syntax only, or discard its range end.
+@pytest.mark.parametrize("at", ["#L3", "#L2-L4", "#L0", "#L5-L2", "#L٣",
+                               "#L1-L1000000", "", None, 7, {"line": 3}])
+def test_a_legacy_at_is_accepted_and_its_at_is_ignored(at):
+    """MUTATION (D159): validate `at` again — read it, refuse `#L0`, require it
+    to be inside the artefact. Every row here that carries a legacy `at`
+    reddens, and an annotation written under the pre-D159 contract becomes a
+    non-overridable blocker for carrying a field the new contract does not want.
 
-    `#L0` and `#L5-L2` were accepted — a line number that cannot exist and a
-    range that runs backwards, both of which this layer refuses in the `src`
-    field one line away. `at` is the address the activity stream prints back to
-    a person (§7), so an address that cannot exist is a malformed row."""
-    files = {RECIPE_PATH: RECIPE.encode(),
-             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at,
-                                 "src": f"{RECIPE_PATH}#L11"}])}
-    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
+    Dropping a required field is ADDITIVE only if the field is IGNORED rather
+    than rejected, and that is the whole of the claim: the row is verified by
+    its quotation, and `at` — right, wrong, impossible or not even a string —
+    changes nothing about the disposition. It is not echoed back either, so a
+    person is never shown an address code did not use.
+
+    This is the guard that replaces the two retired `at` validation tests; the
+    reason `at` cannot be asked for at all is Arm 2's 50 of 215 rows naming a
+    line past the end of their own draft."""
+    good = {"v": "950", "u": "°C", "src": cite(L11), "at": at}
+    assert findings({RECIPE_PATH: RECIPE.encode(),
+                     DRAFT_PATH: draft([good])}) == [], at
+
+    bad = {"v": "950", "u": "°C", "src": cite(L12), "at": at}
+    found = findings({RECIPE_PATH: RECIPE.encode(), DRAFT_PATH: draft([bad])})
+    assert [f.rule for f in found] == ["CA-NUM-002"], at
+    assert "at" not in found[0].observation.split("quotes")[0], at
 
 
 @pytest.mark.parametrize("source,blocks", [
@@ -1333,11 +1446,13 @@ def test_an_exponent_past_the_bound_is_refused_and_not_truncated():
     truncation — truncation is what handed `1e10001`'s last digit to the unit
     reader."""
     files = {RECIPE_PATH: b"1e999999 g\n",
-             DRAFT_PATH: draft([row(value="1e999999", unit="g", src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value="1e999999", unit="g",
+                                    src=cite("1e999999 g"))])}
     assert [f.rule for f in findings(files)] == ["CA-NUM-001"]
 
     ok = {RECIPE_PATH: b"1e99999 g\n",
-          DRAFT_PATH: draft([row(value="1e99999", unit="g", src=f"{RECIPE_PATH}#L1")])}
+          DRAFT_PATH: draft([row(value="1e99999", unit="g",
+                                 src=cite("1e99999 g"))])}
     assert findings(ok) == []
 
 
@@ -1372,7 +1487,7 @@ def test_an_unparsed_numeric_notation_is_not_a_match_for_any_unit(
     This rule fires on the number's own continuation and never on what merely
     follows it, so it removes the false pass without inventing a false blocker."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -1395,7 +1510,7 @@ def test_a_unit_containing_a_space_is_read_as_its_first_token(unit, expected):
 
     The skill and the contract must now describe exactly this table."""
     files = {RECIPE_PATH: b"5 m-2 s-1\n",
-             DRAFT_PATH: draft([row(value="5", unit=unit, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value="5", unit=unit, src=cite("5 m-2 s-1"))])}
     assert [f.rule for f in findings(files)] == expected
 
 
@@ -1434,7 +1549,7 @@ def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
     the contract says that in those words."""
     for span in ("5 g", "5 samples", "run 5 of 12", "5"):
         files = {RECIPE_PATH: (span + "\n").encode(),
-                 DRAFT_PATH: draft([row(value="5", unit="", src=f"{RECIPE_PATH}#L1")])}
+                 DRAFT_PATH: draft([row(value="5", unit="", src=cite(span))])}
         assert findings(files) == [], span
 
 
@@ -1718,7 +1833,7 @@ def test_signed_notation_is_unparsed_notation_too(span, v, u, expected, why):
     complete science profile, where base blocks. The sign is part of the
     notation; leaving it out left the same hole one character to the left."""
     files = {RECIPE_PATH: (span + "\n").encode(),
-             DRAFT_PATH: draft([row(value=v, unit=u, src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
     assert [f.rule for f in findings(files)] == expected, why
 
 
@@ -1748,7 +1863,7 @@ def test_quotes_and_footnote_marks_end_a_unit_token(mark):
     on ordinary prose. Every direction of single and double quote is listed by
     codepoint, because several are indistinguishable from ASCII by eye."""
     files = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
-             DRAFT_PATH: draft([row(value="5", unit="°C", src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value="5", unit="°C", src=cite(f"5 °C{mark}"))])}
     assert findings(files) == [], mark
 
 
@@ -1760,28 +1875,12 @@ def test_multiplication_and_comparison_stay_inside_the_token(mark):
     away — making them boundaries would let a shortened unit satisfy a longer
     source, which is the defect this whole line has been closing."""
     files = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
-             DRAFT_PATH: draft([row(value="5", unit="°C", src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value="5", unit="°C", src=cite(f"5 °C{mark}"))])}
     assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
     whole = {RECIPE_PATH: f"5 °C{mark}\n".encode(),
-             DRAFT_PATH: draft([row(value="5", unit=f"°C{mark}", src=f"{RECIPE_PATH}#L1")])}
+             DRAFT_PATH: draft([row(value="5", unit=f"°C{mark}",
+                                    src=cite(f"5 °C{mark}"))])}
     assert findings(whole) == []
-
-
-@pytest.mark.parametrize("at,blocks", [
-    ("#L3", False), ("#L2-L4", False),
-    ("#L1-L1000000", True), ("#L999", True), ("#L0", True), ("#L5-L2", True),
-])
-def test_the_at_locator_must_be_inside_the_artefact_that_carries_it(at, blocks):
-    """MUTATION: drop the `end > lines` clause from `_at_span`.
-
-    `at` was validated for syntax, then for positivity and order, and each time
-    it stayed one clause behind `src`: `#L1-L1000000` passed on an eight-line
-    draft while the identical `src` was CA-NUM-001. Two locator parsers in one
-    module must not disagree about what a line number is."""
-    files = {RECIPE_PATH: RECIPE.encode(),
-             DRAFT_PATH: draft([{"v": "950", "u": "°C", "at": at,
-                                 "src": f"{RECIPE_PATH}#L11"}])}
-    assert ([f.rule for f in findings(files)] == ["CA-NUM-001"]) is blocks
 
 
 @pytest.mark.parametrize("value,canonical", [
@@ -1822,7 +1921,8 @@ def test_an_explicit_positive_exponent_is_never_a_negative_one(exponent):
 
     def rule(span, value):
         files = {RECIPE_PATH: (span + "\n").encode(),
-                 DRAFT_PATH: draft([row(value=value, unit="g", src=f"{RECIPE_PATH}#L1")])}
+                 DRAFT_PATH: draft([row(value=value, unit="g",
+                                        src=cite(span))])}
         return [f.rule for f in findings(files)]
 
     # `1e+N` ≡ `1eN` ≡ the expanded integer, in both directions.
@@ -2008,3 +2108,294 @@ def test_tracked_paths_asks_git_about_the_git_path(tmp_path):
         "skills/provenance.md"]
     assert wizard.tracked_paths(tmp_path, ["skills/other.md"]) == []
     assert wizard.tracked_paths(tmp_path, []) == []
+
+
+# ------------------------- D159: content addressing, and the Arm 3 fixtures
+#
+# `benchmarks/expertlongbench/study8/test_arm3_verifiers.py` is the instrument
+# these are ported from: the §4 mutation fixtures of
+# `docs/design/PROVENANCE_ADDRESSING.md`, written against the harness's own
+# `verify_b` before Arm 3 ran. Ported rather than rewritten, and where the
+# shipped check disagrees with the harness the difference is named in the test
+# that carries it: the cap is gone (D159, below), a quotation is line-scoped
+# rather than file-scoped (`test_a_quotation_lies_within_one_line`), and a quote
+# the file does not hold is CA-NUM-002 rather than the harness's CA-NUM-001,
+# because the quote is the SPAN and a wrong span has always been -002.
+
+#: One long line, the shape both of Arm 3's false blockers had: a sentence whose
+#: value and unit are far enough apart that no short quotation contains them.
+LONG_LINE = ("Calcination was carried out in a muffle furnace at 950 °C for 1 hour "
+             "under flowing synthetic air at 100 mL/min, then cooled slowly.")
+LONG_RECIPE = f"# Long\n\n{LONG_LINE}\n\nnothing else here.\n"
+
+
+@pytest.mark.parametrize("length", [97, 104])
+def test_a_quote_longer_than_eighty_characters_is_not_a_blocker(length):
+    """MUTATION (D159 ruling 1): reinstate the design's 80-character cap —
+    `if not 1 <= len(quote) <= 80: return CA-NUM-001` at the head of
+    `_verify_quote`. Both rows here redden, and they are not hypothetical: they
+    are Arm 3's ONLY two false blockers, 2 of 167 rows, quotations of 97 and 104
+    characters that the named file contains exactly once and that do contain the
+    transcribed pair (`benchmarks/expertlongbench/RESULTS-ARM3.md` §1, §8).
+
+    The cap was there to stop a "quote" that is the whole file — a file-scoped
+    citation in disguise, which contains the claimed pair by coincidence 27.7%
+    of the time. That job now belongs to the one-line rule, which does it
+    without refusing a long line: see
+    `test_a_quotation_lies_within_one_line`."""
+    quote = LONG_LINE[:length]
+    assert len(quote) == length and "950 °C" in quote
+    files = {RECIPE_PATH: LONG_RECIPE.encode(),
+             DRAFT_PATH: draft([row(src=cite(quote))])}
+    assert findings(files) == []
+
+
+def test_a_quotation_lies_within_one_line():
+    """MUTATION: fold the whole file into one string and search that — which is
+    what the Arm 3 harness did, because there the 80-character cap was still
+    keeping quotations short. With the cap gone that mutation makes the whole
+    file a legal quotation, and a file-scoped citation contains the claimed pair
+    by coincidence 27.7% of the time (596/2150). The one-line rule is what
+    replaces the cap, so this is the guard the cap's removal is paid for with.
+
+    The observation says which failure it is, because the writer's remedy
+    differs: a quotation that runs across a line break is quoted too widely, and
+    a quotation the file does not have at all is quoted wrongly."""
+    across = findings(increment(row(src=cite(f"{L11} {L12}"))))
+    assert [(f.severity, f.rule) for f in across] == [(BLOCKER, "CA-NUM-002")]
+    assert "across a line break" in across[0].observation
+    assert "a quotation is a run of one line" in across[0].observation
+
+    whole_file = findings(increment(row(src=cite(RECIPE))))
+    assert [(f.severity, f.rule) for f in whole_file] == [(BLOCKER, "CA-NUM-002")]
+    assert "across a line break" in whole_file[0].observation
+    # And the finding stays a line a person reads: the contract caps no quote,
+    # so the REPORT bounds what it echoes back.
+    assert "…" in whole_file[0].observation and len(whole_file[0].observation) < 240
+
+
+def test_a_quotation_the_file_does_not_contain_is_a_blocker():
+    """MUTATION (§4): alter one character inside the quote and let it pass —
+    a prefix match, a case fold, or a fuzzy compare. Each row here goes green,
+    and a quotation that is not in the file stops being evidence of anything.
+
+    B's whole premise is that the generator COPIES rather than retypes, which
+    Arm 3 measured: 0 paraphrases in 192 rows. The premise is only worth
+    anything if the check can tell the difference."""
+    for quote, why in [
+            ("3. Calcinate at 950 °C for 1 hour.", "one word retyped"),
+            ("3. calcine at 950 °C for 1 hour.", "case is not folded"),
+            ("3. Calcine at 950 °C for 1 hour. EXTRA", "a longer run"),
+            ("3.  Calcine at 950 °C for 1 h.", "an abbreviation expanded"),
+            ("Calcine at 950 degrees C for 1 hour.", "a symbol spelled out")]:
+        out = findings(increment(row(src=cite(quote))))
+        assert [(f.severity, f.rule) for f in out] == [(BLOCKER, "CA-NUM-002")], why
+        assert "does not contain those characters" in out[0].observation, why
+
+
+def test_a_quotation_the_file_says_twice_is_advisory_and_never_blocks():
+    """MUTATION (§4): drop the occurrence count and accept the FIRST match. The
+    row here stops being an advisory and passes silently, and the check reports
+    that it verified a place it could not identify.
+
+    ADVISORY and not BLOCKER is load-bearing, and it is §3.4's rule: only a
+    NAMED locator can block — one that does not resolve, or that resolves
+    without containing the value. A quotation the source says twice resolves and
+    contains the pair; what is unresolved is WHICH occurrence, a property of the
+    source rather than a defect in the annotation. Blocking it would be a
+    non-overridable stop on a correct transcription of a repetitive source,
+    which is D155's shape exactly. It routes where `uncited` routes: counted,
+    carried to the auditor, never blocking.
+
+    Arm 3 measured 0 of 192 rows landing here — a copied quotation is longer
+    than a line and disambiguates itself — which is why it is the disposition
+    that costs nothing and the one that would be dangerous to get wrong."""
+    twice = ("# Steps\n\n"
+             "Dissolve 5 g of precursor.\n"
+             "Stir for ten minutes.\n"
+             "Dissolve 5 g of precursor.\n")
+    files = {RECIPE_PATH: twice.encode(),
+             DRAFT_PATH: draft([row(value="5", unit="g",
+                                    src=cite("Dissolve 5 g of precursor."))],
+                               prose="Dissolve 5 g of precursor twice.")}
+    result = run_checks(files, ["number_source"])
+    assert result.hard_failures == 0
+    assert [(f.severity, f.rule) for f in result.findings] == [(ADVISORY, "CA-NUM-004")]
+    said = result.findings[0].observation
+    assert "says on 2 lines" in said and "names no one place" in said
+    assert "CA-NUM" not in said and "number_source" not in said
+
+    # The count is over LINES, and that is a deliberate difference from the Arm
+    # 3 harness, which counted occurrences in the whole file folded to one
+    # string. The same characters twice on ONE line still name that line, and
+    # the located text — the quotation itself — is identical whichever
+    # occurrence was meant, so there is nothing for the auditor to weigh. It
+    # passes, and it is asserted rather than left to be discovered.
+    one_line = {RECIPE_PATH: b"Add 5 g and then 5 g again.\n",
+                DRAFT_PATH: draft([row(value="5", unit="g", src=cite("5 g"))],
+                                  prose="Two portions of 5 g.")}
+    assert findings(one_line) == []
+
+
+@pytest.mark.parametrize("quote,why", [
+    ("3. Calcine at  950 °C  for 1 hour.", "the annotation doubled a space"),
+    ("3. Calcine at 950 °C for 1 hour.", "U+00A0 NO-BREAK SPACE"),
+    ("3. Calcine at 950 °C for 1 hour.", "U+202F NARROW NO-BREAK SPACE"),
+    ("3. Calcine\n   at 950 °C for 1 hour.", "a line break inside the quote"),
+    ("  3. Calcine at 950 °C for 1 hour.  ", "leading and trailing space"),
+])
+def test_whitespace_is_folded_on_both_sides_and_nothing_else_is(quote, why):
+    """MUTATION: compare the raw characters, or fold something else as well.
+
+    Folding every run of whitespace to one space is the ONE normalisation this
+    contract performs, on both sides, and it is `normalise_unit`'s own fold
+    applied to a longer string. It is what lets a quotation survive a line break
+    the writer put inside it, a double space the source put inside itself, and
+    the non-breaking spaces a word processor leaves behind. Fold anything more —
+    case, punctuation, accents — and a retyped quotation starts passing as a
+    copied one, which is the premise the whole contract rests on.
+
+    The case fold is asserted in the other direction by
+    `test_a_quotation_the_file_does_not_contain_is_a_blocker`."""
+    assert findings(increment(row(src=cite(quote)))) == [], why
+
+
+@pytest.mark.parametrize("named", [
+    "../../../etc/passwd",
+    "../synthesis/RECIPE.md",
+    "/etc/passwd",
+    "/work/synthesis/RECIPE.md",
+    "work/synthesis/../synthesis/RECIPE.md",
+    "./work/synthesis/RECIPE.md",
+])
+def test_a_file_outside_the_audited_scope_is_refused_however_it_is_written(named):
+    """MUTATION: resolve the path against the filesystem instead of against the
+    increment mapping — `Path(root, named).read_text()`, or a walk that follows
+    a link. Every row here becomes a read of a file nobody committed, and a
+    check that opens arbitrary paths on behalf of a model's output is the
+    deny-by-default invariant gone.
+
+    There is nothing to traverse: `_resolve` is two dictionary lookups against
+    the audited scope, so traversal, an absolute path, a normalised alias and a
+    symlink are all refused by the same clause and for the same reason — none of
+    them is a key. The symlink half is asserted below with a real link on
+    disk."""
+    out = findings(increment(row(src=cite(L11, file=named))))
+    assert [(f.severity, f.rule) for f in out] == [(BLOCKER, "CA-NUM-001")], named
+    assert "not in the audited scope" in out[0].observation
+
+
+def test_a_symlink_on_disk_is_not_a_path_into_the_audited_scope(tmp_path):
+    """MUTATION: the same one — resolve through the filesystem. This asserts it
+    where a link exists to be followed: a real symlink, in a real directory,
+    pointing at a real file whose bytes contain the pair, and a check that
+    never opens it because the increment mapping is the only scope there is.
+
+    The same identity mistake was the root cause D156's second correction
+    records — a loader resolving through the filesystem while the filters
+    compared Git tree paths — so it is asserted here rather than assumed from
+    the shape of `_resolve`."""
+    (tmp_path / "work").mkdir()
+    real = tmp_path / "work" / "RECIPE.md"
+    real.write_text(RECIPE, encoding="utf-8")
+    link = tmp_path / "work" / "linked.md"
+    link.symlink_to(real)
+    assert link.is_symlink() and "950 °C" in link.read_text(encoding="utf-8")
+
+    for named in (str(link), "work/linked.md", "linked.md"):
+        out = findings(increment(row(src=cite(L11, file=named))))
+        assert [f.rule for f in out] == ["CA-NUM-001"], named
+        assert "not in the audited scope" in out[0].observation, named
+
+
+def test_the_address_a_finding_prints_is_derived_and_never_asked_for():
+    """MUTATION (D158, §0): ask the row for `at` again and print that. The first
+    assertion reddens on the row whose `at` is a lie, and — worse — the product
+    is back to printing an address the generator guessed, which on Arm 2's
+    drafts was outside the draft itself on 50 of 215 rows.
+
+    The generator emits a whole file in one reply, so the line its sentence
+    lands on is a function of prose it has not written yet. Code has the draft
+    and the transcription and can simply look, which is what `_derive_at` does.
+    The fence bodies are blanked before it looks, newline for newline: without
+    that a row locates ITSELF, because `"v": "42"` in the annotation is a 42
+    followed by no unit and an empty unit constrains nothing."""
+    prose = "# E\n\nintro\n\nCalcined at 950 °C for 1 h.\n"
+    body = json.dumps([{"v": "950", "u": "°C", "src": cite(L12), "at": "#L2"}],
+                      ensure_ascii=False)
+    files = {RECIPE_PATH: RECIPE.encode(),
+             DRAFT_PATH: f"{prose}\n```crossaudit-numbers\n{body}\n```\n".encode()}
+    out = findings(files)
+    assert [f.rule for f in out] == ["CA-NUM-002"]
+    assert out[0].observation.startswith("line 5 quotes "), out[0].observation
+
+    # A draft that never states the pair in its own prose gets an honest
+    # nothing, and the row is still identified by the value it quotes for.
+    unstated = json.dumps([{"v": "42", "u": "", "src": cite(L12)}])
+    files[DRAFT_PATH] = (f"# E\n\nno numbers here.\n\n"
+                         f"```crossaudit-numbers\n{unstated}\n```\n").encode()
+    out = findings(files)
+    assert [f.rule for f in out] == ["CA-NUM-002"]
+    assert out[0].observation.startswith('the row quotes '), out[0].observation
+
+
+# ---------------- the containment note's live false pass, fixed out of band
+@pytest.mark.parametrize("span,v,u,expected,why", [
+    # The row the note found, in the shape the corpus writes it (M9a).
+    ("base pressure ≈ 3 × 10⁻² mbar", "3", "",     ["CA-NUM-002"], "the live false pass"),
+    ("base pressure ≈ 3 × 10⁻² mbar", "3", "mbar", ["CA-NUM-002"], "and with a unit named"),
+    ("3×10⁻² mbar",                   "3", "",     ["CA-NUM-002"], "the adjacent form, unchanged"),
+    ("5 x 10^3 g",                    "5", "",     ["CA-NUM-002"], "an ASCII x and a caret"),
+    ("5 · 10⁵ g",                     "5", "",     ["CA-NUM-002"], "a spaced middle dot"),
+    ("5 ⋅ 10⁵ g",                     "5", "",     ["CA-NUM-002"], "and a spaced dot operator"),
+    ("5 × -10³ g",                    "5", "",     ["CA-NUM-002"], "a sign after the operator"),
+    # The mirror, and it is the reason the spaced form needs its extra clause.
+    ("a 5 x 3 grid",                  "5", "",     [],             "prose between two integers"),
+    ("5 * 3 items",                   "5", "",     [],             "and with an asterisk"),
+    ("run 5 of 12",                   "5", "",     [],             "a word after a number"),
+    ("3 mbar",                        "3", "mbar", [],             "a number and its unit"),
+    ("5 m·s^-1",                      "5", "m·s^-1", [],           "a caret INSIDE a unit"),
+    ("cool to 25–106 °C",             "106", "°C", [],             "an en-dash range"),
+])
+def test_a_space_does_not_end_an_unparsed_continuation(span, v, u, expected, why):
+    """MUTATION (`docs/design/CONTAINMENT_RULE.md` §4, "Out of band, and not an
+    extension"): drop the `\\s+` alternative from `_UNPARSED`. The first row goes
+    green — and green here is a **false PASS**, the check reporting that a
+    source states three when what it states is 0.03.
+
+    `_UNPARSED` was matched with no leading-whitespace allowance, so `3×10⁻²`
+    was refused and `3 × 10⁻²` was not; with an empty transcribed unit
+    `contains_pair("… ≈ 3 × 10⁻² mbar", "3", "")` returned True in the shipped
+    matcher. The note verified it against the code and routed it here rather
+    than into its six extensions, because a narrowing can only ever remove a
+    match: it cannot add a false pass, and so it is not subject to the gold's
+    kill rule. It can add a false BLOCKER, which is what the second half of this
+    table is for.
+
+    The spaced form fires only where the right operand is exponentiated, and
+    that clause is the whole difference between `3 × 10⁻²` and `5 x 3`. Delete
+    it and the mirror rows redden instead: every grid, window and matrix written
+    with an `x` becomes a non-overridable blocker on a correct unitless
+    transcription, which is the trade D157 lesson 2 and D155 both refuse."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=v, unit=u, src=cite(span))])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+def test_the_same_narrowing_holds_through_a_structured_citation():
+    """The other interface, because `_UNPARSED` is read by one matcher and two
+    callers, and the review that found the signed-notation hole found it through
+    a `results.json` quantity.
+
+    `checks: [number_source]` alone rather than the science profile, because the
+    empty unit is the point: `check_units` requires a truthy `unit` and would
+    answer first with CA-DATA-001, and a check that needs another check to hold
+    its own contract is root cause 1 (D157 lesson 1)."""
+    files = {"experiments/e1/metadata.yml": b"code_version: v3\ninputs:\n  - runs.csv@v3\n",
+             "experiments/e1/runs.csv": "run,p\nbase pressure 3 × 10⁻² mbar\n".encode(),
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "p", "value": 3, "unit": "",
+                                  "source": "runs.csv@v3#L2"}],
+                  "convergence": {"converged": True}}).encode()}
+    assert [f.rule for f in
+            run_checks(files, ["number_source"]).findings] == ["CA-NUM-002"]
