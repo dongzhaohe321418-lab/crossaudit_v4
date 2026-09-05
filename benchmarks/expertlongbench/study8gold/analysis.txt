@@ -1,0 +1,75 @@
+=== 1. the gold, by stratum ===
+  block  n  53   C  43   N  10   ?   0
+  pass   n 150   C 139   N  11   ?   0
+  panel  n  97   C   4   N  93   ?   0
+
+=== 2. the 53 blocks, by mechanism (CONTAINMENT_RULE §1) ===
+  M2   wrong block (gold C) 14   right block (gold N)  0   (b) E1
+  M1a  wrong block (gold C) 11   right block (gold N)  0   (b) decimals only / (c) integers
+  M5   wrong block (gold C)  6   right block (gold N)  0   (b) E4
+  M3   wrong block (gold C)  5   right block (gold N)  0   (b) E2
+  M1b  wrong block (gold C)  0   right block (gold N)  3   (c) words, (a) wrong quote
+  M7   wrong block (gold C)  0   right block (gold N)  3   (a)
+  M11  wrong block (gold C)  2   right block (gold N)  0   D159 ruling 1
+  M9c  wrong block (gold C)  2   right block (gold N)  0   (b) E6
+  M8   wrong block (gold C)  0   right block (gold N)  2   (a)
+  M4   wrong block (gold C)  2   right block (gold N)  0   (a) + skill sentence
+  M9b  wrong block (gold C)  0   right block (gold N)  1   (c)
+  M6   wrong block (gold C)  1   right block (gold N)  0   (b) E5
+  M9a  wrong block (gold C)  0   right block (gold N)  1   (a)
+
+=== 3. the shipped matcher against the gold ===
+  right pass  143    WRONG pass   11
+  right block 103    WRONG block  43
+  wrong passes in the pass stratum 11/150 = 7.33% [4.14, 12.65]
+
+=== 4. R and W per extension, with the kill applied ===
+  extension                       new    R    W   R-W  verdict
+  E1                               14   14    0    14  licensed
+  E2                                2    2    0     2  licensed
+  E3                               11   11    0    11  licensed
+  E4                                6    6    0     6  licensed
+  E5                                1    1    0     1  licensed
+  E6                                2    2    0     2  licensed
+  E2+E5 (composed, as sequenced)    6    6    0     6  licensed
+  U0 (out-of-band narrowing)        0    0    0     0  licensed
+  wave 1 = E4+E5+E6                 9    9    0     9  licensed
+  wave 1+2 = +E1+E2                28   28    0    28  licensed
+  all = +E3                        39   39    0    39  licensed
+
+=== 5. the negative panel: coincidental containment, line-scoped ===
+  shipped                        contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E1                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E2                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E3                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E4                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E5                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E6                             contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  E2+E5 (composed, as sequenced) contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  U0 (out-of-band narrowing)     contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  wave 1 = E4+E5+E6              contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  wave 1+2 = +E1+E2              contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+  all = +E3                      contains  2/97 =  2.06% [0.57, 7.21]   wrong 0 = 0.00% [0.00, 3.81]
+
+=== 6. block rate over the 401 resolvable rows, and how much of it is wrong ===
+  shipped matcher (contains_pair only) 51/401 = 12.72% [9.81, 16.34]   wrong blocks among them 41
+  E1                             37/401 =  9.23% [6.77, 12.46]   wrong blocks among them 27
+  E2                             49/401 = 12.22% [9.37, 15.79]   wrong blocks among them 39
+  E3                             40/401 =  9.98% [7.41, 13.30]   wrong blocks among them 30
+  E4                             45/401 = 11.22% [8.49, 14.69]   wrong blocks among them 35
+  E5                             50/401 = 12.47% [9.59, 16.06]   wrong blocks among them 40
+  E6                             49/401 = 12.22% [9.37, 15.79]   wrong blocks among them 39
+  E2+E5 (composed, as sequenced) 45/401 = 11.22% [8.49, 14.69]   wrong blocks among them 35
+  U0 (out-of-band narrowing)     51/401 = 12.72% [9.81, 16.34]   wrong blocks among them 41
+  wave 1 = E4+E5+E6              42/401 = 10.47% [7.84, 13.86]   wrong blocks among them 32
+  wave 1+2 = +E1+E2              23/401 =  5.74% [3.85, 8.46]   wrong blocks among them 13
+  all = +E3                      12/401 =  2.99% [1.72, 5.16]   wrong blocks among them 2
+
+=== 7. PROVENANCE_CHECKS §6's estimand: of rows that DO trace, the fraction blocked ===
+  numerator: wrong blocks, scaled from the block census.
+  denominator: those, plus the gold-C fraction of the pass sample scaled to 348.
+  draft-clustered percentile bootstrap, 10000 resamples of the 48 draft-arms.
+  shipped matcher                11.28%  [8.62, 13.14]
+  wave 1 = E4+E5+E6               9.03%  [6.58, 11.13]
+  wave 1+2 = +E1+E2               3.88%  [1.66, 6.07]
+  all = +E3                       0.62%  [0.00, 1.55]
