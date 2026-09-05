@@ -7132,3 +7132,13 @@ reply`), about a quarter of generator spend.
 Recorded on the same day as the merge it reverses, because a check that blocks
 every project that enables it is a defect whatever the review count behind it —
 eight rounds verified the verifier and none of them ran the generator.
+
+*Ruling 1 landed 2026-09-06 (merge of `fix/number-source-not-default`, two
+review rounds, suite 3275/8 on two hosts). Found on the way: project creation
+reads `scaffold.SCIENCE_CHECKS` and never `dcl.profiles`, so the two lists were
+coupled by a comment alone; they are now pinned against each other by a test.
+Rulings 2 and 3 are in flight: the addressing redesign is merged as
+`docs/design/PROVENANCE_ADDRESSING.md` (contract B, content addressing,
+recommended; simulated ceilings A 82.0% / B 77.6%, 85.5% over blockable rows)
+and Arm 3, one draft per contract on the same 24 instances under §8g, is
+running.*
