@@ -12,3 +12,4 @@ dist/
 coverage.xml
 htmlcov/
 .venv/
+benchmarks/code/data/
