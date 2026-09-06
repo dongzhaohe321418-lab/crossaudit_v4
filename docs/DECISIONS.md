@@ -7455,3 +7455,38 @@ both, and the reviewer asked to find one found none. The rule is kept in the his
 (1a817b6) as the evidence and reverted; what ships is the sentence that an en-dash
 exponent is not read, with rows. D160's six extensions and M10 are now all ruled; the
 containment line is closed until Arm 5, which needs a corpus the owner chooses.*
+
+## D163 — Three delegated decisions: fetched text is cached, not committed; no hyphen dial; the public push waits for a consistent record
+
+**Date:** 2026-09-07. **Authority:** the owner's instruction of 2026-09-07 ("你可以下载任何
+东西，且全部按你想法来做"), delegating the open decisions listed in RESTART to the author's
+judgment. Each is recorded with its reason so it can be reversed on the same terms.
+
+RULINGS:
+
+1. **`web_fetch` bodies are retained in a gitignored cache, keyed by the committed
+   digest; committing bodies is an opt-in.** The two options RESTART named were "commit
+   the body (re-derivable by `verify`, but third-party text enters the repository)" and
+   "gitignored cache (no licence change, not re-derivable)". The default is the second,
+   because the product's positioning is light by default and strictness is a dial
+   (`crossaudit-positioning`): a project that owns the rights, or fetches only its own
+   sources, may set retention to commit and get the re-derivable half; every other project
+   gets a claim→citation check that verifies against the cache when present and reports
+   "unverifiable: the fetched text is not retained" as ADVISORY when it is not — never a
+   silent pass. The digest and the fetch receipt are always committed, so *what* was cited
+   is durable even where the *text* is not. This is a design ruling for the A4 line; no
+   code changes under it today.
+2. **No hyphenated-word dial.** The containment design's "what must never ship" names a
+   reading of `cm` from `-cm` as the one proposal that returns something shorter than the
+   whole token, the defect D157 fixed three times; Arm 4's one hyphen block (`2.54-cm`
+   style, M4) is a right-by-contract block and the skill routes it to `uncited`. A dial
+   would be a third reading of the same character, per project, and the check's whole
+   worth is that its reading does not depend on who configured it. Disclosed, not dialled.
+3. **The public repository is pushed when the record is consistent, and Arm 5 is the
+   next consistency point.** A push mid-programme publishes a state the next slice will
+   correct; the author pushes after Arm 5's results are reviewed cross-vendor, with
+   CORRECTIONS, DECISIONS and RESTART agreeing, and says so in RESTART when it is done.
+   The paper repository stays private until the manuscript is submitted.
+
+Recorded because delegated decisions still need a place a reader can find them, and a
+reason that can be argued with.

@@ -356,9 +356,7 @@ astra 走 Codex CLI（≥0.153）：`codex exec -m gpt-6-astra -c 'model_reasoni
    `sources: x` 逐字符当文件名、`requires: 3` 抛 TypeError——每个项目都在跑的默认包；
    (2) 审计范围若包含 `skills/`，技能字节会作为增量数据进入**审计员**提示词
    （`cli/main.py:280` → `auditor/prompt.py:86`），早于本分支。两者已记入 **D156**：前者在第一片里加固；后者裁定为在第一片落地后单独一片，把 `skills/` 像 `TEMPLATE` 一样排除出审计增量。
-   **等 owner 决定**：`web_fetch` 的正文是否保留（提交=可由 verify 再推导但第三方
-   文本入库；gitignore 缓存=无许可变化但不可再推导）。不保留则 claim→citation 只能
-   做增量内的一半。
+   **已裁定（D163，2026-09-07，owner 授权自行决定）**：`web_fetch` 正文默认进 gitignore 缓存、摘要与收据入库、提交正文为项目可选；无连字词旋钮；公开仓库在 Arm 5 结果复核后、记录一致时推送。
 0b. **把三种对照检查做进确定性层**（owner 于 2026-09-05 认可方向）：数字→来源、
    图→生成代码、断言→引用。原则来自 D155：模型只**指名**依据（"这个数来自表 3"），
    代码去**验证**依据存在且说的是这个；模型永远不陈述依据会说什么。Claude Science
