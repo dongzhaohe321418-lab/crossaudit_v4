@@ -160,7 +160,7 @@ remaining sentence claiming more than its check delivers. All were reproduced.
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
 | 1 | Eleven overclaiming sentences across the report and both test files: "a too-generic subject cannot hide" (a vocabulary of only `asymptote` leaves all 22 green), "every rate", "all real and correct", "any other family", "makes a fourth instance impossible", "wherever the guard is described", "coverage labels cannot drift" (editing a published 0.997 to 0.960 left all green), "15 statistics tests", and an *under*claim — the guard does apply a membership check outside the two sections | all reproduced | Each sentence rewritten to what its check does: the scanner's four numeral formats named; membership distinguished from attribution; the six no-interval declarations qualified; "the generated token-replacement mutations redden" replacing "any other family"; the impossibility claim deleted; the test count corrected to 21 and the simulated methods listed |
-| 1b | The coverage labels had nothing checking them | editing 0.997 → 0.960 left all tests green | **Bound, not disclaimed.** `ceiling/measure_coverage.py` measures all eleven figures by exact enumeration into `records/ceiling/coverage.json`; the statistics suite asserts its own measurements equal the artefact, and a new report test asserts both coverage tables equal it. The chain is measurement → artefact → table cells, and the review's drift attack now reddens; a figure in a sentence is checked for membership among the measured values, not attributed to a method |
+| 1b | The coverage labels had nothing checking them | editing 0.997 → 0.960 left all tests green | **Bound, not disclaimed.** `ceiling/measure_coverage.py` measures all eleven figures by exact enumeration into `records/ceiling/coverage.json`; the statistics suite asserts its own measurements equal the artefact, and a new report test asserts both coverage tables equal it. The chain is measurement → artefact → table cells, and the review's drift attack now reddens; a three-decimal figure in a sentence containing the letters `cover` is checked for membership among the measured values, not attributed to a method; a coverage described in other words is not read |
 | 2 | Deviation 34's correction history had four rows; eleven more corrections were omitted, and deviation 31 still carried "no published number was ever wrong" | verified against the review reports | The history is rebuilt **from the review reports**, fifteen rows cited by round, with the committed-artefact swapped-tail interval distinguished from published prose. Deviation 31's copy is withdrawn. Everywhere "no estimate has changed" appeared it now reads "**no empirical point estimate has changed; interval estimates did**" |
 | 3 | Nothing stopped the overclaiming vocabulary returning | — | A test fails on seven guarantee words in the report and both test files, each with the round that found it asserted falsely, unless the whole sentence is one of an exact list of allowed sentences, after asterisks, emphasis underscores, backticks and footnote markers are removed — other formatting is not normalised. Writing it found further unqualified uses beyond the review's list; they were rewritten in the same commit and not individually recorded |
 
@@ -989,10 +989,12 @@ enumeration into `records/ceiling/coverage.json`; the statistics suite asserts i
 measurements equal that artefact — all eleven figures since the eleventh review, which found
 three compared by nobody — and a report test asserts both coverage tables, their column
 order and `Bin(n, q)` parameters equal it, and every unsigned three-decimal figure outside a
-bracketed interval in a sentence about coverage is one of its values or of an explicit
-historical list (the n = 40 figure and the finite-simulation figures). That last is a
-membership check: a figure is not attributed to a method or scenario, and a coverage
-written with two decimals, in words, or with a sign is not read. *The review
+bracketed interval in a sentence containing the letters `cover` is one of its values or of
+an explicit historical list (the n = 40 figure and the finite-simulation figures). That
+last is a membership check with a literal trigger: a figure is not attributed to a method
+or scenario, and a coverage written with two decimals, in words, with a sign, or in a
+sentence that describes coverage without the word ("contains the true parameter in … of
+repetitions") is not read. *The review
 offered the alternative of disclaiming the claim instead; binding it was the better answer
 because the claim is one worth being able to make.*
 

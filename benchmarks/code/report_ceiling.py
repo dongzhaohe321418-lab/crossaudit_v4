@@ -1,4 +1,4 @@
-"""Study 8 — every number in ``RESULTS-CEILING.md``, regenerated from committed records.
+"""Study 8 — the generated numbers and tables of ``RESULTS-CEILING.md``, from committed records.
 
 No API key. No network. No model. Reads only what is committed under
 ``benchmarks/code/records/`` and writes ``records/ceiling/numbers.json`` (machine-readable)
@@ -8,9 +8,11 @@ partial data at any point; it reports what exists and names what does not.
     python benchmarks/code/report_ceiling.py
 
 **Unit of analysis: the instance** — one ``(batch, problem_id)`` solution. K draws over the
-same instances are repeated measures on those instances, never K x n observations. Every
-interval resamples **problem clusters** (68 of the 222 problems contribute two instances
-each), so both instances of a problem move together.
+same instances are repeated measures on those instances, never K x n observations. The
+primary intervals are percentile bootstraps over **problem clusters** (68 of the 222
+problems contribute two instances each), so both instances of a problem move together;
+the Wilson, Tango and exact-unconditional intervals also emitted here are checks on the
+primary, and the coverage of each is measured in ``ceiling/measure_coverage.py``.
 
 The estimators, all preregistered:
 
@@ -22,9 +24,11 @@ The estimators, all preregistered:
   no optimiser to tune and no starting point to choose.
 * a zero-inflated beta-binomial MLE on the per-instance flag counts, as the preregistered
   sensitivity analysis. Reported as secondary, and its known weak identifiability said.
-* exact McNemar on discordant pairs, with an exact-conditional interval for the paired
-  difference (amendment 3), because a percentile bootstrap over one-signed discordances
-  cannot produce a resample of the other sign.
+* exact McNemar on discordant pairs. The exact-conditional interval for the paired
+  difference that amendment 3 named was withdrawn by the first review (coverage 0.416 in
+  the beneficial scenario) and is kept only as ``withdrawn_conditional_ci95``; the paired
+  difference now carries the problem-cluster bootstrap, with Tango's score interval and a
+  Berger–Boos exact unconditional interval as checks.
 """
 
 from __future__ import annotations

@@ -1354,10 +1354,14 @@ HISTORICAL_COVERAGE: dict[str, str] = {
 
 
 def test_the_reports_coverage_tables_equal_the_measured_artefact():
-    """Every coverage figure the report prints equals `records/ceiling/coverage.json`.
+    """The two coverage tables equal `records/ceiling/coverage.json`, and so does every
+    unsigned three-decimal figure in a sentence containing the letters `cover`.
 
     The other half of the chain: `test_ceiling_stats.py` asserts its measurements equal the
-    artefact, and this asserts the prose equals it. Three things are read, because the
+    artefact, and this asserts the tables and those sentences equal it. A coverage
+    described in other words — "contains the true parameter in 0.123 of repetitions" —
+    is not read, and the thirteenth review showed exactly that sentence green. Three
+    things are read, because the
     eleventh review showed that checking the table cells alone left a swapped column header
     and an edited figure in a sentence green:
 
@@ -1367,9 +1371,9 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     2. each table's header names the beneficial scenario before the detrimental one, which
        is the order the cells are read in, and its `Bin(n, q)` pairs are the artefact's n
        and the two scenarios' q, in that order;
-    3. every unsigned three-decimal figure outside a bracketed interval, in a sentence that
-       speaks of coverage, is a measured figure or one of the listed historical ones. This
-       is membership, not attribution: the figure is not tied to a method or scenario, and
+    3. every unsigned three-decimal figure outside a bracketed interval, in a sentence
+       containing the letters `cover`, is a measured figure or one of the listed historical
+       ones. This is membership, not attribution: the figure is not tied to a method or scenario, and
        a coverage written with two decimals, in words, or with a sign is not read.
     """
     artefact = json.loads((CODE / "records" / "ceiling" / "coverage.json")
