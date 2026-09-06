@@ -7383,3 +7383,49 @@ gold against the merge base's own verdicts — R = 5 (the three `wt.%` list memb
 base reproduced 300 of 300 — every preregistered gold-metric expectation to the row. The
 containment extensions the gold licensed are now all shipped except E3 (subscripts, last
 by design) and M10 (its own study). Arm 5 next.*
+
+## D162 — The ceiling study is approved after twenty-one cross-vendor reviews, merged, and its numbers enter the manuscript
+
+**Date:** 2026-09-06. **Branch:** `study/ceiling` merged into `fusion/evidence-authority`
+at ef8b448. **Reviews:** twenty-one, archived verbatim under `benchmarks/reviews/` and
+mirrored to the paper repository; rounds 1–2 refused quotation, 3–4 approved subject to
+corrections, 5–20 each found one or more promise/check mismatches, 21 found none.
+
+**What the study says, in the sentence the twenty-first review approved:** self-audit
+changed accuracy by +0.89 percentage points (problem-cluster percentile interval −3.54 to
++5.88; 112 instances from 96 problems), establishing no improvement; the interval method
+was changed after analysis, its coverage in this clustered design is unvalidated, and
+modest benefits remain compatible with the data.
+
+**What else it licenses:** the cross-vendor auditor's eight-reading union recall on the
+110-defect stratum is 30.0% [20.0, 40.7] against the generator's own model's 17.3% [8.3,
+27.3]; the shipped auditor's curve has not flattened, so its asymptote (31.5%) is quoted
+as an extrapolation; the referent arm, which adds one constitution rule, is the only loop
+arm whose interval excludes zero (+8.04 [1.77, 15.26]), and its contrast with `cross-loop`
+does not (+5.36 [−0.89, 12.07], p = 0.146); the residual — defects no draw flagged — is
+61.8% of the stratum with the broker families and 51.8% with `astra`, four fifths of it
+`unexercised-edge`.
+
+RULINGS:
+
+1. **The report is frozen at b88ce74.** Every number in it regenerates from
+   `benchmarks/code/records/ceiling/` (`numbers.json` 412534c7…), and the report's
+   consistency tests (31) and statistics tests (22) are the binding checks; a future
+   change to the report goes through a review round, not an edit.
+2. **The manuscript's five `[PENDING: ceiling r4]` placeholders are filled from it**,
+   each number with its interval and its label as the report states them; the paper
+   repository's `NOTES.md` records the fill and the approving round.
+3. **`benchmarks/CORRECTIONS.md` carries two numbered sequences from item 13** — the
+   provenance line's (13–31, then 32 onward) and the ceiling study's (13–30) — because
+   renumbering either would break citations in a frozen report and twenty-one archived
+   reviews; the section note says which is which.
+4. **What the words may say about a literal check** (rounds 19–21): a test that binds a
+   phrase and refuses one named reversal is described as exactly that; no test in this
+   programme reads meaning, and a sentence written beside a bound phrase is not caught
+   by any of them. This is the same rule as CORRECTIONS #21, #29 and deviations 39–41,
+   stated once more because the last three rounds were spent on it.
+
+Recorded because twenty-one rounds is the cost of a report whose every sentence has
+been held to a check, and the reader should know that the number of rounds measures
+the reviewers' persistence, not the analysis's instability — no point estimate changed
+after the first version.
