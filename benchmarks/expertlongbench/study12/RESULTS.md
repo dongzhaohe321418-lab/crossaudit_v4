@@ -65,9 +65,9 @@ change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
   preregistered guard.
 * The contract string and the shipped skill each gain one sentence; four
   `DISCLOSED_LIMITS` rows bind them (the label guard's among them).
-* Tests: 25 rows, two mutation tests (E2 off; the guard, the separators and the notation
-  stop), the quotation-interval test. `tests/test_number_source_check.py` 1104 passed.
-  Full suite on the host, runner line (round 2): "3891 passed, 4 skipped, 1 warning in 356.93s (0:05:56)".
+* Tests: 51 rows, two mutation tests (E2 off; the guard, the separators and the notation
+  stop), the quotation-interval test. `tests/test_number_source_check.py` 1110 passed.
+  Full suite on the host, runner line (round 3): "3897 passed, 4 skipped, 1 warning in 356.50s (0:05:56)".
 
 ## 4. Cost
 

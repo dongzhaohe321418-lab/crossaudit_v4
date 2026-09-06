@@ -2184,6 +2184,10 @@ E2_ROWS = [
     ("Heat 5, 10 mL",             "5",   "mL",    True,  "a capitalised word that is not a label distributes — the list is finite and named"),
     ("Step 5–10 °C",              "5",   "°C",    False, "the label guard reaches E1 too: steps five to ten"),
     ("at 5–10 °C",                "5",   "°C",    True,  "and a range after a preposition still reads"),
+    ("Appendices 5, 10 °C",       "5",   "°C",    False, "an irregular plural (round 3)"),
+    ("Formulae 5, 10 °C",         "5",   "°C",    False, "another"),
+    ("Supplement 5, 10 °C",       "5",   "°C",    False, "a stem the second review named"),
+    ("Trial #5, 10 °C",           "5",   "°C",    False, "a hash after the label"),
     ("samples 5, 10 and 20 were", "5",   "were",  False, "`samples` is a label word (amendment 1)"),
     ("heated 5, 10 and 20 were",  "5",   "were",  True,  "a word after the last member reads as the base reads `20 were` for (20, were): the check verifies transcription, not unit-hood"),
 ]
@@ -2331,6 +2335,10 @@ DISCLOSED_LIMITS = [
      "5; 10 °C", "°C", False),
     ("a number that a label word precedes", "a labelled number",
      "Step 5, 10 mL", "mL", False),
+    ("a comma needs a space after it to separate", "a comma needs a space after it to separate",
+     "5,12 °C", "°C", False),          # the fixture's value is 5: a glued comma distributes nothing to it
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "a word outside it does not protect a number",
+     "Heat 5, 10 mL", "mL", True),
 ]
 
 

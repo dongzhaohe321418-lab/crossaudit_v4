@@ -313,15 +313,16 @@ _LABEL_STEMS = """
     trial item line route panel column row appendix note lot well plate
     experiment reaction compound condition method protocol procedure formula
     product material series model device cell electrode layer specimen test
-    case group set region zone position site day week
+    case group set region zone position site day week supplement
 """.split()
 _LABEL_WORDS = frozenset(_LABEL_STEMS + [w + "s" for w in _LABEL_STEMS]
-                         + [w + "es" for w in _LABEL_STEMS] + ["entries"])
+                         + [w + "es" for w in _LABEL_STEMS]
+                         + ["entries", "appendices", "formulae", "matrices", "indices"])
 #: The label word, then an optional period, colon or hyphen (`Fig.`, `Step:`,
 #: `Step-`), then the number. The first review of slice 6 found the plurals and
 #: the colon missing; the list is named and finite, so a label word it does not
 #: carry (`Heat 5, 10 mL` is not one) distributes — stated, not hidden.
-_LABEL_BEFORE = re.compile(r"([A-Za-z]+)[.:\-–]?\s*\Z")
+_LABEL_BEFORE = re.compile(r"([A-Za-z]+)[.:\-–]?\s*#?\s*\Z")
 #: A comma separator needs whitespace after it: `12,5 °C` is a decimal comma in
 #: half the world's notation and E2 must not read `12` as a list member of `5`
 #: (the first review of slice 6). `5, 10` is a list; `5,5` is not.
