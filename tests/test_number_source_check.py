@@ -1951,6 +1951,110 @@ def test_the_first_continuation_still_reads_the_shapes_the_join_blocks():
         assert contains_pair(f"5 g {token} sample", "5", "g"), token
 
 
+# ---------------------------------------------------------------------------------
+# Study 10 (slice 4): E5 and E6, the two folds that cannot shorten a token.
+# ---------------------------------------------------------------------------------
+
+E5_ROWS = [
+    ("80 wt.% sub-micron",   "wt.%",  True,  "a period before a percent sign continues the token"),
+    ("80 wt.% sub-micron",   "wt",    False, "and its prefix is a prefix"),
+    ("80 wt.% sub-micron",   "wt%",   False, "and the period is a character (gold R4)"),
+    ("5 wt.‰ ash",           "wt.‰",  True,  "per mille too"),
+    ("5 g. Then",            "g",     True,  "a period before a space still ends the token"),
+    ("5 g.",                 "g",     True,  "and before the end of the text"),
+    ("5 kg.m of torque",     "kg.m",  True,  "a period before a letter continued already"),
+    ("5 %. Next",            "%",     True,  "a percent sign then a period: the period ends it"),
+]
+E5_JOIN_ROWS = [
+    ("5 kg wt.% Ni",        "kg",        False, "the first review's P1: a lengthened token must still continue"),
+    ("5 kg wt.% Ni",        "kg wt.%",   True,  "and the whole join reads"),
+    ("5 kg vol.% ethanol",  "kg",        False, "the same for a volume basis"),
+    ("5 kg wt.‰ ash",       "kg",        False, "and per mille"),
+    ("5 g approx.% x",      "g",         True,  "a word with `.%` still ends a one-token unit"),
+    ("5 kg m approx.% x",   "kg m",      True,  "and a join — the review's new-block regression"),
+    ("5 kg m e.g.% x",      "kg m",      True,  "a dotted abbreviation with `.%` too"),
+    ("5.% excess",          ".%",        False, "`.%` at a token's start is not a unit"),
+    ("5.% excess",          "%",         False, "and nothing else reads there either"),
+    ("5 kg K.% sample",     "kg",        True,  "an element with `.%` is refused as the bare element is"),
+    ("5 kg m Ni.% x",       "kg m",      True,  "and ends a join as the bare element does"),
+    ("5 kg Bq.% sample",    "kg",        False, "a capitalised non-element fragment continues"),
+    ("5 kg Bq.% sample",    "kg Bq.%",   True,  "and the join reads"),
+    ("5 kg wt.%% x",        "kg",        True,  "a fragment glued to junk is not unit-shaped and ends the unit — "
+                                                "the base cut it to `wt` and continued; that was the scanner, not a reading"),
+    ("5 kg .% sample",      "kg",        True,  "a bare `.%` reads nothing, as before"),
+]
+E6_ROWS = [
+    ("0.22 s−1 (13 rpm)",    "s⁻¹",   True,  "U+2212 in the source, superscript in the annotation"),
+    ("0.22 s⁻¹ (13 rpm)",    "s−1",   True,  "and the other way"),
+    ("0.22 s-1 (13 rpm)",    "s⁻¹",   True,  "an ASCII hyphen in the source"),
+    ("0.22 s⁻¹ (13 rpm)",    "s-1",   True,  "and in the annotation"),
+    ("0.5 dm3/s flow",       "dm³/s", True,  "a superscript digit against an ASCII one"),
+    ("0.5 dm³/s flow",       "dm3/s", True,  "and the other way"),
+    ("0.22 s⁻¹ (13 rpm)",    "s⁻²",   False, "a different exponent is a different unit"),
+    ("0.22 s−1 (13 rpm)",    "s-2",   False, "under either rendering"),
+    ("5 °C min⁻¹ ramp",      "°C min-1", True, "the fold reaches a spaced expression's comparison"),
+]
+
+
+@pytest.mark.parametrize("span,unit,expected,why", E5_ROWS + E5_JOIN_ROWS + E6_ROWS)
+def test_e5_and_e6_fold_without_shortening_a_token(span, unit, expected, why):
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(span, span.split()[0].rstrip(".%"), unit) is expected, why
+
+
+def test_a_period_percent_atom_continues_a_join_for_every_fragment():
+    """GENERATED over the fragment table (the first review's sweep was 224
+    combinations): for every named fragment f, `5 kg f.%` must block `kg` and
+    read `kg f.%`. MUTATION: drop the `.%` atom from `_unit_atom` — every row
+    reddens, because the join stops at `kg` and the prefix is offered."""
+    from crossaudit.dcl.numbers import _UNIT_FRAGMENTS, _ELEMENTS, contains_pair
+
+    for f in sorted(_UNIT_FRAGMENTS):
+        if f in _ELEMENTS or (len(f) == 1 and f.isupper()) or not f.isalpha():
+            continue                       # bare elements and marks are not continuations by design
+        for sign in ("%", "‰"):           # `sample` after: a word, so the join is complete
+            assert not contains_pair(f"5 kg {f}.{sign} sample", "5", "kg"), (f, sign)
+            assert contains_pair(f"5 kg {f}.{sign} sample", "5", f"kg {f}.{sign}"), (f, sign)
+
+
+def test_the_period_continuer_set_is_e5(monkeypatch):
+    """MUTATION: empty `_PERIOD_CONTINUERS` — E5 off. `80 wt.%` annotated `wt.%`
+    must redden, and nothing the base read must move."""
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_PERIOD_CONTINUERS", frozenset())
+    assert not numbers.contains_pair("80 wt.% sub-micron", "80", "wt.%")
+    assert numbers.contains_pair("5 kg.m of torque", "5", "kg.m")
+    assert numbers.contains_pair("5 g. Then", "5", "g")
+
+
+def test_the_exponent_fold_is_e6_and_lives_only_in_the_comparison(monkeypatch):
+    """MUTATION: make `_unit_key` the identity on `normalise_unit` — E6 off. The
+    cross-rendering rows must redden; the same-rendering ones must not."""
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_unit_key", numbers.normalise_unit)
+    assert not numbers.contains_pair("0.22 s−1 (13 rpm)", "0.22", "s⁻¹")
+    assert not numbers.contains_pair("0.5 dm3/s flow", "0.5", "dm³/s")
+    assert numbers.contains_pair("0.22 s⁻¹ (13 rpm)", "0.22", "s⁻¹")
+
+
+def test_the_fold_does_not_reach_the_notation_rule_or_the_scanner():
+    """The mirrors E6 must not move: `10⁵` stays notation the check refuses, a
+    superscript footnote stays prose, and `normalise_unit` folds nothing new
+    (the fragment table, the boundary rule and the range split read the source
+    as written). MUTATION: fold `−` or the superscripts inside `normalise_unit`
+    instead of `_unit_key`."""
+    from crossaudit.dcl.numbers import contains_pair, normalise_unit
+
+    assert not contains_pair("3 × 10⁵ mbar", "3", "mbar")
+    assert not contains_pair("pressure of 10⁵ Pa", "10", "")
+    assert contains_pair("5 g sample¹ dried", "5", "g")
+    assert normalise_unit("s⁻¹") == "s⁻¹" and normalise_unit("s−1") == "s−1"
+    assert not contains_pair("5 kg m xyz⁻¹", "5", "kg m")       # the boundary rule, unchanged
+
+
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2027,6 +2131,10 @@ DISCLOSED_LIMITS = [
      "5 wt % abc%", "wt %", False),
     ("on an unnamed short stem ('abc%') or an element symbol ('Ni‰') it is a unit", "(not an element symbol such as `Ni‰`)",
      "5 kg m Ni‰", "kg m", False),
+    ("('wt.%' is one unit)", "`wt.%` is one unit", "5 wt.% sub-micron", "wt.%", True),
+    ("written as 's⁻¹', 's−1' or 's-1' is one unit", "count as the same unit", "5 s−1 (13 rpm)", "s⁻¹", True),
+    ("the fold does not reach the rule that refuses a number continued by a power of ten",
+     "copy the source's own rendering", "5 × 10⁵ mbar", "mbar", False),
 ]
 
 

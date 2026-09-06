@@ -7360,3 +7360,11 @@ RULINGS:
 
 Recorded because a kill that was predicted is still a kill: the check does not ship
 as a blocker until the measurement says it may, and the measurement said no.
+
+*D161 ruling 2's first pair landed on `feat/provenance-slice-4` (study 10, preregistered
+at 2d77378 before `src/` moved): E5 and E6 measured on the frozen gold against the merge
+base's own verdicts — E5 R = 1, E6 R = 2, composed R = 3, W = 0 and W′ = 0 throughout,
+ten right blocks still block, panel 2 of 97, base reproduced 300 of 300 — every
+preregistered expectation to the row. M10 deferred to its own study with a designed
+en-dash-range panel, because its surface is the surface of a closed-up range. E1 and E2
+next, then Arm 5.*
