@@ -2134,6 +2134,111 @@ def test_e1_covers_the_whole_range_in_the_quote_interval():
     assert spans == [(8, 18)], spans          # `775–850 °C`, through the unit
 
 
+# ---------------------------------------------------------------------------------
+# Study 12 (slice 6): E2, a list with one trailing unit.
+# ---------------------------------------------------------------------------------
+
+E2_ROWS = [
+    ("0, 20, 40, 80 wt.% powders", "0",   "wt.%",  True,  "the first member of a four-member list"),
+    ("0, 20, 40, 80 wt.% powders", "40",  "wt.%",  True,  "and a middle one"),
+    ("0, 20, 40, 80 wt.% powders", "80",  "wt.%",  True,  "the unit-bearing member needed no rule"),
+    ("106 and 25 μm sieves",      "106", "μm",    True,  "the word `and` as the separator"),
+    ("5, 10 and 20 °C",           "5",   "°C",    True,  "three members, two separator kinds"),
+    ("5, 10, and 20 °C",          "5",   "°C",    True,  "an Oxford comma"),
+    ("5 or 10 °C",                "5",   "°C",    True,  "the word `or`"),
+    ("5 and/or 10 °C",            "5",   "°C",    True,  "`and/or`"),
+    ("0.2 kg, 0.5 kg, or 1 kg",   "0.2", "kg",    True,  "a member with its own unit keeps it"),
+    ("0.2 kg, 0.5 kg, or 1 kg",   "0.2", "μm",    False, "and nothing is borrowed"),
+    ("5 g, 10 mL water",          "5",   "mL",    False, "a comma between unrelated quantities"),
+    ("5 g, 10 mL water",          "5",   "g",     True,  "each keeps its own"),
+    ("1 : 1 : 0.125–0.5 mass ratio", "1", "ratio", False, "a colon is not a separator"),
+    ("5; 10 °C",                  "5",   "°C",    False, "nor a semicolon"),
+    ("5, 10 × 10⁵ Pa",            "5",   "Pa",    False, "refused notation on a member stops the list"),
+    ("5, 10 °C min⁻¹",            "5",   "°C min⁻¹", True, "a spaced expression after the last member"),
+    ("5, 10 °C min⁻¹",            "5",   "°C",    False, "and its prefix is a prefix"),
+    ("5,000 and 10,000 rpm",      "5,000", "rpm", True,  "a thousands comma is not a separator"),
+    ("5, 10–20 °C",               "5",   "°C",    True,  "a range as the last member: E1 inside E2"),
+    ("5 and 10",                  "5",   "",      True,  "no unit after: the empty-unit row states the value"),
+    ("5 and 10",                  "5",   "°C",    False, "and nothing else"),
+    ("5, 10 kg, or 20 μm",        "5",   "kg",    True,  "the first unit-bearing member decides (gold R8)"),
+    ("5, 10 kg, or 20 μm",        "5",   "μm",    False, "not a later one"),
+    ("5, 10, 20 °C",              "10",  "°C",    True,  "a middle member is a list member of its own"),
+    ("Step 5, 10 mL of water",   "5",   "mL",    False, "a labelled number is not a member (amendment 1)"),
+    ("Fig. 5, 10 °C",             "5",   "°C",    False, "with or without the period"),
+    ("Sample 5, 10 °C",           "5",   "°C",    False, "a sample label"),
+    ("at 5, 10 °C",               "5",   "°C",    True,  "a preposition is not a label"),
+    ("step 5, 10 mL",             "5",   "mL",    False, "case-insensitive on the label word"),
+    ("Figs. 5, 10 °C",            "5",   "°C",    False, "a plural label (round 2)"),
+    ("Step: 5, 10 mL",            "5",   "mL",    False, "a colon after the label (round 2)"),
+    ("Pages 5, 10 and 20 were",   "5",   "were",  False, "`pages` is a label (round 2)"),
+    ("Schemes 5, 10 °C",          "5",   "°C",    False, "and `schemes`"),
+    ("12,5 °C",                   "12",  "°C",    False, "a decimal comma is one number, not a list (round 2)"),
+    ("12,5 °C",                   "12,5", "°C",   False, "and this module does not read it as a number either"),
+    ("12, 5 °C",                  "12",  "°C",    True,  "a comma with a space is a separator"),
+    ("12,and 5 °C",               "12",  "°C",    False, "`,and` glued is not a separator either"),
+    ("Experiment 5, 10 °C",       "5",   "°C",    False, "more label stems (round 2)"),
+    ("Tab. 5, 10 °C",             "5",   "°C",    False, "`Tab.`"),
+    ("Eqn. 5, 10 °C",             "5",   "°C",    False, "`Eqn.`"),
+    ("Compound 5, 10 °C",         "5",   "°C",    False, "`Compound`"),
+    ("Step-5, 10 mL",             "5",   "mL",    False, "a hyphen after the label"),
+    ("Heat 5, 10 mL",             "5",   "mL",    True,  "a capitalised word that is not a label distributes — the list is finite and named"),
+    ("Step 5–10 °C",              "5",   "°C",    False, "the label guard reaches E1 too: steps five to ten"),
+    ("at 5–10 °C",                "5",   "°C",    True,  "and a range after a preposition still reads"),
+    ("Appendices 5, 10 °C",       "5",   "°C",    False, "an irregular plural (round 3)"),
+    ("Formulae 5, 10 °C",         "5",   "°C",    False, "another"),
+    ("Supplement 5, 10 °C",       "5",   "°C",    False, "a stem the second review named"),
+    ("Trial #5, 10 °C",           "5",   "°C",    False, "a hash after the label"),
+    ("samples 5, 10 and 20 were", "5",   "were",  False, "`samples` is a label word (amendment 1)"),
+    ("heated 5, 10 and 20 were",  "5",   "were",  True,  "a word after the last member reads as the base reads `20 were` for (20, were): the check verifies transcription, not unit-hood"),
+]
+
+
+@pytest.mark.parametrize("span,value,unit,expected,why", E2_ROWS)
+def test_e2_distributes_one_trailing_unit_over_bare_members(span, value, unit, expected, why):
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(span, value, unit) is expected, why
+
+
+def test_e2_is_the_list_tail_and_nothing_else(monkeypatch):
+    """MUTATION: empty `_LIST_TAIL` — E2 off. The distributing rows redden; the
+    adjacency rows, E1 and the mirrors do not move."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_LIST_TAIL", re.compile(r"(?!x)x"))
+    assert not numbers.contains_pair("0, 20, 40, 80 wt.% powders", "0", "wt.%")
+    assert not numbers.contains_pair("106 and 25 μm sieves", "106", "μm")
+    assert numbers.contains_pair("0, 20, 40, 80 wt.% powders", "80", "wt.%")
+    assert numbers.contains_pair("0.2 kg, 0.5 kg, or 1 kg", "0.2", "kg")
+    assert numbers.contains_pair("775–850 °C", "775", "°C")
+
+
+def test_e2_guard_is_adjacency_not_a_flag():
+    """MUTATION: read a list member's own unit as a separator-less continuation —
+    `0.2 kg, 0.5 kg, or 1 kg` must keep `(0.2, kg)` green and `(0.2, μm)` red; a
+    colon or semicolon must never separate. MUTATION: delete the refused-notation
+    stop — the first review showed `(5, Pa)` stays red under that mutant because
+    nothing reads `Pa` past `× 10⁵`; what the stop actually prevents is the
+    operator itself being offered as the unit, so `(5, ×)` is the row that
+    reddens."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair("0.2 kg, 0.5 kg, or 1 kg", "0.5", "kg")
+    assert not contains_pair("0.2 kg, 0.5 kg, or 1 kg", "0.5", "μm")
+    assert not contains_pair("5: 10 °C", "5", "°C")
+    assert not contains_pair("5; 10 °C", "5", "°C")
+    assert not contains_pair("5, 10 × 10⁵ Pa", "5", "Pa")
+    assert not contains_pair("5, 10 × 10⁵ Pa", "5", "×")
+
+
+def test_e2_covers_the_whole_list_in_the_quote_interval():
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    spans = list(pair_occurrences("mixed at 0, 20, 40, 80 wt.% ratios", "0", "wt.%"))
+    assert spans == [(9, 27)], spans          # `0, 20, 40, 80 wt.%`, through the unit
+
+
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2222,12 +2327,57 @@ DISCLOSED_LIMITS = [
      "1–10 °C", "°C", False),
     ("never reaches a number that carries its own unit", "never the unit of a different quantity",
      "5 g–10 mL", "mL", False),
+    ("a comma, 'and' or 'or' and the next number follow it directly", "every member may be annotated",
+     "5, 10 and 20 °C", "°C", True),
+    ("a member with its own unit keeps it", "a member that carries its own unit keeps it",
+     "5 g, 10 mL water", "mL", False),
+    ("a colon or a semicolon is not a separator", "a colon or a semicolon does not make a list",
+     "5; 10 °C", "°C", False),
+    ("a number that a label word precedes", "a labelled number",
+     "Step 5, 10 mL", "mL", False),
+    ("a comma needs a space after it to separate", "a comma needs a space after it to separate",
+     "5,12 °C", "°C", False),          # the fixture's value is 5: a glued comma distributes nothing to it
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "a word outside it does not protect a number",
+     "Heat 5, 10 mL", "mL", True),
+    # The third review: every phrase the skill carries is pinned to a row, so a template
+    # patch that silently fails (round 2) cannot pass this test again.
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Step 5`", "Step 5, 10 mL", "mL", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Figs. 5`", "Figs. 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Step: 5`", "Step: 5, 10 mL", "mL", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "fixed named list", "Matrices 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "with their plurals", "Indices 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "compounds and the like", "Compounds 5, 10 °C", "°C", False),
+    ("a comma needs a space after it to separate", "is not a list", "5,12 °C", "°C", False),
+    # Six-element rows carry their own value (the fixture's default is 5): the decimal
+    # comma is only testable on the value that contains it.
+    ("neither a list nor a number this check reads", "nor a number this checker reads",
+     "12,5 °C", "12,5", "°C", False),
+    ("neither a list nor a number this check reads", "write `uncited` for a decimal-comma value",
+     "12,5 °C", "12", "°C", False),
+    ("every member states that unit", "every member may be annotated",
+     "0, 20, 40, 80 wt.% powders", "40", "wt.%", True),
+    # The fourth review: the contract's own clauses, each pinned to a row too.
+    ("only the last member carries a unit expression", "every member may be annotated",
+     "5, 10 kg, or 20 μm", "μm", False),
+    ("provided every member between it and the unit-bearing one is a bare number", "keeps it",
+     "5 kg, 10 kg, or 20 kg", "μm", False),
+    ("provided every member between it and the unit-bearing one is a bare number", "keeps it",
+     "5 kg, 10 kg, or 20 kg", "kg", True),
+    ("refused notation on a member stops the list", "every member may be annotated",
+     "5, 10 × 10⁵ Pa", "×", False),      # the row the stop's deletion turns green
 ]
 
 
-@pytest.mark.parametrize("contract_phrase,skill_phrase,span,unit,expected", DISCLOSED_LIMITS)
+def _limit_rows():
+    """Five-element rows annotate the value 5; six-element rows carry their own value."""
+    for row in DISCLOSED_LIMITS:
+        yield row if len(row) == 6 else (row[0], row[1], row[2], "5", row[3], row[4])
+
+
+@pytest.mark.parametrize("contract_phrase,skill_phrase,span,value,unit,expected",
+                         list(_limit_rows()))
 def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
-        contract_phrase, skill_phrase, span, unit, expected):
+        contract_phrase, skill_phrase, span, value, unit, expected):
     """MUTATION: delete a limit sentence from the contract, or change the
     behaviour it describes — either alone reddens the row."""
     from crossaudit.dcl.framework import contracts
@@ -2238,7 +2388,7 @@ def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
     body = " ".join(annotation_skill_tree(["number_source"])[NUMBERS_SKILL].split())
     assert contract_phrase in contract, contract_phrase
     assert skill_phrase in body, skill_phrase     # whitespace-normalised: wrapping is not a claim
-    assert contains_pair(span, "5", unit) is expected, (span, unit)
+    assert contains_pair(span, value, unit) is expected, (span, value, unit)
 
 
 def test_the_cap_is_consulted_only_when_the_next_token_would_continue():

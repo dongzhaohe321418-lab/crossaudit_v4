@@ -298,6 +298,38 @@ _RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
 _RANGE_TAIL = re.compile(
     rf"(?:{_INLINE}*[–—]{_INLINE}*|-)"
     r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
+#: E2 (study 12): the head of the text after a LIST member — a separator (`,`,
+#: `and`, `or`, `, and`, `, or`, `and/or`, inline whitespace either side) and
+#: the next number. A colon, a semicolon or a slash is not a separator. Only
+#: where the member has no unit of its own: `0.2 kg, 0.5 kg` never gets here,
+#: because `kg` is read first. Emptied by the study's ablation.
+#: A word that makes the number before a comma a LABEL, not a list member:
+#: `Step 5, 10 mL` names step five, and E2 must not hand `mL` to it. Small,
+#: capitalised, and a narrowing only (a label that is also a quantity blocks,
+#: never passes); amendment 1 of study 12.
+_LABEL_STEMS = """
+    step fig figure table tab section sec eq eqn equation ref reference no p pp
+    page sample run batch entry example scheme chapter part phase stage cycle
+    trial item line route panel column row appendix note lot well plate
+    experiment reaction compound condition method protocol procedure formula
+    product material series model device cell electrode layer specimen test
+    case group set region zone position site day week supplement
+""".split()
+_LABEL_WORDS = frozenset(_LABEL_STEMS + [w + "s" for w in _LABEL_STEMS]
+                         + [w + "es" for w in _LABEL_STEMS]
+                         + ["entries", "appendices", "formulae", "matrices", "indices"])
+#: The label word, then an optional period, colon or hyphen (`Fig.`, `Step:`,
+#: `Step-`), then the number. The first review of slice 6 found the plurals and
+#: the colon missing; the list is named and finite, so a label word it does not
+#: carry (`Heat 5, 10 mL` is not one) distributes — stated, not hidden.
+_LABEL_BEFORE = re.compile(r"([A-Za-z]+)[.:\-–]?\s*#?\s*\Z")
+#: A comma separator needs whitespace after it: `12,5 °C` is a decimal comma in
+#: half the world's notation and E2 must not read `12` as a list member of `5`
+#: (the first review of slice 6). `5, 10` is a list; `5,5` is not.
+_LIST_TAIL = re.compile(
+    rf"{_INLINE}*(?:,{_INLINE}+(?:and/or|and|or)\b{_INLINE}+|,{_INLINE}+"
+    rf"|\b(?:and/or|and|or)\b{_INLINE}+)"
+    r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
@@ -765,7 +797,8 @@ def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
     return parts, end, complete
 
 
-def _unit_candidates(rest: str, ranges: bool = True) -> list[tuple[str, int]]:
+def _unit_candidates(rest: str, ranges: bool = True,
+                     lists: bool = True) -> list[tuple[str, int]]:
     """Every reading of the unit following a number, each with where it ends in
     `rest`: the whole unit expression, plus one reading of a range that is
     shorter only in the sense that it re-reads a token the source glued
@@ -810,7 +843,30 @@ def _unit_candidates(rest: str, ranges: bool = True) -> list[tuple[str, int]]:
             if _UNPARSED.match(after_high):
                 return []
             return [(c, head.end() + e)
-                    for c, e in _unit_candidates(after_high, ranges=False)]
+                    for c, e in _unit_candidates(after_high, ranges=False, lists=False)]
+    if lists:
+        # E2 (study 12): a list with one trailing unit. Walk the members while
+        # each is a bare number followed by another separator and number; the
+        # first member followed by anything else is the unit-bearing one, and
+        # its unit expression — read by this function, with E1 allowed for a
+        # range as the last member and no further list — is offered for the
+        # annotated number, with the end offset through that unit. A member
+        # continued by notation this module refuses stops the list with no
+        # reading. A member with its own unit never reaches here: it is read
+        # first, so `0.2 kg, 0.5 kg, or 1 kg` distributes nothing (the guard).
+        member = _LIST_TAIL.match(rest)
+        if member:
+            offset, text = 0, rest
+            while True:
+                after = text[member.end():]
+                if _UNPARSED.match(after):
+                    return []
+                following = _LIST_TAIL.match(after)
+                if following is None:
+                    cands = _unit_candidates(after, ranges=True, lists=False)
+                    return [(c, offset + member.end() + e) for c, e in cands]
+                offset += member.end()
+                text, member = after, following
     parts, end, complete = _spaced_unit(rest)
     if not parts:
         return []
@@ -852,7 +908,11 @@ def pair_occurrences(span: str, value: str, unit: str):
         if not wanted_unit:
             yield m.start(1), m.end(1)
             continue
-        for candidate, end in _unit_candidates(rest):
+        label = _LABEL_BEFORE.search(span[:m.start(1)])
+        listed = not (label and label.group(1).lower() in _LABEL_WORDS)
+        # A labelled number is neither a list member nor a range endpoint:
+        # `Step 5–10 °C` names steps five to ten.
+        for candidate, end in _unit_candidates(rest, ranges=listed, lists=listed):
             if _unit_key(candidate) == wanted_key:
                 # `end` is the candidate's extent in `rest` as the source wrote
                 # it, not the length of the reading: a spaced expression joined
@@ -1462,6 +1522,16 @@ register("number_source", check_number_source,
          "distributes nothing). The dash is an en or em dash, spaced or not, or "
          "an ASCII hyphen with no space either side; a SPACED ASCII hyphen "
          "('10 - 5 °C') is not read as a range, because it is also a subtraction. "
+         "Where the number is a member of a LIST - a comma, 'and' or 'or' and "
+         "the next number follow it directly - and only the last member carries "
+         "a unit expression, every member states that unit ('0, 20, 40, 80 wt.%' "
+         "states 0 wt.%), provided every member between it and the unit-bearing "
+         "one is a bare number; a member with its own unit keeps it ('0.2 kg, "
+         "0.5 kg, or 1 kg' distributes nothing), a colon or a semicolon is not a "
+         "separator, a comma needs a space after it to separate ('12,5' is neither "
+         "a list nor a number this check reads), refused notation on a member stops the list, and a number that "
+         "a label word precedes ('Step 5, 10 mL', 'Figs. 5', 'Step: 5') is not a "
+         "member. "
          "An EMPTY unit imposes "
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
