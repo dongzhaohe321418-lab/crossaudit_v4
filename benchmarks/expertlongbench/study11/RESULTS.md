@@ -27,7 +27,9 @@ and the one range line the gold labels `N` stays blocked.
   endpoints carry DIFFERENT units (`5 g–10 mL`), a signed high endpoint, an em dash, a
   spaced ASCII hyphen, a thousands group, a spaced or `wt %` tail after the high
   endpoint, a high endpoint continued by refused notation, and a dash followed by a
-  word. Present in the gold, and so measured rather than only tested: a spaced EN-dash
+  SPACE and then a word (`5 g – heat to 10 °C`). A hyphen glued to a word IS in the gold
+  — `2.54-cm diameter`, G0263 and G0300, the compound-adjective rows (M4), gold C —
+  and stays blocked by contract; E1 does not read it and does not change it. Present in the gold, and so measured rather than only tested: a spaced EN-dash
   range (`1.5 – 6 sccm`, G0004 and G0032, two of the fourteen R rows) and a closed-up
   range whose low endpoint carries its own unit (`(20°C-25°C)`, G0214, a base pass the
   `_RANGE` split already read and E1 leaves alone). The second review corrected this
