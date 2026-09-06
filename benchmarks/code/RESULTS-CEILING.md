@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Twentieth version.** Nineteen independent cross-vendor reviews have read this study. Rounds 1
+> **Twenty-first version.** Twenty independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2 except
 > that round 5 made two code paths bootstrap one estimand under one seed, and no
@@ -139,7 +139,7 @@ corrected report.
 |---|---|---|---|
 | 1 | The paired interval rescaled a **conditional** Clopper–Pearson by the **observed** discordance fraction, discarding the uncertainty in that fraction. Coverage **0.416**, not 0.95 | coverage = **0.4162688657**, matching the reviewer to 10 digits | Interval replaced. Primary is now the problem-cluster bootstrap; checks are Tango's unconditional score interval and a Berger–Boos-restricted exact unconditional interval. Measured coverages at that round: **0.416 (withdrawn) → 0.960 (Tango) → 0.998 (exact, at n = 40)**; the n = 112 figures the suite pins are 0.416, 0.960 and 0.997 (deviation 34, round 2) |
 | 2 | Binary inference ignored problem clusters that the saturation bootstrap already respected | 112 loop instances from **96** problems; 110 P instances from **56** | Every primary interval is now a problem-cluster bootstrap; a cluster sign-flip permutation p sits beside every McNemar p. Reproduced the reviewer's sensitivities exactly: referent-loop 0.0225 → **0.0469**, referent-minus-cross flags 0.0003 → **0.0009** |
-| 3 | "In the limit of unlimited readings" where the curve had not flattened; "cannot be seen"; the title's causal claim | cross gains **1.93 pp** from K=7 to K=8 | Extrapolation caveat now carried in the headline, Table 1's asymptote cell and the conclusion (bound, with its polarity, by a test since round 20; the conclusion's copy was missing until round 19, and round 19's test read the word rather than the claim). "Was not flagged by any reading", never "cannot be seen". Title and headline now lead with the between-arm contrast (+5.36 pp, p = 0.146) |
+| 3 | "In the limit of unlimited readings" where the curve had not flattened; "cannot be seen"; the title's causal claim | cross gains **1.93 pp** from K=7 to K=8 | Extrapolation caveat now carried in the headline, Table 1's asymptote cell and the conclusion (bound as literal phrases by a test since round 20 — the phrase in each place, and the one reversal the test names refused; the conclusion's copy was missing until round 19, and round 19's test read the word alone; no test here reads meaning, so a retraction written beside the phrase passes it). "Was not flagged by any reading", never "cannot be seen". Title and headline now lead with the between-arm contrast (+5.36 pp, p = 0.146) |
 | 4 | Twelve planned, **16** computed; the highlighted contrast was not among the twelve; "exactly one clears" was false | 16 `p_exact` entries enumerated | Full planned/performed/exploratory inventory in `numbers.json`; one correction family of 16; threshold 0.00313; every flag contrast labelled EXPLORATORY. Five planned mixed/astra asymptote contrasts were **not delivered** — recorded as deviation 15 |
 | 5 | Timeouts inside a population described as assertion-confirmed | **7** P timeouts, 3 in the loop sample, 3 in the residual | Population renamed "hidden-suite non-passes, including timeouts"; Table 9 adds the assertion-only sensitivity (103 / 32 / 18 / 34 / residual 54), reproducing the reviewer |
 | 6 | Provenance gaps; "no number had left the harness" overstated | `1a66571:tables.md` carries the swapped interval, committed 18:46:39, fixed 18:48:18 | Manifests now carry package versions, per-invocation UTC windows, base URLs, corrected sampling metadata (**the self route sends temperature 0**), the dirty-tree record and re-hashed files. The beta-bug sentence is corrected below |
@@ -1025,7 +1025,7 @@ red on one sentence of a build that had been reported green; both are closed, an
 count reported for a build is the runner's own summary line. *This is the crudest mechanism in the study and the one
 most likely to converge, which is why it is here.*
 
-**40. The caveat test reads the claim, not the word.** Round 19 reversed the conclusion's
+**40. The caveat test reads the phrase and refuses one named reversal, not the word alone.** Round 19 reversed the conclusion's
 saturation sentence to "is a limit, not an extrapolation" in memory; the round-19 test, which
 checked that the word "extrapolation" occurred in the conclusion, stayed green, as did the
 whole report suite. The test now holds each of the three places to its phrase and to the
@@ -1035,6 +1035,16 @@ the offender is named. Rows 3 of the review table and the fit paragraph, which s
 caveat was "bound by a test", now say what the test binds. *A presence check is the same
 defect as an allowlist: it holds what its author thought of, and a reversal is the one
 thing nobody writes a presence check for.*
+
+**41. And that is a literal check, which the words now say.** Round 20 kept the phrase
+and wrote a retraction beside it ("is an extrapolation in wording only; the fit is
+actually a limit"); the test stayed green, because it binds the phrase and refuses the
+one reversal it names, and nothing more. Deviation 40's title and the review table's row 3
+had called that reading "the claim" and "its polarity"; they now say what is bound — the
+literal phrase in each place, the named reversal refused — and that no test in this study
+reads meaning, so a sentence added beside a bound phrase is not something a test here
+catches. *The check did not change; the description of it did, for the second time, which
+is the reason a reviewer is asked whether the words exceed the checks.*
 
 ### The beta-tail defect, stated exactly
 

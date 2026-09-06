@@ -1553,11 +1553,13 @@ CAVEAT_REVERSED = "not an extrapolation"
 
 
 def caveat_offenders(report: str) -> list[str]:
-    """Where the extrapolation caveat is missing or REVERSED. The nineteenth review
-    reversed the conclusion to "is a limit, not an extrapolation" in memory and the
-    previous test stayed green, because it read the word and not the claim; each place
-    is now held to its phrase, whitespace-normalised, and to the absence of the
-    reversal."""
+    """Where the extrapolation caveat's PHRASE is missing, or the one reversal named
+    above is present. A literal check and nothing more: the nineteenth review reversed
+    the conclusion to "is a limit, not an extrapolation" in memory and the previous test
+    stayed green, because it read the word alone; each place is now held to its phrase,
+    whitespace-normalised, and to the absence of "not an extrapolation". The twentieth
+    review wrote a retraction beside the phrase and this passed it; no test here reads
+    meaning, and the report says so (deviations 40 and 41)."""
     sections = _sections(report)
     opening = " ".join(sections["opening"].split())
     conclusion = " ".join(sections["conclusion"].split())
@@ -1584,7 +1586,7 @@ def caveat_offenders(report: str) -> list[str]:
 
 def test_the_extrapolation_caveat_is_where_the_report_says_it_is():
     """The report says the unflattened-asymptote caveat is read by a test in the headline,
-    in Table 1's asymptote cell and in the conclusion, with its polarity. This is that
+    in Table 1's asymptote cell and in the conclusion, as literal phrases. This is that
     test: the headline carries "is an extrapolation", the conclusion "is an extrapolation,
     not a limit", and Table 1's generated rows the label in every row whose `flat?` cell
     says `no`; none of the three carries "not an extrapolation". The opening summary's
@@ -1594,7 +1596,7 @@ def test_the_extrapolation_caveat_is_where_the_report_says_it_is():
 
 def test_reversing_the_caveat_is_caught_in_each_place_it_is_read():
     """MUTATION, the nineteenth review's: reverse the conclusion's sentence to "is a limit,
-    not an extrapolation" — the word survives, the claim does not, and the test must
+    not an extrapolation" — the word survives, the phrase does not, and the test must
     redden; the same for the headline and for a Table 1 row."""
     report = REPORT.read_text(encoding="utf-8")
     reversed_conclusion = report.replace("is an extrapolation, not a\nlimit",
