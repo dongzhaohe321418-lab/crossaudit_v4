@@ -1366,8 +1366,9 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     eleventh review showed that checking the table cells alone left a swapped column header
     and an edited figure in a sentence green:
 
-    1. both coverage tables, whole: every row under each header is one of the expected
-       rows, exactly once, and each cell equals the artefact at three decimals — the
+    1. both coverage tables, whole: each header occurs exactly once in the report, every
+       row under it is one of the expected rows, exactly once, no expected row occurs
+       anywhere else, and each cell equals the artefact at three decimals — the
        current methods and the withdrawn pre-fix ones, because the fourth review found a
        pre-fix figure mislabelled and a withdrawn method's number is still a number;
     2. each table's header names the beneficial scenario before the detrimental one, which
@@ -1397,12 +1398,20 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
             [("exact_grid_prefix", "beneficial"), ("exact_grid_prefix", "detrimental")],
     }
     problems = []
+    # Each header exactly once: the sixteenth review placed a valid decoy table under a
+    # duplicate header ahead of the real one, and the first-match reads below were green
+    # while the real table's cells were false.
+    lines = report.splitlines()
+    for header_prefix in ("| method | role |", "| pre-fix method |"):
+        hits = [i for i, l in enumerate(lines) if l.startswith(header_prefix)]
+        if len(hits) != 1:
+            problems.append(f"coverage table header {header_prefix!r} occurs {len(hits)} times")
     for prefix, cells in rows.items():
-        index = report.find(prefix)
-        if index == -1:
-            problems.append(f"coverage row not found: {prefix!r}")
+        matches = [l for l in lines if l.startswith(prefix)]
+        if len(matches) != 1:
+            problems.append(f"coverage row {prefix!r} occurs {len(matches)} times")
             continue
-        line = report[index:report.find("\n", index)]
+        line = matches[0]
         printed = [float(v) for v in re.findall(r"0\.\d+", line)]
         expected = [round(artefact["coverage"][m][s], 3) for m, s in cells]
         if [round(v, 3) for v in printed] != expected:

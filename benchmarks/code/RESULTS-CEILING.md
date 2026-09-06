@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Fifteenth version.** Fourteen independent cross-vendor reviews have read this study. Rounds 1
+> **Seventeenth version.** Sixteen independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2 except
 > that round 5 made two code paths bootstrap one estimand under one seed, and no
@@ -570,7 +570,8 @@ randomised cases.
 [0, 1] inside the objective**; for fixed τ the model is linear in A, so the fit reduces to a
 one-dimensional search over τ. Goodness of fit and the raw union at K_max are reported beside
 every asymptote, and an asymptote from a curve that has not flattened is labelled an
-extrapolation everywhere it appears.
+extrapolation in the headline, in Table 1's `flat?` column and in the conclusion (the
+Limitations paragraph repeats the label; no test reads it there).
 
 **Multiple comparisons.** Two primary outcomes, each declared singly in the preregistration
 before any model call, are **not** corrected. **The preregistration planned twelve

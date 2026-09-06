@@ -158,7 +158,8 @@ def tango_score_interval(b: int, c: int, n: int, alpha: float = 0.05) -> tuple[f
     whose variance term is Var(b - c) = n(p_b + p_c - (p_b - p_c)^2) under that model.
     The interval is the set of d with |z(d)| <= z_{alpha/2}, found by bisection because
     z is monotone decreasing in d. Its coverage is measured, not assumed
-    (``tests/test_ceiling_stats.py::test_replacement_intervals_have_their_advertised_coverage``).
+    (``tests/test_ceiling_stats.py::test_replacement_intervals_cover_in_BOTH_directions`` and
+    ``ceiling/measure_coverage.py``).
     """
     z = 1.959963984540054 if abs(alpha - 0.05) < 1e-12 else _z_for(alpha)
 
@@ -508,8 +509,9 @@ def fit_saturation(curve: list[float]) -> dict:
 
     For a fixed tau the model is linear in A, so A_hat(tau) = sum(y f) / sum(f f) in closed
     form and the fit reduces to a one-dimensional search over tau. Searched on a log grid
-    then refined by golden section, so there is no starting point to choose and no
-    optimiser that can fail to converge.
+    then refined by golden section (120 iterations): a deterministic numerical search
+    with the grid bounds and the iteration count as its tuning choices, not an exact
+    solution.
     """
     if len(curve) < 2:
         return {"A": None, "tau": None, "r2": None, "max_resid": None,

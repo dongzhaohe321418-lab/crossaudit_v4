@@ -46,7 +46,9 @@ def test_union_curve_matches_brute_force_subset_enumeration():
 
 
 def test_saturation_fit_recovers_a_known_curve():
-    """Exact data must give back exactly the parameters that made it."""
+    """Planted data gives back its parameters to a tolerance, on three curves inside the
+    search's bounds. A curve whose tau lies far outside the log grid is not recovered;
+    the committed fits are interior."""
     for A, tau in ((0.42, 1.7), (0.13, 0.6), (0.85, 4.0)):
         y = [A * (1 - math.exp(-K / tau)) for K in range(1, 9)]
         fit = rc.fit_saturation(y)
@@ -307,7 +309,7 @@ def test_ideal_bootstrap_coverage_is_measured_not_assumed():
 
     coverage = _scenario_coverage(ideal)
     assert abs(coverage - 0.9237318945) < 1e-6, coverage
-    assert coverage < 0.95, "the bootstrap under-covers here; the report must say so"
+    assert coverage < 0.95, "the bootstrap under-covers here (this test does not read the report)"
 
 
 def test_cluster_bootstrap_covers_and_widens_with_clustering():
