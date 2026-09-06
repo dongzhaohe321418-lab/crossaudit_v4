@@ -66,8 +66,8 @@ and subscripts"), now measured on the shipped check with a real generator: **six
 the nine wrong blocks are E1 and E2 — extensions D160 licensed on the gold and
 slice 3 did not include; two are a tokenisation class nothing before this arm had
 seen; one is a hyphen the design refuses by rule.** With E1 and E2 shipped, the
-residue on this sample would be **3 of 189 = 1.59% (Wilson 0.54–4.57%)**; with the
-en-dash class read as well, **1 of 189 = 0.53% (0.09–2.92%)** — projections over the
+residue on this sample would be **3 of 189 = 1.59% (Wilson 0.54–4.56%)**; with the
+en-dash class read as well, **1 of 189 = 0.53% (0.09–2.94%)** — projections over the
 same rows under matchers that do not exist yet, not measurements; the next arm
 measures whatever ships.
 

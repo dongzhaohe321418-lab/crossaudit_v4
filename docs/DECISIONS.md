@@ -7320,8 +7320,9 @@ skill and the product's own per-row verifier, on the 26 T03 instances no earlier
 saw: **9 of 189 correct annotations blocked, 4.76%, Wilson 2.53–8.80%. KILL.** The
 adjudicator was the frozen gold rule applied by two blinded labellers (κ = 1.000 on
 60 items), because the check is `contains_pair` on the line the quotation selects
-and cannot adjudicate itself. Fifty of fifty sampled passes are correct: the
-pre-slice-3 false-pass class did not return.
+and cannot adjudicate itself. Fifty of fifty sampled passes are correct: no
+false pass was observed in the 50-row sample (an interval compatible with up to
+7.14% among passes).
 
 **What the nine are** (shapes only; the corpus is not quoted). Five ranges with the
 first endpoint annotated (gold R7), one list of two numerals with one trailing unit

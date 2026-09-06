@@ -332,4 +332,8 @@ now "between A and B"; zero-event bootstraps are printed as 0.00–0.00% rather 
 "—"; "the false-pass class did not reappear" is narrowed to the 50-row sample's
 interval; the seven rule-code disagreements between the labellers are listed in
 `GOLD-arm4.csv` rather than silently resolved; and the run's untracked-directory
-git status at start is reported as a deviation.
+git status at start is reported as a deviation. The second review found three of
+these corrections incomplete: the 1 of 189 projection had been given the Wilson
+interval of 1 of 190 (the unit-shortening row's), D161 still said the false-pass class
+"did not return", and the handbook's copy of the  sentence was missed; all
+three are fixed in the same file set.
