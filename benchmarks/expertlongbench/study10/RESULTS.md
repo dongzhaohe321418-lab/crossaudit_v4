@@ -67,7 +67,7 @@ element is, so it ends the unit as before; and a fragment glued to `.%`-junk (`w
 is not unit-shaped and ends the unit, where the base's scanner cut it to `wt` and
 continued — that continuation was the period rule's artefact, not a reading. The gold table above is unchanged
 by the repair (re-measured: base 0/0/0/0, E5 1/0/0/0, E6 2/0/0/0, shipped 3/0/0/0).
-`tests/test_number_source_check.py` 1008 passed. Full suite on the host, runner line: "1 failed, 3800 passed, 4 skipped, 1 warning in 443.77s (0:07:23)".
+`tests/test_number_source_check.py` 1008 passed. Full suite on the host, runner line: "3801 passed, 4 skipped, 1 warning in 344.10s (0:05:44)" (an earlier run with a second suite executing concurrently on the same host failed one timing test in the streaming provider, unrelated to this slice; alone it passes 9 of 9).
 
 ## 4. Cost
 
