@@ -32,9 +32,22 @@ KEY = HERE.parent / "study8gold" / "key.jsonl"
 BASE = HERE / "base-verdicts.jsonl"
 
 
+#: The matcher blob the measurement was taken with: `numbers.py` at 1a817b6, the
+#: commit that implemented the rule for measurement. HEAD reverts it, so a run
+#: at HEAD would report the base under both configurations and mean nothing;
+#: the first review found exactly that. Check 1a817b6 out to reproduce.
+RULE_BLOB = "1f3334dce675a28990d9bef1a9eb57bbe6ac9b82"
+
+
 def configure(name: str) -> None:
+    import hashlib
+    src = (HERE.parent.parent.parent / "src" / "crossaudit" / "dcl" / "numbers.py").read_bytes()
+    blob = hashlib.sha1(b"blob %d\0" % len(src) + src).hexdigest()
+    if blob != RULE_BLOB:
+        raise SystemExit(f"this tree's numbers.py ({blob[:12]}) is not the measured rule "
+                         f"({RULE_BLOB[:12]}, commit 1a817b6): the rule was measured and "
+                         "not shipped, and HEAD does not hold it. Check out 1a817b6 to reproduce.")
     if name == "base":
-        import re
         N._dash_exponent = lambda text, i, start: None   # M10 off
 
 

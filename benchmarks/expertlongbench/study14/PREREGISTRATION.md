@@ -97,3 +97,28 @@ skill say in one sentence what an en-dash exponent states and what the guard ref
 by disclosure rows; suite green; gold re-measured with `study14/measure.py` (hook
 `_dash_exponent` ablated by monkeypatch); Arm 4's two rows re-measured from the archive;
 no corpus prose committed (unit tokens are facts).
+
+## Amendment 1 — 2026-09-07, after the first review (98d0269 → round 2)
+
+The first review (`…-slice-8-astra-round1.md`) found the outcome misnamed and two
+inexact sentences; nothing above is edited.
+
+1. **The §3 kill did not fire; a regression stopped the rule.** §3 scopes the kill to the
+   frozen gold and the §5 panel, and both held under the rule (gold all zeros; every §5
+   row as labelled). What failed was a committed row outside the panel — E1's `5 g–10 mL`
+   with `(5, g)`, study 11, whose sentence is in the shipped contract — and §5 had even
+   listed the reversed shape, `5 mL–10 g`, as a limit to disclose. That was this file's
+   error: a shape the shipped contract names as an example is not a limit a later slice
+   may disclose around. The rule is therefore **not shipped because it regresses a shipped
+   contract row**, which §7 ("suite green") forbids, and not by the §3 kill. RESULTS says
+   so in those words. The conclusion — measured and not shipped — stands, because holding
+   the row needs a guard §1 does not allow (a "next token is unit-shaped" test, which
+   breaks `mol L–1 min–1`), and the reviewer, asked to find a permitted rule that holds
+   both, found none.
+2. **The measured build's trailing-punctuation set was `.,;:!?)]}`**, not "trailing
+   punctuation" in general: `5 min–10 min”` and `5 min–10 min»` block under it while
+   `5 min–10 min.` passes. RESULTS no longer says "implemented exactly as written".
+3. **`measure.py` at HEAD measured nothing** (the hook it ablates is not called by the
+   reverted scanner, so both configurations reported the base). It now refuses any tree
+   whose `numbers.py` is not the measured blob (1a817b6, `1f3334dc…`) and says where to
+   reproduce.
