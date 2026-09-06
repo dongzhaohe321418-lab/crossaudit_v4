@@ -1,13 +1,15 @@
-"""Measure every coverage figure the report quotes, and commit it as an artefact.
+"""Measure the eleven method × scenario coverage figures the report's tables quote, and commit them as an artefact.
 
 The tenth cross-vendor review found that the report's coverage tables could be edited
 freely: nothing read them. The statistics tests measure coverage, but they compare against
 constants written beside them, and the report's prose was checked by nobody.
 
-This closes the chain. One script measures every figure; `records/ceiling/coverage.json` is
-the artefact; `test_ceiling_stats.py` asserts its own measurements equal the artefact, and
-`test_report_consistency.py` asserts the report's tables equal the artefact. Prose is then
-bound to a measurement rather than to a hand-typed constant.
+This closes the chain for those eleven: `records/ceiling/coverage.json` is the artefact;
+`test_ceiling_stats.py` asserts its own measurements equal it, and
+`test_report_consistency.py` asserts the report's two tables equal it and that a `0.ddd`
+figure in a sentence about coverage is one of its values. Figures outside it — the n = 40
+historical 0.998, the finite-simulation 0.933 / 0.897, the 0.9895 alternative — are listed
+by the report test or unenforced, and are not measured here.
 
 Exact enumeration over the binomial — no simulation, so the numbers are reproducible to
 machine precision and this script is deterministic.

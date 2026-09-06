@@ -3,8 +3,9 @@
 No API key. No network. No model. Reads what is committed under
 ``benchmarks/code/records/`` — plus, for Table 9 only, the archived run directory named by
 ``--run`` — and writes ``records/ceiling/numbers.json`` (machine-readable)
-and ``records/ceiling/tables.md`` (the tables the report quotes verbatim). Run it on
-partial data at any point; it reports what exists and names what does not.
+and ``records/ceiling/tables.md`` (the tables the report quotes verbatim). It needs
+``study2/instances.jsonl`` and ``audit_set.json`` and raises if either is missing; for the
+run records it reports what exists and names what does not.
 
     python benchmarks/code/report_ceiling.py
 
@@ -24,8 +25,10 @@ results were known, as checks on the replaced paired interval:
   exactly, not by sampling: an instance flagged by k of K_max draws is missed by a random
   K-subset with probability C(K_max - k, K) / C(K_max, K).
 * the asymptote A of ``recall(K) = A(1 - e^{-K/tau})``, least squares. For a fixed tau the
-  fit is linear in A, so the whole fit is a one-dimensional search over tau — exact, with
-  no optimiser to tune and no starting point to choose.
+  fit is linear in A, so the whole fit is a one-dimensional numerical search over tau:
+  a bounded log grid, then golden-section refinement (120 iterations). Deterministic, with
+  the grid bounds and iteration count as its tuning choices; its tests check three planted
+  curves to a tolerance.
 * a zero-inflated beta-binomial MLE on the per-instance flag counts, as the preregistered
   sensitivity analysis. Reported as secondary, and its known weak identifiability said.
 * exact McNemar on discordant pairs. The exact-conditional interval for the paired

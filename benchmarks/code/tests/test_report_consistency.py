@@ -1366,9 +1366,10 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     eleventh review showed that checking the table cells alone left a swapped column header
     and an edited figure in a sentence green:
 
-    1. both coverage tables, cell by cell at three decimals — the current methods and the
-       withdrawn pre-fix ones, because the fourth review found a pre-fix figure mislabelled
-       and a withdrawn method's number is still a number;
+    1. both coverage tables, whole: every row under each header is one of the expected
+       rows, exactly once, and each cell equals the artefact at three decimals — the
+       current methods and the withdrawn pre-fix ones, because the fourth review found a
+       pre-fix figure mislabelled and a withdrawn method's number is still a number;
     2. each table's header names the beneficial scenario before the detrimental one, which
        is the order the cells are read in, and its `Bin(n, q)` pairs are the artefact's n
        and the two scenarios' q, in that order;
@@ -1406,6 +1407,27 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
         expected = [round(artefact["coverage"][m][s], 3) for m, s in cells]
         if [round(v, 3) for v in printed] != expected:
             problems.append(f"{prefix!r} prints {printed}, artefact says {expected}")
+    # The whole of each table, not the first occurrence of six known rows: every row
+    # under the header must be one of the expected rows, once. The fifteenth review
+    # appended an invented row with false figures and the suite stayed green.
+    tables = {"| method | role |": [p for p in rows if "pre-fix" not in p],
+              "| pre-fix method |": [p for p in rows if "pre-fix" in p]}
+    for header_prefix, expected_rows in tables.items():
+        lines = report.splitlines()
+        try:
+            start = next(i for i, l in enumerate(lines) if l.startswith(header_prefix))
+        except StopIteration:
+            problems.append(f"coverage table header not found: {header_prefix!r}")
+            continue
+        body = []
+        for line in lines[start + 2:]:          # skip the header and the separator
+            if not line.startswith("|"):
+                break
+            body.append(line)
+        seen = [next((p for p in expected_rows if line.startswith(p)), None) for line in body]
+        if None in seen or sorted(seen) != sorted(expected_rows):
+            problems.append(f"table under {header_prefix!r} has rows {seen}; "
+                            f"expected exactly {expected_rows}")
     covered = {(m, s) for m in artefact["coverage"] for s in artefact["coverage"][m]}
     listed = {cell for cells in rows.values() for cell in cells}
     if covered != listed:

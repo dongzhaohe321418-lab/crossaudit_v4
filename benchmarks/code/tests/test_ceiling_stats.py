@@ -354,8 +354,10 @@ def test_cluster_bootstrap_covers_and_widens_with_clustering():
 
 
 def test_ideal_bootstrap_coverage_differs_by_scenario():
-    """The two scenarios give DIFFERENT bootstrap coverage, and the report must not
-    reuse one number for the other.
+    """The two scenarios give DIFFERENT bootstrap coverage. This test measures both and
+    does not read the report; the report's tables are held to the artefact by
+    `test_report_consistency.py`, and a figure quoted in prose is checked there for
+    membership only, so a swap of the two figures in prose is not caught anywhere.
 
     The third review found the report quoting 0.924 — the beneficial `Bin(112, 0.1)`
     figure — as the detrimental `Bin(112, 0.5)` coverage, which is 0.953.
@@ -380,11 +382,13 @@ def test_ideal_bootstrap_coverage_differs_by_scenario():
 
 
 def test_exact_grid_endpoint_rounding_is_declared():
-    """The exact grid's coverage depends on inward endpoint rounding, and that is stated.
+    """The exact grid's coverage depends on inward endpoint rounding: one returned endpoint
+    is checked here. This test does not read the report; the report's sentence about
+    0.9895 (coverage under literal acceptance) is prose that no test enforces.
 
     At (0, 44, 112) the grid test ACCEPTS delta = -0.5, but bisection returns a lower
     endpoint of -0.499999993614, which excludes it. The reported 0.984 is coverage of the
-    RETURNED intervals; literal acceptance would give 0.9895. The report says so.
+    RETURNED intervals.
     """
     lo, hi = rc.exact_unconditional_interval(0, 44, 112)
     assert lo > -0.5, lo                      # excluded by ~6.4e-9
