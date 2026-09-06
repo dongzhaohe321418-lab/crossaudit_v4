@@ -19,14 +19,16 @@ REPORT = CODE / "RESULTS-CEILING.md"
 TABLES = CODE / "records" / "ceiling" / "tables.md"
 
 
-def main() -> int:
+def splice(text: str, tables: str) -> tuple[str, list[str], list[str]]:
+    """The report with every generated table swapped in: (new text, keys swapped, keys
+    generated but absent from the report). Pure, so a test can assert that splicing the
+    committed tables into the committed report changes nothing — the twelfth review found
+    the generator still emitting a sentence the report had rejected, which this catches."""
     generated = {}
-    for part in re.split(r"(?m)^(?=### Table )", TABLES.read_text(encoding="utf-8")):
+    for part in re.split(r"(?m)^(?=### Table )", tables):
         match = re.match(r"### Table (\w+)", part)
         if match:
             generated[match.group(1)] = part.rstrip() + "\n"
-
-    text = REPORT.read_text(encoding="utf-8")
     out, pos, swapped = [], 0, []
     for match in re.finditer(r"(?m)^### Table (\w+) —", text):
         key = match.group(1)
@@ -41,9 +43,13 @@ def main() -> int:
         swapped.append(key)
         pos = end + 1 if text[end:end + 1] == "\n" else end
     out.append(text[pos:])
-    REPORT.write_text("".join(out), encoding="utf-8")
+    return "".join(out), swapped, sorted(set(generated) - set(swapped))
 
-    missing = sorted(set(generated) - set(swapped))
+
+def main() -> int:
+    new_text, swapped, missing = splice(REPORT.read_text(encoding="utf-8"),
+                                        TABLES.read_text(encoding="utf-8"))
+    REPORT.write_text(new_text, encoding="utf-8")
     print(f"spliced {len(swapped)} tables: {', '.join(swapped)}")
     if missing:
         print(f"WARNING: generated but not present in the report: {', '.join(missing)}")

@@ -4,7 +4,8 @@
 incomplete beta, Clopper-Pearson inversion, exact McNemar tail, saturation fit and
 beta-binomial likelihood — rather than depending on SciPy. That is a reproducibility
 decision — a reader can read the whole of it in one file — and it puts the burden of proof
-here: each estimator is checked against brute force or against its defining property, and
+here: each estimator is checked against brute force, against a defining property, or by
+recovery of a planted value, and
 coverage is measured in ``ceiling/measure_coverage.py`` and asserted equal here. This is
 the evidence for the estimators; it is not a proof of the report.
 

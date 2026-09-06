@@ -1,8 +1,9 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Eleventh version.** Ten independent cross-vendor reviews have read this study. Rounds 1
+> **Twelfth version.** Twelve independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
-> all of which were reporting corrections — no analysis has changed since round 2, and no
+> all of which were reporting corrections — no analysis has changed since round 2 except
+> that round 5 made two code paths bootstrap one estimand under one seed, and no
 > point estimate has changed since the first version. Round 5's corrections included one
 > substantive discovery: the report was quoting **two different bootstrap intervals for the
 > same number**, because two code paths bootstrapped the same estimand under different
@@ -137,7 +138,7 @@ corrected report.
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
 | 1 | The paired interval rescaled a **conditional** Clopper–Pearson by the **observed** discordance fraction, discarding the uncertainty in that fraction. Coverage **0.416**, not 0.95 | coverage = **0.4162688657**, matching the reviewer to 10 digits | Interval replaced. Primary is now the problem-cluster bootstrap; checks are Tango's unconditional score interval and a Berger–Boos-restricted exact unconditional interval. Measured coverages at that round: **0.416 (withdrawn) → 0.960 (Tango) → 0.998 (exact, at n = 40)**; the n = 112 figures the suite pins are 0.416, 0.960 and 0.997 (deviation 34, round 2) |
-| 2 | Binary inference ignored problem clusters that the saturation bootstrap already respected | 112 loop instances from **96** problems; 110 P instances from **56** | Every estimate interval in Tables 1–7 is now a problem-cluster bootstrap; a cluster sign-flip permutation p sits beside every McNemar p. Reproduced the reviewer's sensitivities exactly: referent-loop 0.0225 → **0.0469**, referent-minus-cross flags 0.0003 → **0.0009** |
+| 2 | Binary inference ignored problem clusters that the saturation bootstrap already respected | 112 loop instances from **96** problems; 110 P instances from **56** | Every primary interval is now a problem-cluster bootstrap; a cluster sign-flip permutation p sits beside every McNemar p. Reproduced the reviewer's sensitivities exactly: referent-loop 0.0225 → **0.0469**, referent-minus-cross flags 0.0003 → **0.0009** |
 | 3 | "In the limit of unlimited readings" where the curve had not flattened; "cannot be seen"; the title's causal claim | cross gains **1.93 pp** from K=7 to K=8 | Extrapolation caveat now carried in the headline, Table 1 (`flat?` column) and the conclusion. "Was not flagged by any reading", never "cannot be seen". Title and headline now lead with the between-arm contrast (+5.36 pp, p = 0.146) |
 | 4 | Twelve planned, **16** computed; the highlighted contrast was not among the twelve; "exactly one clears" was false | 16 `p_exact` entries enumerated | Full planned/performed/exploratory inventory in `numbers.json`; one correction family of 16; threshold 0.00313; every flag contrast labelled EXPLORATORY. Five planned mixed/astra asymptote contrasts were **not delivered** — recorded as deviation 15 |
 | 5 | Timeouts inside a population described as assertion-confirmed | **7** P timeouts, 3 in the loop sample, 3 in the residual | Population renamed "hidden-suite non-passes, including timeouts"; Table 9 adds the assertion-only sensitivity (103 / 32 / 18 / 34 / residual 54), reproducing the reviewer |
@@ -159,9 +160,9 @@ remaining sentence claiming more than its check delivers. All were reproduced.
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
 | 1 | Eleven overclaiming sentences across the report and both test files: "a too-generic subject cannot hide" (a vocabulary of only `asymptote` leaves all 22 green), "every rate", "all real and correct", "any other family", "makes a fourth instance impossible", "wherever the guard is described", "coverage labels cannot drift" (editing a published 0.997 to 0.960 left all green), "15 statistics tests", and an *under*claim — the guard does apply a membership check outside the two sections | all reproduced | Each sentence rewritten to what its check does: the scanner's four numeral formats named; membership distinguished from attribution; the six no-interval declarations qualified; "the generated token-replacement mutations redden" replacing "any other family"; the impossibility claim deleted; the test count corrected to 21 and the simulated methods listed |
-| 1b | The coverage labels had nothing checking them | editing 0.997 → 0.960 left all tests green | **Bound, not disclaimed.** `ceiling/measure_coverage.py` measures all eleven figures by exact enumeration into `records/ceiling/coverage.json`; the statistics suite asserts its own measurements equal the artefact, and a new report test asserts both coverage tables equal it. The chain is measurement → artefact → prose, and the review's drift attack now reddens |
+| 1b | The coverage labels had nothing checking them | editing 0.997 → 0.960 left all tests green | **Bound, not disclaimed.** `ceiling/measure_coverage.py` measures all eleven figures by exact enumeration into `records/ceiling/coverage.json`; the statistics suite asserts its own measurements equal the artefact, and a new report test asserts both coverage tables equal it. The chain is measurement → artefact → table cells, and the review's drift attack now reddens; a figure in a sentence is checked for membership among the measured values, not attributed to a method |
 | 2 | Deviation 34's correction history had four rows; eleven more corrections were omitted, and deviation 31 still carried "no published number was ever wrong" | verified against the review reports | The history is rebuilt **from the review reports**, fifteen rows cited by round, with the committed-artefact swapped-tail interval distinguished from published prose. Deviation 31's copy is withdrawn. Everywhere "no estimate has changed" appeared it now reads "**no empirical point estimate has changed; interval estimates did**" |
-| 3 | Nothing stopped the overclaiming vocabulary returning | — | A test fails on seven guarantee words in the report and both test files, each with the round that found it asserted falsely, unless the whole sentence is one of an exact list of allowed sentences. Writing it found further unqualified uses beyond the review's list; they were rewritten in the same commit and not individually recorded |
+| 3 | Nothing stopped the overclaiming vocabulary returning | — | A test fails on seven guarantee words in the report and both test files, each with the round that found it asserted falsely, unless the whole sentence is one of an exact list of allowed sentences, after asterisks, emphasis underscores, backticks and footnote markers are removed — other formatting is not normalised. Writing it found further unqualified uses beyond the review's list; they were rewritten in the same commit and not individually recorded |
 
 ### What the ninth review changed
 
@@ -235,7 +236,7 @@ first.
 
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
-| 1 | The guard still exempted bare estimates by broad context, and **accepted another quantity's interval**: `(30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])` stayed green because the FP interval sat ten characters from the recall rate | both reproduced | **Every rate the scanner recognises in the opening and conclusion — a numeral followed by `%`, `pp`, `points` or `percentage points` — is now bound to the specific `numbers.json` array its interval must come from** — 36 binding rules, no context exemption; a rate is either bound or declared a count/exact quantity with a reason. The counterexample, a stripped interval, a value/interval mismatch and **two intervals swapped between rates in one sentence** are all committed as regression tests, and a further test fails if any binding rule stops matching. Fixing this exposed a real defect: **the report quoted [40.4, 63.6] and [40.0, 63.3] for the same residual share**, because `timeout_sensitivity` re-bootstrapped an estimand the residual analysis had already bootstrapped, under a different seed. Both now use the canonical seed and are identical |
+| 1 | The guard still exempted bare estimates by broad context, and **accepted another quantity's interval**: `(30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])` stayed green because the FP interval sat ten characters from the recall rate | both reproduced | **Every rate the scanner recognises in the opening and conclusion — a numeral followed by `%`, `pp`, `points` or `percentage points` — is now bound to the specific `numbers.json` array its interval must come from** — 36 binding rules, no context exemption; a rate is either bound or explicitly declared, with a reason, as owing no interval. The counterexample, a stripped interval, a value/interval mismatch and **two intervals swapped between rates in one sentence** are all committed as regression tests, and a further test fails if any binding rule stops matching. Fixing this exposed a real defect: **the report quoted [40.4, 63.6] and [40.0, 63.3] for the same residual share**, because `timeout_sensitivity` re-bootstrapped an estimand the residual analysis had already bootstrapped, under a different seed. Both now use the canonical seed and are identical |
 | 2 | `superseded_fields_removed` still said `working_tree_at_freeze` was removed, contradicting the record that it was retained | verified in both manifests | The stale block is dropped on every finalisation, so a superseded record cannot outlive its own correction |
 | 3 | Seed offsets complete but three **ranges wrong**: curve K given as 8–16 when it is 1–8; mixed and comparator ranges likewise | verified | The inventory is now **generated from the code**: every call to the bootstrap is wrapped during a cheap pass and its seed logged, and the manifest records the observed set (32 seeds over 196 calls). The hand-written entries were corrected to match, and the five named-but-unobserved seeds are each reconciled — two of which turned out to be **retired** by the fix in item 1 |
 | 4 | Deviation 18 paired Tango's beneficial coverage with the exact grid's detrimental one in a single unlabelled sentence | verified | Both methods and both scenarios labelled, as the coverage table does |
@@ -250,9 +251,9 @@ four reproduced here first.
 
 | # | Finding | Reproduced | What changed |
 |---|---|---|---|
-| 1 | **A coverage label was newly wrong**: the report, Amendment 5 and CORRECTIONS #17 attributed beneficial coverage **0.960 to the pre-fix exact grid**. It is Tango's; the pre-fix exact grid covered **0.997** | re-executing the pre-fix code gives Tango 0.960 / 0.953 and exact grid 0.997 / 0.075 | Fixed in all three places, as a table rather than a sentence. The pre-fix estimators are now **committed as runnable code with their coverages pinned as tests**, so their coverages are re-measured on every run rather than quoted; the eleventh review showed a label could still sit beside the wrong column, and deviation 38 now checks column order and coverage sentences too. The re-execution also showed something worth saying: **pre-fix Tango covered 0.953 detrimental while still returning wrong intervals** — coverage in the scenarios you happen to test does not certify a method, which is why sign symmetry is what pins this |
+| 1 | **A coverage label was newly wrong**: the report, Amendment 5 and CORRECTIONS #17 attributed beneficial coverage **0.960 to the pre-fix exact grid**. It is Tango's; the pre-fix exact grid covered **0.997** | re-executing the pre-fix code gives Tango 0.960 / 0.953 and exact grid 0.997 / 0.075 | Fixed in all three places, as a table rather than a sentence. The pre-fix estimators are now **committed as runnable code with their coverages pinned as tests**, so their coverages are re-measured on every run rather than quoted; the eleventh review showed a label could still sit beside the wrong column, and deviation 38 now checks the column order and the `Bin(n, q)` pairs of each header, and the membership of three-decimal figures in coverage sentences. The re-execution also showed something worth saying: **pre-fix Tango covered 0.953 detrimental while still returning wrong intervals** — coverage in the scenarios you happen to test does not certify a method, which is why sign symmetry is what pins this |
 | 2 | The withdrawn blanket "2 to 5 points optimistic" **survived in deviation 19**, as that deviation's own conclusion | verified | Struck through in place and marked superseded by deviation 21, rather than deleted — the deviation record should show what it said |
-| 3 | Interval completeness still incomplete: opening repetitions, conclusion rates, Table 1's last-step gains | verified | Intervals added everywhere named, and **the rule is now mechanical**: a test requires every rate the scanner recognises in the opening and conclusion to be followed *adjacently* by an interval, or to be a count. Writing it found two more gaps the review had not listed, including a bare `+26.8 points`. Its own test-of-the-test caught that a first version accepted any later interval in the sentence |
+| 3 | Interval completeness still incomplete: opening repetitions, conclusion rates, Table 1's last-step gains | verified | Intervals added everywhere named, and **the rule is now mechanical**: a test requires every rate the scanner recognises in the opening and conclusion to be followed *adjacently* by an interval, or to be explicitly declared, with a reason, as owing no interval. Writing it found two more gaps the review had not listed, including a bare `+26.8 points`. Its own test-of-the-test caught that a first version accepted any later interval in the sentence |
 | 4 | Provenance: `working_tree_at_freeze` still present while the record said removed; 24 events described as individually enumerated when ten run-ID groups were listed; seed inventory missing `+50+total`, `+14`, `+15` | verified | The record now distinguishes **removed** (`finalised_at_commit`) from **retained and rewritten** (`working_tree_at_freeze`, kept because it is true); the event block says plainly that it lists **10 run_ids covering 24 events** with their composition; the seed inventory is complete and **cross-checked against every `BOOT_SEED` offset in the code** |
 
 ### What the third review changed
@@ -484,7 +485,7 @@ The mechanism behind any net effect. On stratum P a flag is a defect caught; on 
 **Unit of analysis: the instance; the resampling and permutation unit: the problem.** The
 loop's 112 instances come from **96 problems**; stratum P's 110 instances come from only
 **56**. Where problems repeat across generation batches their instances are not independent,
-so **every estimate interval in Tables 1–7 is a percentile bootstrap over whole problem clusters**
+so **every primary interval is a percentile bootstrap over whole problem clusters**
 (10,000 resamples, seed 20260908) and **every McNemar p is accompanied by a cluster-level
 sign-flip permutation p**. Wilson intervals are still printed where they were, marked as too
 narrow. K draws over the same instances are repeated measures, never K × n observations.
@@ -590,11 +591,11 @@ incomplete beta, the Clopper–Pearson inversion, the exact McNemar tail, Tango'
 interval, the exact unconditional inversion, the cluster bootstrap, the sign-flip test, the
 saturation fit and the beta-binomial likelihood are implemented in `report_ceiling.py` in
 the standard library. `tests/test_ceiling_stats.py` (22 tests) checks each against brute
-force or against its defining property, **including exact coverage enumerations for Tango,
+force, against a defining property, or by recovery of a planted value, **including exact coverage enumerations for Tango,
 the exact grid and the idealised bootstrap in both the beneficial and detrimental
 scenarios, and for the withdrawn conditional interval in the beneficial scenario only** — the cluster bootstrap is checked by simulation
-rather than enumeration, and no coverage figure is computed for any other quantity. Two real defects have been caught by that file: a swapped beta tail, and the
-coverage failure above.
+rather than enumeration, and no coverage figure is computed for any other quantity. One real defect was caught by that file, a swapped beta tail; the
+coverage failure above was found by the first review and has been pinned there since.
 
 **Preregistration.** `benchmarks/code/ceiling/PREREGISTRATION.md` at `d96cdaf`, amendment 3
 at `87939d2`, both before the first model call including the credential probe.
@@ -770,7 +771,7 @@ the only coverage claims this study makes.
 **20. The report's tables were re-spliced after the second review.** Between the second and
 third versions the prose was edited but the tables were not re-generated into the document,
 so for a period the committed report carried round-1 tables beside round-2 prose. Caught
-while answering the review; every table in this version is the current generated output, and
+while answering the review; every generated table in this version is the current generated output — a test splices the committed `tables.md` into the report and requires no change — and
 `tests/test_report_consistency.py` now checks the numbers in prose. **What that check is,
 exactly:** a lexical editing guard for registered numeral templates in the opening and
 conclusion: every registered rate must carry its bound interval adjacent, and its sentence
@@ -812,7 +813,7 @@ direction. **0.960 is Tango's**; the pre-fix exact grid covered 0.997 beneficial
 detrimental. Corrected in the report, Amendment 5 and `CORRECTIONS.md` #17, and the pre-fix
 estimators are now committed as runnable code with their coverages asserted. Since the
 tenth review, the report's coverage tables are themselves **bound to a measured artefact**
-(`records/ceiling/coverage.json`), so a printed coverage figure that differs from the measurement reddens — and since the eleventh review so does a swapped column or a coverage figure quoted in a sentence. *Direction: the error understated how well the
+(`records/ceiling/coverage.json`), so a printed coverage figure that differs from the measurement reddens — and since the eleventh review so does a swapped or mis-parameterised column header, or a three-decimal figure in a coverage sentence that is not among the measured values (membership; a figure is not attributed to a method, and figures in other formats are not read). *Direction: the error understated how well the
 pre-fix exact grid did in one direction and obscured that the collapse was confined to that
 one method. It changed no result.*
 
@@ -820,7 +821,9 @@ one method. It changed no result.*
 not.** Bare rates in the opening and conclusion were corrected by hand after each of the
 first four reviews. A test now requires every rate **the scanner recognises** — a numeral
 followed by `%`, `pp`, `points` or `percentage points` — in those two sections to be
-followed adjacently by an interval, or to be a count or an exact quantity.
+followed adjacently by an interval, or to be explicitly declared, with a reason, as owing
+no interval — a count, an exact quantity, a nominal confidence level, the separately
+checked headline, or an approximate reading of the power curve.
 Writing it exposed **two further gaps no reviewer had listed** — a bare `+26.8 points` in
 the opening and a `51.8%` whose interval sat too far away to read as attached — and its
 test-of-the-test exposed that a first version of the rule accepted any interval later in
@@ -907,8 +910,9 @@ number was ever wrong" — which this deviation and deviation 31 previously asse
 false as a history**, and the ninth and tenth reviews were right to strike it.
 
 **The published values the reviews found wrong, and their corrections**, each cited to the
-round that found it. Built from the review reports, not from memory; it holds what the
-reports state and claims no completeness beyond them.
+round that found it. A selected inventory, built from the review reports and not from
+memory: it holds what the reports state and claims no completeness beyond them (the false
+test count of round 11 is recorded in CORRECTIONS #30 and below).
 
 | round | published | corrected to | kind |
 |---:|---|---|---|
@@ -923,16 +927,17 @@ reports state and claims no completeness beyond them.
 | 3 | referent P-flag exact interval upper bound **`+43.8`** | **`+43.7`** | interval |
 | 3 | detrimental bootstrap coverage quoted as **0.924** | **0.953** for that scenario | coverage |
 | 4 | beneficial coverage **0.960** attributed to the pre-fix exact grid | **0.997**; 0.960 is Tango's | coverage |
-| 4 | `manifest_loop.json` described as **24** unmatched events | **ten run-ID groups totalling 24 events** | inventory |
+| 4 | `manifest_loop.json`'s 24 unmatched events described as **individually enumerated** | **ten run-ID groups**, listed as such, totalling 24 events — the total was right | inventory |
 | 5 | seed-inventory ranges: curve `K = 8..16`; contiguous comparator range; mixed-family seeds | `K = 1..8` (seeds 20260929–20260936); totals **2, 3, 4, 6, 8** only; mixed-family seeds **20260939–20260946** | inventory |
 | 6 | residual share published as both **`[40.4, 63.6]`** and `[40.0, 63.3]` | **`[40.0, 63.3]`** | interval |
 | 6 | three registered-union intervals **`[20.0, 40.5]`**, **`[8.2, 27.3]`**, **`[20.9, 45.5]`** | **`[20.0, 40.7]`**, **`[8.3, 27.3]`**, **`[20.7, 45.0]`** | interval |
 | 6 | seed `BOOT_SEED + 7` declared never drawn | **consumed**: 25 non-zero clusters, 200,000 sampled draws | inventory |
 | 7 | seed 20260909 stated not to appear in `observed_seeds` | it does | inventory |
 | 7 | attribution: "six of the nine" reviewer findings | **eight** | count |
-| 8 | attribution: nine findings, "eight of the nine" | **ten findings: eight reviewer, two author** | count |
+| 8 | the expanded attribution table described as **nine** findings with one author exception | **ten findings: eight reviewer, two author** — "eight of the nine" was right for the numbered set | count |
 | 9 | "seven report sentences" rewritten | **seven failing rule matches across four sentences** | count |
 | 11 | "21 statistics tests" | **22** | count |
+| 11 | a build reported as "**46 tests pass**" | **one failed** (CORRECTIONS #30) | count |
 
 Separately, and distinguished because it never reached prose: the swapped Clopper–Pearson
 tail put **`[+3.16, −1.93]`** into a committed *artefact* (`tables.md` at `1a66571`) for 99
@@ -947,8 +952,10 @@ recomputed when the method was replaced in rounds 2 and 3.
 **35. A check that only ran at review time is not a check.** The AST duplicate scan that
 found deviation 33's eleven duplicates was run by hand and never committed, so the suite
 stayed green when a function was duplicated. It is now a test over every Python module under
-`benchmarks/code`, covering functions, classes and plain and annotated assignments, verified
-to redden on a duplicated helper and on a second annotated `RATE_RULES`.
+`benchmarks/code`, covering functions, classes, and assignments to names — plain, annotated,
+and names inside tuple targets; attribute and subscript targets are not definitions —
+verified to redden on a duplicated helper and on a second annotated `RATE_RULES`, and to
+visit the coverage module and the statistics tests.
 
 **36. The guard's claim exceeded what it enforces, and the claim — not the guard — was
 wrong.** Nine rounds of review had steadily widened this study's consistency checks; the
@@ -981,8 +988,11 @@ between them. `ceiling/measure_coverage.py` now measures all eleven figures by e
 enumeration into `records/ceiling/coverage.json`; the statistics suite asserts its
 measurements equal that artefact — all eleven figures since the eleventh review, which found
 three compared by nobody — and a report test asserts both coverage tables, their column
-order and every three-decimal coverage figure quoted in a sentence equal it, with the
-historical n = 40 figure and the finite-simulation figures carried by an explicit list. *The review
+order and `Bin(n, q)` parameters equal it, and every unsigned three-decimal figure outside a
+bracketed interval in a sentence about coverage is one of its values or of an explicit
+historical list (the n = 40 figure and the finite-simulation figures). That last is a
+membership check: a figure is not attributed to a method or scenario, and a coverage
+written with two decimals, in words, or with a sign is not read. *The review
 offered the alternative of disclaiming the claim instead; binding it was the better answer
 because the claim is one worth being able to make.*
 
@@ -990,7 +1000,12 @@ because the claim is one worth being able to make.*
 rate", "cannot hide", "impossible", "guaranteed", "all real and correct", "any other
 family", "wherever" — fail the build in the report and both test files unless the whole
 sentence containing them is one of an exact list of allowed sentences. Allowances are
-sentences, not substrings, so a new sentence cannot inherit an old one's. Each word is on the
+sentences, not substrings, so a new sentence cannot inherit an old one's. Sentences are
+read after asterisks, emphasis underscores, backticks and footnote markers are removed and
+whitespace is collapsed; other formatting — HTML, entities, zero-width characters — is not
+normalised, and the generator `report_ceiling.py` and its `tables.md` are scanned with the
+report, because the twelfth review found the generator still emitting the sentence round 11
+had failed on. Each word is on the
 list because a review found it asserted falsely at least once, and the reason is recorded
 beside it. Writing the check found further unqualified uses the review's line-by-line list
 had not reached; they were rewritten in the same commit and not individually recorded. The
@@ -1097,7 +1112,7 @@ python benchmarks/code/ceiling.py --run <run-dir> --check-prompt   # prompt byte
 python benchmarks/code/ceiling.py --run <run-dir> --budget-usd 13 --workers 3
 python benchmarks/code/ceiling.py --run <run-dir> --astra --astra-draws 4
 
-# every number in this file, from committed records, no key and no network
+# every generated number in this file (numbers.json, tables.md), from committed records, no key and no network
 python benchmarks/code/report_ceiling.py
 python benchmarks/code/ceiling/finalise_manifests.py --run <run-dir>
 python benchmarks/code/residual_dump.py --run <run-dir> --population all_families

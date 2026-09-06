@@ -36,7 +36,8 @@ the boundary belongs in the tests, not in a review report.
   either (`test_generated_reattribution_mutations_all_redden`);
 * no rule may match twice, so a second sentence matching a rule's pattern is reported
   rather than silently accepted;
-* no Python module under `benchmarks/code` defines a top-level name twice.
+* no Python module under `benchmarks/code` defines a top-level name twice (functions,
+  classes, and assignments to names — plain, annotated, or inside a tuple target).
 
 **History.** The first version of this guard passed when a quoted interval was mutated by
 0.01 and when the headline was replaced with `[-99.99, +99.99]`. Each subsequent round of
@@ -252,8 +253,9 @@ def test_the_guard_catches_a_real_interval_attached_to_the_wrong_estimand():
 def _current_claims() -> str:
     """The report minus its audit trail and deviations, with quoted spans removed.
 
-    The review tables and the deviations quote withdrawn wording on purpose. Quoted spans
-    are denials, not assertions. What remains is what the report says in its own voice.
+    The review tables and the deviations quote withdrawn wording on purpose, so quoted
+    spans are removed and not scanned — which means a phrase written inside quotation
+    marks in live prose is not seen either. What remains is the report's own voice.
     """
     text = REPORT.read_text(encoding="utf-8")
     body = text.split("## What was run", 1)[-1]
@@ -292,7 +294,7 @@ def test_report_states_the_correction_threshold_once_in_live_prose():
 
 #: A rate in the opening or the conclusion is matched by exactly one rule below. There is
 #: no context-based exemption: a number is either **bound** to the `numbers.json` array its
-#: interval must come from, or **declared** as a count / exact quantity with a reason. The
+#: interval must come from, or **declared**, with a reason, as owing no interval. The
 #: fifth review showed why adjacency is not enough — this displacement stayed green:
 #:
 #:     (30.0% at 16.0% [10.1, 22.3], with the recall interval [20.0, 40.7])
@@ -534,8 +536,9 @@ FAMILY_VOCAB: dict[str, tuple[list[str], str]] = {
 #: present). **No bound array may be absent from this map, and none may have an empty
 #: family** — `test_every_bound_rule_declares_a_subject` enforces both. Eight rounds of
 #: review kept finding rates that could be re-attributed by editing prose; requiring the
-#: sentence to name its own subject, for every array without exception, is the structural
-#: answer to that whole class rather than to its instances.
+#: sentence to name its own subject, for every array without exception, answers the
+#: instances the reviews found. The grammatical and weak-vocabulary cases survive it, and
+#: are documented.
 SUBJECT_TOKENS: dict[tuple, tuple[str, list[str]]] = {
     ("ceiling1", "families", "astra", "P", "draw1_block", "cluster_ci95"): ("astra", []),
     ("ceiling1", "families", "astra", "C", "draw1_block", "cluster_ci95"): ("astra", []),
@@ -680,7 +683,7 @@ def _at_scalar(numbers, path):
 
 def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys():
     """Every rate the scanner recognises in those two sections is bound to the array its
-    interval must come from, or explicitly declared a count/exact quantity with a reason.
+    interval must come from, or explicitly declared, with a reason, as owing no interval.
 
     Adjacency is not acceptance. Five reviews found bare or wrongly-supported rates here;
     binding each one to its own key closes that class within the guard's lexical scope.
@@ -846,7 +849,18 @@ def _duplicate_top_level_names(source: str) -> dict[str, int]:
     counts.update(
         node.target.id for node in tree.body
         if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name))
+    for node in tree.body:                   # `a, b = …`: names inside a tuple target
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, (ast.Tuple, ast.List)):
+                    counts.update(elt.id for elt in ast.walk(target)
+                                  if isinstance(elt, ast.Name))
     return {k: v for k, v in counts.items() if v > 1}
+
+
+def _analysis_modules() -> list:
+    return [path for path in sorted(CODE.rglob("*.py"))
+            if not any(part in {"node_modules", ".venv", "__pycache__"} for part in path.parts)]
 
 
 def test_the_analysis_files_contain_no_duplicate_definitions():
@@ -858,12 +872,11 @@ def test_the_analysis_files_contain_no_duplicate_definitions():
     than by the suite. The eleventh review then found the committed scan reading a fixed
     list of eight files and plain assignments only, so a second annotated
     `RATE_RULES: list = []` and the coverage module were both outside it. The scan now
-    walks every module and reads both assignment forms.
+    walks every module and reads assignments to names — plain, annotated, and inside a
+    tuple target; attribute and subscript targets are not definitions.
     """
     offenders = {}
-    for path in sorted(CODE.rglob("*.py")):
-        if any(part in {"node_modules", ".venv", "__pycache__"} for part in path.parts):
-            continue
+    for path in _analysis_modules():
         duplicated = _duplicate_top_level_names(path.read_text(encoding="utf-8"))
         if duplicated:
             offenders[str(path.relative_to(CODE))] = duplicated
@@ -871,14 +884,25 @@ def test_the_analysis_files_contain_no_duplicate_definitions():
 
 
 def test_the_duplicate_scan_reads_annotated_assignments():
-    """MUTATION: drop the `AnnAssign` branch, or return to the fixed file list.
+    """MUTATION: drop the `AnnAssign` branch, or the tuple-target walk.
 
     The eleventh review's attack: append `RATE_RULES: list = []` to this file and the
-    scan stayed green, because an annotated assignment is not an `ast.Assign`."""
+    scan stayed green, because an annotated assignment is not an `ast.Assign`; the
+    twelfth's: `RATE_RULES, = ([],)`, a name inside a tuple target."""
     own = Path(__file__).read_text(encoding="utf-8")
     assert "RATE_RULES" not in _duplicate_top_level_names(own)
     assert _duplicate_top_level_names(own + "\nRATE_RULES: list = []\n") == {"RATE_RULES": 2}
+    assert _duplicate_top_level_names(own + "\nRATE_RULES, = ([],)\n") == {"RATE_RULES": 2}
     assert _duplicate_top_level_names(own + "\ndef _sections():\n    pass\n") == {"_sections": 2}
+
+
+def test_the_duplicate_scan_walks_the_modules_it_claims_to():
+    """MUTATION: return to the fixed eight-file list. The twelfth review found the
+    mutation test above silent on that return; the walked set is asserted here."""
+    names = {str(p.relative_to(CODE)) for p in _analysis_modules()}
+    assert {"ceiling/measure_coverage.py", "ceiling/splice_tables.py", "report_ceiling.py",
+            "tests/test_ceiling_stats.py", "tests/test_report_consistency.py"} <= names
+    assert len(names) >= 20, names
 
 
 def test_every_bound_rule_declares_a_subject():
@@ -1186,8 +1210,9 @@ FORBIDDEN_GUARANTEES: dict[str, str] = {
                 "(round 10)",
 }
 
-#: Sentences allowed to contain a forbidden word, as WHOLE sentences after emphasis and
-#: code marks are removed and whitespace is collapsed — never as substrings, so a new
+#: Sentences allowed to contain a forbidden word, as WHOLE sentences after asterisks,
+#: emphasis underscores, backticks and footnote markers are removed and whitespace is
+#: collapsed — never as substrings, so a new
 #: sentence that happens to contain one of these inherits nothing. Every entry must still
 #: occur in a source, or the allowance is stale and the test fails on that instead. The
 #: eleventh review found the first version of this list applied as substrings, exempting
@@ -1195,23 +1220,28 @@ FORBIDDEN_GUARANTEES: dict[str, str] = {
 ALLOWED_SENTENCES: tuple[str, ...] = (
     'Eleven overclaiming sentences across the report and both test files: "a too-generic subject cannot hide" (a vocabulary of only asymptote leaves all 22 green), "every rate", "all real and correct", "any other family", "makes a fourth instance impossible", "wherever the guard is described", "coverage labels cannot drift" (editing a published 0.997 to 0.960 left all green), "15 statistics tests", and an underclaim — the guard does apply a membership check outside the two sections',
     'Each sentence rewritten to what its check does: the scanner\'s four numeral formats named; membership distinguished from attribution; the six no-interval declarations qualified; "the generated token-replacement mutations redden" replacing "any other family"; the impossibility claim deleted; the test count corrected to 21 and the simulated methods listed',
-    'Every rate the scanner recognises in the opening and conclusion — a numeral followed by %, pp, points or percentage points — is now bound to the specific numbers.json array its interval must come from — 36 binding rules, no context exemption; a rate is either bound or declared a count/exact quantity with a reason.',
-    'Intervals added everywhere named, and the rule is now mechanical: a test requires every rate the scanner recognises in the opening and conclusion to be followed adjacently by an interval, or to be a count.',
-    'A test now requires every rate the scanner recognises — a numeral followed by %, pp, points or percentage points — in those two sections to be followed adjacently by an interval, or to be a count or an exact quantity.',
+    'Every rate the scanner recognises in the opening and conclusion — a numeral followed by %, pp, points or percentage points — is now bound to the specific numbers.json array its interval must come from — 36 binding rules, no context exemption; a rate is either bound or explicitly declared, with a reason, as owing no interval.',
+    'Intervals added everywhere named, and the rule is now mechanical: a test requires every rate the scanner recognises in the opening and conclusion to be followed adjacently by an interval, or to be explicitly declared, with a reason, as owing no interval.',
+    'A test now requires every rate the scanner recognises — a numeral followed by %, pp, points or percentage points — in those two sections to be followed adjacently by an interval, or to be explicitly declared, with a reason, as owing no interval — a count, an exact quantity, a nominal confidence level, the separately checked headline, or an approximate reading of the power curve.',
     'Seven words — "every rate", "cannot hide", "impossible", "guaranteed", "all real and correct", "any other family", "wherever" — fail the build in the report and both test files unless the whole sentence containing them is one of an exact list of allowed sentences.',
+    'This is the standard exact-unconditional construction, grid-approximated: the supremum is taken over a finite nuisance grid (41 points) without a bound on what a finer grid could add, so it is not a guaranteed exact interval and this report does not claim it never under-covers.',
     "This is a membership check, not an attribution check: outside the opening and conclusion an interval need only exist, not belong to the sentence quoting it (test_every_quoted_interval_is_in_numbers_json); in the opening and conclusion, every rate the scanner recognises — a numeral followed by %, pp, points or percentage points — is either bound to the specific array its interval must come from, with its sentence required to contain its family's vocabulary, or carries one of six explicit declarations — three nominal confidence levels, the headline checked separately by BOUND_SPANS, a power-curve abscissa and an approximate reading of the power curve — which have no interval path and bind nothing (test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys); no bound array may omit its subject declaration or name a family absent from FAMILY_VOCAB.",
     'def check_rate_bindings(text: str, numbers: dict) -> list[str]: """Every rate the scanner recognises, in those two sections, bound or declared.',
-    'def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys(): """Every rate the scanner recognises in those two sections is bound to the array its interval must come from, or explicitly declared a count/exact quantity with a reason.',
+    'def test_rates_in_the_opening_and_conclusion_are_bound_to_their_own_keys(): """Every rate the scanner recognises in those two sections is bound to the array its interval must come from, or explicitly declared, with a reason, as owing no interval.',
     'It does not make re-attribution impossible: see test_documented_uncovered_cases_are_green_and_that_is_the_boundary.',
 )
 
 
 def _sentences(text: str) -> list[str]:
-    """The text as whole sentences, normalised: emphasis and code marks removed, whitespace
-    collapsed across line breaks, table cells and paragraphs split, then sentence ends."""
+    """The text as whole sentences, normalised: asterisks, emphasis underscores, backticks
+    and footnote markers removed, whitespace collapsed across line breaks, table cells and
+    paragraphs split, then sentence ends. Nothing else is normalised — HTML, entities and
+    zero-width characters are read as written."""
     out: list[str] = []
+    text = re.sub(r"\[\^[^\]]*\]:?", "", text)          # footnote markers and definitions
     for block in re.split(r"\n\s*\n|\|", text):
         block = re.sub(r"[*`]", "", block)
+        block = re.sub(r"(?<!\w)_+(?=\w)|(?<=\w)_+(?!\w)", "", block)   # `_rate_`, not `a_b`
         block = re.sub(r"\s+", " ", block).strip()
         if not block:
             continue
@@ -1250,6 +1280,8 @@ def guarantee_offenders(sources: dict[str, str]) -> list[str]:
 def _guarantee_sources() -> dict[str, str]:
     return {
         "RESULTS-CEILING.md": REPORT.read_text(encoding="utf-8"),
+        "report_ceiling.py": (CODE / "report_ceiling.py").read_text(encoding="utf-8"),
+        "tables.md": (CODE / "records" / "ceiling" / "tables.md").read_text(encoding="utf-8"),
         "test_report_consistency.py": Path(__file__).read_text(encoding="utf-8"),
         "test_ceiling_stats.py": (HERE / "test_ceiling_stats.py").read_text(
             encoding="utf-8"),
@@ -1298,7 +1330,10 @@ def test_the_guarantee_check_sees_quoted_wrapped_and_trailing_uses():
     cannot_hide = " ".join(("cannot", "hide"))
     for attack in (f'"{every_rate} is bound."',
                    "Every\nrate is bound.",
-                   f"A too-generic subject {cannot_hide}."):
+                   f"A too-generic subject {cannot_hide}.",
+                   f"Every _{every_rate.split()[1]}_ is bound.",
+                   f"Every[^a] {every_rate.split()[1]} is bound.\n\n[^a]: a footnote",
+                   "guaran" + "[^a]" + "teed.\n\n[^a]: a footnote"):
         mutated = dict(sources, **{"RESULTS-CEILING.md": report + "\n\n" + attack + "\n"})
         assert guarantee_offenders(mutated), attack
     own = sources["test_report_consistency.py"]
@@ -1329,10 +1364,13 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     1. both coverage tables, cell by cell at three decimals — the current methods and the
        withdrawn pre-fix ones, because the fourth review found a pre-fix figure mislabelled
        and a withdrawn method's number is still a number;
-    2. each table's header names the beneficial `Bin(112, 0.1)` scenario before the
-       detrimental `Bin(112, 0.5)` one, which is the order the cells are read in;
+    2. each table's header names the beneficial scenario before the detrimental one, which
+       is the order the cells are read in, and its `Bin(n, q)` pairs are the artefact's n
+       and the two scenarios' q, in that order;
     3. every unsigned three-decimal figure outside a bracketed interval, in a sentence that
-       speaks of coverage, is a measured figure or one of the listed historical ones.
+       speaks of coverage, is a measured figure or one of the listed historical ones. This
+       is membership, not attribution: the figure is not tied to a method or scenario, and
+       a coverage written with two decimals, in words, or with a sign is not read.
     """
     artefact = json.loads((CODE / "records" / "ceiling" / "coverage.json")
                           .read_text(encoding="utf-8"))
@@ -1371,17 +1409,19 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
         headers = [line for line in report[:index].splitlines()
                    if line.startswith("|") and "beneficial" in line]
         header = headers[-1] if headers else ""
+        pairs = [(int(n), float(q)) for n, q in re.findall(r"Bin\((\d+), (0\.\d+)\)", header)]
+        wanted = [(artefact["n"], 0.1), (artefact["n"], 0.5)]
         if not (0 <= header.find("beneficial") < header.find("detrimental")
-                and 0 <= header.find("0.1)") < header.find("0.5)")):
+                and pairs == wanted):
             problems.append(f"the header above {first_row!r} does not name the beneficial "
-                            f"Bin(112, 0.1) column first: {header!r}")
+                            f"Bin({artefact['n']}, 0.1) column first, then Bin({artefact['n']}, 0.5): {header!r}")
     figures = {f"{round(v, 3):.3f}" for m in artefact["coverage"].values()
                for v in m.values()}
     for sentence in _sentences(report):
         if "cover" not in sentence.lower():
             continue
-        # an interval's endpoints are not coverage figures: bracketed spans and signed
-        # numbers are left to the interval membership test
+        # an interval's endpoints are not coverage figures: bracketed spans are left to the
+        # interval membership test, and a signed number is not read by either check
         bare = re.sub(r"\[[^\]]*\]", " ", sentence)
         for token in re.findall(r"(?<![\d.+\-−])0\.\d{3}(?!\d)", bare):
             if token not in figures and token not in HISTORICAL_COVERAGE:
@@ -1414,6 +1454,24 @@ def test_the_guards_scope_sentence_is_quoted_identically():
     for hit in hits:
         got = report[hit:hit + len(canon)].lower()
         assert got == canon, f"a quotation of the scope sentence differs:\n  {got}\n  {canon}"
+
+
+def test_splicing_the_generated_tables_into_the_report_changes_nothing():
+    """The committed report already holds the committed generated tables, exactly.
+
+    The twelfth review regenerated and spliced, and the splice put back the sentence the
+    eleventh review had failed the build on — the generator still emitted it. A report that
+    differs from its own generated tables is a report edited by hand where the generator
+    owns the text; this asserts the two agree, so a fix has to land in the generator."""
+    sys.path.insert(0, str(CODE / "ceiling"))
+    from splice_tables import splice
+
+    report = REPORT.read_text(encoding="utf-8")
+    tables = (CODE / "records" / "ceiling" / "tables.md").read_text(encoding="utf-8")
+    spliced, swapped, missing = splice(report, tables)
+    assert not missing, missing
+    assert len(swapped) >= 9, swapped
+    assert spliced == report, "splicing the generated tables changed the report"
 
 
 if __name__ == "__main__":

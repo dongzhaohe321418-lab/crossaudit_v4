@@ -301,7 +301,7 @@ def cluster_bootstrap_ci(values_by_cluster: dict, reps: int, seed: int,
 
     The resampling unit is the **problem**: the 68 problems contributing two instances
     each move together, so the interval carries that dependence instead of assuming it
-    away. This is the primary interval for every rate and every paired difference in
+    away. This is the primary interval for each reported rate and each paired difference in
     this report.
     """
     clusters = sorted(values_by_cluster)
@@ -1303,7 +1303,7 @@ def tables(numbers: dict) -> str:
                  f"(recall) and {c1['n_C']} stratum-C instances (false positives), the "
                  f"same instances at every K. Union rate at K is averaged over all "
                  f"C(K_max, K) subsets of that family's draws, exactly.\n")
-    lines.append("Every rate carries a 95% **problem-cluster bootstrap** interval; the "
+    lines.append("Each rate in Table 1 carries a 95% **problem-cluster bootstrap** interval; the "
                  "P population is 110 instances from only **56 problems**, so an interval "
                  "that treats instances as independent is too narrow. `flat?` says "
                  "whether the curve met the preregistered flattening bar (last-step gain "

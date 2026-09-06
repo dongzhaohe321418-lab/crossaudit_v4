@@ -4,7 +4,7 @@
 
 Unit of analysis: the instance. n = 110 stratum-P instances (recall) and 150 stratum-C instances (false positives), the same instances at every K. Union rate at K is averaged over all C(K_max, K) subsets of that family's draws, exactly.
 
-Every rate carries a 95% **problem-cluster bootstrap** interval; the P population is 110 instances from only **56 problems**, so an interval that treats instances as independent is too narrow. `flat?` says whether the curve met the preregistered flattening bar (last-step gain ≤ 1.0 point); where it did not, **A is an extrapolation** and the raw union at K_max is the number to quote.
+Each rate in Table 1 carries a 95% **problem-cluster bootstrap** interval; the P population is 110 instances from only **56 problems**, so an interval that treats instances as independent is too narrow. `flat?` says whether the curve met the preregistered flattening bar (last-step gain ≤ 1.0 point); where it did not, **A is an extrapolation** and the raw union at K_max is the number to quote.
 
 | family | K_max | union recall on P at K=1 [95% CI] | at K_max [95% CI] | fitted asymptote A [95% CI] | union FP on C at K=1 [95% CI] | at K_max [95% CI] | last-step gain | flat? |
 |---|---:|---|---|---|---|---|---:|:---:|
