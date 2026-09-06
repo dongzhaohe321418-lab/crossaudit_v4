@@ -69,7 +69,8 @@ All three fields, every row. A row with two cannot be checked and is refused.
   - In a list such as `0, 20, 40, 80 wt.%`, every member may be annotated with
     `wt.%`; a member that carries its own unit keeps it, a colon or a
     semicolon does not make a list, a comma needs a space after it to separate
-    (`12,5` is one number), and a labelled number (`Step 5`, `Figs. 5`,
+    (`12,5` is not a list — nor a number this checker reads; write `uncited`
+    for a decimal-comma value), and a labelled number (`Step 5`, `Figs. 5`,
     `Step: 5`) is not a member. The labels are a fixed named list (steps,
     figures, tables, equations, samples, runs, batches, compounds and the
     like, with their plurals); a word outside it does not protect a number.

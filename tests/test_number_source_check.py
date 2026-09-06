@@ -2347,7 +2347,17 @@ DISCLOSED_LIMITS = [
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "fixed named list", "Matrices 5, 10 °C", "°C", False),
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "with their plurals", "Indices 5, 10 °C", "°C", False),
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "compounds and the like", "Compounds 5, 10 °C", "°C", False),
-    ("a comma needs a space after it to separate", "(`12,5` is one number)", "5,12 °C", "°C", False),
+    ("a comma needs a space after it to separate", "nor a number this checker reads", "5,12 °C", "°C", False),
+    ("neither a list nor a number this check reads", "is not a list", "5,12 °C", "°C", False),
+    # The fourth review: the contract's own clauses, each pinned to a row too.
+    ("only the last member carries a unit expression", "every member may be annotated",
+     "5, 10 kg, or 20 μm", "μm", False),
+    ("provided every member between it and the unit-bearing one is a bare number", "keeps it",
+     "5 kg, 10 kg, or 20 kg", "μm", False),
+    ("provided every member between it and the unit-bearing one is a bare number", "keeps it",
+     "5 kg, 10 kg, or 20 kg", "kg", True),
+    ("refused notation on a member stops the list", "every member may be annotated",
+     "5, 10 × 10⁵ Pa", "Pa", False),
 ]
 
 
