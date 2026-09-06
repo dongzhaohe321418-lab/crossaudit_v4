@@ -49,8 +49,8 @@ their plurals (`_LABEL_STEMS`, now with `tab`, `eqn`, `experiment`, `compound` a
 like), admits a period, colon or hyphen after the word, and reaches E1 as well (`Step
 5–10 °C` names steps); a capitalised word outside the list (`Heat 5, 10 mL`) distributes,
 stated as the list's limit; a comma separates only with whitespace after it (`5, 10` a
-list, `12,5` one number — a false block on an English list written `5,10 °C` is the cost,
-disclosed); the mutation test asserts `(5, ×)`. The gold was re-measured after each
+list; `12,5` is neither a list nor a number this check reads — a false block on an English
+list written `5,10 °C` is the cost, disclosed); the mutation test asserts `(5, ×)`. The gold was re-measured after each
 change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
 
 ## 3. What changed, exactly
@@ -63,9 +63,22 @@ change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
   that unit. A member continued by refused notation stops the list with no reading. A
   member with its own unit never reaches the branch (it is read first), which is the
   preregistered guard.
-* The contract string gains one sentence and the shipped skill two; the disclosure table
-  gains E2's rows — one per phrase in the skill and one per clause of the contract's E2
-  sentence (the fourth review found four clauses unpinned), 67 rows in all after round 4 — so a template patch that silently fails (which is what round 2's was) reddens.
+* The contract string gains one sentence and the shipped skill two. The disclosure table
+  pins these, and only these, each to a behaviour — a phrase not listed here is not pinned:
+  contract clauses "a comma, 'and' or 'or' and the next number follow it directly", "only
+  the last member carries a unit expression", "every member states that unit", "provided
+  every member between it and the unit-bearing one is a bare number", "a member with its
+  own unit keeps it", "a colon or a semicolon is not a separator", "a comma needs a space
+  after it to separate", "neither a list nor a number this check reads", "refused notation
+  on a member stops the list", "a number that a label word precedes", "('Step 5, 10 mL',
+  'Figs. 5', 'Step: 5')"; skill phrases "every member may be annotated", "a member that
+  carries its own unit keeps it", "keeps it", "a colon or a semicolon does not make a
+  list", "a comma needs a space after it to separate", "is not a list", "nor a number this
+  checker reads", "write `uncited` for a decimal-comma value", "a labelled number",
+  "`Step 5`", "`Figs. 5`", "`Step: 5`", "fixed named list", "with their plurals",
+  "compounds and the like", "a word outside it does not protect a number". A row may carry
+  its own value (the decimal-comma rows test `12,5`); a skill-template patch that silently
+  fails (round 2's) reddens on the first of these.
 * Tests: 51 rows, two mutation tests (E2 off; the guard, the separators and the notation
   stop), the quotation-interval test. `tests/test_number_source_check.py` 1122 passed.
   Full suite on the host, runner line (round 5): "3909 passed, 4 skipped, 1 warning in 361.41s (0:06:01)".

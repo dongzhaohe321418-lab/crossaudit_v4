@@ -2347,8 +2347,15 @@ DISCLOSED_LIMITS = [
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "fixed named list", "Matrices 5, 10 °C", "°C", False),
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "with their plurals", "Indices 5, 10 °C", "°C", False),
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "compounds and the like", "Compounds 5, 10 °C", "°C", False),
-    ("a comma needs a space after it to separate", "nor a number this checker reads", "5,12 °C", "°C", False),
-    ("neither a list nor a number this check reads", "is not a list", "5,12 °C", "°C", False),
+    ("a comma needs a space after it to separate", "is not a list", "5,12 °C", "°C", False),
+    # Six-element rows carry their own value (the fixture's default is 5): the decimal
+    # comma is only testable on the value that contains it.
+    ("neither a list nor a number this check reads", "nor a number this checker reads",
+     "12,5 °C", "12,5", "°C", False),
+    ("neither a list nor a number this check reads", "write `uncited` for a decimal-comma value",
+     "12,5 °C", "12", "°C", False),
+    ("every member states that unit", "every member may be annotated",
+     "0, 20, 40, 80 wt.% powders", "40", "wt.%", True),
     # The fourth review: the contract's own clauses, each pinned to a row too.
     ("only the last member carries a unit expression", "every member may be annotated",
      "5, 10 kg, or 20 μm", "μm", False),
@@ -2357,13 +2364,20 @@ DISCLOSED_LIMITS = [
     ("provided every member between it and the unit-bearing one is a bare number", "keeps it",
      "5 kg, 10 kg, or 20 kg", "kg", True),
     ("refused notation on a member stops the list", "every member may be annotated",
-     "5, 10 × 10⁵ Pa", "Pa", False),
+     "5, 10 × 10⁵ Pa", "×", False),      # the row the stop's deletion turns green
 ]
 
 
-@pytest.mark.parametrize("contract_phrase,skill_phrase,span,unit,expected", DISCLOSED_LIMITS)
+def _limit_rows():
+    """Five-element rows annotate the value 5; six-element rows carry their own value."""
+    for row in DISCLOSED_LIMITS:
+        yield row if len(row) == 6 else (row[0], row[1], row[2], "5", row[3], row[4])
+
+
+@pytest.mark.parametrize("contract_phrase,skill_phrase,span,value,unit,expected",
+                         list(_limit_rows()))
 def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
-        contract_phrase, skill_phrase, span, unit, expected):
+        contract_phrase, skill_phrase, span, value, unit, expected):
     """MUTATION: delete a limit sentence from the contract, or change the
     behaviour it describes — either alone reddens the row."""
     from crossaudit.dcl.framework import contracts
@@ -2374,7 +2388,7 @@ def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
     body = " ".join(annotation_skill_tree(["number_source"])[NUMBERS_SKILL].split())
     assert contract_phrase in contract, contract_phrase
     assert skill_phrase in body, skill_phrase     # whitespace-normalised: wrapping is not a claim
-    assert contains_pair(span, "5", unit) is expected, (span, unit)
+    assert contains_pair(span, value, unit) is expected, (span, value, unit)
 
 
 def test_the_cap_is_consulted_only_when_the_next_token_would_continue():
