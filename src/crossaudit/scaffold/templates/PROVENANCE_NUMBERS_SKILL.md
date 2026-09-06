@@ -66,6 +66,10 @@ All three fields, every row. A row with two cannot be checked and is refused.
     quantity on the same line. A range written with a spaced ASCII hyphen
     (`5 - 10 °C`) is not read — it looks like a subtraction — so annotate the
     high endpoint or use `uncited`.
+  - In a list such as `0, 20, 40, 80 wt.%`, every member may be annotated with
+    `wt.%`; a member that carries its own unit keeps it, a colon or a
+    semicolon does not make a list, and a labelled number (`Step 5`, `Fig. 5`)
+    is not a member.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

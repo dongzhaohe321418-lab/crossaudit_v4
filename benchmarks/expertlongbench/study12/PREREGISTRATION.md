@@ -75,3 +75,13 @@ list; `and/or`.
 and the skill say in one sentence what a list with one trailing unit states and what it
 does not, bound by disclosure rows; suite green; gold re-measured with
 `study12/measure.py` (hook `_LIST_TAIL` ablated by monkeypatch).
+
+## Amendment 1 — 2026-09-06, after the gold run, before the first review
+
+One narrowing this document did not specify: a number that a LABEL word precedes
+(`Step 5, 10 mL`, `Fig. 5, 10 °C`, `Sample 5`) is not a list member, so E2 offers it
+nothing. Under gold R8 read literally those rows would be `C`; the guard blocks them,
+which is the safe direction, and the word list is small, capitalised-or-not, and named
+(`_LABEL_WORDS`). Added after probing E2's false-pass surface with the labelled forms
+this corpus writes constantly and the gold happens not to hold on a list line; the gold
+was re-measured after adding it and is reported in RESULTS §1 as measured.

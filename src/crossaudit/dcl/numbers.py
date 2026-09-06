@@ -298,6 +298,25 @@ _RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
 _RANGE_TAIL = re.compile(
     rf"(?:{_INLINE}*[–—]{_INLINE}*|-)"
     r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
+#: E2 (study 12): the head of the text after a LIST member — a separator (`,`,
+#: `and`, `or`, `, and`, `, or`, `and/or`, inline whitespace either side) and
+#: the next number. A colon, a semicolon or a slash is not a separator. Only
+#: where the member has no unit of its own: `0.2 kg, 0.5 kg` never gets here,
+#: because `kg` is read first. Emptied by the study's ablation.
+#: A word that makes the number before a comma a LABEL, not a list member:
+#: `Step 5, 10 mL` names step five, and E2 must not hand `mL` to it. Small,
+#: capitalised, and a narrowing only (a label that is also a quantity blocks,
+#: never passes); amendment 1 of study 12.
+_LABEL_WORDS = frozenset("""
+    Step Steps Fig Figure Figures Table Tables Section Sections Sec Eq Equation
+    Equations Ref Refs Reference References No Nos p pp Sample Samples Run Runs
+    Batch Batches Entry Entries Example Examples Scheme Chapter Part Phase Stage
+    Cycle Cycles Trial Trials Item Items Line Lines Route Routes
+""".lower().split())
+_LABEL_BEFORE = re.compile(r"([A-Za-z]+)\.?\s*\Z")
+_LIST_TAIL = re.compile(
+    rf"{_INLINE}*(?:,{_INLINE}*(?:and/or|and|or)\b|,|\b(?:and/or|and|or)\b){_INLINE}*"
+    r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
@@ -765,7 +784,8 @@ def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
     return parts, end, complete
 
 
-def _unit_candidates(rest: str, ranges: bool = True) -> list[tuple[str, int]]:
+def _unit_candidates(rest: str, ranges: bool = True,
+                     lists: bool = True) -> list[tuple[str, int]]:
     """Every reading of the unit following a number, each with where it ends in
     `rest`: the whole unit expression, plus one reading of a range that is
     shorter only in the sense that it re-reads a token the source glued
@@ -810,7 +830,30 @@ def _unit_candidates(rest: str, ranges: bool = True) -> list[tuple[str, int]]:
             if _UNPARSED.match(after_high):
                 return []
             return [(c, head.end() + e)
-                    for c, e in _unit_candidates(after_high, ranges=False)]
+                    for c, e in _unit_candidates(after_high, ranges=False, lists=False)]
+    if lists:
+        # E2 (study 12): a list with one trailing unit. Walk the members while
+        # each is a bare number followed by another separator and number; the
+        # first member followed by anything else is the unit-bearing one, and
+        # its unit expression — read by this function, with E1 allowed for a
+        # range as the last member and no further list — is offered for the
+        # annotated number, with the end offset through that unit. A member
+        # continued by notation this module refuses stops the list with no
+        # reading. A member with its own unit never reaches here: it is read
+        # first, so `0.2 kg, 0.5 kg, or 1 kg` distributes nothing (the guard).
+        member = _LIST_TAIL.match(rest)
+        if member:
+            offset, text = 0, rest
+            while True:
+                after = text[member.end():]
+                if _UNPARSED.match(after):
+                    return []
+                following = _LIST_TAIL.match(after)
+                if following is None:
+                    cands = _unit_candidates(after, ranges=True, lists=False)
+                    return [(c, offset + member.end() + e) for c, e in cands]
+                offset += member.end()
+                text, member = after, following
     parts, end, complete = _spaced_unit(rest)
     if not parts:
         return []
@@ -852,7 +895,9 @@ def pair_occurrences(span: str, value: str, unit: str):
         if not wanted_unit:
             yield m.start(1), m.end(1)
             continue
-        for candidate, end in _unit_candidates(rest):
+        label = _LABEL_BEFORE.search(span[:m.start(1)])
+        listed = not (label and label.group(1).lower() in _LABEL_WORDS)
+        for candidate, end in _unit_candidates(rest, lists=listed):
             if _unit_key(candidate) == wanted_key:
                 # `end` is the candidate's extent in `rest` as the source wrote
                 # it, not the length of the reading: a spaced expression joined
@@ -1462,6 +1507,14 @@ register("number_source", check_number_source,
          "distributes nothing). The dash is an en or em dash, spaced or not, or "
          "an ASCII hyphen with no space either side; a SPACED ASCII hyphen "
          "('10 - 5 °C') is not read as a range, because it is also a subtraction. "
+         "Where the number is a member of a LIST - a comma, 'and' or 'or' and "
+         "the next number follow it directly - and only the last member carries "
+         "a unit expression, every member states that unit ('0, 20, 40, 80 wt.%' "
+         "states 0 wt.%), provided every member between it and the unit-bearing "
+         "one is a bare number; a member with its own unit keeps it ('0.2 kg, "
+         "0.5 kg, or 1 kg' distributes nothing), a colon or a semicolon is not a "
+         "separator, refused notation on a member stops the list, and a number "
+         "that a label word precedes ('Step 5, 10 mL', 'Fig. 5') is not a member. "
          "An EMPTY unit imposes "
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "

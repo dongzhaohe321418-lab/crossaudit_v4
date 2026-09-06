@@ -7375,3 +7375,11 @@ gold against the merge base's own verdicts — R = 14, the fourteen M2 rows, W =
 R′ = 0, W′ = 0, ten right blocks still block, panel 2 of 97 (the §6 line at ≤ 4 of 97),
 base reproduced 300 of 300 — every preregistered expectation to the row. E2 next, then
 Arm 5.*
+
+*D161 ruling 2's third step landed on `feat/provenance-slice-6` (study 12, preregistered
+at be0de4e before `src/` moved): E2, a list with one trailing unit, measured on the frozen
+gold against the merge base's own verdicts — R = 5 (the three `wt.%` list members and the
+`and`-separated pair), W = 0, R′ = 0, W′ = 0, ten right blocks still block, panel 2 of 97,
+base reproduced 300 of 300 — every preregistered gold-metric expectation to the row. The
+containment extensions the gold licensed are now all shipped except E3 (subscripts, last
+by design) and M10 (its own study). Arm 5 next.*
