@@ -67,7 +67,7 @@ formula. It is not a kill and was not preregistered as one.
 ## 3. The D64 mutations
 
 Before the implementation, with the tests committed first: **25 failed, 86 passed** in the
-E3 and disclosure selections (`red-run.txt`, first build). After the round-4 build:
+E3 and disclosure selections (`red-run.txt`, first build). After the round-5 build:
 `tests/test_number_source_check.py` **1214 passed** (1124 + 90: 71 E3 rows, four E3 tests,
 fifteen disclosure rows). Each mutation and the row it reddens:
 
@@ -127,7 +127,7 @@ as element symbols", "not Roman numerals", "'pH7.4'", "'x=Ni0.5'", "'run_v1.5'",
 "weakest match this check makes", "the quotation must contain the whole formula" (its
 interval half bound by the fenced-interface test). Skill phrases: "decimal stoichiometric
 subscript", "with the empty unit", "integer subscript glued to a letter", "`3` in `Cr2O3`",
-"after a bracket or a middle dot", "`−δ` marker", "element symbols", "`pH7.4`",
+"after a bracket or a middle dot", "`−δ` marker", "element symbols", "not Roman numerals", "`pH7.4`",
 "`x=Ni0.5`", "`run_v1.5`", "spell symbols", "weakest match the checker makes", "quote the
 whole formula". Any other wording in either text is not pinned by a row.
 
