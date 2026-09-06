@@ -7443,3 +7443,15 @@ same defect; **a probe whose line-scoped rate was zero by construction, which th
 own §6 figure shares (CORRECTIONS #32; the real rate is 5/930 = 0.54%)**; a sentence-final
 decimal; `str.isnumeric`. D160's six extensions are now all shipped or ruled; M10 remains,
 its own study.*
+
+*D161 ruling 2's M10 landed as `feat/provenance-slice-8` (study 14, preregistered at
+1913b43 before `src/` moved), merged at edda6da after two review rounds, with the
+preregistration's second outcome: **measured and not shipped**. The rule — an en dash
+continuing a unit token between a letter and a digit run that ends the token, one guard
+for a range with the unit on both endpoints — held the gold (all zeros) and recovered Arm
+4's two rows, and regressed a shipped contract row, E1's `5 g–10 mL`, because a range
+across two units has an exponent's shape; no rule the preregistration permitted holds
+both, and the reviewer asked to find one found none. The rule is kept in the history
+(1a817b6) as the evidence and reverted; what ships is the sentence that an en-dash
+exponent is not read, with rows. D160's six extensions and M10 are now all ruled; the
+containment line is closed until Arm 5, which needs a corpus the owner chooses.*
