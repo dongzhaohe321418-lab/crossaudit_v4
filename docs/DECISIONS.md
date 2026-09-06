@@ -7307,4 +7307,7 @@ disclosed blocker (`lot_id/2`) passing because the digit was read before the
 joiners, and the percent branch bypassing the element refusal (`Ni‰`, all 118);
 the joiners are read first, the refusal is kept, and every named shape — dot
 operator, per-mille, capitalised unknown fragment, fragment joined to a word,
-full-width joiners — is in the contract, the skill and a row. Arm 4 next.*
+full-width joiners — is in the contract, the skill and a row. The seventh
+found the numeral exit running before the joiners (`2/g` read as a numeral)
+and a full-width joiner hidden by the ASCII split (`kg／m/dry`); both are
+decided first now, and the full-width rule reads the whole token. Arm 4 next.*

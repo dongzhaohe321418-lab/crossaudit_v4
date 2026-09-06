@@ -301,6 +301,29 @@ Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ =
 W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
 `tests/test_number_source_check.py` 951 passed.
 
+### What the seventh review found, and what it changed
+
+1. **The numeral exit ran before the joiners** (P1): `5 kg m 2/g` offered
+   `kg m`, because a digit-leading token is a numeral before anything else is
+   asked. A digit-leading token is now split on the joiners first, and blocks
+   when a part is a unit fragment (`2/g`, `2/kg`); `10` and `2/dry` stay
+   numerals and labels.
+2. **A full-width joiner beside ASCII ones was hidden by the ASCII split**
+   (P1): `kg／m/dry` split into `kg／m` and `dry`, and the word made the token
+   prose. A full-width joiner anywhere in the token now blocks before anything
+   else is asked (`kg／m/dry`, `kg－m/batch`, `lot＿id/batch`, `oz／yd-batch`,
+   `dry／wet-batch`, `2／g`).
+3. **Disclosure** (P2): `g/xyz` and `2/g` have rows; the full-width class is
+   named in the contract, the skill and `_is_boundary` with `kg／m` and
+   `kg／m/dry` as its exemplars, and all five of the sixth review's full-width
+   examples plus the six mixed ones are rows or listed unreadable tokens. This
+   file's earlier sentence that all five were named in the contract was wrong
+   — one was.
+
+Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ = 11,
+W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
+`tests/test_number_source_check.py` 971 passed.
+
 ### Out of scope, noted for a later extension
 
 Two limitations the reviewer confirmed are **pre-existing and untouched here**:

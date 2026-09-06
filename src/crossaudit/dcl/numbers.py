@@ -474,7 +474,9 @@ def _is_boundary(token: str) -> bool:
     and a block. The prose shapes are ENUMERATED and everything else blocks,
     because the block is the safe failure:
 
-    * nothing, a numeral, an opening bracket;
+    * nothing, an opening bracket, a numeral — unless the numeral is joined to a
+      unit fragment (`2/g`), which the seventh review found reading as a
+      numeral: the joiners are read before the digit exits;
     * trailing punctuation the scanner does not split on (`sample，`) is not
       part of the word, and a word in a script that writes no unit symbol
       (`样品`) is a word; a bare Greek letter other than `µ`/`Ω` (`α`) is a
@@ -506,8 +508,10 @@ def _is_boundary(token: str) -> bool:
     `s-1` and `m2`); short stems joined by a hyphen or an underscore (`kg-m`,
     `lot_id`, and `lot_id/2` with a digit added: the joiners are read before
     the digit is); a fragment joined to anything that is not one (`g/xyz`,
-    `dry·g`, `kg-m/s`); a token joined by a full-width character (`kg／m`),
-    which is not a joiner this module reads; a dotted
+    `dry·g`, `kg-m/s`, and `2/g` with a numeral in front); a token with a
+    full-width joiner anywhere in it (`kg／m`, `kg／m/dry`, `lot＿id/batch`),
+    decided before anything else because an ASCII split would hide the
+    full-width expression inside one part; a dotted
     abbreviation this module does not name (`a.u.`, `p.u.` — arbitrary units,
     which the fourth review found reading as prose); and a solidus joining
     nothing but short unknown parts (`oz/yd`), which the third review showed
@@ -526,7 +530,13 @@ def _is_boundary(token: str) -> bool:
     enumerates which of its entries are guarded by nothing else."""
     if not token:
         return True
-    if token[0].isdigit() or token[0] in _OPENERS:
+    if any(ch in _FULLWIDTH_JOINERS for ch in token):
+        return False                         # `kg／m`, `kg／m/dry`: a joiner this module does not read
+    if token[0].isdigit():
+        parts = [part for part in _JOINERS.split(token) if part]
+        return not (len(parts) > 1 and any(_unit_atom(part) for part in parts))
+        # `10`, `2/dry` are numerals and labels; `2/g` has a fragment in it and blocks
+    if token[0] in _OPENERS:
         return True
     core = token
     while core and unicodedata.category(core[-1]).startswith("P") and core[-1] not in "%‰":
@@ -587,6 +597,7 @@ _ABBREVIATIONS = frozenset({"e.g", "i.e", "a.m", "p.m", "n.b", "c.f"})
 #: `－`, `＿`) is not among them, so a token joined by one is not read and
 #: blocks after a join.
 _JOINERS = re.compile(r"[-'’_/⁄·⋅]")
+_FULLWIDTH_JOINERS = "／－＿"
 #: The apostrophes `_scan` treats as boundaries; a letter directly after one
 #: makes the token before it a contraction, which is a word.
 _APOSTROPHES = "'\u2019\u2018"
@@ -1361,8 +1372,9 @@ register("number_source", check_number_source,
          "('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads), a short stem under an "
          "exponent or a digit ('run-2', 'm2'), short stems joined by a hyphen or an "
          "underscore ('kg-m', 'lot_id', and 'lot_id/2' with a digit added), a "
-         "fragment joined to anything that is not one ('g/xyz', 'dry·g', 'kg-m/s'), "
-         "a token joined by a full-width character ('kg／m'), a dotted abbreviation "
+         "fragment joined to anything that is not one ('g/xyz', 'dry·g', 'kg-m/s', "
+         "and '2/g' with a numeral in front), a token with a full-width joiner "
+         "anywhere in it ('kg／m', 'kg／m/dry'), a dotted abbreviation "
          "other than e.g., i.e., a.m., p.m., n.b., c.f. ('a.u.' is arbitrary "
          "units), and a short lower-case word this check does not name BLOCK, each "
          "being the shape of a unit; a word of any other shape - hyphenated, "

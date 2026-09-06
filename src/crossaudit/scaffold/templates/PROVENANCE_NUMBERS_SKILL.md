@@ -48,8 +48,9 @@ All three fields, every row. A row with two cannot be checked and is refused.
     reads as a word: a short symbol pair such as `oz/yd`, `oz·yd` or `oz⋅yd`,
     a short label such as `run-2` or `m2`, short symbols on a hyphen or
     underscore such as `kg-m` or `lot_id` (with or without a digit, as in
-    `lot_id/2`), a symbol joined to anything such as `g/xyz`, `dry·g` or
-    `kg-m/s`, anything joined by a full-width character such as `kg／m`, a
+    `lot_id/2`), a symbol joined to anything such as `g/xyz`, `dry·g`,
+    `kg-m/s` or `2/g`, anything with a full-width joiner in it such as `kg／m`
+    or `kg／m/dry`, a
     dotted abbreviation such as `a.u.` (other than e.g., i.e., a.m., p.m.,
     n.b., c.f.), or a short lower-case word the checker does not know.
     Hyphenated words, contractions, abbreviations such as `e.g.`, words in
