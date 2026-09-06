@@ -81,7 +81,9 @@ All three fields, every row. A row with two cannot be checked and is refused.
     after a bracket or a middle dot (`(OH)2`, `·6H2O`) matches, but only as a
     bare number. The checker reads a formula whose letters are element
     symbols (`x`, `y`, `z`, `δ` allowed as variables) with digits, brackets
-    and `·`; `Figure3.2`, `pH7.4`, `x=Ni0.5` or `run_v1.5` is not one. A
+    and `·`; `Figure3.2`, `pH7.4`, `x=Ni0.5` or `run_v1.5` is not one, while
+    letters that merely spell symbols (`BaNaNa1.2`) are — the checker knows
+    syntax, not chemistry. A
     unit-free match is the weakest match the checker makes: the same digits
     in a different formula satisfy it too, so **quote the whole formula** —
     a quotation of the digits alone is a wrong span.

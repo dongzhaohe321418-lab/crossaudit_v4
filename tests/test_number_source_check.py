@@ -2271,7 +2271,22 @@ E3_ROWS = [
     ("SampleA0.8",              "0.8",  "",  False, "an identifier"),
     ("DOI10.1234",              "10.1234", "", False, "a DOI prefix"),
     ("version1.2",              "1.2",  "",  False, "a version"),
-    ("Nice1.5",                 "1.5",  "",  False, "letters that happen to parse: `Ni`, `c`? — no, `c` is no symbol"),
+    ("Nice1.5",                 "1.5",  "",  False, "`ce` is not `Ce`: the parse is case-sensitive"),
+    ("BaNaNa1.2",               "1.2",  "",  True,  "letters that merely spell symbols read: the parse is syntactic"),
+    ("CoIn1.2",                 "1.2",  "",  True,  "another"),
+    ("Ni２0.5O",                 "0.5",  "",  False, "a full-width digit BEFORE the decimal (the second review)"),
+    ("Ni٢0.5O",                 "0.5",  "",  False, "an Arabic-Indic digit before it"),
+    ("Ni२0.5O",                 "0.5",  "",  False, "a Devanagari digit before it"),
+    ("LiNi0.5O₂",               "0.5",  "",  True,  "a subscript digit elsewhere in the formula is a digit (the second review)"),
+    ("LiNi0.5O²",               "0.5",  "",  True,  "a superscript digit likewise"),
+    ("LiNi0.5(OH)₂",            "0.5",  "",  True,  "and after a bracket"),
+    ("CuSO4·0.5H2O",            "0.5",  "",  True,  "after the middle dot: the ORDINARY scan reads a bare number; E3 yields nothing"),
+    ("Ⅷ0.5",                    "0.5",  "",  False, "a Roman numeral is numeric, not a letter"),
+    ("Li₂Ni0.5O",               "0.5",  "",  True,  "a subscript digit before the letters is a digit of the charset"),
+    ("Ni0.5O½",                 "0.5",  "",  True,  "a vulgar fraction likewise"),
+    ("Ni0.5O2）",                "0.5",  "",  False, "a full-width bracket is outside the charset"),
+    ("Ni0.5O2’s",               "0.5",  "",  False, "an apostrophe likewise"),
+    ("Ni\u200d0.5O",            "0.5",  "",  True,  "a zero-width joiner before the digits: the ORDINARY scan's bare number (pre-existing), not E3 — see the interval test"),
     ("Ni0.5２O",                 "0.5",  "",  False, "a full-width digit continues the number (the first review)"),
     ("Ni0.5₂O",                 "0.5",  "",  False, "a subscript digit continues it"),
     ("Ni0.5٢O",                 "0.5",  "",  False, "an Arabic-Indic digit continues it"),
@@ -2311,12 +2326,11 @@ def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
     """MUTATION, one per guard, each with the row it turns green: read integer
     subscripts (`H2O` with `2` goes green); drop the charset requirement
     (`x=Ni0.5` goes green — `run_v1.5` is held red by the element parse too);
-    drop the element-symbol parse (`Figure3.2` goes green; this parse is also
-    what makes "glued to a letter" true — `x²0.5` is red because `x²` is no
-    element run, and a separate letter guard had no row of its own); drop the
-    any-script digit guard (`Ni0.5２O`, a full-width digit, goes green; `Ni0.5₂O`
-    is held by the element parse as well). The rows above hold them red
-    in the shipped code."""
+    drop the element-symbol parse (`Figure3.2` goes green); drop the any-script
+    digit guard after the decimal (`Ni0.5２O`, `Ni0.5₂O` go green); drop the
+    letter guard before it (`Ni２0.5O`, `x²0.5` go green — the second review's
+    finding, when the first build's guard had been removed as having no row).
+    The rows above hold them red in the shipped code."""
     import re
     import crossaudit.dcl.numbers as numbers
 
@@ -2338,8 +2352,15 @@ def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
 
     assert not numbers.contains_pair("Ni0.5２O", "0.5", "")
     monkeypatch.setattr(numbers, "_continued_by_digit", lambda span, i: False)
-    assert numbers.contains_pair("Ni0.5２O", "0.5", "")   # a full-width digit: the guard alone holds it
-    assert not numbers.contains_pair("Ni0.5₂O", "0.5", "")   # a subscript digit: the element parse holds it too
+    assert numbers.contains_pair("Ni0.5２O", "0.5", "")   # the guard alone holds these
+    assert numbers.contains_pair("Ni0.5₂O", "0.5", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Ni２0.5O", "0.5", "")
+    assert not numbers.contains_pair("x²0.5", "0.5", "")
+    monkeypatch.setattr(numbers, "_glued_to_letter", lambda span, i: True)
+    assert numbers.contains_pair("Ni２0.5O", "0.5", "")   # the second review's row
+    assert numbers.contains_pair("x²0.5", "0.5", "")
 
 
 def test_e3_covers_the_whole_formula_in_the_quote_interval():
@@ -2350,6 +2371,13 @@ def test_e3_covers_the_whole_formula_in_the_quote_interval():
     spans = list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", ""))
     assert spans == [(7, 21)], spans          # `LiNi0.8Co0.2O2`, the whole token
     assert list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", "M")) == []
+    # After a middle dot the ordinary scan yields the digits and E3 yields nothing:
+    # the second review found the first build yielding the whole token there.
+    assert list(pair_occurrences("CuSO4·0.5H2O", "0.5", "")) == [(6, 9)]
+    # A zero-width joiner is not a word character, so the ordinary scan reads a bare
+    # number after it — the frozen base's behaviour, not this slice's; E3 refuses the
+    # token (the joiner is outside the charset) and yields nothing.
+    assert list(pair_occurrences("Ni\u200d0.5O", "0.5", "")) == [(3, 6)]
 
 
 def test_e3_through_the_fenced_interface_needs_the_formula_quoted():
@@ -2510,6 +2538,7 @@ DISCLOSED_LIMITS = [
     ("'pH7.4'", "`pH7.4`", "pH7.4", "7.4", "", False),
     ("'x=Ni0.5'", "`x=Ni0.5`", "x=Ni0.5", "0.5", "", False),
     ("'run_v1.5'", "`run_v1.5`", "run_v1.5", "1.5", "", False),
+    ("the parse is syntactic", "spell symbols", "BaNaNa1.2", "1.2", "", True),
     ("weakest match this check makes", "weakest match the checker makes",
      "LiCo0.2O2", "0.2", "", True),
     # The interval half of this phrase is bound by the fenced-interface test above.

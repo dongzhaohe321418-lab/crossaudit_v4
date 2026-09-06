@@ -152,3 +152,33 @@ recorded here and not edited above.
 The gold and the probe were re-run after these changes: R = 11, W = R′ = W′ = 0, right
 blocks 10/10, panel 2/97; P1 17/0, P2 0/3910 and 0/2205, P3 12 of 23 — identical to the
 first run.
+
+## Amendment 2 — 2026-09-06, after the second review (1141248 → round 3)
+
+The second review (`…-slice-7-astra-round2.md`) said do not merge on four findings.
+
+1. **The left side of the decimal.** With the letter guard removed in Amendment 1, the
+   ASCII lookbehind let `Ni２0.5O`, `Ni٢0.5O`, `Ni२0.5O` read `0.5` as a suffix of a
+   mixed-script numeric run. Amendment 1 item 2's claim that the element parse carries
+   "glued to a letter" was **false**: the parse never looked at the character before the
+   digits. `_glued_to_letter` (`str.isalpha`) is back, now with the row that Amendment 1
+   said it lacked — `Ni２0.5O` — and `x²0.5` beside it.
+2. **Letter runs were `[^\W\d_]+`**, which takes `₂` and `²` for letters, so `LiNi0.5O₂`
+   was refused while `LiNi0.5O2` read. Runs are now maximal `str.isalpha` runs
+   (`_letter_runs`); a subscript or superscript digit elsewhere in the token is a digit of
+   the charset. Consequence: after the decimal, `Ni0.5₂O` is now held by the digit guard
+   alone (it was also held by the parse), which the mutation test states.
+3. **What the element parse does and does not carry**, stated exactly: it decides whether
+   the token is formula-shaped; it is syntactic (`BaNaNa1.2` reads, `Nice1.2` does not,
+   `ce` being no symbol), and the contract and skill now say so with a row. Whether the
+   digits are glued to a letter is the letter guard's, and only its. A decimal after a
+   middle dot or a bracket (`CuSO4·0.5H2O`, `Zr(HPO4)0.5·H2O`) is the ordinary scan's, read
+   as a bare number with the digits as the interval — E3 yields nothing there, which the
+   interval test now asserts (the first build yielded the whole token for `·0.5`).
+4. **Stale text.** The E3 comment said an integer subscript "is never read" and described
+   a letter guard that had been removed; and `_ELEMENTS` had been defined twice, because
+   the module already held the 118 symbols for the fragment table and Amendment 1's build
+   added a copy. The region is rewritten once; the module's own set is used.
+
+Gold and probe re-run: identical to the first run (R = 11, W = R′ = W′ = 0, 10/10, panel
+2/97; P1 17/0, P2 0/3910 and 0/2205, P3 12 of 23).

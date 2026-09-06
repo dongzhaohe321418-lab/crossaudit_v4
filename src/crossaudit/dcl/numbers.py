@@ -475,39 +475,55 @@ _INLINE_GAP = re.compile(rf"{_INLINE}*")
 #: empty unit. `0.8` in `LiNi0.8Co0.2O2` is stated by the source, and the gold
 #: labelled all eleven such blocks wrong; `_NUMBER`'s `(?<![\w.])` refused them
 #: because the digits are glued to a letter. The discriminator is the decimal
-#: point, and it is the whole rule: an INTEGER subscript is never read, or `2`
-#: and `3` become citable from every `O2`, `H2O` and `Cr2O3` on the page. This
-#: is the only extension that adds a match no unit constrains, so it is held to
-#: three guards, each with its own mutation test: the value is glued to a
-#: letter (`Fig.3.2` is a label), it is not continued by a digit or a period
-#: (`v1.2.3` is a version), and the whitespace-delimited token holding it is
-#: made of nothing but formula characters (`run_v1.5`, `x=Ni0.5` are not
-#: formulae). Named so the study's ablation can empty it.
+#: point: an INTEGER subscript glued to a letter is not read by this rule, or
+#: `2` and `3` become citable from every `O2`, `H2O` and `Cr2O3` on the page
+#: (after a bracket or a middle dot — `(OH)2`, `·6H2O` — the ORDINARY scan
+#: reads a bare number, and always did). This is the only extension that adds
+#: a match no unit constrains, so it is held to three guards, each a named
+#: function with a mutation row of its own: the digits are glued to a letter
+#: (`_glued_to_letter`), they are not continued by a digit of any script
+#: (`_continued_by_digit`), and the whitespace-delimited token holding them is
+#: formula-shaped (`_formula_shaped`: the charset, and letters that parse as
+#: element symbols). The regex's own lookarounds are ASCII and only keep the
+#: match from starting or ending inside an ASCII number; the second review
+#: found `Ni２0.5O` reading `0.5` when the letter guard was absent. Named so the
+#: study's ablation can empty it.
 _SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9.])")
 
-#: What a formula token may be made of: letters and digits of any script,
-#: brackets, the middle dot of a hydrate, a period only between two digits, and
-#: the non-stoichiometry marker `−δ` / `±δ` — U+2212 or U+00B1 directly before
-#: a letter, never before a digit, where it would be a subtraction.
+#: What a formula token may be made of: letters and digits of any script
+#: (`\w` without the underscore: `LiNi0.5O₂` is a formula), brackets, the
+#: middle dot of a hydrate, a period only between two digits, and the
+#: non-stoichiometry marker `−δ` / `±δ` — U+2212 or U+00B1 directly before a
+#: letter, never before a digit, where it would be a subtraction.
 _FORMULA_TOKEN = re.compile(r"^(?:[^\W_]|[()\[\]{}·]|[−±](?=[^\W\d_])|(?<=[0-9])\.(?=[0-9]))+$")
 
 #: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
 _TRAILING_PUNCTUATION = ".,;:!?"
 
-#: The 118 element symbols. The first review found the charset test admitting
-#: `Figure3.2`, `Table1.2`, `SampleA0.8`, `DOI10.1234` and `version1.2` — a
-#: charset is not a formula test. A formula's letters parse as element symbols;
-#: `x`, `y`, `z` and `δ` are admitted as the variables of a non-stoichiometric
-#: formula (`O2−xFx`, `O3−δ`). Named so the study's mutation can empty the test.
-_ELEMENTS = frozenset("""
-    H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu
-    Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs
-    Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl
-    Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh
-    Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og
-""".split())
+#: The variables of a non-stoichiometric formula (`O2−xFx`, `O3−δ`), admitted
+#: beside `_ELEMENTS` — the module's own table of the 118 symbols, above —
+#: when a token's letters are parsed. The first review found the charset
+#: admitting `Figure3.2`, `Table1.2`, `SampleA0.8`, `DOI10.1234` and
+#: `version1.2`: a charset is not a formula test. The parse is SYNTACTIC —
+#: `BaNaNa1.2` reads, `Nice1.2` does not (`ce` is not `Ce`) — and the contract
+#: says so.
 _VARIABLES = frozenset("xyzδ")
-_LETTER_RUNS = re.compile(r"[^\W\d_]+")
+
+
+def _letter_runs(token: str) -> list[str]:
+    """Maximal runs of `str.isalpha` characters. Not `[^\W\d_]`, which the
+    second review found treating `₂` and `²` as letters, so that `LiNi0.5O₂`
+    was refused while `LiNi0.5O2` read."""
+    runs, current = [], ""
+    for ch in token:
+        if ch.isalpha():
+            current += ch
+        elif current:
+            runs.append(current)
+            current = ""
+    if current:
+        runs.append(current)
+    return runs
 
 
 def _element_symbols(run: str) -> bool:
@@ -528,7 +544,17 @@ def _element_symbols(run: str) -> bool:
 def _formula_shaped(token: str) -> bool:
     """The charset, and every run of letters an element-symbol sequence."""
     return bool(_FORMULA_TOKEN.match(token)) and all(
-        _element_symbols(m.group()) for m in _LETTER_RUNS.finditer(token))
+        _element_symbols(run) for run in _letter_runs(token))
+
+
+def _glued_to_letter(span: str, i: int) -> bool:
+    """Whether the character before offset `i` is a letter — `str.isalpha`.
+    What this guard alone refuses is a numeric character the regex's ASCII
+    lookbehind does not see (`Ni２0.5O`, `x²0.5`); a bracket or a middle dot
+    before the digits (`(HPO4)0.5`, `·0.5`) is refused here too, and those
+    numbers are the ORDINARY scan's, read as bare numbers with the digits as
+    the interval, never as E3's with the formula as the interval."""
+    return i > 0 and span[i - 1].isalpha()
 
 
 def _continued_by_digit(span: str, i: int) -> bool:
@@ -544,10 +570,8 @@ def _formula_subscripts(span: str, wanted_value: str):
     for m in _SUBSCRIPT.finditer(span):
         if normalise_number(m.group(1)) != wanted_value:
             continue
-        # "Glued to a letter" is carried by `_formula_shaped`: the character
-        # before the digits is in a run of letters that must parse as element
-        # symbols, and a superscript digit or a bracket is not one. A separate
-        # letter guard had no mutation that reddened a row, so it is not here.
+        if not _glued_to_letter(span, m.start(1)):
+            continue                      # `Ni２0.5O`, `·0.5`: not this rule's
         if _continued_by_digit(span, m.end(1)):
             continue                      # `Ni0.5₂O`: not these digits
         if _UNPARSED.match(span[m.end(1):]):
@@ -1644,6 +1668,8 @@ register("number_source", check_number_source,
          "symbols (x, y, z and δ allowed as variables), digits, brackets, the "
          "middle dot and the '−δ' / '±δ' marker, and a token of any other shape "
          "('Figure3.2', 'pH7.4', 'x=Ni0.5', 'run_v1.5') is not read by this rule; "
+         "the parse is syntactic, so letters that merely spell symbols "
+         "('BaNaNa1.2') read; "
          "an integer subscript glued to a letter ('2' in 'H2O', '3' in 'Cr2O3') "
          "is not read by this rule either, while an integer after a bracket or "
          "a middle dot ('(OH)2', '·6H2O') was always read by the ordinary scan, "
