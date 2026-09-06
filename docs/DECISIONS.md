@@ -7311,3 +7311,51 @@ full-width joiners — is in the contract, the skill and a row. The seventh
 found the numeral exit running before the joiners (`2/g` read as a numeral)
 and a full-width joiner hidden by the ASCII split (`kg／m/dry`); both are
 decided first now, and the full-width rule reads the whole token. Arm 4 next.*
+
+## D161 — Arm 4 kills the shipped check on §8g, and the kill is the containment design's own prediction
+
+`benchmarks/expertlongbench/RESULTS-ARM4.md`. The shipped `number_source` — content
+addressing (D159), the narrowing and E4 (D160 ruling 1, slice 3) — with the shipped
+skill and the product's own per-row verifier, on the 26 T03 instances no earlier arm
+saw: **9 of 189 correct annotations blocked, 4.76%, Wilson 2.53–8.80%. KILL.** The
+adjudicator was the frozen gold rule applied by two blinded labellers (κ = 1.000 on
+60 items), because the check is `contains_pair` on the line the quotation selects
+and cannot adjudicate itself. Fifty of fifty sampled passes are correct: the
+pre-slice-3 false-pass class did not return.
+
+**What the nine are** (shapes only; the corpus is not quoted). Five ranges with the
+first endpoint annotated (gold R7), one list of two numerals with one trailing unit
+(gold R8), two byte-exact transcriptions of a unit whose negative exponent is written
+with an EN DASH — a boundary to the scanner, and absent from `_EXPONENT_TAIL` — and one
+hyphen joining a unit to the next word. Six of nine are E1 and E2 — extensions the gold
+licensed with W = 0 (D160) and slice 3 deliberately did not include (ruling 2's
+order); two are a tokenisation class (M10) that neither the gold nor Arms 2–3
+contained, and which does not inherit E6's licence; one is the design's own "never
+split a hyphen". The addressing half held on this sample: 0 of 190 absent,
+cross-line or ambiguous (Wilson upper bound 1.98%); `uncited` 7.77%, between Arm 3's
+A and B. The design note said the rule could not reach 2% without reading ranges and
+subscripts; Arm 4 measures exactly that on a real generator.
+
+RULINGS:
+
+1. **`number_source` enters no profile.** D159 ruling 2 and D160 ruling 2 stand; the
+   preregistered KILL branch is taken, and this record is the classification the
+   branch asks for.
+2. **The containment half proceeds in D160's order — E5 + E6, then E1, then E2 —**
+   each against the frozen gold with W = 0 and its D64 mutation. The en-dash exponent
+   is a **new class, M10**, not E6: E6 folds renderings at comparison time and its
+   licence does not transfer to a change in tokenisation. It gets its own extension,
+   its own gold rows (the frozen gold holds none) and its own W = 0 before it ships.
+   The hyphen-after-unit row stays a right-by-contract block (the design's "never
+   split a hyphen" holds); it is one row and is disclosed, not extended over.
+3. **Arm 5 after E1, E2, E6 land**, on a fresh sample. T03 is exhausted (50 of 50
+   used); Arm 5 either draws from another ExpertLongBench task with its own
+   preregistration, or re-runs Arm 3's 24 with the changed matcher and says so. The
+   0.53% projection in RESULTS §1 is a re-read of the same rows and licenses
+   nothing.
+4. **Every Arm's block classification carries the mechanism label and the matcher
+   blob id from now on**, as Arm 4's does, so a block under one matcher is never
+   compared with a block under another without the reader seeing it.
+
+Recorded because a kill that was predicted is still a kill: the check does not ship
+as a blocker until the measurement says it may, and the measurement said no.

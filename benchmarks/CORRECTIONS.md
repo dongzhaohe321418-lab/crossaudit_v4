@@ -310,3 +310,26 @@ a census with a sample and its coverage is not yet simulated). The `(a)` and
 between the check and its design target. §5's block-rate ladder (13.22% → 10.47%
 → 5.74% → 2.99%) is arithmetically correct and reproduces exactly; only its
 reading against the 2% line is withdrawn.
+
+**31. Arm 4's first record quoted the corpus, and misfiled a new failure class under a
+licensed one.** (#30 is on `study/ceiling`, pending merge.) The Arm 4 results file, the
+records emitter's comments, D161 and the handbook quoted short source phrases — the
+ranges, the list, the en-dash units and the hyphenated phrase behind the nine wrong
+blocks — in a commit whose own text said the corpus was "not redistributed and not
+committed". The independent review of the report found it. Every excerpt is replaced
+by a description of its shape, and the commit that carried them was rewritten out of
+the unpushed branch's history (the archive keeps the located lines, under the licence).
+
+The same review found the two en-dash rows filed as M9c/E6 — "one unit, two Unicode
+renderings" — when E6 is a fold applied at comparison time and these rows fail earlier,
+in tokenisation: an EN DASH is a boundary to the scanner and `_EXPONENT_TAIL` names only
+the ASCII hyphen and U+2212. That is a new class, M10, with no rows in the frozen gold;
+it does not inherit E6's licence, and "eight of nine are licensed extensions" was
+therefore false — six are. RESULTS-ARM4 §1 and D161 ruling 2 are rewritten; the
+projection is stated at both 3 of 189 and 1 of 189. Smaller corrections from the same
+review: "not above Arm 3's `uncited`" was false against arm B (7.77% > 6.80%) and is
+now "between A and B"; zero-event bootstraps are printed as 0.00–0.00% rather than
+"—"; "the false-pass class did not reappear" is narrowed to the 50-row sample's
+interval; the seven rule-code disagreements between the labellers are listed in
+`GOLD-arm4.csv` rather than silently resolved; and the run's untracked-directory
+git status at start is reported as a deviation.
