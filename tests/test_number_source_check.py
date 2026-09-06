@@ -2418,92 +2418,6 @@ def test_e3_through_the_fenced_interface_needs_the_formula_quoted():
     assert findings(files) == []
 
 
-M10_ROWS = [
-    ("10 mL min–1",            "10",  "mL min-1",        True,  "an en-dash exponent, transcribed with a hyphen"),
-    ("10 mL min–1",            "10",  "mL min⁻¹",        True,  "or with a superscript"),
-    ("10 mL min–1",            "10",  "mL min–1",        True,  "or byte for byte"),
-    ("2 L·h–1",                "2",   "L·h-1",           True,  "after a middle-dot compound (the corpus shape)"),
-    ("5 K·min–1",              "5",   "K·min-1",         True,  "the other corpus shape"),
-    ("0.5 mol L–1 min–1",      "0.5", "mol L-1 min-1",   True,  "two exponent tokens in one expression"),
-    ("10 s–1",                 "10",  "s-1",             True,  "a bare fragment with the exponent"),
-    ("10 s–1",                 "10",  "s",               False, "no shorter reading"),
-    ("5 min–10 min",           "5",   "min",             True,  "a range with the unit on both endpoints: the guard"),
-    ("5 min–10 min",           "5",   "min-10",          False, "and not an exponent"),
-    ("800 °C–1050 °C",         "800", "°C",              True,  "the guard on a symbol unit"),
-    ("5–10 °C",                "5",   "°C",              True,  "E1 unchanged: a dash after a number"),
-    ("10–5 °C",                "10",  "°C",              True,  "E1 unchanged, whichever way round"),
-    ("(2 L·h–1)",              "2",   "L·h-1",           True,  "in brackets"),
-    ("2 L·h–1.",               "2",   "L·h-1",           True,  "sentence-final"),
-    ("2 L·h–1,",               "2",   "L·h-1",           True,  "before a comma"),
-    ("5 mL–10 g",              "5",   "mL",              False, "a range across two units reads mL–10: disclosed"),
-    ("5 h–1.5",                "5",   "h-1.5",           False, "a decimal run is not an exponent"),
-    ("5 h–1.5",                "5",   "h",               True,  "and the token ends at the dash as before"),
-    ("5 min–−1",               "5",   "min-−1",          False, "a signed run is not an exponent"),
-    ("5 h–1a",                 "5",   "h-1a",            False, "a run followed by a letter is prose"),
-    ("5 h–1a",                 "5",   "h",               True,  "and the token ends at the dash"),
-    ("5 g)–1",                 "5",   "g-1",             False, "a dash after a bracket"),
-    ("5 m2–1",                 "5",   "m2",              True,  "a dash after a digit ends the token: not an exponent"),
-    ("5 min–10",               "5",   "min-10",          True,  "with no repeated stem the run is read as an exponent — the guard's limit, disclosed"),
-]
-
-
-@pytest.mark.parametrize("span,value,unit,expected,why", M10_ROWS)
-def test_m10_an_en_dash_exponent(span, value, unit, expected, why):
-    from crossaudit.dcl.numbers import contains_pair
-
-    assert contains_pair(span, value, unit) is expected, why
-
-
-def test_m10_is_the_dash_exponent_hook_and_nothing_else(monkeypatch):
-    """MUTATION: `_dash_exponent` returns None — M10 off. The exponent rows redden;
-    E1, E6 and the guard's range row do not move."""
-    import crossaudit.dcl.numbers as numbers
-
-    monkeypatch.setattr(numbers, "_dash_exponent", lambda text, i, start: None)
-    assert not numbers.contains_pair("10 mL min–1", "10", "mL min-1")
-    assert not numbers.contains_pair("2 L·h–1", "2", "L·h-1")
-    assert numbers.contains_pair("5 min–10 min", "5", "min")
-    assert numbers.contains_pair("5–10 °C", "5", "°C")
-    assert numbers.contains_pair("5 s−1", "5", "s-1")
-
-
-def test_m10_guards_each_have_a_row(monkeypatch):
-    """MUTATION, one per guard: drop the repeated-unit guard (`5 min–10 min` with
-    `(5, min)` goes RED — a wrong block appears); accept a decimal run (`5 h–1.5`
-    with `(5, h-1.5)` goes green); drop the letter-before rule (`5 m2–1` with
-    `(5, m2)` goes red — the token no longer ends at the dash); drop the fold
-    (`2 L·h–1` with `(2, L·h-1)` goes red while the byte-exact transcription stays)."""
-    import re
-    import crossaudit.dcl.numbers as numbers
-
-    assert numbers.contains_pair("5 min–10 min", "5", "min")
-    monkeypatch.setattr(numbers, "_repeats_the_stem", lambda text, j, stem: False)
-    assert not numbers.contains_pair("5 min–10 min", "5", "min")
-    monkeypatch.undo()
-
-    assert not numbers.contains_pair("5 h–1.5", "5", "h-1.5")
-    monkeypatch.setattr(numbers, "_DASH_DIGITS", re.compile(r"[0-9]+(?:\.[0-9]+)?"))
-    assert numbers.contains_pair("5 h–1.5", "5", "h-1.5")
-    monkeypatch.undo()
-
-    assert numbers.contains_pair("5 m2–1", "5", "m2")
-    monkeypatch.setattr(numbers, "_dash_after_letter", lambda text, i, start: True)
-    assert not numbers.contains_pair("5 m2–1", "5", "m2")
-    monkeypatch.undo()
-
-    assert numbers.contains_pair("2 L·h–1", "2", "L·h-1")
-    monkeypatch.setattr(numbers, "_EXPONENT_FOLD", str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻−", "0123456789+--"))
-    assert not numbers.contains_pair("2 L·h–1", "2", "L·h-1")
-    assert numbers.contains_pair("2 L·h–1", "2", "L·h–1")
-
-
-def test_m10_covers_the_exponent_in_the_quote_interval():
-    from crossaudit.dcl.numbers import pair_occurrences
-
-    assert list(pair_occurrences("flow of 2 L·h–1 for", "2", "L·h-1")) == [(8, 15)]
-    assert list(pair_occurrences("hold 5 min–10 min", "5", "min")) == [(5, 10)]
-
-
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2654,12 +2568,10 @@ DISCLOSED_LIMITS = [
     # The interval half of this phrase is bound by the fenced-interface test above.
     ("the quotation must contain the whole formula", "quote the whole formula",
      "LiNi0.8Co0.2O2", "0.8", "", True),
-    # M10 (study 14): an en-dash exponent, and the one guard.
-    ("an EN DASH that writes a negative exponent", "`s–1`", "2 L·h–1", "2", "L·h-1", True),
-    ("only between a letter and an unsigned run of digits", "unsigned digits", "5 h–1.5", "5", "h-1.5", False),
-    ("the next token repeats the stem", "both carry the unit", "5 min–10 min", "5", "min", True),
-    ("a dash after a number is a range, never an exponent", "never `min-10`", "5 min–10 min", "5", "min-10", False),
-    ("'5 mL–10 g' blocks", "`5 mL–10 g`", "5 mL–10 g", "5", "mL", False),
+    # M10 (study 14): measured and not shipped; the limit is stated and its behaviour pinned.
+    ("written with an EN DASH ('L·h–1') is NOT read", "written with an en dash", "2 L·h–1", "2", "L·h-1", False),
+    ("written with an EN DASH ('L·h–1') is NOT read", "however you transcribe it", "2 L·h–1", "2", "L·h–1", False),
+    ("measured and not shipped", "write `uncited` for that number", "5 K·min–1", "5", "K·min-1", False),
 ]
 
 
