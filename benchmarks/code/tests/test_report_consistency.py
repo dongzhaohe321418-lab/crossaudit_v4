@@ -1546,30 +1546,69 @@ def test_splicing_the_generated_tables_into_the_report_changes_nothing():
     assert spliced == report, "splicing the generated tables changed the report"
 
 
-def test_the_extrapolation_caveat_is_where_the_report_says_it_is():
-    """The report says the unflattened-asymptote caveat is read by a test in the headline,
-    in Table 1's asymptote cell and in the conclusion. This is that test: the headline
-    (the opening's first paragraphs) and the conclusion section each carry the word, and
-    Table 1's generated rows carry the label in every row whose `flat?` cell says `no`. The opening
-    summary's second occurrence and the Limitations paragraph are NOT read here, as the
-    report states. The eighteenth review found the conclusion carrying no caveat at all
-    while the sentence said it did in other words."""
-    report = REPORT.read_text(encoding="utf-8")
+CAVEAT_HEADLINE = "is an extrapolation"
+CAVEAT_CONCLUSION = "is an extrapolation, not a limit"
+CAVEAT_TABLE = "*(extrapolation)*"
+CAVEAT_REVERSED = "not an extrapolation"
+
+
+def caveat_offenders(report: str) -> list[str]:
+    """Where the extrapolation caveat is missing or REVERSED. The nineteenth review
+    reversed the conclusion to "is a limit, not an extrapolation" in memory and the
+    previous test stayed green, because it read the word and not the claim; each place
+    is now held to its phrase, whitespace-normalised, and to the absence of the
+    reversal."""
     sections = _sections(report)
-    # the headline's sentence: the cross asymptote "is an extrapolation" — that phrase,
-    # not the opening summary's later "extrapolation against one flattened fit"
-    assert "is an extrapolation" in sections["opening"], "the headline lost its caveat"
-    assert "extrapolation" in sections["conclusion"].lower(), "the conclusion lost its caveat"
+    opening = " ".join(sections["opening"].split())
+    conclusion = " ".join(sections["conclusion"].split())
+    out = []
+    if CAVEAT_HEADLINE not in opening or CAVEAT_REVERSED in opening:
+        out.append("headline")
+    if CAVEAT_CONCLUSION not in conclusion or CAVEAT_REVERSED in conclusion:
+        out.append("conclusion")
     table = report[report.index("### Table 1"):report.index("### Table 2")]
     rows = [l for l in table.splitlines() if l.startswith("| `")]
-    assert rows, "Table 1 has no family rows"
+    if not rows:
+        out.append("Table 1 has no family rows")
     flagged = 0
     for line in rows:
         cells = [c.strip().strip("*") for c in line.strip().strip("|").split("|")]
         if cells[-1].lower() == "no":
             flagged += 1
-            assert "extrapolation" in line.lower(), line
-    assert flagged >= 1, "no family is marked unflattened; the label has nothing to bind"
+            if CAVEAT_TABLE not in line or CAVEAT_REVERSED in line.lower():
+                out.append("Table 1: " + line)
+    if flagged < 1:
+        out.append("no family is marked unflattened; the label has nothing to bind")
+    return out
+
+
+def test_the_extrapolation_caveat_is_where_the_report_says_it_is():
+    """The report says the unflattened-asymptote caveat is read by a test in the headline,
+    in Table 1's asymptote cell and in the conclusion, with its polarity. This is that
+    test: the headline carries "is an extrapolation", the conclusion "is an extrapolation,
+    not a limit", and Table 1's generated rows the label in every row whose `flat?` cell
+    says `no`; none of the three carries "not an extrapolation". The opening summary's
+    second occurrence and the Limitations paragraph are NOT read here, as the report states."""
+    assert caveat_offenders(REPORT.read_text(encoding="utf-8")) == []
+
+
+def test_reversing_the_caveat_is_caught_in_each_place_it_is_read():
+    """MUTATION, the nineteenth review's: reverse the conclusion's sentence to "is a limit,
+    not an extrapolation" — the word survives, the claim does not, and the test must
+    redden; the same for the headline and for a Table 1 row."""
+    report = REPORT.read_text(encoding="utf-8")
+    reversed_conclusion = report.replace("is an extrapolation, not a\nlimit",
+                                         "is a limit, not an\nextrapolation")
+    assert reversed_conclusion != report, "the conclusion's sentence is not where this expects"
+    assert "conclusion" in caveat_offenders(reversed_conclusion)
+    head = report.split("## What the review changed", 1)[0]
+    reversed_headline = report.replace(head, head.replace("is an extrapolation",
+                                                          "is not an extrapolation"), 1)
+    assert "headline" in caveat_offenders(reversed_headline)
+    reversed_table = report.replace("*(extrapolation)*", "*(not an extrapolation)*", 1)
+    assert any(o.startswith("Table 1") for o in caveat_offenders(reversed_table))
+    deleted = report.replace("is an extrapolation, not a\nlimit", "is the limit")
+    assert "conclusion" in caveat_offenders(deleted)
 
 
 if __name__ == "__main__":
