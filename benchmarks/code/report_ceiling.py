@@ -1,7 +1,8 @@
 """Study 8 — the generated numbers and tables of ``RESULTS-CEILING.md``, from committed records.
 
-No API key. No network. No model. Reads only what is committed under
-``benchmarks/code/records/`` and writes ``records/ceiling/numbers.json`` (machine-readable)
+No API key. No network. No model. Reads what is committed under
+``benchmarks/code/records/`` — plus, for Table 9 only, the archived run directory named by
+``--run`` — and writes ``records/ceiling/numbers.json`` (machine-readable)
 and ``records/ceiling/tables.md`` (the tables the report quotes verbatim). Run it on
 partial data at any point; it reports what exists and names what does not.
 
@@ -11,10 +12,13 @@ partial data at any point; it reports what exists and names what does not.
 same instances are repeated measures on those instances, never K x n observations. The
 primary intervals are percentile bootstraps over **problem clusters** (68 of the 222
 problems contribute two instances each), so both instances of a problem move together;
-the Wilson, Tango and exact-unconditional intervals also emitted here are checks on the
-primary, and the coverage of each is measured in ``ceiling/measure_coverage.py``.
+the Wilson, Tango and grid-approximated unconditional intervals also emitted here are
+checks on the primary; the coverage of Tango and of the grid interval is measured in
+``ceiling/measure_coverage.py``, and the Wilson interval's is not measured.
 
-The estimators, all preregistered:
+The estimators. The union curve, the asymptote, the beta-binomial and exact McNemar were
+preregistered; Tango's interval and the grid interval were adopted by amendment 4 after the
+results were known, as checks on the replaced paired interval:
 
 * union recall/FP at K, averaged over **all** C(K_max, K) subsets of draws — computed
   exactly, not by sampling: an instance flagged by k of K_max draws is missed by a random
@@ -28,7 +32,8 @@ The estimators, all preregistered:
   difference that amendment 3 named was withdrawn by the first review (coverage 0.416 in
   the beneficial scenario) and is kept only as ``withdrawn_conditional_ci95``; the paired
   difference now carries the problem-cluster bootstrap, with Tango's score interval and a
-  Berger–Boos exact unconditional interval as checks.
+  grid-approximated Berger–Boos unconditional interval as checks (not a proven exact
+  interval: the supremum is taken on a finite grid).
 """
 
 from __future__ import annotations

@@ -1355,7 +1355,8 @@ HISTORICAL_COVERAGE: dict[str, str] = {
 
 def test_the_reports_coverage_tables_equal_the_measured_artefact():
     """The two coverage tables equal `records/ceiling/coverage.json`, and so does every
-    unsigned three-decimal figure in a sentence containing the letters `cover`.
+    unbracketed, unsigned figure of the literal form `0.ddd` in a sentence containing the
+    letters `cover`.
 
     The other half of the chain: `test_ceiling_stats.py` asserts its measurements equal the
     artefact, and this asserts the tables and those sentences equal it. A coverage
@@ -1371,10 +1372,11 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     2. each table's header names the beneficial scenario before the detrimental one, which
        is the order the cells are read in, and its `Bin(n, q)` pairs are the artefact's n
        and the two scenarios' q, in that order;
-    3. every unsigned three-decimal figure outside a bracketed interval, in a sentence
+    3. every unbracketed, unsigned figure of the literal form `0.ddd`, in a sentence
        containing the letters `cover`, is a measured figure or one of the listed historical
-       ones. This is membership, not attribution: the figure is not tied to a method or scenario, and
-       a coverage written with two decimals, in words, or with a sign is not read.
+       ones. This is membership, not attribution: the figure is not tied to a method or
+       scenario, and a coverage written with two decimals, as `1.000`, in words, with a
+       sign, or inside brackets is not read.
     """
     artefact = json.loads((CODE / "records" / "ceiling" / "coverage.json")
                           .read_text(encoding="utf-8"))
