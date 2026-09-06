@@ -1366,9 +1366,14 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
     eleventh review showed that checking the table cells alone left a swapped column header
     and an edited figure in a sentence green:
 
-    1. both coverage tables, whole: each header occurs exactly once in the report, every
-       row under it is one of the expected rows, exactly once, no expected row occurs
-       anywhere else, and each cell equals the artefact at three decimals — the
+    1. both coverage tables, whole: each header occurs exactly once in the report, the
+       line after it is a Markdown separator with the header's column count, the rows
+       under it are exactly the expected rows in the expected order, no expected row
+       occurs anywhere else, every row has the header's column count, the current
+       table's header states the artefact's true-δ values and "all beneficial" / "all
+       detrimental", and each cell equals the artefact at three decimals (the
+       separator's alignment colons are not checked; a cell that holds no `0.ddd` figure
+       is not read) — the
        current methods and the withdrawn pre-fix ones, because the fourth review found a
        pre-fix figure mislabelled and a withdrawn method's number is still a number;
     2. each table's header names the beneficial scenario before the detrimental one, which
@@ -1428,15 +1433,40 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
         except StopIteration:
             problems.append(f"coverage table header not found: {header_prefix!r}")
             continue
+        header = lines[start]
+        columns = header.strip().strip("|").count("|") + 1
+        separator = lines[start + 1] if start + 1 < len(lines) else ""
+        # The seventeenth review replaced the separator with an invented row and the
+        # check skipped it blindly: the separator must be a Markdown rule with the
+        # header's column count, and nothing else.
+        if not re.fullmatch(r"\|(?:\s*:?-+:?\s*\|)+", separator.strip()) or \
+                separator.strip().strip("|").count("|") + 1 != columns:
+            problems.append(f"the line after {header_prefix!r} is not a {columns}-column "
+                            f"separator: {separator!r}")
         body = []
-        for line in lines[start + 2:]:          # skip the header and the separator
+        for line in lines[start + 2:]:
             if not line.startswith("|"):
                 break
             body.append(line)
+        for line in body:                        # every row has the header's column count
+            if line.strip().strip("|").count("|") + 1 != columns:
+                problems.append(f"a row under {header_prefix!r} does not have {columns} "
+                                f"cells: {line!r}")
         seen = [next((p for p in expected_rows if line.startswith(p)), None) for line in body]
-        if None in seen or sorted(seen) != sorted(expected_rows):
+        if seen != expected_rows:                # the same rows, in the same order
             problems.append(f"table under {header_prefix!r} has rows {seen}; "
-                            f"expected exactly {expected_rows}")
+                            f"expected exactly {expected_rows}, in that order")
+        # The header's scenario text is bound to the artefact's: the true delta of each
+        # scenario, as the artefact states it (the seventeenth review changed +0.10 to
+        # +0.99 and "all beneficial" to "partly beneficial" and stayed green).
+        deltas = [d.replace("−", "-") for d in re.findall(r"true δ = ([+−-]\d\.\d\d)", header)]
+        wanted = [re.search(r"true delta = ([+-]\d\.\d\d)", artefact["scenarios"][s]).group(1)
+                  for s in ("beneficial", "detrimental")]
+        if header_prefix == "| method | role |" and deltas != wanted:
+            problems.append(f"the header's true-δ values {deltas} are not the artefact's {wanted}")
+        if header_prefix == "| method | role |" and not (
+                "all beneficial" in header and "all detrimental" in header):
+            problems.append(f"the header must say 'all beneficial' and 'all detrimental': {header!r}")
     covered = {(m, s) for m in artefact["coverage"] for s in artefact["coverage"][m]}
     listed = {cell for cells in rows.values() for cell in cells}
     if covered != listed:

@@ -570,8 +570,10 @@ randomised cases.
 [0, 1] inside the objective**; for fixed τ the model is linear in A, so the fit reduces to a
 one-dimensional search over τ. Goodness of fit and the raw union at K_max are reported beside
 every asymptote, and an asymptote from a curve that has not flattened is labelled an
-extrapolation in the headline, in Table 1's `flat?` column and in the conclusion (the
-Limitations paragraph repeats the label; no test reads it there).
+extrapolation where a test reads it — the headline, and Table 1's asymptote cell, which
+the generator writes — and repeated without a check in the opening summary and the
+Limitations paragraph; the conclusion carries the caveat in other words, and no test
+reads it there either.
 
 **Multiple comparisons.** Two primary outcomes, each declared singly in the preregistration
 before any model call, are **not** corrected. **The preregistration planned twelve
