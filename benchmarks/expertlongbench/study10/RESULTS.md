@@ -43,8 +43,9 @@ prefix pass against a `wt.%` source, so the narrowing E5 also performs (a prefix
   digit (`_PERIOD_CONTINUERS`).
 * `_unit_key`: `normalise_unit` followed by the exponent fold (superscript digits and
   signs → ASCII, U+2212 → `-`), applied to both sides at the one comparison in
-  `pair_occurrences`. `normalise_unit` itself, the fragment table, the boundary rule,
-  the range split and `_UNPARSED` are unchanged.
+  `pair_occurrences`. `normalise_unit` itself, the fragment table, the range split and
+  `_UNPARSED` are unchanged; the boundary rule gained the `<word>.%` reading in round 2
+  (below).
 * The contract string and the shipped skill each gain one sentence per fold; three
   `DISCLOSED_LIMITS` rows bind the sentences to behaviour.
 * Tests: 17 rows for the two folds, three mutation tests (E5 off, E6 off, the fold
@@ -60,14 +61,16 @@ and after a join, a word carrying `.%` (`approx.%`, `e.g.%`) newly blocked. Thre
 repairs: a fragment with `.%`/`.‰` attached is a unit atom (`_unit_atom`), so the join
 continues and `kg` is the prefix it always was; at the boundary a word with `.%` is
 read as the word (`approx.%` prose, `e.g.%` a named abbreviation); and `.%` at a token's
-start is not a unit (`5.%` reads nothing, as before E5). A generated test sweeps every
-alphabetic fragment in the table with `%` and `‰`. Two consequences of E5 are stated
+start is not a unit (`5.%` reads nothing, as before E5). A generated test sweeps the
+85 alphabetic fragments in the table that are not bare elements or capitals with `%` and
+`‰`. Two consequences of E5 are stated
 rather than argued away: an element with `.%` (`K.%`, `Ni.%`) is refused as the bare
 element is, so it ends the unit as before; and a fragment glued to `.%`-junk (`wt.%%`)
-is not unit-shaped and ends the unit, where the base's scanner cut it to `wt` and
-continued — that continuation was the period rule's artefact, not a reading. The gold table above is unchanged
+is not unit-shaped: at the first continuation it ends the unit, where the base's scanner
+cut it to `wt` and continued (that continuation was the period rule's artefact, not a
+reading); after a join it blocks the joined prefix, as any unreadable token does. The gold table above is unchanged
 by the repair (re-measured: base 0/0/0/0, E5 1/0/0/0, E6 2/0/0/0, shipped 3/0/0/0).
-`tests/test_number_source_check.py` 1008 passed. Full suite on the host, runner line: "3801 passed, 4 skipped, 1 warning in 344.10s (0:05:44)" (an earlier run with a second suite executing concurrently on the same host failed one timing test in the streaming provider, unrelated to this slice; alone it passes 9 of 9).
+`tests/test_number_source_check.py` 1014 passed. Full suite on the host, runner line: "3801 passed, 4 skipped, 1 warning in 344.10s (0:05:44)" (an earlier run with a second suite executing concurrently on the same host failed one timing test in the streaming provider, unrelated to this slice; alone it passes 9 of 9).
 
 ## 4. Cost
 
