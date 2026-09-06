@@ -1197,7 +1197,7 @@ def test_a_file_ending_in_an_opening_fence_is_a_finding():
     ("(20°C-25°C)", "20", "°C",     [],             "a range is not one unit token"),
     ("(20°C-25°C)", "20", "°C-25",  ["CA-NUM-002"], "and its halves are not either"),
     ("99-102 kPa",  "102", "kPa",   [],             "the second half carries the unit"),
-    ("99-102 kPa",  "99",  "kPa",   ["CA-NUM-002"], "the first half does not"),
+    ("99-102 kPa",  "99",  "kPa",   [],             "and since E1 (study 11) the low endpoint carries it too"),
     ("5 cm-1",      "5",  "cm-1",   [],             "a hyphen exponent at end of token"),
     ("5 cm-1",      "5",  "cm",     ["CA-NUM-002"], "and its prefix is still refused"),
     ("5°C/min",     "5",  "°C/min", [],             "a ramp rate is its own unit"),
@@ -1243,7 +1243,7 @@ def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
     ("(20°C-25°C)",   "20", "°C-25°C",     [],             "the whole token is a reading too"),
     ("10 kg-2m",      "10", "kg",          ["CA-NUM-002"], "unequal halves are not a range"),
     ("99-102 kPa",    "102", "kPa",        [],             "the half that carries the unit"),
-    ("99-102 kPa",    "99", "kPa",         ["CA-NUM-002"], "and the half that does not"),
+    ("99-102 kPa",    "99", "kPa",         [],             "and, since E1, the low endpoint (not a prefix: the whole `kPa`)"),
     # The exponent bound refuses; it never truncates.
     ("1e10001 g",     "1e1000", "1",       ["CA-NUM-002"], "no leftover digit becomes a unit"),
     ("1e10001 g",     "1e10001", "g",      [],             "and the real pair matches"),
@@ -1380,7 +1380,7 @@ def test_the_contract_discloses_what_normalisation_does_to_a_number():
     ("(20°C-25°C)", "20", "°C", [], "a closed-up range names one unit"),
     ("(20°C-25°C)", "25", "°C", [], "from either end"),
     ("20-25 °C",    "25", "°C", [], "the half that carries the unit"),
-    ("20-25 °C",    "20", "°C", ["CA-NUM-002"], "and the half that does not"),
+    ("20-25 °C",    "20", "°C", [], "and, since E1 (study 11), the low endpoint too"),
     ("1-2 h",       "2", "h",  [], "the same for a duration"),
     ("20°C–25°C",   "20", "°C", [], "an en-dash range ends the token outright"),
 ])
@@ -2055,6 +2055,85 @@ def test_the_fold_does_not_reach_the_notation_rule_or_the_scanner():
     assert not contains_pair("5 kg m xyz⁻¹", "5", "kg m")       # the boundary rule, unchanged
 
 
+# ---------------------------------------------------------------------------------
+# Study 11 (slice 5): E1, the endpoints of a range.
+# ---------------------------------------------------------------------------------
+
+E1_ROWS = [
+    ("775–850 °C",            "775",  "°C",      True,  "an en-dash range, the low endpoint"),
+    ("775–850 °C",            "850",  "°C",      True,  "and the high one, which needed no rule"),
+    ("775 – 850 °C",          "775",  "°C",      True,  "spaced dashes"),
+    ("775—850 °C",            "775",  "°C",      True,  "an em dash"),
+    ("99-102 kPa",            "99",   "kPa",     True,  "an ASCII hyphen"),
+    ("1.5 – 6 sccm",          "1.5",  "sccm",    True,  "a decimal low endpoint"),
+    ("775–850°C",             "775",  "°C",      True,  "closed up: the same answer as the `_RANGE` split"),
+    ("20–25 wt %",            "20",   "wt %",    True,  "a spaced tail after the high endpoint"),
+    ("20–25 °C min⁻¹",        "20",   "°C min⁻¹", True, "a spaced expression after it"),
+    ("20–25 °C min⁻¹",        "20",   "°C",      False, "and its prefix is a prefix there too"),
+    ("1,000–1,500 rpm",       "1,000", "rpm",    True,  "a thousands group in both endpoints"),
+    ("5-10 °C",               "5",    "°C",      True,  "an ASCII hyphen with no space either side"),
+    ("10 - 5 °C",             "10",   "°C",      False, "a SPACED ASCII hyphen is also a subtraction: refused (round 2)"),
+    ("5 - 10 °C",             "5",    "°C",      False, "so a spaced-hyphen range is a false block, disclosed"),
+    ("5 -10 °C",              "5",    "°C",      False, "and one space on either side is enough to refuse"),
+    ("5- 10 °C",              "5",    "°C",      False, "either side"),
+    ("5 – −3 °C",             "5",    "°C",      True,  "a signed high endpoint"),
+    ("775–850 °C",            "800",  "°C",      False, "the interior is not in the text"),
+    ("775–850 °C at 99 kPa",  "775",  "kPa",     False, "a unit borrowed across a different quantity"),
+    ("5 g–10 mL",             "5",    "mL",      False, "a low endpoint with its own unit distributes nothing"),
+    ("5 g–10 mL",             "5",    "g",       True,  "it keeps its own"),
+    ("5–10",                  "5",    "",        True,  "no unit after: the empty-unit row states the value"),
+    ("5–10",                  "5",    "°C",      False, "and nothing else"),
+    ("5 g – heat to 10 °C",   "5",    "°C",      False, "a dash followed by a word is not a range"),
+    ("5–10 × 10⁵ Pa",         "5",    "Pa",      False, "a high endpoint continued by refused notation offers nothing"),
+    ("5-fold excess",         "5",    "fold",    False, "a hyphenated word is not a range (unchanged)"),
+    ("2.54-cm diameter",      "2.54", "cm",      False, "a compound adjective is not a range (unchanged)"),
+    ("1–2–3 °C",              "1",    "°C",      False, "a chain: the first number's high endpoint is itself continued by a dash, so nothing is read (Amendment 1)"),
+    ("1–2–3 °C",              "2",    "°C",      True,  "the middle number is the low endpoint of the last range and reads its unit (Amendment 1)"),
+]
+
+
+@pytest.mark.parametrize("span,value,unit,expected,why", E1_ROWS)
+def test_e1_offers_the_high_endpoints_unit_to_the_low_endpoint(span, value, unit, expected, why):
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(span, value, unit) is expected, why
+
+
+def test_e1_is_the_range_tail_and_nothing_else(monkeypatch):
+    """MUTATION: empty `_RANGE_TAIL` — E1 off. Every low-endpoint row reddens; the
+    high endpoints, the closed-up `_RANGE` split and the mirrors do not move."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_RANGE_TAIL", re.compile(r"(?!x)x"))
+    assert not numbers.contains_pair("775–850 °C", "775", "°C")
+    assert not numbers.contains_pair("99-102 kPa", "99", "kPa")
+    assert numbers.contains_pair("775–850 °C", "850", "°C")
+    assert numbers.contains_pair("(20°C-25°C)", "20", "°C")
+    assert not numbers.contains_pair("775–850 °C", "800", "°C")
+
+
+def test_e1_never_offers_the_interior_or_a_borrowed_unit():
+    """MUTATION: accept any number between the endpoints, or take the unit after
+    the high endpoint for any earlier number on the line — each is a truth claim
+    about an interval or a different quantity, D155's line."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    for interior in ("776", "800", "849.5"):
+        assert not contains_pair("775–850 °C", interior, "°C"), interior
+    assert not contains_pair("hold 10 min, then 775–850 °C", "10", "°C")
+    assert contains_pair("hold 10 min, then 775–850 °C", "10", "min")
+
+
+def test_e1_covers_the_whole_range_in_the_quote_interval():
+    """The offered end reaches through the high endpoint's unit, so a quotation
+    that stops inside the range does not contain the pair."""
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    spans = list(pair_occurrences("ramp at 775–850 °C for 2 h", "775", "°C"))
+    assert spans == [(8, 18)], spans          # `775–850 °C`, through the unit
+
+
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2135,6 +2214,14 @@ DISCLOSED_LIMITS = [
     ("written as 's⁻¹', 's−1' or 's-1' is one unit", "count as the same unit", "5 s−1 (13 rpm)", "s⁻¹", True),
     ("the fold does not reach the rule that refuses a number continued by a power of ten",
      "copy the source's own rendering", "5 × 10⁵ mbar", "mbar", False),
+    ("a dash and a second number follow it directly", "either endpoint may be annotated",
+     "5–10 °C", "°C", True),
+    ("a SPACED ASCII hyphen ('10 - 5 °C') is not read as a range", "spaced ASCII hyphen",
+     "5 - 10 °C", "°C", False),
+    ("no value between the endpoints is stated", "never a value inside the range",
+     "1–10 °C", "°C", False),
+    ("never reaches a number that carries its own unit", "never the unit of a different quantity",
+     "5 g–10 mL", "mL", False),
 ]
 
 

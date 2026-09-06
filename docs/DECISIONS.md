@@ -7368,3 +7368,10 @@ ten right blocks still block, panel 2 of 97, base reproduced 300 of 300 — ever
 preregistered expectation to the row. M10 deferred to its own study with a designed
 en-dash-range panel, because its surface is the surface of a closed-up range. E1 and E2
 next, then Arm 5.*
+
+*D161 ruling 2's second step landed on `feat/provenance-slice-5` (study 11, preregistered
+at fcf2c20 before `src/` moved): E1, the endpoints of a range, measured on the frozen
+gold against the merge base's own verdicts — R = 14, the fourteen M2 rows, W = 0,
+R′ = 0, W′ = 0, ten right blocks still block, panel 2 of 97 (the §6 line at ≤ 4 of 97),
+base reproduced 300 of 300 — every preregistered expectation to the row. E2 next, then
+Arm 5.*

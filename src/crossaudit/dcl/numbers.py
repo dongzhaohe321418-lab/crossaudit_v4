@@ -286,6 +286,18 @@ _UNPARSED = re.compile(
 #: a range is recognised and split, and only when the two halves are the same
 #: unit — `kg-m` and `h-long` are not ranges and keep their whole token.
 _RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
+#: E1 (study 11): the head of the text after a number that is the LOW endpoint
+#: of a range — an EN or EM dash with optional inline whitespace either side, or
+#: an ASCII hyphen with NO whitespace either side, then the high endpoint.
+#: `775–850 °C`, `775 – 850 °C`, `99-102 kPa`, `1.5 – 6 sccm`. A SPACED ASCII
+#: hyphen is refused: the first review of slice 5 showed `10 - 5 °C` read as a
+#: range, and nothing on the surface separates that from a subtraction, so
+#: `5 - 10 °C` blocks (a false block, disclosed) rather than `10 - 5 °C` passing.
+#: Only where the low endpoint has no unit of its own: `5 g–10 mL` never gets
+#: here, because `g` is read first. Emptied by the study's ablation.
+_RANGE_TAIL = re.compile(
+    rf"(?:{_INLINE}*[–—]{_INLINE}*|-)"
+    r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
 #: the probe that measured it. Measured again against THIS code over the 16
@@ -753,7 +765,7 @@ def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
     return parts, end, complete
 
 
-def _unit_candidates(rest: str) -> list[tuple[str, int]]:
+def _unit_candidates(rest: str, ranges: bool = True) -> list[tuple[str, int]]:
     """Every reading of the unit following a number, each with where it ends in
     `rest`: the whole unit expression, plus one reading of a range that is
     shorter only in the sense that it re-reads a token the source glued
@@ -779,7 +791,26 @@ def _unit_candidates(rest: str) -> list[tuple[str, int]]:
     The percent split (`wt %`) that used to be a special case is now this rule:
     `%` is a continuation like any other, and `wt %/s` is still one expression
     that `wt %` does not satisfy.
+
+    **E1 (study 11) — the endpoints of a range.** Where the number is the LOW
+    endpoint — a dash and a second number follow it directly, so it has no unit
+    of its own — the unit expression written after the HIGH endpoint is offered
+    for it, read by this same function on the text after the high endpoint and
+    never again as a range. Only the two literal endpoints: an interior value
+    is not in the text and matches nothing, and a unit after the high endpoint
+    never reaches a number that already carries one. A high endpoint continued
+    by notation this module refuses (`10⁵`) offers nothing. The end offered
+    reaches through the high endpoint's unit, so a quotation must cover the
+    whole range to contain the pair.
     """
+    if ranges:
+        head = _RANGE_TAIL.match(rest)
+        if head:
+            after_high = rest[head.end():]
+            if _UNPARSED.match(after_high):
+                return []
+            return [(c, head.end() + e)
+                    for c, e in _unit_candidates(after_high, ranges=False)]
     parts, end, complete = _spaced_unit(rest)
     if not parts:
         return []
@@ -1422,7 +1453,16 @@ register("number_source", check_number_source,
          "digits and signs and the U+2212 minus are folded to ASCII on BOTH sides "
          "before the unit comparison, so 's^-1' written as 's⁻¹', 's−1' or 's-1' is "
          "one unit; nothing else is folded, and the fold does not reach the rule "
-         "that refuses a number continued by a power of ten. An EMPTY unit imposes "
+         "that refuses a number continued by a power of ten. Where the number is "
+         "the LOW endpoint of a range - a dash and a second number follow it "
+         "directly - the unit written after the high endpoint is the low "
+         "endpoint's unit too ('775-850 °C' states 775 °C and 850 °C); no value "
+         "between the endpoints is stated, and a unit after the high endpoint "
+         "never reaches a number that carries its own unit ('5 g-10 mL' "
+         "distributes nothing). The dash is an en or em dash, spaced or not, or "
+         "an ASCII hyphen with no space either side; a SPACED ASCII hyphen "
+         "('10 - 5 °C') is not read as a range, because it is also a subtraction. "
+         "An EMPTY unit imposes "
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "
