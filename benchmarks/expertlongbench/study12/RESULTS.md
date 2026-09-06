@@ -80,7 +80,7 @@ change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
   its own value (the decimal-comma rows test `12,5`); a skill-template patch that silently
   fails (round 2's) reddens on the first of these.
 * Tests: 51 rows, two mutation tests (E2 off; the guard, the separators and the notation
-  stop), the quotation-interval test. `tests/test_number_source_check.py` 1122 passed.
+  stop), the quotation-interval test. `tests/test_number_source_check.py` 1124 passed.
   Full suite on the host, runner line (round 5): "3909 passed, 4 skipped, 1 warning in 361.41s (0:06:01)".
 
 ## 4. Cost
