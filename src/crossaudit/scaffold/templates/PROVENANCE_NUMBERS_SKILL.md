@@ -42,17 +42,21 @@ All three fields, every row. A row with two cannot be checked and is refused.
     the row blocks rather than matching half of it. `uncited` is the honest
     answer there, and it never counts against the work. One limit: a unit
     symbol of four or more letters, or a capitalised one, that the checker
-    does not know is read as a word after the unit, so the part before it may
-    match — copy the whole unit regardless. And after a spaced unit, anything
-    with the shape of a unit symbol blocks rather than reads as a word: a
-    short symbol pair such as `oz/yd` or `oz·yd`, a short label such as
-    `run-2` or `m2`, short symbols on a hyphen or underscore such as `kg-m`
-    or `lot_id`, a dotted abbreviation such as `a.u.` (other than e.g., i.e.,
-    a.m., p.m., n.b., c.f.), or a short lower-case word the checker does not
-    know. Hyphenated words, contractions, abbreviations such as `e.g.`, words
-    in another script, words with a percent sign such as `sample%` or `dry%`,
-    and words with trailing punctuation are read as words. `uncited` is the
-    honest answer where a correct unit blocks.
+    does not know (`mmHg`, `GBq`) is read as a word after the unit, so the
+    part before it may match — copy the whole unit regardless. And after a
+    spaced unit, anything with the shape of a unit symbol blocks rather than
+    reads as a word: a short symbol pair such as `oz/yd`, `oz·yd` or `oz⋅yd`,
+    a short label such as `run-2` or `m2`, short symbols on a hyphen or
+    underscore such as `kg-m` or `lot_id` (with or without a digit, as in
+    `lot_id/2`), a symbol joined to anything such as `g/xyz`, `dry·g` or
+    `kg-m/s`, anything joined by a full-width character such as `kg／m`, a
+    dotted abbreviation such as `a.u.` (other than e.g., i.e., a.m., p.m.,
+    n.b., c.f.), or a short lower-case word the checker does not know.
+    Hyphenated words, contractions, abbreviations such as `e.g.`, words in
+    another script, words with a percent or per-mille sign such as `sample%`,
+    `dry%` or `wet‰` (not an element symbol such as `Ni‰`), and words with
+    trailing punctuation are read as words. `uncited` is the honest answer
+    where a correct unit blocks.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

@@ -7302,4 +7302,9 @@ again, so that disclosed false block is gone), and every row binds a contract
 phrase, a skill phrase and the behaviour. The fifth found the percent-sign
 branch testing length where `_word()` was owed (`dry%` blocked), underscore
 and middle-dot joins undisclosed, and six named abbreviations where the words
-said four; each is fixed and bound. Arm 4 next.*
+said four; each is fixed and bound. The sixth found a digit added to a
+disclosed blocker (`lot_id/2`) passing because the digit was read before the
+joiners, and the percent branch bypassing the element refusal (`Ni‰`, all 118);
+the joiners are read first, the refusal is kept, and every named shape — dot
+operator, per-mille, capitalised unknown fragment, fragment joined to a word,
+full-width joiners — is in the contract, the skill and a row. Arm 4 next.*

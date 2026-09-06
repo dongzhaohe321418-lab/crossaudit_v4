@@ -1823,6 +1823,9 @@ def test_a_substance_or_label_ends_a_joined_expression_before_the_table_is_read(
     assert contains_pair("5 wt % K⁻¹", "5", "wt % K⁻¹")
     assert not contains_pair("5 kg m Pa·s", "5", "kg m")
     assert contains_pair("5 kg m Pa·s", "5", "kg m Pa·s")
+    for element in sorted(_ELEMENTS):    # the sixth review: a mark on an element is a unit
+        assert not contains_pair(f"5 kg m {element}‰", "5", "kg m"), element
+        assert not contains_pair(f"5 kg m {element}%", "5", "kg m"), element
 
 
 #: Prose after a JOIN, in the shapes the review used after `5 g`, and the
@@ -1858,6 +1861,9 @@ JOINED_PROSE = [
     ("sample_name",   "an underscored word"),
     ("n.b.",          "a dotted abbreviation the module names"),
     ("样品。",          "trailing full-width punctuation"),
+    ("batch-1/2",     "a label with a word among its parts and a digit"),
+    ("Sample%",       "a capitalised word with a percent sign"),
+    ("dry％",          "a full-width percent sign, which the scanner strips as punctuation"),
 ]
 JOINED_UNREADABLE = [
     ("xyz⁻¹",  "an exponent on a stem this table does not name"),
@@ -1870,6 +1876,20 @@ JOINED_UNREADABLE = [
     ("oz·yd",  "short unknown parts on a middle dot"),
     ("oz⋅yd",  "and on a dot operator"),
     ("abc%",   "a percent sign on a short unnamed stem"),
+    ("Ni‰",    "a per-mille sign on an element symbol — the sixth review's 118 rows"),
+    ("K%",     "and a percent sign on one"),
+    ("lot_id/2", "short parts with a digit added — the sixth review's fail-open"),
+    ("ab_cd/2", "the same"),
+    ("kg-m/2", "fragments with a digit added"),
+    ("oz/yd/2", "short unknown parts with one"),
+    ("qz/2",   "and a short unknown token with one"),
+    ("kg-m/s", "fragments joined to a fragment: a unit half-read"),
+    ("dry·g",  "a word joined to a fragment: the same"),
+    ("kg／m",   "a full-width solidus, which is not a joiner this module reads"),
+    ("kg－m",   "a full-width hyphen"),
+    ("lot＿id", "a full-width underscore"),
+    ("oz／yd",  "and short unknown parts on a full-width solidus"),
+    ("dry／wet", "even when the parts are named words"),
     ("g/xyz",  "a fragment joined to something that is not one"),
     ("oz/yd",  "short unknown parts on a solidus — the third review's false pass"),
     ("x/y",    "and its one-letter form"),
@@ -1926,13 +1946,25 @@ def test_the_first_continuation_still_reads_the_shapes_the_join_blocks():
 DISCLOSED_LIMITS = [
     ("the fragment table is the only guard", "is read as a word after the unit",
      "5 kg m mmHg", "kg m", True),
-    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 kg m oz/yd", "kg m", False),
-    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 kg m oz·yd", "kg m", False),
-    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 wt % wet/dry", "wt %", True),
+    ("('GBq' likewise)", "(`mmHg`, `GBq`)", "5 kg m GBq", "kg m", True),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz/yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz·yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz⋅yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 wt % wet/dry", "wt %", True),
     ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 wt % run-2", "wt %", False),
     ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 kg m m2", "kg m", False),
-    ("('kg-m', 'lot_id')", "such as `kg-m` or `lot_id`", "5 wt % kg-m", "wt %", False),
-    ("('kg-m', 'lot_id')", "such as `kg-m` or `lot_id`", "5 wt % lot_id", "wt %", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 wt % kg-m", "wt %", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 wt % lot_id", "wt %", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 kg m lot_id/2", "kg m", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s')", "such as `g/xyz`, `dry·g` or `kg-m/s`", "5 wt % dry·g", "wt %", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s')", "such as `g/xyz`, `dry·g` or `kg-m/s`", "5 wt % kg-m/s", "wt %", False),
+    ("a token joined by a full-width character ('kg／m')", "joined by a full-width character such as `kg／m`",
+     "5 wt % kg／m", "wt %", False),
+    ("a token joined by a full-width character ('kg／m')", "joined by a full-width character such as `kg／m`",
+     "5 wt % dry／wet", "wt %", False),
     ("('a.u.' is arbitrary units)", "a dotted abbreviation such as `a.u.`", "5 kg m a.u. signal", "kg m", False),
     ("other than e.g., i.e., a.m., p.m., n.b., c.f.", "(other than e.g., i.e., a.m., p.m., n.b., c.f.)",
      "5 kg m n.b. note", "kg m", True),
@@ -1941,6 +1973,8 @@ DISCLOSED_LIMITS = [
     ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % high-purity powder", "wt %", True),
     ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
+     "5 wt % batch-1/2", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % we're ready", "wt %", True),
     ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % e.g. this", "wt %", True),
@@ -1948,12 +1982,13 @@ DISCLOSED_LIMITS = [
      "5 wt % 样品", "wt %", True),
     ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % sample，", "wt %", True),
     ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % 样品。", "wt %", True),
-    ("a percent sign on a word ('sample%', 'dry%') reads", "words with a percent sign such as `sample%` or `dry%`",
-     "5 wt % sample%", "wt %", True),
-    ("a percent sign on a word ('sample%', 'dry%') reads", "words with a percent sign such as `sample%` or `dry%`",
-     "5 wt % dry% powder", "wt %", True),
-    ("on an unnamed short stem ('abc%') it is a unit", "words with a percent sign such as `sample%` or `dry%`",
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % sample%", "wt %", True),
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % dry% powder", "wt %", True),
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % wet‰", "wt %", True),
+    ("on an unnamed short stem ('abc%') or an element symbol ('Ni‰') it is a unit", "(not an element symbol such as `Ni‰`)",
      "5 wt % abc%", "wt %", False),
+    ("on an unnamed short stem ('abc%') or an element symbol ('Ni‰') it is a unit", "(not an element symbol such as `Ni‰`)",
+     "5 kg m Ni‰", "kg m", False),
 ]
 
 

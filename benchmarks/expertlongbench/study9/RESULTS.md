@@ -280,6 +280,27 @@ Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ =
 W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
 `tests/test_number_source_check.py` 924 passed.
 
+### What the sixth review found, and what it changed
+
+1. **A digit added to a disclosed blocker made it pass** (P1): `5 kg m lot_id/2`
+   offered `kg m`, because "any digit is prose" ran before the joiners were
+   read. The joiners are read first now: a joined token blocks when any part
+   is a unit fragment (`dry·g`, `kg-m/s`) or when no part is a word (`lot_id/2`,
+   `oz/yd/2`, `qz/2`); `batch-1/2` reads because `batch` is a word; `H2O` and
+   `Li₂O`, with no joiner, still read by the digit.
+2. **The percent branch bypassed the element refusal** (P1): `5 kg m Ni‰`
+   offered `kg m` for all 118 elements. The branch keeps the refusal; every
+   element with `%` and `‰` is asserted after a join.
+3. **Disclosure gaps** (P2): `oz⋅yd`, per-mille, the capitalised half of the
+   unknown-fragment limit (`GBq`), `kg-m/s`, `dry·g`, `lot_id/2` and full-width
+   joiners (`kg／m`, `kg－m`, `lot＿id`, `oz／yd`, `dry／wet`, which are not joiners
+   this module reads and block) are now named in the contract, the skill,
+   `_is_boundary` and the tests; `DISCLOSED_LIMITS` has 30 rows.
+
+Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ = 11,
+W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
+`tests/test_number_source_check.py` 951 passed.
+
 ### Out of scope, noted for a later extension
 
 Two limitations the reviewer confirmed are **pre-existing and untouched here**:

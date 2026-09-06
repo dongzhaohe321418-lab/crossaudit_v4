@@ -490,9 +490,9 @@ def _is_boundary(token: str) -> bool:
       letters (`sample`, `later`), or one of the dotted abbreviations it names
       (`e.g.`, `i.e.`, `a.m.`, `p.m.`);
     * a marked word whose stem is a word (`batch-1`, `sample¹`, `sample%`,
-      `dry%`);
+      `dry%`, `wet‰`) — not an element symbol (`Ni‰`);
     * a hyphenated, underscored or apostrophised word with a word among its
-      parts (`high-purity`, `sample_name`); a contraction (`we're`, `l'état`)
+      parts (`high-purity`, `sample_name`, `batch-1/2`); a contraction (`we're`, `l'état`)
       is read in `_spaced_unit`, because the scanner splits at the apostrophe
       and this function never sees the whole word;
     * a label or formula carrying a digit on a capital or a long stem (`A2`,
@@ -504,18 +504,21 @@ def _is_boundary(token: str) -> bool:
     word the short list above does not carry); a stem of one to three letters
     under an exponent or a digit (`xyz⁻¹`, `run-2`, `m2`, `m₂` — the shapes of
     `s-1` and `m2`); short stems joined by a hyphen or an underscore (`kg-m`,
-    `lot_id`); a dotted
+    `lot_id`, and `lot_id/2` with a digit added: the joiners are read before
+    the digit is); a fragment joined to anything that is not one (`g/xyz`,
+    `dry·g`, `kg-m/s`); a token joined by a full-width character (`kg／m`),
+    which is not a joiner this module reads; a dotted
     abbreviation this module does not name (`a.u.`, `p.u.` — arbitrary units,
     which the fourth review found reading as prose); and a solidus joining
     nothing but short unknown parts (`oz/yd`), which the third review showed
     passing `kg m` as prose, and the same on a
-    middle dot (`oz·yd`); `wet/dry` reads,
+    middle dot or dot operator (`oz·yd`, `oz⋅yd`); `wet/dry` reads,
     because the short-word list names both halves, and `x/y` blocks. At the
     first continuation all of these still end the unit, as before.
 
     **What this cannot tell apart, stated rather than hidden:** an alphabetic
     token of four or more letters, or a capitalised one, that is a unit this
-    table does not name — `mmHg`, `kcal`, `mrad`, `dbar` — reads as prose, so
+    table does not name — `mmHg`, `kcal`, `mrad`, `dbar`, `GBq` — reads as prose, so
     `5 kg m mmHg` offers `kg m`. That is the base's own class at the first
     continuation (`5 g mmHg` matches `g` today and always did), reached after
     a join by the same rule, and no surface test separates `mmHg` from
@@ -541,7 +544,8 @@ def _is_boundary(token: str) -> bool:
     if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", core):
         return core.lower().rstrip(".") in _ABBREVIATIONS   # `e.g` a word, `a.u` a unit
     if core[-1] in "%‰" and core[:-1].isalpha():
-        return _word(core[:-1])              # `sample%`, `dry%` words; `abc%` a unit
+        stem = core[:-1]                     # `sample%`, `dry%`, `wet‰` words; `abc%`, `Ni‰` units
+        return _word(stem) and stem not in _ELEMENTS and not (len(stem) == 1 and stem.isupper())
     tail = _EXPONENT_TAIL.search(core)
     if tail and tail.start() > 0:
         stem = core[:tail.start()]
@@ -550,16 +554,14 @@ def _is_boundary(token: str) -> bool:
     if lettered:
         stem = lettered.group(1)
         return not (stem.islower() and len(stem) <= 3)   # `A2` a label, `m2` a unit
+    if _JOINERS.search(core):
+        parts = [part for part in _JOINERS.split(core) if part]
+        if any(_unit_atom(part) for part in parts):
+            return False                     # `g/xyz`, `dry·g`, `kg-m/s`: a unit half-read
+        return any(part.isalpha() and _word(part) for part in parts)
+        # `high-purity`, `sample_name`, `batch-1/2` have a word; `oz/yd`, `lot_id/2` do not
     if any(ch.isdigit() for ch in core):
         return True                          # `H2O`, `Li₂O`
-    parts = [part for part in re.split(r"[-'’_]", core) if part]
-    if len(parts) > 1 and all(part.isalpha() for part in parts):
-        return any(_word(part) for part in parts)   # `high-purity`; `kg-m` is not
-    parts = _FRAGMENT_SPLIT.split(core)
-    if len(parts) > 1:
-        if any(_unit_atom(part) for part in parts):
-            return False                     # `g/xyz`: a unit half-read
-        return all(part.isalpha() for part in parts) and any(_word(p) for p in parts)
     return False
 
 
@@ -581,6 +583,10 @@ _SHORT_WORDS = frozenset("""
 #: Dotted abbreviations that are words. Any other run of dotted single letters
 #: — `a.u.`, `p.u.`, `r.u.` — is a unit symbol and blocks after a join.
 _ABBREVIATIONS = frozenset({"e.g", "i.e", "a.m", "p.m", "n.b", "c.f"})
+#: The joiners a word or a unit may be written with. A full-width one (`／`,
+#: `－`, `＿`) is not among them, so a token joined by one is not read and
+#: blocks after a join.
+_JOINERS = re.compile(r"[-'’_/⁄·⋅]")
 #: The apostrophes `_scan` treats as boundaries; a letter directly after one
 #: makes the token before it a contraction, which is a word.
 _APOSTROPHES = "'\u2019\u2018"
@@ -1349,18 +1355,21 @@ register("number_source", check_number_source,
          "it managed to read, because that part is a prefix. One limit is stated "
          "rather than hidden: an unnamed fragment of four or more letters, or a "
          "capitalised one, reads as a WORD, so '5 kg m mmHg' offers 'kg m' exactly "
-         "as '5 g mmHg' offers 'g', and the fragment table is the only guard "
-         "there. After a join, a solidus or middle dot joining nothing but short "
-         "parts this check does not name as words ('oz/yd', 'oz·yd'; 'wet/dry' "
-         "reads), a short stem under an exponent or a digit ('run-2', 'm2'), short "
-         "stems joined by a hyphen or an underscore ('kg-m', 'lot_id'), a dotted "
-         "abbreviation other than e.g., i.e., a.m., p.m., n.b., c.f. ('a.u.' is "
-         "arbitrary units), and a short lower-case word this check does not name "
-         "BLOCK, each being the shape of a unit; a word of any other shape - "
-         "hyphenated, contracted, abbreviated, in another script, or carrying "
-         "trailing punctuation - ends the unit as a word does, and a percent sign "
-         "on a word ('sample%', 'dry%') reads while on an unnamed short stem "
-         "('abc%') it is a unit. "
+         "as '5 g mmHg' offers 'g' ('GBq' likewise), and the fragment table is the "
+         "only guard there. After a join, a solidus, middle dot or dot operator "
+         "joining nothing but short parts this check does not name as words "
+         "('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads), a short stem under an "
+         "exponent or a digit ('run-2', 'm2'), short stems joined by a hyphen or an "
+         "underscore ('kg-m', 'lot_id', and 'lot_id/2' with a digit added), a "
+         "fragment joined to anything that is not one ('g/xyz', 'dry·g', 'kg-m/s'), "
+         "a token joined by a full-width character ('kg／m'), a dotted abbreviation "
+         "other than e.g., i.e., a.m., p.m., n.b., c.f. ('a.u.' is arbitrary "
+         "units), and a short lower-case word this check does not name BLOCK, each "
+         "being the shape of a unit; a word of any other shape - hyphenated, "
+         "contracted, abbreviated, in another script, or carrying trailing "
+         "punctuation - ends the unit as a word does, and a percent or per-mille "
+         "sign on a word ('sample%', 'dry%', 'wet‰') reads while on an unnamed "
+         "short stem ('abc%') or an element symbol ('Ni‰') it is a unit. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
