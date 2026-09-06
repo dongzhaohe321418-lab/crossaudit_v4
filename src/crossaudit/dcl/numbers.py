@@ -489,8 +489,8 @@ def _is_boundary(token: str) -> bool:
       names (`dry`, `wet`, `raw`, `pH`), an alphabetic word of four or more
       letters (`sample`, `later`), or one of the dotted abbreviations it names
       (`e.g.`, `i.e.`, `a.m.`, `p.m.`);
-    * a marked word whose stem is longer than a unit symbol (`batch-1`,
-      `sample¹`, `sample%`);
+    * a marked word whose stem is a word (`batch-1`, `sample¹`, `sample%`,
+      `dry%`);
     * a hyphenated, underscored or apostrophised word with a word among its
       parts (`high-purity`, `sample_name`); a contraction (`we're`, `l'état`)
       is read in `_spaced_unit`, because the scanner splits at the apostrophe
@@ -503,11 +503,13 @@ def _is_boundary(token: str) -> bool:
     lower-case token that is none of the above (`qz`, and any three-letter
     word the short list above does not carry); a stem of one to three letters
     under an exponent or a digit (`xyz⁻¹`, `run-2`, `m2`, `m₂` — the shapes of
-    `s-1` and `m2`); short stems joined by a hyphen (`kg-m`); a dotted
+    `s-1` and `m2`); short stems joined by a hyphen or an underscore (`kg-m`,
+    `lot_id`); a dotted
     abbreviation this module does not name (`a.u.`, `p.u.` — arbitrary units,
     which the fourth review found reading as prose); and a solidus joining
     nothing but short unknown parts (`oz/yd`), which the third review showed
-    passing `kg m` as prose; `wet/dry` reads,
+    passing `kg m` as prose, and the same on a
+    middle dot (`oz·yd`); `wet/dry` reads,
     because the short-word list names both halves, and `x/y` blocks. At the
     first continuation all of these still end the unit, as before.
 
@@ -539,7 +541,7 @@ def _is_boundary(token: str) -> bool:
     if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", core):
         return core.lower().rstrip(".") in _ABBREVIATIONS   # `e.g` a word, `a.u` a unit
     if core[-1] in "%‰" and core[:-1].isalpha():
-        return len(core) - 1 >= 4            # `sample%` a word; a short stem is a unit
+        return _word(core[:-1])              # `sample%`, `dry%` words; `abc%` a unit
     tail = _EXPONENT_TAIL.search(core)
     if tail and tail.start() > 0:
         stem = core[:tail.start()]
@@ -1348,14 +1350,17 @@ register("number_source", check_number_source,
          "rather than hidden: an unnamed fragment of four or more letters, or a "
          "capitalised one, reads as a WORD, so '5 kg m mmHg' offers 'kg m' exactly "
          "as '5 g mmHg' offers 'g', and the fragment table is the only guard "
-         "there. After a join, a solidus joining nothing but short parts this check "
-         "does not name as words ('oz/yd'; 'wet/dry' reads), a short stem under an exponent or a "
-         "digit ('run-2', 'm2'), short stems joined by a hyphen ('kg-m'), a dotted "
-         "abbreviation other than e.g., i.e., a.m., p.m. ('a.u.' is arbitrary "
-         "units), and a short lower-case word this check does not name BLOCK, "
-         "each being the shape of a unit; a word of any other shape - hyphenated, "
-         "contracted, abbreviated, in another script, or carrying trailing "
-         "punctuation - ends the unit as a word does. "
+         "there. After a join, a solidus or middle dot joining nothing but short "
+         "parts this check does not name as words ('oz/yd', 'oz·yd'; 'wet/dry' "
+         "reads), a short stem under an exponent or a digit ('run-2', 'm2'), short "
+         "stems joined by a hyphen or an underscore ('kg-m', 'lot_id'), a dotted "
+         "abbreviation other than e.g., i.e., a.m., p.m., n.b., c.f. ('a.u.' is "
+         "arbitrary units), and a short lower-case word this check does not name "
+         "BLOCK, each being the shape of a unit; a word of any other shape - "
+         "hyphenated, contracted, abbreviated, in another script, or carrying "
+         "trailing punctuation - ends the unit as a word does, and a percent sign "
+         "on a word ('sample%', 'dry%') reads while on an unnamed short stem "
+         "('abc%') it is a unit. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "

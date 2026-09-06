@@ -1853,7 +1853,11 @@ JOINED_PROSE = [
     ("pH",            "a short common word this module names"),
     ("dry powder",    "and a three-letter one — `dry` has a symbol's length"),
     ("sample%",       "a long word with a percent sign"),
+    ("dry%",          "a short named word with one — the fifth review's row"),
+    ("wet‰",          "and with a per-mille sign"),
     ("sample_name",   "an underscored word"),
+    ("n.b.",          "a dotted abbreviation the module names"),
+    ("样品。",          "trailing full-width punctuation"),
 ]
 JOINED_UNREADABLE = [
     ("xyz⁻¹",  "an exponent on a stem this table does not name"),
@@ -1861,6 +1865,11 @@ JOINED_UNREADABLE = [
     ("m2",     "a digit on a short lower-case stem — the shape of `m2` the unit"),
     ("m₂",     "and a subscript one"),
     ("kg-m",   "short stems on a hyphen"),
+    ("lot_id", "short stems on an underscore"),
+    ("ab_cd",  "and two unknown ones"),
+    ("oz·yd",  "short unknown parts on a middle dot"),
+    ("oz⋅yd",  "and on a dot operator"),
+    ("abc%",   "a percent sign on a short unnamed stem"),
     ("g/xyz",  "a fragment joined to something that is not one"),
     ("oz/yd",  "short unknown parts on a solidus — the third review's false pass"),
     ("x/y",    "and its one-letter form"),
@@ -1917,23 +1926,34 @@ def test_the_first_continuation_still_reads_the_shapes_the_join_blocks():
 DISCLOSED_LIMITS = [
     ("the fragment table is the only guard", "is read as a word after the unit",
      "5 kg m mmHg", "kg m", True),
-    ("('oz/yd'; 'wet/dry' reads)", "such as `oz/yd`", "5 kg m oz/yd", "kg m", False),
-    ("('oz/yd'; 'wet/dry' reads)", "such as `oz/yd`", "5 wt % wet/dry", "wt %", True),
+    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 kg m oz/yd", "kg m", False),
+    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 kg m oz·yd", "kg m", False),
+    ("('oz/yd', 'oz·yd'; 'wet/dry' reads)", "such as `oz/yd` or `oz·yd`", "5 wt % wet/dry", "wt %", True),
     ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 wt % run-2", "wt %", False),
     ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 kg m m2", "kg m", False),
-    ("('kg-m')", "such as `kg-m`", "5 wt % kg-m", "wt %", False),
-    ("('a.u.' is arbitrary units)", "such as\n    `a.u.`", "5 kg m a.u. signal", "kg m", False),
-    ("a short lower-case word this check does not name", "a short lower-case word the\n    checker does not know",
+    ("('kg-m', 'lot_id')", "such as `kg-m` or `lot_id`", "5 wt % kg-m", "wt %", False),
+    ("('kg-m', 'lot_id')", "such as `kg-m` or `lot_id`", "5 wt % lot_id", "wt %", False),
+    ("('a.u.' is arbitrary units)", "a dotted abbreviation such as `a.u.`", "5 kg m a.u. signal", "kg m", False),
+    ("other than e.g., i.e., a.m., p.m., n.b., c.f.", "(other than e.g., i.e., a.m., p.m., n.b., c.f.)",
+     "5 kg m n.b. note", "kg m", True),
+    ("a short lower-case word this check does not name", "a short lower-case word the checker does not know",
      "5 wt % qz", "wt %", False),
-    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % high-purity powder", "wt %", True),
-    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % we're ready", "wt %", True),
-    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
      "5 wt % e.g. this", "wt %", True),
     ("hyphenated, contracted, abbreviated, in another script", "words in another script",
      "5 wt % 样品", "wt %", True),
     ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % sample，", "wt %", True),
+    ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % 样品。", "wt %", True),
+    ("a percent sign on a word ('sample%', 'dry%') reads", "words with a percent sign such as `sample%` or `dry%`",
+     "5 wt % sample%", "wt %", True),
+    ("a percent sign on a word ('sample%', 'dry%') reads", "words with a percent sign such as `sample%` or `dry%`",
+     "5 wt % dry% powder", "wt %", True),
+    ("on an unnamed short stem ('abc%') it is a unit", "words with a percent sign such as `sample%` or `dry%`",
+     "5 wt % abc%", "wt %", False),
 ]
 
 
@@ -1946,9 +1966,10 @@ def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
     from crossaudit.dcl.numbers import contains_pair
     from crossaudit.scaffold import annotation_skill_tree
 
-    contract = contracts(["number_source"])["number_source"]
+    contract = " ".join(contracts(["number_source"])["number_source"].split())
+    body = " ".join(annotation_skill_tree(["number_source"])[NUMBERS_SKILL].split())
     assert contract_phrase in contract, contract_phrase
-    assert skill_phrase in annotation_skill_tree(["number_source"])[NUMBERS_SKILL], skill_phrase
+    assert skill_phrase in body, skill_phrase     # whitespace-normalised: wrapping is not a claim
     assert contains_pair(span, "5", unit) is expected, (span, unit)
 
 

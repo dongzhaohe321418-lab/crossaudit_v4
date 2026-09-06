@@ -7299,4 +7299,7 @@ ten disclosure rows skipping the skill; dotted abbreviations are now a named
 list, a letter after an apostrophe ends the unit in `_spaced_unit`, a short
 list of common three-letter words is named (which also lets `wet/dry` read
 again, so that disclosed false block is gone), and every row binds a contract
-phrase, a skill phrase and the behaviour. Arm 4 next.*
+phrase, a skill phrase and the behaviour. The fifth found the percent-sign
+branch testing length where `_word()` was owed (`dry%` blocked), underscore
+and middle-dot joins undisclosed, and six named abbreviations where the words
+said four; each is fixed and bound. Arm 4 next.*

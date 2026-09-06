@@ -260,6 +260,26 @@ Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ =
 W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
 `tests/test_number_source_check.py` 908 passed.
 
+### What the fifth review found, and what it changed
+
+1. **A named short word with a percent sign blocked** (P1): `5 wt % dry% powder`
+   blocked `wt %` because the percent-sign branch tested length instead of
+   `_word()`. It uses `_word()` now, and `dry%`, `wet‰` read; `abc%` blocks
+   and is disclosed. Short parts on an underscore (`lot_id`) and on a middle
+   dot (`oz·yd`) blocked as the hyphen and solidus shapes do, but the
+   disclosure named only hyphens and solidi; it names all four joiners now.
+2. **The abbreviation list had six entries and the words said four** (P2):
+   `n.b.` and `c.f.` read as words while the contract and skill said only
+   `e.g.`, `i.e.`, `a.m.`, `p.m.` did. Both now list all six, and a row binds
+   `n.b.`.
+3. `DISCLOSED_LIMITS` grows to 20 rows, each a contract phrase, a skill phrase
+   (compared whitespace-normalised, so line wrapping is not a claim) and the
+   behaviour; the trailing-punctuation row gains `样品。`.
+
+Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ = 11,
+W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
+`tests/test_number_source_check.py` 924 passed.
+
 ### Out of scope, noted for a later extension
 
 Two limitations the reviewer confirmed are **pre-existing and untouched here**:
