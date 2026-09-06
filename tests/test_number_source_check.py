@@ -1831,6 +1831,7 @@ def test_a_substance_or_label_ends_a_joined_expression_before_the_table_is_read(
 #: by the same path and both were wrong.
 JOINED_PROSE = [
     ("heating/cooling", "words joined by a solidus, a word among them"),
+    ("wet/dry",      "two short words the module names, on a solidus"),
     ("batch-1",      "a label: a hyphen-numeral on a stem longer than a symbol"),
     ("sample\u00b9", "a footnote on a long stem"),
     ("A2",           "a label with a digit"),
@@ -1845,6 +1846,14 @@ JOINED_PROSE = [
     ("e.g.",         "an abbreviation of single letters"),
     ("sample，",      "a word with trailing punctuation the scanner keeps"),
     ("样品",           "a word in a script that writes no unit symbol"),
+    ("we're ready",   "a contraction — the scanner splits at the apostrophe"),
+    ("don't",         "and a straight-apostrophe one"),
+    ("l’état",        "and a typographic one"),
+    ("α",             "a bare Greek letter: a variable"),
+    ("pH",            "a short common word this module names"),
+    ("dry powder",    "and a three-letter one — `dry` has a symbol's length"),
+    ("sample%",       "a long word with a percent sign"),
+    ("sample_name",   "an underscored word"),
 ]
 JOINED_UNREADABLE = [
     ("xyz⁻¹",  "an exponent on a stem this table does not name"),
@@ -1854,8 +1863,10 @@ JOINED_UNREADABLE = [
     ("kg-m",   "short stems on a hyphen"),
     ("g/xyz",  "a fragment joined to something that is not one"),
     ("oz/yd",  "short unknown parts on a solidus — the third review's false pass"),
-    ("wet/dry", "the same shape as `oz/yd`: a false block after a join, disclosed"),
     ("x/y",    "and its one-letter form"),
+    ("a.u.",   "arbitrary units: a dotted abbreviation not named as a word — the fourth's"),
+    ("p.u.",   "per-unit, the same shape"),
+    ("r.u.",   "relative units"),
     ("qz",     "a short lower-case token: not a word, not a fragment"),
     ("°X",     "a degree sign on an unnamed letter"),
 ]
@@ -1879,9 +1890,9 @@ def test_prose_after_a_join_is_the_boundary_it_is_after_one_token(token, why):
 def test_an_unreadable_unit_after_a_join_still_blocks(token, why):
     """The mirror of the table above: widening prose to "anything that is not
     a fragment" would pass these, and each is, or has the shape of, a unit
-    half-read. The third review's `oz/yd` is the row that put `wet/dry` here:
-    two short lower-case parts on a solidus are one shape, and the join blocks
-    on it — a disclosed false block on the word pair, in the safe direction."""
+    half-read. The third review's `oz/yd` is the row: two short lower-case
+    parts on a solidus are the shape of a unit unless the module names them as
+    words, which is the only reason `wet/dry` reads and `x/y` does not."""
     from crossaudit.dcl.numbers import contains_pair
 
     assert not contains_pair(f"5 wt % {token}", "5", "wt %"), why
@@ -1894,25 +1905,35 @@ def test_the_first_continuation_still_reads_the_shapes_the_join_blocks():
     the same shapes after a join is the disclosed limit, not a change here."""
     from crossaudit.dcl.numbers import contains_pair
 
-    for token in ("wet/dry", "x/y", "oz/yd", "run-2", "m2", "kg-m", "high-purity", "样品"):
+    for token in ("wet/dry", "x/y", "oz/yd", "run-2", "m2", "kg-m", "high-purity", "样品",
+                  "a.u.", "we're", "qz"):
         assert contains_pair(f"5 g {token} sample", "5", "g"), token
 
 
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
-#: test binds presence, not truth — so here a phrase is asserted only with its row.
+#: test binds presence, not truth — so here a phrase is asserted only with its row; the
+#: fourth found five rows skipping the skill, so every row now names a skill phrase too.
 DISCLOSED_LIMITS = [
     ("the fragment table is the only guard", "is read as a word after the unit",
      "5 kg m mmHg", "kg m", True),
-    ("('oz/yd', and 'wet/dry' with it)", "such as `wet/dry`", "5 kg m oz/yd", "kg m", False),
-    ("('oz/yd', and 'wet/dry' with it)", "such as `wet/dry`", "5 wt % wet/dry", "wt %", False),
-    ("('run-2', 'm2')", "such as `run-2`", "5 wt % run-2", "wt %", False),
-    ("('run-2', 'm2')", "such as `run-2`", "5 kg m m2", "kg m", False),
-    ("('kg-m')", None, "5 wt % kg-m", "wt %", False),
-    ("hyphenated, abbreviated, in another script", None, "5 wt % high-purity powder", "wt %", True),
-    ("hyphenated, abbreviated, in another script", None, "5 wt % e.g. this", "wt %", True),
-    ("hyphenated, abbreviated, in another script", None, "5 wt % 样品", "wt %", True),
-    ("carrying trailing punctuation", None, "5 wt % sample，", "wt %", True),
+    ("('oz/yd'; 'wet/dry' reads)", "such as `oz/yd`", "5 kg m oz/yd", "kg m", False),
+    ("('oz/yd'; 'wet/dry' reads)", "such as `oz/yd`", "5 wt % wet/dry", "wt %", True),
+    ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 wt % run-2", "wt %", False),
+    ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 kg m m2", "kg m", False),
+    ("('kg-m')", "such as `kg-m`", "5 wt % kg-m", "wt %", False),
+    ("('a.u.' is arbitrary units)", "such as\n    `a.u.`", "5 kg m a.u. signal", "kg m", False),
+    ("a short lower-case word this check does not name", "a short lower-case word the\n    checker does not know",
+     "5 wt % qz", "wt %", False),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+     "5 wt % high-purity powder", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+     "5 wt % we're ready", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such\n    as `e.g.`",
+     "5 wt % e.g. this", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "words in another script",
+     "5 wt % 样品", "wt %", True),
+    ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % sample，", "wt %", True),
 ]
 
 
@@ -1927,8 +1948,7 @@ def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
 
     contract = contracts(["number_source"])["number_source"]
     assert contract_phrase in contract, contract_phrase
-    if skill_phrase:
-        assert skill_phrase in annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
+    assert skill_phrase in annotation_skill_tree(["number_source"])[NUMBERS_SKILL], skill_phrase
     assert contains_pair(span, "5", unit) is expected, (span, unit)
 
 

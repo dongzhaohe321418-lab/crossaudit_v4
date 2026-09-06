@@ -232,6 +232,34 @@ Re-measured after this round, again unchanged to the row: shipped R = 6, W = 0,
 R′ = 11, W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced
 0/0/11/2. `tests/test_number_source_check.py` 894 passed.
 
+### What the fourth review found, and what it changed
+
+1. **`a.u.` read as prose** (P1). The single-letter-abbreviation rule that made
+   `e.g.` a word made arbitrary units one too, and `5 kg m a.u. signal` offered
+   `kg m`. A dotted abbreviation is now a word only if this module names it
+   (`e.g.`, `i.e.`, `a.m.`, `p.m.`, `n.b.`, `c.f.`); any other run of dotted
+   letters — `a.u.`, `p.u.`, `r.u.` — is a unit symbol and blocks after a join.
+2. **Contractions blocked, a regression against the base** (P1). `_scan` splits
+   at an apostrophe, so `_is_boundary` saw `we` and not `we're`, and the
+   apostrophe rule the contract promised could never run. `_spaced_unit` now
+   reads a letter directly after an apostrophe as a contraction and ends the
+   unit there. The other undisclosed base-pass regressions the review found —
+   `α`, `pH`, `sample%`, `sample_name`, and three-letter words such as `dry` —
+   are prose by rule now (a bare Greek letter other than `µ`/`Ω`; a percent
+   sign on a long stem; underscores as hyphens), and by a short named list of
+   common words (`dry wet raw hot old new mix air gas oil ice ash sol gel wax
+   dye pH etc cf vs`) for the three-letter class, whose remainder (`qz`) blocks
+   and is disclosed and bound as a row. The same list makes `wet/dry` read as
+   a word pair after a join, so round 3's disclosed false block on it is gone;
+   `oz/yd` and `x/y` still block.
+3. **Five of ten disclosure rows skipped the skill** (P2). The skill now names
+   every shape, and every row of `DISCLOSED_LIMITS` asserts a contract phrase,
+   a skill phrase and the behaviour.
+
+Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ = 11,
+W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
+`tests/test_number_source_check.py` 908 passed.
+
 ### Out of scope, noted for a later extension
 
 Two limitations the reviewer confirmed are **pre-existing and untouched here**:

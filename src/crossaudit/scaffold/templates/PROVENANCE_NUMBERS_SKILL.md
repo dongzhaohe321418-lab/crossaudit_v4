@@ -43,10 +43,14 @@ All three fields, every row. A row with two cannot be checked and is refused.
     answer there, and it never counts against the work. One limit: a unit
     symbol of four or more letters, or a capitalised one, that the checker
     does not know is read as a word after the unit, so the part before it may
-    match — copy the whole unit regardless. And after a spaced unit, a short
-    word pair such as `wet/dry` or a short label such as `run-2` is read as a
-    possible unit and blocks rather than reads as a word; `uncited` is the
-    honest answer there too.
+    match — copy the whole unit regardless. And after a spaced unit, anything
+    with the shape of a unit symbol blocks rather than reads as a word: a
+    short symbol pair such as `oz/yd`, a short label such as `run-2` or `m2`,
+    short symbols on a hyphen such as `kg-m`, a dotted abbreviation such as
+    `a.u.` (other than e.g., i.e., a.m., p.m.), or a short lower-case word the
+    checker does not know. Hyphenated words, contractions, abbreviations such
+    as `e.g.`, words in another script and words with trailing punctuation are
+    read as words. `uncited` is the honest answer where a correct unit blocks.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

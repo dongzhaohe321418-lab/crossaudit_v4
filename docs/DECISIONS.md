@@ -7291,5 +7291,12 @@ but short unknown parts on a solidus, read as prose and passed `kg m`, while
 `high-purity` blocked where the base had passed it. The grammar now says which
 shapes are prose and which are units; where a word and an unnamed unit are the
 same shape — `wet/dry` beside `oz/yd` — the join blocks, the false block is
-disclosed, and every disclosed limit is bound to the row that makes it true in
-both the contract and the skill. Arm 4 next.*
+disclosed, and every disclosed limit is bound to the row that makes it true.
+The fourth build was refused for `a.u.` reading as prose (the abbreviation rule
+that admits `e.g.`), for contractions blocking because the scanner splits at
+the apostrophe before the boundary rule can see the word, and for five of the
+ten disclosure rows skipping the skill; dotted abbreviations are now a named
+list, a letter after an apostrophe ends the unit in `_spaced_unit`, a short
+list of common three-letter words is named (which also lets `wet/dry` read
+again, so that disclosed false block is gone), and every row binds a contract
+phrase, a skill phrase and the behaviour. Arm 4 next.*
