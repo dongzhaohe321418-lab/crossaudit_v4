@@ -63,8 +63,9 @@ change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
   that unit. A member continued by refused notation stops the list with no reading. A
   member with its own unit never reaches the branch (it is read first), which is the
   preregistered guard.
-* The contract string and the shipped skill each gain one sentence; four
-  `DISCLOSED_LIMITS` rows bind them (the label guard's among them).
+* The contract string gains one sentence and the shipped skill two; the disclosure table
+  gains E2's rows — one per phrase in the contract and in the skill, 62 rows in all after
+  round 3 — so a template patch that silently fails (which is what round 2's was) reddens.
 * Tests: 51 rows, two mutation tests (E2 off; the guard, the separators and the notation
   stop), the quotation-interval test. `tests/test_number_source_check.py` 1110 passed.
   Full suite on the host, runner line (round 3): "3897 passed, 4 skipped, 1 warning in 356.50s (0:05:56)".

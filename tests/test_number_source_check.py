@@ -2339,6 +2339,15 @@ DISCLOSED_LIMITS = [
      "5,12 °C", "°C", False),          # the fixture's value is 5: a glued comma distributes nothing to it
     ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "a word outside it does not protect a number",
      "Heat 5, 10 mL", "mL", True),
+    # The third review: every phrase the skill carries is pinned to a row, so a template
+    # patch that silently fails (round 2) cannot pass this test again.
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Step 5`", "Step 5, 10 mL", "mL", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Figs. 5`", "Figs. 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "`Step: 5`", "Step: 5, 10 mL", "mL", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "fixed named list", "Matrices 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "with their plurals", "Indices 5, 10 °C", "°C", False),
+    ("('Step 5, 10 mL', 'Figs. 5', 'Step: 5')", "compounds and the like", "Compounds 5, 10 °C", "°C", False),
+    ("a comma needs a space after it to separate", "(`12,5` is one number)", "5,12 °C", "°C", False),
 ]
 
 
