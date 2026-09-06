@@ -471,6 +471,60 @@ _MAX_UNIT_TOKENS = 6
 _INLINE_GAP = re.compile(rf"{_INLINE}*")
 
 
+#: E3 (study 13): a DECIMAL stoichiometric subscript is a number with the
+#: empty unit. `0.8` in `LiNi0.8Co0.2O2` is stated by the source, and the gold
+#: labelled all eleven such blocks wrong; `_NUMBER`'s `(?<![\w.])` refused them
+#: because the digits are glued to a letter. The discriminator is the decimal
+#: point, and it is the whole rule: an INTEGER subscript is never read, or `2`
+#: and `3` become citable from every `O2`, `H2O` and `Cr2O3` on the page. This
+#: is the only extension that adds a match no unit constrains, so it is held to
+#: three guards, each with its own mutation test: the value is glued to a
+#: letter (`Fig.3.2` is a label), it is not continued by a digit or a period
+#: (`v1.2.3` is a version), and the whitespace-delimited token holding it is
+#: made of nothing but formula characters (`run_v1.5`, `x=Ni0.5` are not
+#: formulae). Named so the study's ablation can empty it.
+_SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9.])")
+
+#: What a formula token may be made of: letters and digits of any script,
+#: brackets, the middle dot of a hydrate, a period only between two digits, and
+#: the non-stoichiometry marker `−δ` / `±δ` — U+2212 or U+00B1 directly before
+#: a letter, never before a digit, where it would be a subtraction.
+_FORMULA_TOKEN = re.compile(r"^(?:[^\W_]|[()\[\]{}·]|[−±](?=[^\W\d_])|(?<=[0-9])\.(?=[0-9]))+$")
+
+#: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
+_TRAILING_PUNCTUATION = ".,;:!?"
+
+
+def _glued_to_letter(span: str, i: int) -> bool:
+    """Whether the character before offset `i` is a letter — `str.isalpha`,
+    not `\w`. Its independent reach is small and stated: the ordinary scan
+    already reads a number after any character that is not a word character
+    or a period (`(HPO4)0.5`, `·0.5`, `−0.5`), and the charset guard refuses an
+    underscore and a period, so what this guard alone refuses is a non-letter
+    alphanumeric — a superscript or subscript digit (`x²0.5`)."""
+    return i > 0 and span[i - 1].isalpha()
+
+
+def _formula_subscripts(span: str, wanted_value: str):
+    """E3: every decimal subscript in `span` whose value is `wanted_value`, as
+    the half-open interval of the digits the source wrote."""
+    for m in _SUBSCRIPT.finditer(span):
+        if normalise_number(m.group(1)) != wanted_value:
+            continue
+        if not _glued_to_letter(span, m.start(1)):
+            continue
+        if _UNPARSED.match(span[m.end(1):]):
+            continue                      # `Ni0.5×10³`: not this number
+        start, end = m.start(1), m.end(1)
+        while start > 0 and not span[start - 1].isspace():
+            start -= 1
+        while end < len(span) and not span[end].isspace():
+            end += 1
+        token = span[start:end].rstrip(_TRAILING_PUNCTUATION)
+        if m.end(1) <= start + len(token) and _FORMULA_TOKEN.match(token):
+            yield m.start(1), m.end(1)
+
+
 def _fragment(token: str) -> bool:
     """A named unit fragment, under the synonym table's folding — which is what
     covers `hours`, `minutes` and `µm` without listing them twice."""
@@ -921,6 +975,10 @@ def pair_occurrences(span: str, value: str, unit: str):
                 # test would accept a quotation that stops inside the unit.
                 yield m.start(1), m.end() + end
                 break
+    if not wanted_unit:
+        # E3 (study 13): a decimal stoichiometric subscript, empty unit only.
+        # A transcribed unit is never satisfied from inside a formula.
+        yield from _formula_subscripts(span, wanted_value)
 
 
 def contains_pair(span: str, value: str, unit: str) -> bool:
@@ -1536,7 +1594,14 @@ register("number_source", check_number_source,
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "
-         "it is unitless. A named location that does not resolve or does not "
+         "it is unitless. A decimal stoichiometric subscript glued to a letter "
+         "inside a formula token ('0.8' in 'LiNi0.8Co0.2O2') is a stated number "
+         "with the empty unit - the weakest match this check makes, since only "
+         "the digits are compared and the same digits in any other formula "
+         "satisfy it too; an integer subscript ('2' in 'H2O', '3' in 'Cr2O3') "
+         "is never read, and a formula token holding anything but letters, "
+         "digits, brackets, the middle dot and the '−δ' / '±δ' marker "
+         "('x=Ni0.5', 'run_v1.5', 'Fig.3.2') is not read either. A named location that does not resolve or does not "
          "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "

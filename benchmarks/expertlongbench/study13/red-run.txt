@@ -1,0 +1,4 @@
+FAILED tests/test_number_source_check.py::test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour['x=Ni0.5'-`x=Ni0.5`-x=Ni0.5-0.5--False]
+FAILED tests/test_number_source_check.py::test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour['run_v1.5'-`run_v1.5`-run_v1.5-1.5--False]
+FAILED tests/test_number_source_check.py::test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour[weakest match this check makes-weakest match the checker makes-LiCo0.2O2-0.2--True]
+25 failed, 86 passed, 1051 deselected in 5.62s

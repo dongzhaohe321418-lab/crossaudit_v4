@@ -2239,6 +2239,95 @@ def test_e2_covers_the_whole_list_in_the_quote_interval():
     assert spans == [(9, 27)], spans          # `0, 20, 40, 80 wt.%`, through the unit
 
 
+E3_ROWS = [
+    ("LiNi0.8Co0.2O2",          "0.8",  "",  True,  "a decimal stoichiometric subscript"),
+    ("LiNi0.8Co0.2O2",          "0.2",  "",  True,  "and the second one"),
+    ("LiNi0.8Co0.2O2",          "8",    "",  False, "the digits after the point are not a value"),
+    ("LiNi0.8Co0.2O2",          "2",    "",  False, "an integer subscript is unreadable"),
+    ("LiNi0.8Co0.2O2",          "0.8",  "M", False, "E3 yields nothing for a transcribed unit"),
+    ("H2O",                     "2",    "",  False, "`H2O`"),
+    ("Cr2O3",                   "3",    "",  False, "`Cr2O3`"),
+    ("Co(NO3)2·6H2O",           "6",    "",  True,  "a hydrate count after the middle dot: the ORDINARY scan reads it, E3 does not"),
+    ("Co(NO3)2·6H2O",           "3",    "",  False, "a bracketed integer"),
+    ("Ni0.95Co0.04Mn0.01(OH)2", "0.04", "",  True,  "a subscript before a bracket"),
+    ("Ni0.95Co0.04Mn0.01(OH)2", "0.01", "",  True,  "the last decimal"),
+    ("Li0.75H1.25RuO3",         "1.25", "",  True,  "a subscript above one"),
+    ("SrCo0.6Fe0.4O3−δ",        "0.6",  "",  True,  "the non-stoichiometry marker `−δ` (§1a)"),
+    ("SrCo0.6Fe0.4O3−δ",        "0.4",  "",  True,  "and its second decimal"),
+    ("SrCo0.6Fe0.4O3±δ",        "0.6",  "",  True,  "`±δ`"),
+    ("SrCo0.6Fe0.4O3−0.5",      "0.6",  "",  False, "the marker before a digit is a subtraction: not a formula token"),
+    ("SrCo0.6Fe0.4O3−0.5",      "0.5",  "",  True,  "and the signed number after it is the ordinary scan's, not E3's"),
+    ("Zr(HPO4)0.5·H2O",         "0.5",  "",  True,  "after a bracket: the ordinary scan, not E3"),
+    ("x²0.5",                   "0.5",  "",  False, "glued to a superscript digit, not a letter"),
+    ("Fig.3.2",                 "3.2",  "",  False, "a period precedes: a figure label"),
+    ("v1.2.3",                  "1.2",  "",  False, "a period follows: a version"),
+    ("run_v1.5",                "1.5",  "",  False, "an underscore in the token"),
+    ("x=Ni0.5",                 "0.5",  "",  False, "an equals sign in the token"),
+    ("\"Ni0.5\"",               "0.5",  "",  False, "quotation marks in the token"),
+    ("Ni0.5×10³",               "0.5",  "",  False, "refused notation on the value"),
+    ("pH7.4",                   "7.4",  "",  True,  "a stated value glued to letters reads"),
+    ("target LiNi0.8Co0.2O2.",  "0.8",  "",  True,  "sentence-final punctuation is stripped"),
+    ("(LiNi0.8Co0.2O2)",        "0.2",  "",  True,  "brackets are formula characters"),
+    ("0.8 alone",               "0.8",  "",  True,  "an unglued number: the ordinary scan"),
+    ("LiCo0.2O2",               "0.2",  "",  True,  "a different formula satisfies the same pair"),
+]
+
+
+@pytest.mark.parametrize("span,value,unit,expected,why", E3_ROWS)
+def test_e3_a_decimal_stoichiometric_subscript(span, value, unit, expected, why):
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(span, value, unit) is expected, why
+
+
+def test_e3_is_the_subscript_hook_and_nothing_else(monkeypatch):
+    """MUTATION: empty `_SUBSCRIPT` — E3 off. The formula rows redden; the
+    ordinary scan, E1 and E2 do not move."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_SUBSCRIPT", re.compile(r"(?!x)x"))
+    assert not numbers.contains_pair("LiNi0.8Co0.2O2", "0.8", "")
+    assert not numbers.contains_pair("SrCo0.6Fe0.4O3−δ", "0.6", "")
+    assert numbers.contains_pair("0.8 alone", "0.8", "")
+    assert numbers.contains_pair("775–850 °C", "775", "°C")
+    assert numbers.contains_pair("0, 20, 40, 80 wt.%", "0", "wt.%")
+
+
+def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
+    """MUTATION, one per guard, each with the row it turns green: read integer
+    subscripts (`H2O` with `2` goes green); drop the letter-before requirement
+    (`x²0.5` goes green — the one shape the charset alone lets through, since
+    the ordinary scan already reads a number after a bracket, a dot or a minus);
+    drop the charset requirement (`run_v1.5` goes green). The rows above hold
+    them red in the shipped code."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    assert not numbers.contains_pair("H2O", "2", "")
+    monkeypatch.setattr(numbers, "_SUBSCRIPT",
+                        re.compile(r"(?<=[^\W\d_])([0-9]+(?:\.[0-9]+)?)(?![0-9.])"))
+    assert numbers.contains_pair("H2O", "2", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("x²0.5", "0.5", "")
+    monkeypatch.setattr(numbers, "_glued_to_letter", lambda span, i: True)
+    assert numbers.contains_pair("x²0.5", "0.5", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("run_v1.5", "1.5", "")
+    monkeypatch.setattr(numbers, "_FORMULA_TOKEN", re.compile(r".*"))
+    assert numbers.contains_pair("run_v1.5", "1.5", "")
+
+
+def test_e3_covers_the_value_alone_in_the_quote_interval():
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    spans = list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", ""))
+    assert spans == [(11, 14)], spans          # `0.8`, the digits the source wrote
+    assert list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", "M")) == []
+
+
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2365,6 +2454,17 @@ DISCLOSED_LIMITS = [
      "5 kg, 10 kg, or 20 kg", "kg", True),
     ("refused notation on a member stops the list", "every member may be annotated",
      "5, 10 × 10⁵ Pa", "×", False),      # the row the stop's deletion turns green
+    # E3 (study 13): a decimal stoichiometric subscript, the one unit-free extension.
+    ("decimal stoichiometric subscript", "decimal stoichiometric subscript",
+     "LiNi0.8Co0.2O2", "0.8", "", True),
+    ("with the empty unit", "with the empty unit", "LiNi0.8Co0.2O2", "0.8", "M", False),
+    ("an integer subscript", "integer subscript", "H2O", "2", "", False),
+    ("'3' in 'Cr2O3'", "`3` in `Cr2O3`", "Cr2O3", "3", "", False),
+    ("the '−δ' / '±δ' marker", "`−δ` marker", "SrCo0.6Fe0.4O3−δ", "0.6", "", True),
+    ("'x=Ni0.5'", "`x=Ni0.5`", "x=Ni0.5", "0.5", "", False),
+    ("'run_v1.5'", "`run_v1.5`", "run_v1.5", "1.5", "", False),
+    ("weakest match this check makes", "weakest match the checker makes",
+     "LiCo0.2O2", "0.2", "", True),
 ]
 
 
