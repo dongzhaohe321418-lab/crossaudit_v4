@@ -114,3 +114,41 @@ subscript states nothing this check reads, and that a unit-free match is the wea
 match the check makes — bound by disclosure rows; suite green; gold re-measured with
 `study13/measure.py` (hook `_SUBSCRIPT` ablated by monkeypatch); the probe's three
 outputs committed as counts and token shapes, never corpus prose.
+
+## Amendment 1 — 2026-09-06, after the first review (fe42d31 → round 2)
+
+The first review (`benchmarks/reviews/2026-09-06-provenance-slice-7-astra-round1.md`) said
+do not merge on four findings; each changes something this file stated, so each is
+recorded here and not edited above.
+
+1. **"Not followed by a digit" was ASCII.** `_SUBSCRIPT`'s lookahead refused `[0-9]`; a
+   full-width, Arabic-Indic or subscript digit after the decimal (`Ni0.5２O`, `Ni0.5٢O`,
+   `Ni0.5₂O`) let `0.5` — a strict prefix of the digits the source wrote — satisfy the
+   pair, through the real fenced interface. §1b's rule now reads *not followed by a digit of
+   any script* (`str.isnumeric`), by a named guard `_continued_by_digit` with its own
+   mutation row (`Ni0.5２O`; the subscript-digit shape is also held by item 2).
+2. **The charset was not a formula test.** `Figure3.2`, `Table1.2`, `SampleA0.8`,
+   `DOI10.1234`, `version1.2` passed the charset and became empty-unit passes. The rule
+   now requires, in addition, that every run of letters in the token parse as a sequence
+   of element symbols (118, with `x`, `y`, `z`, `δ` admitted as variables); named
+   `_element_symbols`, mutation row `Figure3.2`. Two consequences the run measured:
+   `pH7.4` — §5 said green — is now red (`p` is no symbol), a disclosed limit; and the
+   design's "glued to a letter" is carried by this parse, so the separate letter guard
+   of the first build, which had no row of its own to redden, is gone (§6's third row is
+   now the element parse; `x²0.5` stays red because `x²` is no element run). P1 on the
+   corpus is unchanged: 17 tokens, all formulae.
+3. **"An integer subscript is never read" overclaimed.** `(OH)2` and `[Fe(CN)6]3−` make
+   `2` and `6` citable through the ordinary scan, which reads any number a non-word
+   character precedes and always did. The contract and the skill now say exactly that
+   ("glued to a letter" is what this rule does not read; after a bracket or a middle dot
+   the ordinary scan reads it), with rows for `(OH)2` and `Co(NO3)2·6H2O`.
+4. **The interval was the digits, so "quote the formula" was advice.** `pair_occurrences`
+   now yields the whole formula token as the interval, so under content addressing a
+   quotation of `0.8` alone is a wrong span (CA-NUM-002) and the formula must be quoted —
+   the one deterministic tie between a unit-free match and the material it belongs to.
+   A fenced-interface test binds it. Gold, probe and panel are unaffected (they use
+   `contains_pair`).
+
+The gold and the probe were re-run after these changes: R = 11, W = R′ = W′ = 0, right
+blocks 10/10, panel 2/97; P1 17/0, P2 0/3910 and 0/2205, P3 12 of 23 — identical to the
+first run.

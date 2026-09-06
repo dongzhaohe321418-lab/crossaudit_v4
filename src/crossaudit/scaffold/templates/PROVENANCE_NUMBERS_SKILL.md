@@ -76,11 +76,15 @@ All three fields, every row. A row with two cannot be checked and is refused.
     like, with their plurals); a word outside it does not protect a number.
   - A decimal stoichiometric subscript may be annotated with the empty unit:
     `0.8` in `LiNi0.8Co0.2O2` and `0.6` in `SrCo0.6Fe0.4O3−δ` (the `−δ` marker
-    is read) are stated. An integer subscript is not readable — `2` in `H2O`,
-    `3` in `Cr2O3` — write `uncited`. The checker reads a formula made only
-    of letters, digits, brackets and `·`; `x=Ni0.5` or `run_v1.5` is not one.
-    A unit-free match is the weakest match the checker makes: the same digits
-    in a different formula satisfy it too, so quote the formula itself.
+    is read) are stated. An integer subscript glued to a letter is not
+    readable — `2` in `H2O`, `3` in `Cr2O3` — write `uncited`; an integer
+    after a bracket or a middle dot (`(OH)2`, `·6H2O`) matches, but only as a
+    bare number. The checker reads a formula whose letters are element
+    symbols (`x`, `y`, `z`, `δ` allowed as variables) with digits, brackets
+    and `·`; `Figure3.2`, `pH7.4`, `x=Ni0.5` or `run_v1.5` is not one. A
+    unit-free match is the weakest match the checker makes: the same digits
+    in a different formula satisfy it too, so **quote the whole formula** —
+    a quotation of the digits alone is a wrong span.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

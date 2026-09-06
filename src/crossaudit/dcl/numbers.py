@@ -494,25 +494,62 @@ _FORMULA_TOKEN = re.compile(r"^(?:[^\W_]|[()\[\]{}·]|[−±](?=[^\W\d_])|(?<=[0
 #: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
 _TRAILING_PUNCTUATION = ".,;:!?"
 
+#: The 118 element symbols. The first review found the charset test admitting
+#: `Figure3.2`, `Table1.2`, `SampleA0.8`, `DOI10.1234` and `version1.2` — a
+#: charset is not a formula test. A formula's letters parse as element symbols;
+#: `x`, `y`, `z` and `δ` are admitted as the variables of a non-stoichiometric
+#: formula (`O2−xFx`, `O3−δ`). Named so the study's mutation can empty the test.
+_ELEMENTS = frozenset("""
+    H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu
+    Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs
+    Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au Hg Tl
+    Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf Db Sg Bh
+    Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og
+""".split())
+_VARIABLES = frozenset("xyzδ")
+_LETTER_RUNS = re.compile(r"[^\W\d_]+")
 
-def _glued_to_letter(span: str, i: int) -> bool:
-    """Whether the character before offset `i` is a letter — `str.isalpha`,
-    not `\w`. Its independent reach is small and stated: the ordinary scan
-    already reads a number after any character that is not a word character
-    or a period (`(HPO4)0.5`, `·0.5`, `−0.5`), and the charset guard refuses an
-    underscore and a period, so what this guard alone refuses is a non-letter
-    alphanumeric — a superscript or subscript digit (`x²0.5`)."""
-    return i > 0 and span[i - 1].isalpha()
+
+def _element_symbols(run: str) -> bool:
+    """Whether a run of letters is a sequence of element symbols and
+    variables — any parse will do (`Co` is cobalt or carbon-oxygen)."""
+    ok = [True] + [False] * len(run)
+    for i in range(len(run)):
+        if not ok[i]:
+            continue
+        for n in (1, 2):
+            piece = run[i:i + n]
+            if len(piece) == n and (piece in _ELEMENTS
+                                    or (n == 1 and piece in _VARIABLES)):
+                ok[i + n] = True
+    return ok[len(run)]
+
+
+def _formula_shaped(token: str) -> bool:
+    """The charset, and every run of letters an element-symbol sequence."""
+    return bool(_FORMULA_TOKEN.match(token)) and all(
+        _element_symbols(m.group()) for m in _LETTER_RUNS.finditer(token))
+
+
+def _continued_by_digit(span: str, i: int) -> bool:
+    """Whether a digit of ANY script follows offset `i` — `str.isnumeric`, not
+    `[0-9]`: the first review found `Ni0.5２O`, `Ni0.5٢O` and `Ni0.5₂O`
+    satisfying `0.5`, a strict prefix of the digits the source wrote."""
+    return i < len(span) and span[i].isnumeric()
 
 
 def _formula_subscripts(span: str, wanted_value: str):
     """E3: every decimal subscript in `span` whose value is `wanted_value`, as
-    the half-open interval of the digits the source wrote."""
+    the half-open interval of the formula token holding it."""
     for m in _SUBSCRIPT.finditer(span):
         if normalise_number(m.group(1)) != wanted_value:
             continue
-        if not _glued_to_letter(span, m.start(1)):
-            continue
+        # "Glued to a letter" is carried by `_formula_shaped`: the character
+        # before the digits is in a run of letters that must parse as element
+        # symbols, and a superscript digit or a bracket is not one. A separate
+        # letter guard had no mutation that reddened a row, so it is not here.
+        if _continued_by_digit(span, m.end(1)):
+            continue                      # `Ni0.5₂O`: not these digits
         if _UNPARSED.match(span[m.end(1):]):
             continue                      # `Ni0.5×10³`: not this number
         start, end = m.start(1), m.end(1)
@@ -521,8 +558,12 @@ def _formula_subscripts(span: str, wanted_value: str):
         while end < len(span) and not span[end].isspace():
             end += 1
         token = span[start:end].rstrip(_TRAILING_PUNCTUATION)
-        if m.end(1) <= start + len(token) and _FORMULA_TOKEN.match(token):
-            yield m.start(1), m.end(1)
+        if m.end(1) <= start + len(token) and _formula_shaped(token):
+            # The interval is the WHOLE formula, not the digits: under content
+            # addressing the quotation must then contain the formula, which is
+            # the only thing that ties a unit-free match to the material it
+            # belongs to (the first review: a quote of `0.8` alone passed).
+            yield start, start + len(token)
 
 
 def _fragment(token: str) -> bool:
@@ -1598,10 +1639,15 @@ register("number_source", check_number_source,
          "inside a formula token ('0.8' in 'LiNi0.8Co0.2O2') is a stated number "
          "with the empty unit - the weakest match this check makes, since only "
          "the digits are compared and the same digits in any other formula "
-         "satisfy it too; an integer subscript ('2' in 'H2O', '3' in 'Cr2O3') "
-         "is never read, and a formula token holding anything but letters, "
-         "digits, brackets, the middle dot and the '−δ' / '±δ' marker "
-         "('x=Ni0.5', 'run_v1.5', 'Fig.3.2') is not read either. A named location that does not resolve or does not "
+         "satisfy it too, so the quotation must contain the whole formula, not "
+         "the digits alone; a formula token is letters that parse as element "
+         "symbols (x, y, z and δ allowed as variables), digits, brackets, the "
+         "middle dot and the '−δ' / '±δ' marker, and a token of any other shape "
+         "('Figure3.2', 'pH7.4', 'x=Ni0.5', 'run_v1.5') is not read by this rule; "
+         "an integer subscript glued to a letter ('2' in 'H2O', '3' in 'Cr2O3') "
+         "is not read by this rule either, while an integer after a bracket or "
+         "a middle dot ('(OH)2', '·6H2O') was always read by the ordinary scan, "
+         "which reads any number a non-word character precedes. A named location that does not resolve or does not "
          "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "

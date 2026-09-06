@@ -2258,14 +2258,27 @@ E3_ROWS = [
     ("SrCo0.6Fe0.4O3−0.5",      "0.6",  "",  False, "the marker before a digit is a subtraction: not a formula token"),
     ("SrCo0.6Fe0.4O3−0.5",      "0.5",  "",  True,  "and the signed number after it is the ordinary scan's, not E3's"),
     ("Zr(HPO4)0.5·H2O",         "0.5",  "",  True,  "after a bracket: the ordinary scan, not E3"),
-    ("x²0.5",                   "0.5",  "",  False, "glued to a superscript digit, not a letter"),
+    ("x²0.5",                   "0.5",  "",  False, "glued to a superscript digit: `x²` is no element run"),
     ("Fig.3.2",                 "3.2",  "",  False, "a period precedes: a figure label"),
     ("v1.2.3",                  "1.2",  "",  False, "a period follows: a version"),
     ("run_v1.5",                "1.5",  "",  False, "an underscore in the token"),
     ("x=Ni0.5",                 "0.5",  "",  False, "an equals sign in the token"),
     ("\"Ni0.5\"",               "0.5",  "",  False, "quotation marks in the token"),
     ("Ni0.5×10³",               "0.5",  "",  False, "refused notation on the value"),
-    ("pH7.4",                   "7.4",  "",  True,  "a stated value glued to letters reads"),
+    ("pH7.4",                   "7.4",  "",  False, "letters that are not element symbols: not a formula"),
+    ("Figure3.2",               "3.2",  "",  False, "a label glued to its number (the first review)"),
+    ("Table1.2",                "1.2",  "",  False, "another"),
+    ("SampleA0.8",              "0.8",  "",  False, "an identifier"),
+    ("DOI10.1234",              "10.1234", "", False, "a DOI prefix"),
+    ("version1.2",              "1.2",  "",  False, "a version"),
+    ("Nice1.5",                 "1.5",  "",  False, "letters that happen to parse: `Ni`, `c`? — no, `c` is no symbol"),
+    ("Ni0.5２O",                 "0.5",  "",  False, "a full-width digit continues the number (the first review)"),
+    ("Ni0.5₂O",                 "0.5",  "",  False, "a subscript digit continues it"),
+    ("Ni0.5٢O",                 "0.5",  "",  False, "an Arabic-Indic digit continues it"),
+    ("(OH)2",                   "2",    "",  True,  "an integer after a bracket: the ORDINARY scan, not E3"),
+    ("[Fe(CN)6]3−",             "6",    "",  True,  "the same after a bracket inside brackets"),
+    ("Li1.3Mn0.4Nb0.3O2−xFx",   "0.4",  "",  True,  "the variable `x` after the marker"),
+    ("Fe1.2V",                  "1.2",  "",  True,  "an alloy"),
     ("target LiNi0.8Co0.2O2.",  "0.8",  "",  True,  "sentence-final punctuation is stripped"),
     ("(LiNi0.8Co0.2O2)",        "0.2",  "",  True,  "brackets are formula characters"),
     ("0.8 alone",               "0.8",  "",  True,  "an unglued number: the ordinary scan"),
@@ -2296,11 +2309,14 @@ def test_e3_is_the_subscript_hook_and_nothing_else(monkeypatch):
 
 def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
     """MUTATION, one per guard, each with the row it turns green: read integer
-    subscripts (`H2O` with `2` goes green); drop the letter-before requirement
-    (`x²0.5` goes green — the one shape the charset alone lets through, since
-    the ordinary scan already reads a number after a bracket, a dot or a minus);
-    drop the charset requirement (`run_v1.5` goes green). The rows above hold
-    them red in the shipped code."""
+    subscripts (`H2O` with `2` goes green); drop the charset requirement
+    (`x=Ni0.5` goes green — `run_v1.5` is held red by the element parse too);
+    drop the element-symbol parse (`Figure3.2` goes green; this parse is also
+    what makes "glued to a letter" true — `x²0.5` is red because `x²` is no
+    element run, and a separate letter guard had no row of its own); drop the
+    any-script digit guard (`Ni0.5２O`, a full-width digit, goes green; `Ni0.5₂O`
+    is held by the element parse as well). The rows above hold them red
+    in the shipped code."""
     import re
     import crossaudit.dcl.numbers as numbers
 
@@ -2310,22 +2326,45 @@ def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
     assert numbers.contains_pair("H2O", "2", "")
     monkeypatch.undo()
 
-    assert not numbers.contains_pair("x²0.5", "0.5", "")
-    monkeypatch.setattr(numbers, "_glued_to_letter", lambda span, i: True)
-    assert numbers.contains_pair("x²0.5", "0.5", "")
+    assert not numbers.contains_pair("x=Ni0.5", "0.5", "")
+    monkeypatch.setattr(numbers, "_FORMULA_TOKEN", re.compile(r".*"))
+    assert numbers.contains_pair("x=Ni0.5", "0.5", "")     # its letters parse; only the `=` held it
     monkeypatch.undo()
 
-    assert not numbers.contains_pair("run_v1.5", "1.5", "")
-    monkeypatch.setattr(numbers, "_FORMULA_TOKEN", re.compile(r".*"))
-    assert numbers.contains_pair("run_v1.5", "1.5", "")
+    assert not numbers.contains_pair("Figure3.2", "3.2", "")
+    monkeypatch.setattr(numbers, "_element_symbols", lambda run: True)
+    assert numbers.contains_pair("Figure3.2", "3.2", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Ni0.5２O", "0.5", "")
+    monkeypatch.setattr(numbers, "_continued_by_digit", lambda span, i: False)
+    assert numbers.contains_pair("Ni0.5２O", "0.5", "")   # a full-width digit: the guard alone holds it
+    assert not numbers.contains_pair("Ni0.5₂O", "0.5", "")   # a subscript digit: the element parse holds it too
 
 
-def test_e3_covers_the_value_alone_in_the_quote_interval():
+def test_e3_covers_the_whole_formula_in_the_quote_interval():
+    """The first review: with the interval on the digits alone, a quotation of
+    `0.8` passed, and nothing tied the unit-free match to its material."""
     from crossaudit.dcl.numbers import pair_occurrences
 
     spans = list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", ""))
-    assert spans == [(11, 14)], spans          # `0.8`, the digits the source wrote
+    assert spans == [(7, 21)], spans          # `LiNi0.8Co0.2O2`, the whole token
     assert list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", "M")) == []
+
+
+def test_e3_through_the_fenced_interface_needs_the_formula_quoted():
+    """Under content addressing a quotation of the digits alone is a wrong span
+    (CA-NUM-002); the formula quoted passes; a subscript in the wrong formula
+    is contained — the disclosed weakness — and the quotation is what names it."""
+    recipe = RECIPE.replace("- barium carbonate", "- LiNi0.8Co0.2O2 target")
+    prose = "The target LiNi0.8Co0.2O2 is 0.8 nickel."
+    files = {RECIPE_PATH: recipe.encode(),
+             DRAFT_PATH: draft([row("0.8", "", src=cite("LiNi0.8Co0.2O2"))], prose)}
+    assert findings(files) == []
+    files[DRAFT_PATH] = draft([row("0.8", "", src=cite("0.8"))], prose)
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
+    files[DRAFT_PATH] = draft([row("0.8", "", src=cite("- LiNi0.8Co0.2O2 target"))], prose)
+    assert findings(files) == []
 
 
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
@@ -2458,13 +2497,24 @@ DISCLOSED_LIMITS = [
     ("decimal stoichiometric subscript", "decimal stoichiometric subscript",
      "LiNi0.8Co0.2O2", "0.8", "", True),
     ("with the empty unit", "with the empty unit", "LiNi0.8Co0.2O2", "0.8", "M", False),
-    ("an integer subscript", "integer subscript", "H2O", "2", "", False),
+    ("an integer subscript glued to a letter", "integer subscript glued to a letter",
+     "H2O", "2", "", False),
     ("'3' in 'Cr2O3'", "`3` in `Cr2O3`", "Cr2O3", "3", "", False),
+    # The first review: `(OH)2` makes `2` citable through the ordinary scan, so the
+    # words say so instead of "never read".
+    ("after a bracket or a middle dot", "after a bracket or a middle dot", "(OH)2", "2", "", True),
+    ("after a bracket or a middle dot", "after a bracket or a middle dot",
+     "Co(NO3)2·6H2O", "6", "", True),
     ("the '−δ' / '±δ' marker", "`−δ` marker", "SrCo0.6Fe0.4O3−δ", "0.6", "", True),
+    ("parse as element symbols", "element symbols", "Figure3.2", "3.2", "", False),
+    ("'pH7.4'", "`pH7.4`", "pH7.4", "7.4", "", False),
     ("'x=Ni0.5'", "`x=Ni0.5`", "x=Ni0.5", "0.5", "", False),
     ("'run_v1.5'", "`run_v1.5`", "run_v1.5", "1.5", "", False),
     ("weakest match this check makes", "weakest match the checker makes",
      "LiCo0.2O2", "0.2", "", True),
+    # The interval half of this phrase is bound by the fenced-interface test above.
+    ("the quotation must contain the whole formula", "quote the whole formula",
+     "LiNi0.8Co0.2O2", "0.8", "", True),
 ]
 
 
