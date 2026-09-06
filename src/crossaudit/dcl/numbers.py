@@ -471,6 +471,164 @@ _MAX_UNIT_TOKENS = 6
 _INLINE_GAP = re.compile(rf"{_INLINE}*")
 
 
+#: E3 (study 13): a DECIMAL stoichiometric subscript is a number with the
+#: empty unit. `0.8` in `LiNi0.8Co0.2O2` is stated by the source, and the gold
+#: labelled all eleven such blocks wrong; `_NUMBER`'s `(?<![\w.])` refused them
+#: because the digits are glued to a letter. The discriminator is the decimal
+#: point: an INTEGER subscript glued to a letter is not read by this rule, or
+#: `2` and `3` become citable from every `O2`, `H2O` and `Cr2O3` on the page
+#: (after a bracket or a middle dot — `(OH)2`, `·6H2O` — the ORDINARY scan
+#: reads a bare number, and always did). This is the only extension that adds
+#: a match no unit constrains, so it is held to three guards, each a named
+#: function with a mutation row of its own: the digits are glued to a letter
+#: (`_glued_to_letter`), they are not continued by a digit of any script
+#: (`_continued_by_digit`), and the whitespace-delimited token holding them is
+#: formula-shaped (`_formula_shaped`: the charset, and letters that parse as
+#: element symbols), and they are not continued by a period and a digit
+#: (`_continued_by_version`: `v1.2.3`; a sentence-final period after `Ni0.5.`
+#: is punctuation, which the third review found the regex refusing). The
+#: regex's own lookarounds are ASCII and only keep the match from starting or
+#: ending inside an ASCII number; the second review found `Ni２0.5O` reading
+#: `0.5` when the letter guard was absent. Named so the study's ablation can
+#: empty it.
+_SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9])")
+
+#: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
+#: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
+_TRAILING_PUNCTUATION = ".,;:!?"
+_BRACKETS = set("()[]{}")
+#: The digits a formula may carry besides the decimal digits of any script
+#: (`str.isdecimal`, category Nd): the twenty superscript and subscript digits
+#: (`O₂`, `Fe³`). NOT `str.isnumeric`, which the fourth review found admitting
+#: 1,114 numeric symbols that are no digit — Roman numerals, circled numbers,
+#: vulgar fractions, ancient counting marks — so that `Ni0.5OⅧ` read `0.5`.
+_SCRIPT_DIGITS = frozenset("⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉")
+
+
+def _formula_charset(token: str) -> bool:
+    """What a formula token may be made of: letters of any script, decimal
+    digits of any script and the sub- and superscript digits (`LiNi0.5O₂` is
+    a formula; `Ni0.5OⅧ` and `Ni0.5O½` are not), brackets, the
+    middle dot of a hydrate, a period only between two ASCII digits, and the
+    non-stoichiometry marker `−` / `±` (U+2212, U+00B1) only directly before a
+    LETTER — never before a digit, where it is a subtraction. A function and
+    not a regex: the third review found the regex's `[^\\W\\d_]` after the
+    marker admitting `₂`, `²` and `Ⅷ`, 1,151 numeric characters that are not
+    `\\d`, so `Ni0.5O−₂` read `0.5`."""
+    for i, ch in enumerate(token):
+        if ch in _BRACKETS or ch == "·":
+            continue
+        if ch == ".":
+            if not (token[i - 1:i].isascii() and token[i - 1:i].isdigit()
+                    and token[i + 1:i + 2].isascii() and token[i + 1:i + 2].isdigit()):
+                return False
+            continue
+        if ch in "−±":
+            if not token[i + 1:i + 2].isalpha():
+                return False
+            continue
+        if not (ch.isalpha() or ch.isdecimal() or ch in _SCRIPT_DIGITS):
+            return False
+    return bool(token)
+
+#: The variables of a non-stoichiometric formula (`O2−xFx`, `O3−δ`), admitted
+#: beside `_ELEMENTS` — the module's own table of the 118 symbols, above —
+#: when a token's letters are parsed. The first review found the charset
+#: admitting `Figure3.2`, `Table1.2`, `SampleA0.8`, `DOI10.1234` and
+#: `version1.2`: a charset is not a formula test. The parse is SYNTACTIC —
+#: `BaNaNa1.2` reads, `Nice1.2` does not (`ce` is not `Ce`) — and the contract
+#: says so.
+_VARIABLES = frozenset("xyzδ")
+
+
+def _letter_runs(token: str) -> list[str]:
+    r"""Maximal runs of `str.isalpha` characters. Not `[^\W\d_]`, which the
+    second review found treating `₂` and `²` as letters, so that `LiNi0.5O₂`
+    was refused while `LiNi0.5O2` read."""
+    runs, current = [], ""
+    for ch in token:
+        if ch.isalpha():
+            current += ch
+        elif current:
+            runs.append(current)
+            current = ""
+    if current:
+        runs.append(current)
+    return runs
+
+
+def _element_symbols(run: str) -> bool:
+    """Whether a run of letters is a sequence of element symbols and
+    variables — any parse will do (`Co` is cobalt or carbon-oxygen)."""
+    ok = [True] + [False] * len(run)
+    for i in range(len(run)):
+        if not ok[i]:
+            continue
+        for n in (1, 2):
+            piece = run[i:i + n]
+            if len(piece) == n and (piece in _ELEMENTS
+                                    or (n == 1 and piece in _VARIABLES)):
+                ok[i + n] = True
+    return ok[len(run)]
+
+
+def _formula_shaped(token: str) -> bool:
+    """The charset, and every run of letters an element-symbol sequence."""
+    return _formula_charset(token) and all(
+        _element_symbols(run) for run in _letter_runs(token))
+
+
+def _glued_to_letter(span: str, i: int) -> bool:
+    """Whether the character before offset `i` is a letter — `str.isalpha`.
+    What this guard alone refuses is a numeric character the regex's ASCII
+    lookbehind does not see (`Ni２0.5O`, `x²0.5`); a bracket or a middle dot
+    before the digits (`(HPO4)0.5`, `·0.5`) is refused here too, and those
+    numbers are the ORDINARY scan's, read as bare numbers with the digits as
+    the interval, never as E3's with the formula as the interval."""
+    return i > 0 and span[i - 1].isalpha()
+
+
+def _continued_by_digit(span: str, i: int) -> bool:
+    """Whether a digit of ANY script follows offset `i` — `str.isnumeric`, not
+    `[0-9]`: the first review found `Ni0.5２O`, `Ni0.5٢O` and `Ni0.5₂O`
+    satisfying `0.5`, a strict prefix of the digits the source wrote."""
+    return i < len(span) and span[i].isnumeric()
+
+
+def _continued_by_version(span: str, i: int) -> bool:
+    """Whether a period AND a digit follow offset `i` — `v1.2.3` is a version,
+    `Ni0.5.` is a formula at the end of a sentence."""
+    return span[i:i + 1] == "." and span[i + 1:i + 2].isnumeric()
+
+
+def _formula_subscripts(span: str, wanted_value: str):
+    """E3: every decimal subscript in `span` whose value is `wanted_value`, as
+    the half-open interval of the formula token holding it."""
+    for m in _SUBSCRIPT.finditer(span):
+        if normalise_number(m.group(1)) != wanted_value:
+            continue
+        if not _glued_to_letter(span, m.start(1)):
+            continue                      # `Ni２0.5O`, `·0.5`: not this rule's
+        if _continued_by_digit(span, m.end(1)):
+            continue                      # `Ni0.5₂O`: not these digits
+        if _continued_by_version(span, m.end(1)):
+            continue                      # `v1.2.3`: not this number
+        if _UNPARSED.match(span[m.end(1):]):
+            continue                      # `Ni0.5×10³`: not this number
+        start, end = m.start(1), m.end(1)
+        while start > 0 and not span[start - 1].isspace():
+            start -= 1
+        while end < len(span) and not span[end].isspace():
+            end += 1
+        token = span[start:end].rstrip(_TRAILING_PUNCTUATION)
+        if m.end(1) <= start + len(token) and _formula_shaped(token):
+            # The interval is the WHOLE formula, not the digits: under content
+            # addressing the quotation must then contain the formula, which is
+            # the only thing that ties a unit-free match to the material it
+            # belongs to (the first review: a quote of `0.8` alone passed).
+            yield start, start + len(token)
+
+
 def _fragment(token: str) -> bool:
     """A named unit fragment, under the synonym table's folding — which is what
     covers `hours`, `minutes` and `µm` without listing them twice."""
@@ -921,6 +1079,10 @@ def pair_occurrences(span: str, value: str, unit: str):
                 # test would accept a quotation that stops inside the unit.
                 yield m.start(1), m.end() + end
                 break
+    if not wanted_unit:
+        # E3 (study 13): a decimal stoichiometric subscript, empty unit only.
+        # A transcribed unit is never satisfied from inside a formula.
+        yield from _formula_subscripts(span, wanted_value)
 
 
 def contains_pair(span: str, value: str, unit: str) -> bool:
@@ -1536,7 +1698,23 @@ register("number_source", check_number_source,
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "
-         "it is unitless. A named location that does not resolve or does not "
+         "it is unitless. A decimal stoichiometric subscript glued to a letter "
+         "inside a formula token ('0.8' in 'LiNi0.8Co0.2O2') is a stated number "
+         "with the empty unit - the weakest match this check makes, since only "
+         "the digits are compared and the same digits in any other formula "
+         "satisfy it too, so the quotation must contain the whole formula, not "
+         "the digits alone; a formula token is letters that parse as element "
+         "symbols (x, y, z and δ allowed as variables), decimal digits of any "
+         "script and the sub- and superscript digits (not Roman numerals, "
+         "circled numbers or fractions: 'Ni0.5OⅧ' is not read), brackets, the "
+         "middle dot and the '−δ' / '±δ' marker, and a token of any other shape "
+         "('Figure3.2', 'pH7.4', 'x=Ni0.5', 'run_v1.5') is not read by this rule; "
+         "the parse is syntactic, so letters that merely spell symbols "
+         "('BaNaNa1.2') read; "
+         "an integer subscript glued to a letter ('2' in 'H2O', '3' in 'Cr2O3') "
+         "is not read by this rule either, while an integer after a bracket or "
+         "a middle dot ('(OH)2', '·6H2O') was always read by the ordinary scan, "
+         "which reads any number a non-word character precedes. A named location that does not resolve or does not "
          "contain the pair is a blocker; 'uncited' is advisory "
          "and never blocks; a number nobody annotated is not this check's business. "
          "It enforces DECLARED provenance, never coverage, and never judges whether "

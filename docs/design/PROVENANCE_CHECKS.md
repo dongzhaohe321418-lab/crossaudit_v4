@@ -11,7 +11,7 @@ called; §6 names the script behind every number.
 is not enough. On the 16 T03 drafts already in `study-data/`, a **wrong** source
 file contains the claimed (value, unit) pair **27.7%** of the time (596 of 2150
 draws); a locator naming a *line* has a coincidence rate of **0.0%** (0 of
-1825). File-scoped annotation would let a plausible-but-wrong citation pass a
+1825 — zero by construction, CORRECTIONS #32). File-scoped annotation would let a plausible-but-wrong citation pass a
 quarter of the time — the inverted-executable-check failure in a new costume.
 **Every contract below names a span, not a file.**
 
@@ -322,7 +322,7 @@ span rule. Two things separate it from what killed the withdrawn proposal.
 *Direction*: a wrong assertion blocks correct work, whereas a wrong locator
 fails against the generator's own annotation — the annotation is condemned, not
 the artefact. *Residual, measured*: file-scoped, a wrong source contains the
-claimed pair **27.7%** of the time (596/2150); line-scoped, **0.0%** (0/1825).
+claimed pair **27.7%** of the time (596/2150); line-scoped, **0.0%** (0/1825 — zero by construction, CORRECTIONS #32).
 Right behaviour, and only because the locator is a span.
 
 **2. A number that legitimately has no source.** Not an edge case: **13.3%** of
@@ -376,6 +376,13 @@ check cannot tell a careless annotation from a careful one and has not earned a
 blocker. Reproduce in ~2 s, no keys, network or model, from a checkout holding
 the gitignored corpus (or with `CROSSAUDIT_T03_CORPUS` set):
 `python3 benchmarks/expertlongbench/provenance_probe.py`.
+
+> **Correction, 2026-09-06 (CORRECTIONS #32).** The line-scoped figure above, and its two
+> other appearances in this file, are zero by construction: the probe excluded every line
+> its own reader found the pair in and tested the rest with the same reader. The
+> file-scoped 27.7% stands. A real line-scoped measurement — owner line named by the
+> generator's quotation — is study 13's P2: **5/930 = 0.54%** on Arm 4's traced pairs,
+> under the ≤ 5% bar. Nothing else in this section changes.
 
 ### Arm 2 — the generator, with the annotation skill (≈$3, 16 instances)
 

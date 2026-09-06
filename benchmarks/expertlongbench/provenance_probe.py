@@ -13,7 +13,14 @@ gitignored corpus and the read-only archive; writes nothing.
 Expected output (seed 20261104):
 
     n=430 traced=365 unit-clash=8 absent=57
-    file-scoped 596/2150=27.7%  line-scoped 0/1825=0.0%
+    file-scoped 596/2150=27.7%  line-scoped 0/1825=0.0% (zero by construction)
+
+**The line-scoped number is zero by construction** (CORRECTIONS #32): the owner
+lines are every line this reader finds the pair in, they are excluded, and the
+rest are tested with the same reader. Arm 1's drafts carry no annotations, so
+this file has no independent owner to use; the real line-scoped instrument is
+`study13/probe.py`'s P2, whose owner is the generator's own quotation (0.54%).
+The file-scoped number is a measurement and stands.
 """
 from __future__ import annotations
 
@@ -97,7 +104,8 @@ def main() -> int:
 
     print(f"n={total} traced={traced} unit-clash={clash} absent={absent}")
     print(f"file-scoped {coin_file}/{draws_file}={100 * coin_file / draws_file:.1f}%  "
-          f"line-scoped {coin_line}/{draws_line}={100 * coin_line / draws_line:.1f}%")
+          f"line-scoped {coin_line}/{draws_line}={100 * coin_line / draws_line:.1f}% "
+          "(zero by construction, CORRECTIONS #32)")
     return 0
 
 

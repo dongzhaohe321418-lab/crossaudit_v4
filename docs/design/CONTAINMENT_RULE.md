@@ -102,7 +102,7 @@ kPa` with the low endpoint annotated — red today, green after; red throughout 
 borrowed across a different quantity). *False-PASS it could introduce:* the first rule
 matching a number to a unit it does not adjoin, so a wrong line holding any range offers
 two matches instead of one. `PROVENANCE_CHECKS.md:296-299` measured the shipped rule at
-**0.0% (0/1825)** line-scoped against **27.7%** file-scoped; E1 is re-measured against
+**0.0% (0/1825)** line-scoped (zero by construction, CORRECTIONS #32) against **27.7%** file-scoped; E1 is re-measured against
 §6's **≤ 5%** bound before it ships. Refuse the interior reading outright — "the source
 says 775–850 °C, so 800 °C is in it" is a truth claim about an interval, D155's line
 exactly.
@@ -191,7 +191,7 @@ even one wrong pass per hundred correct removals does not ship.** At this corpus
 `R ≤ 51`, so `W/R < 1/100` means **`W` must be 0**: an extension ships only with **zero
 wrong passes**. Independently of `R − W`, it is killed if it raises the line-scoped
 coincidental containment rate above §6's preregistered **5%**
-(`PROVENANCE_CHECKS.md:332-341`; the shipped rule measures 0.0%, 0/1825). And §8g's rate
+(`PROVENANCE_CHECKS.md:332-341`; the shipped rule measures 0.0%, 0/1825 — a figure CORRECTIONS #32 withdraws as zero by construction; the real rate is study 13's 0.54%). And §8g's rate
 cannot be recomputed under an extended matcher and compared with Arm 3's: the
 denominator is defined by the adjudicator, so comparisons are made on the frozen gold or
 not at all.

@@ -1,0 +1,37 @@
+config shipped   corpus instances 50
+P1  tokens E3 reads: 17 distinct, 39 (token, value) readings
+    (Li6.4La3Zr1.4Ta0.6O12)  <- ['0.6', '1.4', '6.4']
+    Fe1.2V  <- ['1.2']
+    K0.5Na0.5(Nb0.85Ta0.15)O3  <- ['0.15', '0.5', '0.85']
+    La2.74Te4  <- ['2.74']
+    Li0.75H1.25RuO3  <- ['0.75', '1.25']
+    Li1.3Al0.3Ti1.7(PO4)3  <- ['0.3', '1.3', '1.7']
+    Li1.3Mn0.4Nb0.3O2−xFx  <- ['0.3', '0.4', '1.3']
+    Li1.5Al0.5Ti1.5(PO4)3  <- ['0.5', '1.5']
+    LiNi0.8Co0.2O2  <- ['0.2', '0.8']
+    LiNi0.92Co0.04Mn0.04O2  <- ['0.04', '0.92']
+    LiNi0.95Co0.04Mn0.01O2  <- ['0.01', '0.04', '0.95']
+    Na3V1.20V0.80(PO4)2F2.20O0.80  <- ['0.80', '1.20', '2.20']
+    NaNi0.8Mn0.1Co0.1O2  <- ['0.1', '0.8']
+    Ni0.8Mn0.1Co0.1(OH)2  <- ['0.1', '0.8']
+    Ni0.92Co0.04Mn0.04(OH)2  <- ['0.04', '0.92']
+    Ni0.95Co0.04Mn0.01(OH)2  <- ['0.01', '0.04', '0.95']
+    SrCo0.6Fe0.4O3−δ  <- ['0.4', '0.6']
+P2  Arm 4 annotated rows 190; quote unlocated 0; traced by the generator's own quote 186; coincidental containment, wrong line of the right source: all 5/930=0.54%  empty-unit 0/20=0.00%; a line of a wrong source: all 3/930=0.32%  empty-unit 0/20=0.00%
+P3  values read from more than one distinct formula token: 12 of 23
+    1e-2: 2 tokens
+    4e-2: 4 tokens
+    1e-1: 2 tokens
+    3e-1: 2 tokens
+    4e-1: 2 tokens
+    5e-1: 2 tokens
+    6e-1: 2 tokens
+    8e-1: 4 tokens
+    92e-2: 2 tokens
+    95e-2: 2 tokens
+    12e-1: 2 tokens
+    13e-1: 2 tokens
+config base   corpus instances 50
+P1  tokens E3 reads: 0 distinct, 0 (token, value) readings
+P2  Arm 4 annotated rows 190; quote unlocated 0; traced by the generator's own quote 186; coincidental containment, wrong line of the right source: all 5/930=0.54%  empty-unit 0/20=0.00%; a line of a wrong source: all 3/930=0.32%  empty-unit 0/20=0.00%
+P3  values read from more than one distinct formula token: 0 of 0

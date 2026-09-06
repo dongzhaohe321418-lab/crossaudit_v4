@@ -2239,6 +2239,185 @@ def test_e2_covers_the_whole_list_in_the_quote_interval():
     assert spans == [(9, 27)], spans          # `0, 20, 40, 80 wt.%`, through the unit
 
 
+E3_ROWS = [
+    ("LiNi0.8Co0.2O2",          "0.8",  "",  True,  "a decimal stoichiometric subscript"),
+    ("LiNi0.8Co0.2O2",          "0.2",  "",  True,  "and the second one"),
+    ("LiNi0.8Co0.2O2",          "8",    "",  False, "the digits after the point are not a value"),
+    ("LiNi0.8Co0.2O2",          "2",    "",  False, "an integer subscript is unreadable"),
+    ("LiNi0.8Co0.2O2",          "0.8",  "M", False, "E3 yields nothing for a transcribed unit"),
+    ("H2O",                     "2",    "",  False, "`H2O`"),
+    ("Cr2O3",                   "3",    "",  False, "`Cr2O3`"),
+    ("Co(NO3)2·6H2O",           "6",    "",  True,  "a hydrate count after the middle dot: the ORDINARY scan reads it, E3 does not"),
+    ("Co(NO3)2·6H2O",           "3",    "",  False, "a bracketed integer"),
+    ("Ni0.95Co0.04Mn0.01(OH)2", "0.04", "",  True,  "a subscript before a bracket"),
+    ("Ni0.95Co0.04Mn0.01(OH)2", "0.01", "",  True,  "the last decimal"),
+    ("Li0.75H1.25RuO3",         "1.25", "",  True,  "a subscript above one"),
+    ("SrCo0.6Fe0.4O3−δ",        "0.6",  "",  True,  "the non-stoichiometry marker `−δ` (§1a)"),
+    ("SrCo0.6Fe0.4O3−δ",        "0.4",  "",  True,  "and its second decimal"),
+    ("SrCo0.6Fe0.4O3±δ",        "0.6",  "",  True,  "`±δ`"),
+    ("SrCo0.6Fe0.4O3−0.5",      "0.6",  "",  False, "the marker before a digit is a subtraction: not a formula token"),
+    ("SrCo0.6Fe0.4O3−0.5",      "0.5",  "",  True,  "and the signed number after it is the ordinary scan's, not E3's"),
+    ("Zr(HPO4)0.5·H2O",         "0.5",  "",  True,  "after a bracket: the ordinary scan, not E3"),
+    ("x²0.5",                   "0.5",  "",  False, "glued to a superscript digit: `x²` is no element run"),
+    ("Fig.3.2",                 "3.2",  "",  False, "a period precedes: a figure label"),
+    ("v1.2.3",                  "1.2",  "",  False, "a period follows: a version"),
+    ("run_v1.5",                "1.5",  "",  False, "an underscore in the token"),
+    ("x=Ni0.5",                 "0.5",  "",  False, "an equals sign in the token"),
+    ("\"Ni0.5\"",               "0.5",  "",  False, "quotation marks in the token"),
+    ("Ni0.5×10³",               "0.5",  "",  False, "refused notation on the value"),
+    ("pH7.4",                   "7.4",  "",  False, "letters that are not element symbols: not a formula"),
+    ("Figure3.2",               "3.2",  "",  False, "a label glued to its number (the first review)"),
+    ("Table1.2",                "1.2",  "",  False, "another"),
+    ("SampleA0.8",              "0.8",  "",  False, "an identifier"),
+    ("DOI10.1234",              "10.1234", "", False, "a DOI prefix"),
+    ("version1.2",              "1.2",  "",  False, "a version"),
+    ("Nice1.5",                 "1.5",  "",  False, "`ce` is not `Ce`: the parse is case-sensitive"),
+    ("BaNaNa1.2",               "1.2",  "",  True,  "letters that merely spell symbols read: the parse is syntactic"),
+    ("CoIn1.2",                 "1.2",  "",  True,  "another"),
+    ("Ni２0.5O",                 "0.5",  "",  False, "a full-width digit BEFORE the decimal (the second review)"),
+    ("Ni٢0.5O",                 "0.5",  "",  False, "an Arabic-Indic digit before it"),
+    ("Ni२0.5O",                 "0.5",  "",  False, "a Devanagari digit before it"),
+    ("LiNi0.5O₂",               "0.5",  "",  True,  "a subscript digit elsewhere in the formula is a digit (the second review)"),
+    ("LiNi0.5O²",               "0.5",  "",  True,  "a superscript digit likewise"),
+    ("LiNi0.5(OH)₂",            "0.5",  "",  True,  "and after a bracket"),
+    ("CuSO4·0.5H2O",            "0.5",  "",  True,  "after the middle dot: the ORDINARY scan reads a bare number; E3 yields nothing"),
+    ("Ⅷ0.5",                    "0.5",  "",  False, "a Roman numeral is numeric, not a letter"),
+    ("Li₂Ni0.5O",               "0.5",  "",  True,  "a subscript digit before the letters is a digit of the charset"),
+    ("Ni0.5O½",                 "0.5",  "",  False, "a vulgar fraction is no digit (the fourth review)"),
+    ("Ni0.5OⅧ",                 "0.5",  "",  False, "nor a Roman numeral"),
+    ("Ni0.5O⑧",                 "0.5",  "",  False, "nor a circled number"),
+    ("Ni0.5O⑴",                 "0.5",  "",  False, "nor a parenthesised one"),
+    ("Ni0.5O２",                 "0.5",  "",  True,  "a full-width digit is a decimal digit"),
+    ("Fe³Ni0.5O",               "0.5",  "",  True,  "a superscript digit is admitted"),
+    ("Ni0.5O2）",                "0.5",  "",  False, "a full-width bracket is outside the charset"),
+    ("Ni0.5O2’s",               "0.5",  "",  False, "an apostrophe likewise"),
+    ("Ni\u200d0.5O",            "0.5",  "",  True,  "a zero-width joiner before the digits: the ORDINARY scan's bare number (pre-existing), not E3 — see the interval test"),
+    ("Ni0.5O−₂",                "0.5",  "",  False, "the marker before a subscript numeral (the third review)"),
+    ("Ni0.5O−²",                "0.5",  "",  False, "before a superscript numeral"),
+    ("Ni0.5O−Ⅷ",                "0.5",  "",  False, "before a Roman numeral"),
+    ("Ni0.5±₂",                 "0.5",  "",  False, "`±` likewise"),
+    ("Ni0.5.",                  "0.5",  "",  True,  "a decimal ending the token, sentence-final (the third review)"),
+    ("Ni0.5,",                  "0.5",  "",  True,  "before a comma"),
+    ("Fe1.2.3",                 "1.2",  "",  False, "a period and a digit follow: a version, whatever the letters"),
+    ("Ni.0.5O",                 "0.5",  "",  False, "a period before the digits: neither the ordinary scan nor E3"),
+    ("Ni0.5２O",                 "0.5",  "",  False, "a full-width digit continues the number (the first review)"),
+    ("Ni0.5₂O",                 "0.5",  "",  False, "a subscript digit continues it"),
+    ("Ni0.5٢O",                 "0.5",  "",  False, "an Arabic-Indic digit continues it"),
+    ("(OH)2",                   "2",    "",  True,  "an integer after a bracket: the ORDINARY scan, not E3"),
+    ("[Fe(CN)6]3−",             "6",    "",  True,  "the same after a bracket inside brackets"),
+    ("Li1.3Mn0.4Nb0.3O2−xFx",   "0.4",  "",  True,  "the variable `x` after the marker"),
+    ("Fe1.2V",                  "1.2",  "",  True,  "an alloy"),
+    ("target LiNi0.8Co0.2O2.",  "0.8",  "",  True,  "sentence-final punctuation is stripped"),
+    ("(LiNi0.8Co0.2O2)",        "0.2",  "",  True,  "brackets are formula characters"),
+    ("0.8 alone",               "0.8",  "",  True,  "an unglued number: the ordinary scan"),
+    ("LiCo0.2O2",               "0.2",  "",  True,  "a different formula satisfies the same pair"),
+]
+
+
+@pytest.mark.parametrize("span,value,unit,expected,why", E3_ROWS)
+def test_e3_a_decimal_stoichiometric_subscript(span, value, unit, expected, why):
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(span, value, unit) is expected, why
+
+
+def test_e3_is_the_subscript_hook_and_nothing_else(monkeypatch):
+    """MUTATION: empty `_SUBSCRIPT` — E3 off. The formula rows redden; the
+    ordinary scan, E1 and E2 do not move."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    monkeypatch.setattr(numbers, "_SUBSCRIPT", re.compile(r"(?!x)x"))
+    assert not numbers.contains_pair("LiNi0.8Co0.2O2", "0.8", "")
+    assert not numbers.contains_pair("SrCo0.6Fe0.4O3−δ", "0.6", "")
+    assert numbers.contains_pair("0.8 alone", "0.8", "")
+    assert numbers.contains_pair("775–850 °C", "775", "°C")
+    assert numbers.contains_pair("0, 20, 40, 80 wt.%", "0", "wt.%")
+
+
+def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
+    """MUTATION, one per guard, each with the row it turns green: read integer
+    subscripts (`H2O` with `2` goes green); drop the charset requirement
+    (`x=Ni0.5` and `Ni0.5O−₂` go green — `run_v1.5` is held red by the element
+    parse too); drop the version guard (`Fe1.2.3` goes green);
+    drop the element-symbol parse (`Figure3.2` goes green); drop the any-script
+    digit guard after the decimal (`Ni0.5２O`, `Ni0.5₂O` go green); drop the
+    letter guard before it (`Ni２0.5O`, `x²0.5` go green — the second review's
+    finding, when the first build's guard had been removed as having no row).
+    The rows above hold them red in the shipped code."""
+    import re
+    import crossaudit.dcl.numbers as numbers
+
+    assert not numbers.contains_pair("H2O", "2", "")
+    monkeypatch.setattr(numbers, "_SUBSCRIPT",
+                        re.compile(r"(?<=[^\W\d_])([0-9]+(?:\.[0-9]+)?)(?![0-9.])"))
+    assert numbers.contains_pair("H2O", "2", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("x=Ni0.5", "0.5", "")
+    assert not numbers.contains_pair("Ni0.5O−₂", "0.5", "")
+    monkeypatch.setattr(numbers, "_formula_charset", lambda token: True)
+    assert numbers.contains_pair("x=Ni0.5", "0.5", "")     # its letters parse; only the `=` held it
+    assert numbers.contains_pair("Ni0.5O−₂", "0.5", "")    # the marker before a numeral (the third review)
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Fe1.2.3", "1.2", "")
+    monkeypatch.setattr(numbers, "_continued_by_version", lambda span, i: False)
+    assert numbers.contains_pair("Fe1.2.3", "1.2", "")     # a period and a digit: a version
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Figure3.2", "3.2", "")
+    monkeypatch.setattr(numbers, "_element_symbols", lambda run: True)
+    assert numbers.contains_pair("Figure3.2", "3.2", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Ni0.5２O", "0.5", "")
+    monkeypatch.setattr(numbers, "_continued_by_digit", lambda span, i: False)
+    assert numbers.contains_pair("Ni0.5２O", "0.5", "")   # the guard alone holds these
+    assert numbers.contains_pair("Ni0.5₂O", "0.5", "")
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Ni２0.5O", "0.5", "")
+    assert not numbers.contains_pair("x²0.5", "0.5", "")
+    monkeypatch.setattr(numbers, "_glued_to_letter", lambda span, i: True)
+    assert numbers.contains_pair("Ni２0.5O", "0.5", "")   # the second review's row
+    assert numbers.contains_pair("x²0.5", "0.5", "")
+
+
+def test_e3_covers_the_whole_formula_in_the_quote_interval():
+    """The first review: with the interval on the digits alone, a quotation of
+    `0.8` passed, and nothing tied the unit-free match to its material."""
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    spans = list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", ""))
+    assert spans == [(7, 21)], spans          # `LiNi0.8Co0.2O2`, the whole token
+    assert list(pair_occurrences("target LiNi0.8Co0.2O2 powder", "0.8", "M")) == []
+    # After a middle dot the ordinary scan yields the digits and E3 yields nothing:
+    # the second review found the first build yielding the whole token there.
+    assert list(pair_occurrences("CuSO4·0.5H2O", "0.5", "")) == [(6, 9)]
+    # A zero-width joiner is not a word character, so the ordinary scan reads a bare
+    # number after it — the frozen base's behaviour, not this slice's; E3 refuses the
+    # token (the joiner is outside the charset) and yields nothing.
+    assert list(pair_occurrences("Ni\u200d0.5O", "0.5", "")) == [(3, 6)]
+    # A decimal ending the token before sentence punctuation: the token, not the period.
+    assert list(pair_occurrences("the Ni0.5.", "0.5", "")) == [(4, 9)]
+
+
+def test_e3_through_the_fenced_interface_needs_the_formula_quoted():
+    """Under content addressing a quotation of the digits alone is a wrong span
+    (CA-NUM-002); the formula quoted passes; a subscript in the wrong formula
+    is contained — the disclosed weakness — and the quotation is what names it."""
+    recipe = RECIPE.replace("- barium carbonate", "- LiNi0.8Co0.2O2 target")
+    prose = "The target LiNi0.8Co0.2O2 is 0.8 nickel."
+    files = {RECIPE_PATH: recipe.encode(),
+             DRAFT_PATH: draft([row("0.8", "", src=cite("LiNi0.8Co0.2O2"))], prose)}
+    assert findings(files) == []
+    files[DRAFT_PATH] = draft([row("0.8", "", src=cite("0.8"))], prose)
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"]
+    files[DRAFT_PATH] = draft([row("0.8", "", src=cite("- LiNi0.8Co0.2O2 target"))], prose)
+    assert findings(files) == []
+
+
 #: Each limit the contract and the shipped skill state, beside the behaviour that makes it
 #: true. The third review found the words present and the behaviour unchecked — a phrase
 #: test binds presence, not truth — so here a phrase is asserted only with its row; the
@@ -2365,6 +2544,30 @@ DISCLOSED_LIMITS = [
      "5 kg, 10 kg, or 20 kg", "kg", True),
     ("refused notation on a member stops the list", "every member may be annotated",
      "5, 10 × 10⁵ Pa", "×", False),      # the row the stop's deletion turns green
+    # E3 (study 13): a decimal stoichiometric subscript, the one unit-free extension.
+    ("decimal stoichiometric subscript", "decimal stoichiometric subscript",
+     "LiNi0.8Co0.2O2", "0.8", "", True),
+    ("with the empty unit", "with the empty unit", "LiNi0.8Co0.2O2", "0.8", "M", False),
+    ("an integer subscript glued to a letter", "integer subscript glued to a letter",
+     "H2O", "2", "", False),
+    ("'3' in 'Cr2O3'", "`3` in `Cr2O3`", "Cr2O3", "3", "", False),
+    # The first review: `(OH)2` makes `2` citable through the ordinary scan, so the
+    # words say so instead of "never read".
+    ("after a bracket or a middle dot", "after a bracket or a middle dot", "(OH)2", "2", "", True),
+    ("after a bracket or a middle dot", "after a bracket or a middle dot",
+     "Co(NO3)2·6H2O", "6", "", True),
+    ("the '−δ' / '±δ' marker", "`−δ` marker", "SrCo0.6Fe0.4O3−δ", "0.6", "", True),
+    ("parse as element symbols", "element symbols", "Figure3.2", "3.2", "", False),
+    ("not Roman numerals", "not Roman numerals", "Ni0.5OⅧ", "0.5", "", False),
+    ("'pH7.4'", "`pH7.4`", "pH7.4", "7.4", "", False),
+    ("'x=Ni0.5'", "`x=Ni0.5`", "x=Ni0.5", "0.5", "", False),
+    ("'run_v1.5'", "`run_v1.5`", "run_v1.5", "1.5", "", False),
+    ("the parse is syntactic", "spell symbols", "BaNaNa1.2", "1.2", "", True),
+    ("weakest match this check makes", "weakest match the checker makes",
+     "LiCo0.2O2", "0.2", "", True),
+    # The interval half of this phrase is bound by the fenced-interface test above.
+    ("the quotation must contain the whole formula", "quote the whole formula",
+     "LiNi0.8Co0.2O2", "0.8", "", True),
 ]
 
 
