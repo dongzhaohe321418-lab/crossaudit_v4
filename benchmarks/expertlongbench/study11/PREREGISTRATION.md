@@ -81,3 +81,26 @@ and the skill say in one sentence that a low endpoint carries the unit written a
 the high one and that no interior value is stated, bound by disclosure rows; suite
 green on the host; gold re-measured with `study11/measure.py` (the hook `_RANGE_ENDPOINTS`
 or its function ablated by monkeypatch).
+
+## Amendment 1 — 2026-09-06, after the run and the first review
+
+Three things this document did not settle, decided afterwards and stated here rather
+than in the results alone:
+
+1. **A chain** (`1–2–3 °C`) was not in §5. The rule reads only one dash-number after
+   the low endpoint and then the high endpoint's unit; where the high endpoint is itself
+   followed by a dash and a number, the first number's reading finds no unit and offers
+   nothing, while the middle number is the low endpoint of the last range and reads the
+   unit. So `(1, °C)` blocks and `(2, °C)` passes. Decided after the run; asserted as
+   rows; not a gold shape.
+2. **The branch is taken first**, not "after the whole-token and range-split readings"
+   as §1a said. Where the text after the number begins with a dash and a number, the
+   whole-token reading is empty (a dash is a boundary) or a hyphen-led token that no
+   unit equals, so the order changes nothing the gold measures; it is stated because
+   §1a said otherwise.
+3. **A spaced ASCII hyphen is refused** (round 2): `10 - 5 °C` read as a range and the
+   base blocked it; a subtraction and a spaced-hyphen range have the same surface, and
+   the gold holds neither. An en or em dash reads spaced or not; an ASCII hyphen reads
+   only with no whitespace either side (`99-102 kPa`). The cost — `5 - 10 °C` blocks —
+   is a false block on a shape absent from the gold, disclosed in the contract, the
+   skill and a row. §1's "optional whitespace either side" is narrowed accordingly.

@@ -22,11 +22,18 @@ and the one range line the gold labels `N` stays blocked.
 
 ## 2. What the gold could not decide
 
-* A range whose low endpoint carries its own unit (`5 g–10 mL`), a chain of three
-  numbers, a signed high endpoint, an em dash, spaced dashes, a thousands group, a
-  spaced or `wt %` tail after the high endpoint, a high endpoint continued by refused
-  notation, and a dash followed by a word — none is in the gold; each ships as a test
-  (§5 of the preregistration).
+* A range whose low endpoint carries its own unit (`5 g–10 mL`), a signed high
+  endpoint, an em dash, spaced dashes, a thousands group, a spaced or `wt %` tail after
+  the high endpoint, a high endpoint continued by refused notation, and a dash followed
+  by a word — none is in the gold; each ships as a test (§5 of the preregistration). A
+  chain of three numbers was NOT in §5: its semantics were decided after the run and are
+  stated in Amendment 1, with rows.
+* **A spaced ASCII hyphen is refused** (round 2, Amendment 1 item 3): the first review
+  showed `10 - 5 °C` accepted as a range where the base blocked it, and a subtraction
+  has that surface. An en or em dash reads spaced or not; an ASCII hyphen only glued.
+  `5 - 10 °C` therefore blocks — a false block on a shape absent from the gold,
+  disclosed in the contract, the skill and a row. The gold table is unchanged by the
+  narrowing (re-measured: R = 14, W = 0, R′ = 0, W′ = 0).
 * The interior refusal is by construction: a value between the endpoints is not in the
   text and matches nothing; it is asserted at three interior values and as a mutation
   target.
@@ -35,7 +42,9 @@ and the one range line the gold labels `N` stays blocked.
 
 ## 3. What changed, exactly
 
-* `_unit_candidates` gained one branch, taken first: where the text after the number
+* `_unit_candidates` gained one branch, taken first — the preregistration's §1a said
+  "after the whole-token and range-split readings"; Amendment 1 item 2 records the
+  difference and why it changes nothing measured: where the text after the number
   begins with a dash and a second number (`_RANGE_TAIL`), the candidates are those of
   the text after the second number, read by the same function with the range branch
   off, with each end offset so the quotation interval reaches through the high
@@ -45,8 +54,9 @@ and the one range line the gold labels `N` stays blocked.
 * The contract string and the shipped skill each gain one sentence; three
   `DISCLOSED_LIMITS` rows bind them.
 * Tests: 24 rows, two mutation tests (E1 off; the interior and the borrowed unit), the
-  quotation-interval test. `tests/test_number_source_check.py` 1044 passed. Full suite
-  on the host, runner line: "3831 passed, 4 skipped, 1 warning in 374.77s (0:06:14)".
+  quotation-interval test; round 2 adds the spaced-hyphen rows.
+  `tests/test_number_source_check.py` 1050 passed. Full suite
+  on the host, runner line (round 2): "3837 passed, 4 skipped, 1 warning in 350.25s (0:05:50)".
 
 ## 4. Cost
 

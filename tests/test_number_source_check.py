@@ -2071,6 +2071,11 @@ E1_ROWS = [
     ("20–25 °C min⁻¹",        "20",   "°C min⁻¹", True, "a spaced expression after it"),
     ("20–25 °C min⁻¹",        "20",   "°C",      False, "and its prefix is a prefix there too"),
     ("1,000–1,500 rpm",       "1,000", "rpm",    True,  "a thousands group in both endpoints"),
+    ("5-10 °C",               "5",    "°C",      True,  "an ASCII hyphen with no space either side"),
+    ("10 - 5 °C",             "10",   "°C",      False, "a SPACED ASCII hyphen is also a subtraction: refused (round 2)"),
+    ("5 - 10 °C",             "5",    "°C",      False, "so a spaced-hyphen range is a false block, disclosed"),
+    ("5 -10 °C",              "5",    "°C",      False, "and one space on either side is enough to refuse"),
+    ("5- 10 °C",              "5",    "°C",      False, "either side"),
     ("5 – −3 °C",             "5",    "°C",      True,  "a signed high endpoint"),
     ("775–850 °C",            "800",  "°C",      False, "the interior is not in the text"),
     ("775–850 °C at 99 kPa",  "775",  "kPa",     False, "a unit borrowed across a different quantity"),
@@ -2082,8 +2087,8 @@ E1_ROWS = [
     ("5–10 × 10⁵ Pa",         "5",    "Pa",      False, "a high endpoint continued by refused notation offers nothing"),
     ("5-fold excess",         "5",    "fold",    False, "a hyphenated word is not a range (unchanged)"),
     ("2.54-cm diameter",      "2.54", "cm",      False, "a compound adjective is not a range (unchanged)"),
-    ("1–2–3 °C",              "1",    "°C",      False, "a range reads its high endpoint once, never a chain"),
-    ("1–2–3 °C",              "2",    "°C",      True,  "the middle number is the low endpoint of its own range"),
+    ("1–2–3 °C",              "1",    "°C",      False, "a chain: the first number's high endpoint is itself continued by a dash, so nothing is read (Amendment 1)"),
+    ("1–2–3 °C",              "2",    "°C",      True,  "the middle number is the low endpoint of the last range and reads its unit (Amendment 1)"),
 ]
 
 
@@ -2211,6 +2216,8 @@ DISCLOSED_LIMITS = [
      "copy the source's own rendering", "5 × 10⁵ mbar", "mbar", False),
     ("a dash and a second number follow it directly", "either endpoint may be annotated",
      "5–10 °C", "°C", True),
+    ("a SPACED ASCII hyphen ('10 - 5 °C') is not read as a range", "spaced ASCII hyphen",
+     "5 - 10 °C", "°C", False),
     ("no value between the endpoints is stated", "never a value inside the range",
      "1–10 °C", "°C", False),
     ("never reaches a number that carries its own unit", "never the unit of a different quantity",

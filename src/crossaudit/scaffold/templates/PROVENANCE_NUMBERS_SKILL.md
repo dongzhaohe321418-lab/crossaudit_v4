@@ -63,7 +63,9 @@ All three fields, every row. A row with two cannot be checked and is refused.
     the same unit; still copy the source's own rendering.
   - For a range such as `775–850 °C`, either endpoint may be annotated with
     `°C`; never a value inside the range, and never the unit of a different
-    quantity on the same line.
+    quantity on the same line. A range written with a spaced ASCII hyphen
+    (`5 - 10 °C`) is not read — it looks like a subtraction — so annotate the
+    high endpoint or use `uncited`.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

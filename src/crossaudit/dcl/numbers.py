@@ -287,12 +287,16 @@ _UNPARSED = re.compile(
 #: unit — `kg-m` and `h-long` are not ranges and keep their whole token.
 _RANGE = re.compile(r"(?P<u1>.+?)-(?P<n>[0-9]+(?:\.[0-9]+)?)(?P<u2>.+)\Z")
 #: E1 (study 11): the head of the text after a number that is the LOW endpoint
-#: of a range — optional inline whitespace, a dash, optional inline whitespace,
-#: the high endpoint. `775–850 °C`, `775 – 850 °C`, `99-102 kPa`, `1.5 – 6 sccm`.
+#: of a range — an EN or EM dash with optional inline whitespace either side, or
+#: an ASCII hyphen with NO whitespace either side, then the high endpoint.
+#: `775–850 °C`, `775 – 850 °C`, `99-102 kPa`, `1.5 – 6 sccm`. A SPACED ASCII
+#: hyphen is refused: the first review of slice 5 showed `10 - 5 °C` read as a
+#: range, and nothing on the surface separates that from a subtraction, so
+#: `5 - 10 °C` blocks (a false block, disclosed) rather than `10 - 5 °C` passing.
 #: Only where the low endpoint has no unit of its own: `5 g–10 mL` never gets
 #: here, because `g` is read first. Emptied by the study's ablation.
 _RANGE_TAIL = re.compile(
-    rf"{_INLINE}*[-–—]{_INLINE}*"
+    rf"(?:{_INLINE}*[–—]{_INLINE}*|-)"
     r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
@@ -1455,7 +1459,10 @@ register("number_source", check_number_source,
          "endpoint's unit too ('775-850 °C' states 775 °C and 850 °C); no value "
          "between the endpoints is stated, and a unit after the high endpoint "
          "never reaches a number that carries its own unit ('5 g-10 mL' "
-         "distributes nothing). An EMPTY unit imposes "
+         "distributes nothing). The dash is an en or em dash, spaced or not, or "
+         "an ASCII hyphen with no space either side; a SPACED ASCII hyphen "
+         "('10 - 5 °C') is not read as a range, because it is also a subtraction. "
+         "An EMPTY unit imposes "
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "

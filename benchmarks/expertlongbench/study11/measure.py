@@ -2,11 +2,11 @@
 """Measure the SHIPPED matcher against the frozen containment gold — study 11 (E1).
 
 Imports the shipped `crossaudit.dcl.numbers.contains_pair` and nothing else; the
-baseline is `study10/base-verdicts.jsonl`, the merge base's own verdict on every
+baseline is `study11/base-verdicts.jsonl`, the merge base's own verdict on every
 gold item, frozen before this slice touched `src/`. The ablation switches E1 off by
 monkeypatching its named hook — `_RANGE_TAIL` — never by re-implementing the matcher.
 
-    PYTHONPATH=src .venv/bin/python benchmarks/expertlongbench/study10/measure.py \
+    PYTHONPATH=src .venv/bin/python benchmarks/expertlongbench/study11/measure.py \
         --sheet ~/Documents/Crossaudit/study-data/gold-containment/sheet.jsonl \
         --config {shipped|base}
 
