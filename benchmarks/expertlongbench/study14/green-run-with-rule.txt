@@ -1,0 +1,3 @@
+FAILED tests/test_number_source_check.py::test_e1_offers_the_high_endpoints_unit_to_the_low_endpoint[5 g\u201310 mL-5-g-True-it keeps its own]
+FAILED tests/test_number_source_check.py::test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour[written as 's\u207b\xb9', 's\u22121' or 's-1' is one unit-count as the same unit-5 s\u22121 (13 rpm)-5-s\u207b\xb9-True]
+2 failed, 1245 passed in 7.61s

@@ -2568,6 +2568,10 @@ DISCLOSED_LIMITS = [
     # The interval half of this phrase is bound by the fenced-interface test above.
     ("the quotation must contain the whole formula", "quote the whole formula",
      "LiNi0.8Co0.2O2", "0.8", "", True),
+    # M10 (study 14): measured and not shipped; the limit is stated and its behaviour pinned.
+    ("written with an EN DASH ('L·h–1') is NOT read", "written with an en dash", "2 L·h–1", "2", "L·h-1", False),
+    ("written with an EN DASH ('L·h–1') is NOT read", "however you transcribe it", "2 L·h–1", "2", "L·h–1", False),
+    ("measured and not shipped", "write `uncited` for that number", "5 K·min–1", "5", "K·min-1", False),
 ]
 
 

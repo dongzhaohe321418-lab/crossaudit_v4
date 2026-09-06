@@ -61,6 +61,9 @@ All three fields, every row. A row with two cannot be checked and is refused.
     where a correct unit blocks.
   - `wt.%` is one unit (the period stays), and `s⁻¹`, `s−1` and `s-1` count as
     the same unit; still copy the source's own rendering.
+    A negative exponent written with an en dash (`L·h–1`, `K·min–1`) is not
+    read — the en dash is how a range is written — so such a unit blocks
+    however you transcribe it; write `uncited` for that number.
   - For a range such as `775–850 °C`, either endpoint may be annotated with
     `°C`; never a value inside the range, and never the unit of a different
     quantity on the same line. A range written with a spaced ASCII hyphen
