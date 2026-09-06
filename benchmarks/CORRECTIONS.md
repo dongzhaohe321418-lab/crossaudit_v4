@@ -335,5 +335,5 @@ interval; the seven rule-code disagreements between the labellers are listed in
 git status at start is reported as a deviation. The second review found three of
 these corrections incomplete: the 1 of 189 projection had been given the Wilson
 interval of 1 of 190 (the unit-shortening row's), D161 still said the false-pass class
-"did not return", and the handbook's copy of the  sentence was missed; all
+"did not return", and the handbook's copy of the `uncited` sentence was missed; all
 three are fixed in the same file set.
