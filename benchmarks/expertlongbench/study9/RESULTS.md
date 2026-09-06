@@ -320,6 +320,13 @@ W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/1
    file's earlier sentence that all five were named in the contract was wrong
    — one was.
 
+The eighth review found no behavioural bypass and one disclosure gap: the
+commit said 40 rows where 38 existed, and two limits the contract states —
+more tokens than the scanner reads, and an operator with nothing after it —
+had no row and no skill sentence of their own. The skill names both, each has
+rows, and the row count — 42, read from the test file rather than claimed — is
+the table's own.
+
 Re-measured after this round, unchanged to the row: shipped R = 6, W = 0, R′ = 11,
 W′ = 0; E4 6/0/0/0; narrowing-prefix-only 0/0/11/0; narrowing-all-spaced 0/0/11/2.
 `tests/test_number_source_check.py` 971 passed.

@@ -38,9 +38,10 @@ All three fields, every row. A row with two cannot be checked and is refused.
     label. In `5 g sample` and `2 h later` the units are `g` and `h`; in
     `5 wt % Ni` the unit is `wt %`, because the `Ni` is what the percentage is
     OF, not part of how it is measured.
-  - If the unit at that spot is something the checker cannot read to its end,
-    the row blocks rather than matching half of it. `uncited` is the honest
-    answer there, and it never counts against the work. One limit: a unit
+  - If the unit at that spot is something the checker cannot read to its end
+    — more than six symbols in a row, or a `/` or `·` with nothing readable
+    after it — the row blocks rather than matching half of it. `uncited` is
+    the honest answer there, and it never counts against the work. One limit: a unit
     symbol of four or more letters, or a capitalised one, that the checker
     does not know (`mmHg`, `GBq`) is read as a word after the unit, so the
     part before it may match — copy the whole unit regardless. And after a
