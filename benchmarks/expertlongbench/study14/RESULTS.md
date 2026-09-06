@@ -8,7 +8,7 @@ The preregistered outcome §0 named second. The rule of `PREREGISTRATION.md` §1
 implemented as written, with one narrowing stated in Amendment 1 (trailing punctuation
 was the ASCII set `.,;:!?)]}`, so `5 min–10 min”` blocks where `5 min–10 min.` passes),
 at commit 1a817b6 on this branch — kept in the history as the evidence; `measure.py`
-reproduces it only there and refuses any other tree — measured, and reverted in the next
+reproduces it only there and refuses a tree whose `numbers.py` is not that blob — measured, and reverted in the next
 commit. Nothing of M10 ships; the class
 stays a disclosed limit, now stated in the contract and the skill.
 
