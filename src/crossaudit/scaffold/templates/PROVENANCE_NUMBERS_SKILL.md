@@ -59,6 +59,8 @@ All three fields, every row. A row with two cannot be checked and is refused.
     `dry%` or `wet‰` (not an element symbol such as `Ni‰`), and words with
     trailing punctuation are read as words. `uncited` is the honest answer
     where a correct unit blocks.
+  - `wt.%` is one unit (the period stays), and `s⁻¹`, `s−1` and `s-1` count as
+    the same unit; still copy the source's own rendering.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

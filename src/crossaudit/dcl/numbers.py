@@ -617,6 +617,23 @@ def normalise_unit(unit: str) -> str:
     return SYNONYMS.get(folded, folded)
 
 
+#: E5 (study 10): the characters a period may precede inside a unit token
+#: besides a letter or a digit. Named so the study's ablation can empty it.
+_PERIOD_CONTINUERS = frozenset("%‰")
+#: E6 (study 10): the exponent fold applied to BOTH sides of the unit comparison
+#: and nowhere else — superscript digits and signs to ASCII, U+2212 to `-` —
+#: so `s⁻¹`, `s−1` and `s-1` are one unit. `normalise_unit` is untouched: the
+#: fragment table, the boundary rule and the range split keep reading the
+#: source as written, and `_UNPARSED` keeps seeing raw superscripts.
+_EXPONENT_FOLD = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻−", "0123456789+--")
+
+
+def _unit_key(unit: str) -> str:
+    """What two unit renderings are compared as: `normalise_unit`, then the
+    exponent fold. Applied to the candidate and to the transcription alike."""
+    return normalise_unit(unit).translate(_EXPONENT_FOLD)
+
+
 def _scan(text: str, skip_space: bool) -> tuple[str, str]:
     """One unit token and the remainder, by boundary rather than by allowlist."""
     i = (len(text) - len(text.lstrip())) if skip_space else 0
@@ -633,11 +650,13 @@ def _scan(text: str, skip_space: bool) -> tuple[str, str]:
             depth -= 1
         elif ch == ".":
             # A period is part of the token only where a unit can have one:
-            # directly before a letter or a digit (`kg.m`, `mol.L-1`, `a.u`).
+            # directly before a letter or a digit (`kg.m`, `mol.L-1`, `a.u`),
+            # or — E5, study 10 — before a percent or per-mille sign (`wt.%`),
+            # which the gold read as one unit and this scanner cut to `wt`.
             # Anything else — a space, the end of the text, another period,
             # punctuation — ends a sentence, not a unit.
             nxt = text[i + 1:i + 2]
-            if not nxt.isalnum():
+            if not (nxt.isalnum() or nxt in _PERIOD_CONTINUERS):
                 break
         i += 1
     return text[start:i], text[i:]
@@ -775,6 +794,7 @@ def pair_occurrences(span: str, value: str, unit: str):
     which is exactly how the isolated-quote defect below was possible.
     """
     wanted_unit = normalise_unit(unit)
+    wanted_key = _unit_key(unit)
     wanted_value = normalise_number(value)
     if wanted_value is None:
         return
@@ -789,7 +809,7 @@ def pair_occurrences(span: str, value: str, unit: str):
             yield m.start(1), m.end(1)
             continue
         for candidate, end in _unit_candidates(rest):
-            if normalise_unit(candidate) == wanted_unit:
+            if _unit_key(candidate) == wanted_key:
                 # `end` is the candidate's extent in `rest` as the source wrote
                 # it, not the length of the reading: a spaced expression joined
                 # with single spaces is shorter than the characters it covers,
@@ -1384,7 +1404,13 @@ register("number_source", check_number_source,
          "short stem ('abc%') or an element symbol ('Ni‰') it is a unit. "
          "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
-         "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
+         "notation a unit can contain; a period directly before a percent or "
+         "per-mille sign is part of the token ('wt.%' is one unit). Superscript "
+         "digits and signs and the U+2212 minus are folded to ASCII on BOTH sides "
+         "before the unit comparison, so 's^-1' written as 's⁻¹', 's−1' or 's-1' is "
+         "one unit; nothing else is folded, and the fold does not reach the rule "
+         "that refuses a number continued by a power of ten. An EMPTY unit imposes "
+         "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
          "check can confirm that a number is present and can never establish that "
          "it is unitless. A named location that does not resolve or does not "
