@@ -2168,6 +2168,22 @@ E2_ROWS = [
     ("Sample 5, 10 °C",           "5",   "°C",    False, "a sample label"),
     ("at 5, 10 °C",               "5",   "°C",    True,  "a preposition is not a label"),
     ("step 5, 10 mL",             "5",   "mL",    False, "case-insensitive on the label word"),
+    ("Figs. 5, 10 °C",            "5",   "°C",    False, "a plural label (round 2)"),
+    ("Step: 5, 10 mL",            "5",   "mL",    False, "a colon after the label (round 2)"),
+    ("Pages 5, 10 and 20 were",   "5",   "were",  False, "`pages` is a label (round 2)"),
+    ("Schemes 5, 10 °C",          "5",   "°C",    False, "and `schemes`"),
+    ("12,5 °C",                   "12",  "°C",    False, "a decimal comma is one number, not a list (round 2)"),
+    ("12,5 °C",                   "12,5", "°C",   False, "and this module does not read it as a number either"),
+    ("12, 5 °C",                  "12",  "°C",    True,  "a comma with a space is a separator"),
+    ("12,and 5 °C",               "12",  "°C",    False, "`,and` glued is not a separator either"),
+    ("Experiment 5, 10 °C",       "5",   "°C",    False, "more label stems (round 2)"),
+    ("Tab. 5, 10 °C",             "5",   "°C",    False, "`Tab.`"),
+    ("Eqn. 5, 10 °C",             "5",   "°C",    False, "`Eqn.`"),
+    ("Compound 5, 10 °C",         "5",   "°C",    False, "`Compound`"),
+    ("Step-5, 10 mL",             "5",   "mL",    False, "a hyphen after the label"),
+    ("Heat 5, 10 mL",             "5",   "mL",    True,  "a capitalised word that is not a label distributes — the list is finite and named"),
+    ("Step 5–10 °C",              "5",   "°C",    False, "the label guard reaches E1 too: steps five to ten"),
+    ("at 5–10 °C",                "5",   "°C",    True,  "and a range after a preposition still reads"),
     ("samples 5, 10 and 20 were", "5",   "were",  False, "`samples` is a label word (amendment 1)"),
     ("heated 5, 10 and 20 were",  "5",   "were",  True,  "a word after the last member reads as the base reads `20 were` for (20, were): the check verifies transcription, not unit-hood"),
 ]
@@ -2197,7 +2213,11 @@ def test_e2_is_the_list_tail_and_nothing_else(monkeypatch):
 def test_e2_guard_is_adjacency_not_a_flag():
     """MUTATION: read a list member's own unit as a separator-less continuation —
     `0.2 kg, 0.5 kg, or 1 kg` must keep `(0.2, kg)` green and `(0.2, μm)` red; a
-    colon or semicolon must never separate; `10 × 10⁵` must stop the list."""
+    colon or semicolon must never separate. MUTATION: delete the refused-notation
+    stop — the first review showed `(5, Pa)` stays red under that mutant because
+    nothing reads `Pa` past `× 10⁵`; what the stop actually prevents is the
+    operator itself being offered as the unit, so `(5, ×)` is the row that
+    reddens."""
     from crossaudit.dcl.numbers import contains_pair
 
     assert contains_pair("0.2 kg, 0.5 kg, or 1 kg", "0.5", "kg")
@@ -2205,6 +2225,7 @@ def test_e2_guard_is_adjacency_not_a_flag():
     assert not contains_pair("5: 10 °C", "5", "°C")
     assert not contains_pair("5; 10 °C", "5", "°C")
     assert not contains_pair("5, 10 × 10⁵ Pa", "5", "Pa")
+    assert not contains_pair("5, 10 × 10⁵ Pa", "5", "×")
 
 
 def test_e2_covers_the_whole_list_in_the_quote_interval():

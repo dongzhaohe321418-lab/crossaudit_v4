@@ -307,15 +307,27 @@ _RANGE_TAIL = re.compile(
 #: `Step 5, 10 mL` names step five, and E2 must not hand `mL` to it. Small,
 #: capitalised, and a narrowing only (a label that is also a quantity blocks,
 #: never passes); amendment 1 of study 12.
-_LABEL_WORDS = frozenset("""
-    Step Steps Fig Figure Figures Table Tables Section Sections Sec Eq Equation
-    Equations Ref Refs Reference References No Nos p pp Sample Samples Run Runs
-    Batch Batches Entry Entries Example Examples Scheme Chapter Part Phase Stage
-    Cycle Cycles Trial Trials Item Items Line Lines Route Routes
-""".lower().split())
-_LABEL_BEFORE = re.compile(r"([A-Za-z]+)\.?\s*\Z")
+_LABEL_STEMS = """
+    step fig figure table tab section sec eq eqn equation ref reference no p pp
+    page sample run batch entry example scheme chapter part phase stage cycle
+    trial item line route panel column row appendix note lot well plate
+    experiment reaction compound condition method protocol procedure formula
+    product material series model device cell electrode layer specimen test
+    case group set region zone position site day week
+""".split()
+_LABEL_WORDS = frozenset(_LABEL_STEMS + [w + "s" for w in _LABEL_STEMS]
+                         + [w + "es" for w in _LABEL_STEMS] + ["entries"])
+#: The label word, then an optional period, colon or hyphen (`Fig.`, `Step:`,
+#: `Step-`), then the number. The first review of slice 6 found the plurals and
+#: the colon missing; the list is named and finite, so a label word it does not
+#: carry (`Heat 5, 10 mL` is not one) distributes — stated, not hidden.
+_LABEL_BEFORE = re.compile(r"([A-Za-z]+)[.:\-–]?\s*\Z")
+#: A comma separator needs whitespace after it: `12,5 °C` is a decimal comma in
+#: half the world's notation and E2 must not read `12` as a list member of `5`
+#: (the first review of slice 6). `5, 10` is a list; `5,5` is not.
 _LIST_TAIL = re.compile(
-    rf"{_INLINE}*(?:,{_INLINE}*(?:and/or|and|or)\b|,|\b(?:and/or|and|or)\b){_INLINE}*"
+    rf"{_INLINE}*(?:,{_INLINE}+(?:and/or|and|or)\b{_INLINE}+|,{_INLINE}+"
+    rf"|\b(?:and/or|and|or)\b{_INLINE}+)"
     r"(?P<n>[+\-−]?(?:[0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][+\-−]?[0-9]+)?)")
 
 #: The unit-synonym table §3.1 calls load-bearing, carried over verbatim from
@@ -897,7 +909,9 @@ def pair_occurrences(span: str, value: str, unit: str):
             continue
         label = _LABEL_BEFORE.search(span[:m.start(1)])
         listed = not (label and label.group(1).lower() in _LABEL_WORDS)
-        for candidate, end in _unit_candidates(rest, lists=listed):
+        # A labelled number is neither a list member nor a range endpoint:
+        # `Step 5–10 °C` names steps five to ten.
+        for candidate, end in _unit_candidates(rest, ranges=listed, lists=listed):
             if _unit_key(candidate) == wanted_key:
                 # `end` is the candidate's extent in `rest` as the source wrote
                 # it, not the length of the reading: a spaced expression joined
@@ -1513,8 +1527,10 @@ register("number_source", check_number_source,
          "states 0 wt.%), provided every member between it and the unit-bearing "
          "one is a bare number; a member with its own unit keeps it ('0.2 kg, "
          "0.5 kg, or 1 kg' distributes nothing), a colon or a semicolon is not a "
-         "separator, refused notation on a member stops the list, and a number "
-         "that a label word precedes ('Step 5, 10 mL', 'Fig. 5') is not a member. "
+         "separator, a comma needs a space after it to separate ('12,5' is one "
+         "number), refused notation on a member stops the list, and a number that "
+         "a label word precedes ('Step 5, 10 mL', 'Figs. 5', 'Step: 5') is not a "
+         "member. "
          "An EMPTY unit imposes "
          "no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "

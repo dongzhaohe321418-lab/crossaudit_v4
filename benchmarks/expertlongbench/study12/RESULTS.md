@@ -38,6 +38,21 @@ gold was re-measured after the guard and the table in §1 is as measured. W = 0 
 (`RESULTS-GOLD.md` Amendment 2), and the design calls E2's false-pass surface larger
 than E1's; the 2 of 97 panel count is the measured part of that.
 
+### What the first review found, and what it changed
+
+Three P1s, all on E2's false-pass surface or its evidence: the label list missed plurals
+and a colon (`Figs. 5, 10 °C`, `Pages 5, 10 and 20`, `Step: 5, 10 mL` distributed); a
+comma with no whitespace after it read a decimal comma as a list (`12,5 °C` gave
+`(12, °C)` where the base blocked it); and the refused-notation mutation test asserted a
+row the mutant leaves unchanged. Amendment 2: the label list is built from stems with
+their plurals (`_LABEL_STEMS`, now with `tab`, `eqn`, `experiment`, `compound` and the
+like), admits a period, colon or hyphen after the word, and reaches E1 as well (`Step
+5–10 °C` names steps); a capitalised word outside the list (`Heat 5, 10 mL`) distributes,
+stated as the list's limit; a comma separates only with whitespace after it (`5, 10` a
+list, `12,5` one number — a false block on an English list written `5,10 °C` is the cost,
+disclosed); the mutation test asserts `(5, ×)`. The gold was re-measured after each
+change and is unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
+
 ## 3. What changed, exactly
 
 * `_unit_candidates` gained a second branch after E1's: where the text after the number
@@ -51,8 +66,8 @@ than E1's; the 2 of 97 panel count is the measured part of that.
 * The contract string and the shipped skill each gain one sentence; four
   `DISCLOSED_LIMITS` rows bind them (the label guard's among them).
 * Tests: 25 rows, two mutation tests (E2 off; the guard, the separators and the notation
-  stop), the quotation-interval test. `tests/test_number_source_check.py` 1081 passed.
-  Full suite on the host, runner line: "3875 passed, 4 skipped, 1 warning in 371.08s (0:06:11)". (1088 with Amendment 1's rows.)
+  stop), the quotation-interval test. `tests/test_number_source_check.py` 1104 passed.
+  Full suite on the host, runner line (round 2): "3891 passed, 4 skipped, 1 warning in 356.93s (0:05:56)".
 
 ## 4. Cost
 

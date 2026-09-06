@@ -85,3 +85,26 @@ which is the safe direction, and the word list is small, capitalised-or-not, and
 (`_LABEL_WORDS`). Added after probing E2's false-pass surface with the labelled forms
 this corpus writes constantly and the gold happens not to hold on a list line; the gold
 was re-measured after adding it and is reported in RESULTS §1 as measured.
+
+## Amendment 2 — 2026-09-06, after the first review
+
+Two narrowings and one test correction, all after the run and after the first review:
+
+1. **A comma separator needs whitespace after it.** §1 said `,` separates; `12,5 °C` is a
+   decimal comma in much of the world's notation and read as a list of `12` and `5`,
+   giving `(12, °C)` where the base blocked it. `5, 10` is a list; `5,5` and `12,5` are
+   not, and neither is read as a number by this module (the thousands pattern needs three
+   digits). A false block on an English list written without a space is the cost.
+2. **The label list gains stems, plurals, and a colon or hyphen after the word; and it
+   reaches E1.** Amendment 1's `_LABEL_WORDS` missed `Figs.`, `Pages`, `Schemes`, `Step:`,
+   `Tab.`, `Eqn.`, `Experiment`, `Compound`, `Step-5`; the list is now built from stems
+   (`_LABEL_STEMS`) with `s` and `es` forms, the label may be followed by a period, a colon
+   or a hyphen, and a labelled number is not a range endpoint either (`Step 5–10 °C` names
+   steps). The list is finite and named: a capitalised word it does not carry (`Heat 5,
+   10 mL`) distributes, which is stated rather than hidden. The gold holds no range or
+   list line with a label word before it, so R is unchanged.
+3. **The refused-notation mutation test asserted the wrong row.** Deleting the stop leaves
+   `(5, Pa)` red anyway (nothing reads `Pa` past `× 10⁵`); what the stop prevents is the
+   operator being offered as the unit, so the row that reddens is `(5, ×)`, now asserted.
+
+The gold was re-measured after each: unchanged (R = 5, W = 0, R′ = 0, W′ = 0).
