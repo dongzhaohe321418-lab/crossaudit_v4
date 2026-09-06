@@ -67,9 +67,14 @@ def fresh_rows(task_id: str) -> list[dict]:
 
 # ---------------------------------------------------------------- the project
 
+#: Captured at import, because `run_instance` rebinds `run_mod.bootstrap_project`
+#: to the wrapper below for the duration of a run.
+_PRODUCT_BOOTSTRAP = run_mod.bootstrap_project
+
+
 def bootstrap_shipped_project(scratch: Path, task, row: dict, options: Options) -> Path:
     """The product's own bootstrap, plus the shipped skill committed beside it."""
-    project = run_mod.bootstrap_project(scratch, task, row, options)
+    project = _PRODUCT_BOOTSTRAP(scratch, task, row, options)
     dest = project / SKILL_PATH
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(shipped_skill(), encoding="utf-8", newline="\n")
