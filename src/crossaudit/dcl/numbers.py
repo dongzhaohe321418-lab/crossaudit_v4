@@ -380,7 +380,7 @@ _FRAGMENT_SPLIT = re.compile(r"[/⁄·⋅]")
 #: sign, because a bare letter-digit run is a sample label in exactly the place
 #: materials prose puts one (`A2`, `S1`, `Fig3`) and reading it as a unit blocks
 #: a correct annotation on every one of them. A superscript run stands alone.
-_EXPONENT_TAIL = re.compile(r"(?:\^[+\-−]?[0-9]+|[+\-−][0-9]+|[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)\Z")
+_EXPONENT_TAIL = re.compile(r"(?:\^[+\-−]?[0-9]+|[+\-−–][0-9]+|[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)\Z")
 #: A solidus or middle dot with nothing either side of it is an OPERATOR, not a
 #: unit: it continues an expression and can never end one. `5 g / mL` is one
 #: unit written in three tokens; `5 g / 100 mL` runs into a numeral and is not
@@ -840,7 +840,10 @@ _PERIOD_CONTINUERS = frozenset("%‰")
 #: so `s⁻¹`, `s−1` and `s-1` are one unit. `normalise_unit` is untouched: the
 #: fragment table, the boundary rule and the range split keep reading the
 #: source as written, and `_UNPARSED` keeps seeing raw superscripts.
-_EXPONENT_FOLD = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻−", "0123456789+--")
+#: M10 (study 14) adds the EN DASH (U+2013) to E6's table: it reaches a unit
+#: token only through `_dash_exponent`, so folding it here folds an exponent
+#: and nothing else — a dash after a NUMBER never enters a unit token.
+_EXPONENT_FOLD = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻−–", "0123456789+---")
 
 
 def _unit_key(unit: str) -> str:
@@ -849,13 +852,66 @@ def _unit_key(unit: str) -> str:
     return normalise_unit(unit).translate(_EXPONENT_FOLD)
 
 
+#: M10 (study 14): a negative exponent written with an EN DASH. Arm 4 found two
+#: byte-exact transcriptions of `L·h–1` and `K·min–1` blocked, because the en
+#: dash is a boundary to the scanner (it is how a range is written). The dash
+#: continues the token only between a LETTER and an unsigned run of ASCII digits
+#: that ENDS the token, and not when the next token repeats the stem — `5 min–10
+#: min` is a range with the unit on both endpoints and states 5 min. A dash
+#: after a number is E1's and never reaches here. Each piece is named so the
+#: study's mutations can turn one off at a time.
+_DASH_DIGITS = re.compile(r"[0-9]+")
+_TOKEN_END = frozenset(".,;:!?)]}")
+
+
+def _dash_after_letter(text: str, i: int, start: int) -> bool:
+    """Whether the dash at offset `i` follows a letter of the token begun at `start`."""
+    return i > start and text[i - 1].isalpha()
+
+
+def _repeats_the_stem(text: str, j: int, stem: str) -> bool:
+    """Whether the whitespace-delimited token after offset `j`, stripped of
+    trailing punctuation, is the stem before the dash: `5 min–10 min`."""
+    k = j
+    while k < len(text) and text[k].isspace():
+        k += 1
+    e = k
+    while e < len(text) and not text[e].isspace():
+        e += 1
+    return text[k:e].rstrip("".join(_TOKEN_END)) == stem
+
+
+def _dash_exponent(text: str, i: int, start: int):
+    """The offset after an en-dash exponent beginning at `i`, or None."""
+    if text[i] != "–" or not _dash_after_letter(text, i, start):
+        return None
+    m = _DASH_DIGITS.match(text, i + 1)
+    if not m:
+        return None
+    j = m.end()
+    nxt = text[j:j + 1]
+    ends = (not nxt or nxt.isspace() or nxt in _BOUNDARY or nxt in _DASHES
+            or nxt in _CLOSERS or (nxt == "." and not text[j + 1:j + 2].isalnum()))
+    if not ends:
+        return None                       # `h–1a`, `h–1.5`: not an exponent
+    if _repeats_the_stem(text, j, text[start:i]):
+        return None                       # a range with the unit on both endpoints
+    return j
+
+
 def _scan(text: str, skip_space: bool) -> tuple[str, str]:
     """One unit token and the remainder, by boundary rather than by allowlist."""
     i = (len(text) - len(text.lstrip())) if skip_space else 0
     depth, start = 0, i
     while i < len(text):
         ch = text[i]
-        if ch.isspace() or ch in _BOUNDARY or ch in _DASHES:
+        if ch in _DASHES:
+            end = _dash_exponent(text, i, start)
+            if end is None:
+                break
+            i = end                       # M10: the run ends the token
+            continue
+        if ch.isspace() or ch in _BOUNDARY:
             break
         if ch in _OPENERS:
             depth += 1
@@ -1672,10 +1728,16 @@ register("number_source", check_number_source,
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain; a period directly before a percent or "
          "per-mille sign is part of the token ('wt.%' is one unit). Superscript "
-         "digits and signs and the U+2212 minus are folded to ASCII on BOTH sides "
-         "before the unit comparison, so 's^-1' written as 's⁻¹', 's−1' or 's-1' is "
+         "digits and signs, the U+2212 minus and an EN DASH that writes a negative "
+         "exponent are folded to ASCII on BOTH sides "
+         "before the unit comparison, so 's^-1' written as 's⁻¹', 's−1', 's–1' or 's-1' is "
          "one unit; nothing else is folded, and the fold does not reach the rule "
-         "that refuses a number continued by a power of ten. Where the number is "
+         "that refuses a number continued by a power of ten. An en dash continues "
+         "a unit token only between a letter and an unsigned run of digits that "
+         "ends the token ('L·h–1'), and not when the next token repeats the stem "
+         "('5 min–10 min' is a range and states 5 min); a dash after a number is a "
+         "range, never an exponent, and a range across two units ('5 mL–10 g' "
+         "blocks '(5, mL)') is not read. Where the number is "
          "the LOW endpoint of a range - a dash and a second number follow it "
          "directly - the unit written after the high endpoint is the low "
          "endpoint's unit too ('775-850 °C' states 775 °C and 850 °C); no value "

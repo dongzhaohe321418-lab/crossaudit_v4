@@ -59,8 +59,12 @@ All three fields, every row. A row with two cannot be checked and is refused.
     `dry%` or `wet‰` (not an element symbol such as `Ni‰`), and words with
     trailing punctuation are read as words. `uncited` is the honest answer
     where a correct unit blocks.
-  - `wt.%` is one unit (the period stays), and `s⁻¹`, `s−1` and `s-1` count as
+  - `wt.%` is one unit (the period stays), and `s⁻¹`, `s−1`, `s–1` and `s-1` count as
     the same unit; still copy the source's own rendering.
+    An en dash is read as an exponent only after a letter and before unsigned
+    digits that end the token (`L·h–1`); a range whose endpoints both carry the
+    unit (`5 min–10 min`) states 5 min — write `min`, never `min-10` — and a
+    range across two units (`5 mL–10 g`) is not read: write `uncited`.
   - For a range such as `775–850 °C`, either endpoint may be annotated with
     `°C`; never a value inside the range, and never the unit of a different
     quantity on the same line. A range written with a spaced ASCII hyphen
