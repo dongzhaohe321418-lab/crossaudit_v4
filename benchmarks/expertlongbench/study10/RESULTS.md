@@ -27,6 +27,11 @@ prefix pass against a `wt.%` source, so the narrowing E5 also performs (a prefix
   and need E2; they stay blocked, as expected.
 * Arm 4's two en-dash rows (M10) are not E6 and are not touched: `_scan` still ends a
   token at an en dash. Deferred to its own study (PREREGISTRATION §0).
+* A period followed by a SPACE and then a percent sign (`5 wt. % Ni`) is not read as
+  one unit by E5 or by the base: the period before a space still ends the token, and
+  the `wt %` tail rule looks for the sign directly after the space. Under gold R4 the
+  annotation `wt. %` would be `C`; the check blocks it. Pre-existing, unchanged here,
+  and stated because a reviewer will try it.
 * W = 0 on this gold is *no evidence against* for shapes the corpus lacks
   (`RESULTS-GOLD.md` Amendment 2): the folds' adversarial cases — a period before a
   space or the end, `s⁻²` against `s⁻¹`, `10⁵` staying unparsed notation, a
@@ -44,7 +49,7 @@ prefix pass against a `wt.%` source, so the narrowing E5 also performs (a prefix
   `DISCLOSED_LIMITS` rows bind the sentences to behaviour.
 * Tests: 17 rows for the two folds, three mutation tests (E5 off, E6 off, the fold
   reaching the notation rule or the scanner), the mirrors listed in the preregistration.
-  `tests/test_number_source_check.py` 998 passed. Full suite on the host: SUITE.
+  `tests/test_number_source_check.py` 998 passed. Full suite on the host, runner line: "3785 passed, 4 skipped, 1 warning in 382.93s (0:06:22)".
 
 ## 4. Cost
 
