@@ -7429,3 +7429,17 @@ Recorded because twenty-one rounds is the cost of a report whose every sentence 
 been held to a check, and the reader should know that the number of rounds measures
 the reviewers' persistence, not the analysis's instability — no point estimate changed
 after the first version.
+
+*D161 ruling 2's last extension landed on `feat/provenance-slice-7` (study 13, preregistered
+at e28256b before `src/` moved), merged at 3e8ad17 after six review rounds: E3 reads a decimal
+stoichiometric subscript as a number with the empty unit — gold R = 11 (the eleven M1a rows),
+W = W′ = 0, panel 2 of 97 — behind four named guards (glued to a letter; not continued by a
+digit of any script or a period-and-digit; a token whose letters parse as element symbols
+and whose digits are decimal or sub-/superscript digits), with the whole formula as the
+quotation interval. The reviews found, in order: ASCII digit guards; a charset taken for a
+formula test; an overclaimed "never read"; an interval that did not enforce the skill; a
+left-side digit; letter runs that took subscript digits for letters; a marker guard with the
+same defect; **a probe whose line-scoped rate was zero by construction, which the design's
+own §6 figure shares (CORRECTIONS #32; the real rate is 5/930 = 0.54%)**; a sentence-final
+decimal; `str.isnumeric`. D160's six extensions are now all shipped or ruled; M10 remains,
+its own study.*
