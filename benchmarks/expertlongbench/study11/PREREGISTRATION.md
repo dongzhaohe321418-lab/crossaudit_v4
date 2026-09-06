@@ -84,8 +84,9 @@ or its function ablated by monkeypatch).
 
 ## Amendment 1 — 2026-09-06, after the run and the first review
 
-Three things this document did not settle, decided afterwards and stated here rather
-than in the results alone:
+One clarification of something this document did not settle, and two deviations from
+things it did specify, decided afterwards and stated here rather than in the results
+alone:
 
 1. **A chain** (`1–2–3 °C`) was not in §5. The rule reads only one dash-number after
    the low endpoint and then the high endpoint's unit; where the high endpoint is itself
