@@ -7236,3 +7236,78 @@ isolation and review showed cropping bypassed every line-level boundary rule —
 the prefix defect a third way; the shipped rule is "the quote selects a window,
 the line decides the pair". D160 ruling 1 (the narrowing + E4) is next in the
 same file; Arm 4 after it.*
+
+*Rulings 1 and 2's first pair landed 2026-09-06 (`feat/provenance-slice-3`,
+preregistered at `benchmarks/expertlongbench/study9/PREREGISTRATION.md` before
+any line of `src/` was touched, measured in `study9/RESULTS.md`, suite 3605/4).
+Composed: R = 6, W = 0, R' = 11, W' = 0; all 10 gold-right blocks still block;
+the 97-draw panel is untouched; R' = 11 rather than 9 because R6a's basis
+qualifier reaches `20% vol/vol`. **The continuation set the ruling names cannot
+produce the block the ruling's own adversarial list demands** — "a member of the
+synonym table" does not contain `m`, so `5 kg m` would keep satisfying `kg` — so
+what ships is a structural test (is the token a named fragment, a fragment with
+an exponent attached, or such atoms joined by a solidus or middle dot?) over a
+small fixed table whose exclusions are the argument: no function word, no word
+that is also a unit, and no bare element symbol or capital without a marker.
+
+The first build was refused by independent review for two P1s, and both are the
+same sentence failing in opposite directions. **A stopped scan was offered as a
+complete unit**: at the token cap, at an operator with nothing after it, or at a
+fragment it could not name, the join built so far was handed back — `5 kg m sr`
+satisfied `kg m`, and expressions of 7 to 20 tokens all accepted their first six.
+That is D157 lesson 2 a FOURTH time, on the join rather than the token, and it
+means an incomplete scan must yield no reading at all: an unreadable unit is a
+block, never a shorter reading that happens to be readable. **And a marker
+anywhere in a token was read as a unit**: `wet/dry`, `batch-1` and `sample¹`
+blocked correct annotations, because "carries a slash" is not "is a unit". The
+lesson the pair records: an extension that widens what a token may MEAN must
+still narrow what it may BE, and length or bracket guards are guessing where a
+grammar is owed. A third finding retracted a claim of ours — this record's
+earlier "the narrowing alone fails its own kill" was an over-strong ablation
+measuring the instrument, not the narrowing, and the correct ablation gives
+W' = 0.
+
+The second build was refused too, and its three findings are one lesson: **the
+rule after a join was written as an exception list where the first continuation
+had a grammar.** The substance test came after the fragment table, so `5 wt % K`
+blocked where `5 g K` passed (15 of 118 elements); marked prose the first
+continuation had just learned to read as words (`wet/dry`, `batch-1`, `A2`,
+`H2O`) blocked after a join; and the token cap fired before the boundary test,
+so a complete six-token expression blocked whenever anything followed it.
+`_is_boundary` now enumerates the prose shapes, in the first continuation's
+order, and blocks whatever is left. The finding that stays is a limit, not a
+fix: an unnamed fragment of four or more letters, or a capitalised one, is
+indistinguishable from a word on the surface, so `5 kg m mmHg` offers `kg m`
+exactly as `5 g mmHg` has always offered `g` — the base's class, reached after a
+join by the same rule. "After a join an omission is a block" is therefore
+narrowed to short and marked fragments, a generated test removes each of the
+table's 112 entries in turn, and the 18 the table alone guards are pinned as a
+literal. Two sentences of the companion report were also false — "every
+configuration clears both kills" (the over-strong ablation does not, W' = 2)
+and "seven redundant entries removed" (four) — and are corrected there.
+
+The third build was refused for the same rule a third way: `oz/yd`, nothing
+but short unknown parts on a solidus, read as prose and passed `kg m`, while
+`high-purity` blocked where the base had passed it. The grammar now says which
+shapes are prose and which are units; where a word and an unnamed unit are the
+same shape — `wet/dry` beside `oz/yd` — the join blocks, the false block is
+disclosed, and every disclosed limit is bound to the row that makes it true.
+The fourth build was refused for `a.u.` reading as prose (the abbreviation rule
+that admits `e.g.`), for contractions blocking because the scanner splits at
+the apostrophe before the boundary rule can see the word, and for five of the
+ten disclosure rows skipping the skill; dotted abbreviations are now a named
+list, a letter after an apostrophe ends the unit in `_spaced_unit`, a short
+list of common three-letter words is named (which also lets `wet/dry` read
+again, so that disclosed false block is gone), and every row binds a contract
+phrase, a skill phrase and the behaviour. The fifth found the percent-sign
+branch testing length where `_word()` was owed (`dry%` blocked), underscore
+and middle-dot joins undisclosed, and six named abbreviations where the words
+said four; each is fixed and bound. The sixth found a digit added to a
+disclosed blocker (`lot_id/2`) passing because the digit was read before the
+joiners, and the percent branch bypassing the element refusal (`Ni‰`, all 118);
+the joiners are read first, the refusal is kept, and every named shape — dot
+operator, per-mille, capitalised unknown fragment, fragment joined to a word,
+full-width joiners — is in the contract, the skill and a row. The seventh
+found the numeral exit running before the joiners (`2/g` read as a numeral)
+and a full-width joiner hidden by the ASCII split (`kg／m/dry`); both are
+decided first now, and the full-width rule reads the whole token. Arm 4 next.*

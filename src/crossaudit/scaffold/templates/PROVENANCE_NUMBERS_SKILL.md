@@ -28,13 +28,37 @@ All three fields, every row. A row with two cannot be checked and is refused.
 - `u` — its unit, as you wrote it, **in full**: `°C/min`, not `°C`; `mg/mL`, not
   `mg`. The whole unit is compared, so half of one does not match. Use `""` when
   the number has no unit.
-  - A unit written with a **space inside it** is read as its FIRST token only,
-    because a space is where a unit ends. Against a source saying `5 m-2 s-1`
-    the checker sees `m-2` and cannot see the rest: `m-2` is accepted, and
-    `m-2 s-1`, `m-2s-1` and `m-2·s-1` are all rejected, because none of them is
-    what is written at that spot. This is the one place a partial unit passes,
-    and it is structural. Write the unit joined in your own prose (`m-2s-1`,
-    `m-2·s-1`) so it is one token, or write `uncited`.
+  - **Write the unit exactly as the source writes it, spaces included.** A
+    space is not where a unit ends. Against a source saying `5 m-2 s-1` the unit
+    is `m-2 s-1`: write that and it matches, write `m-2` and it does not,
+    because half of a unit is still half of a unit. The same for `°C min⁻¹`,
+    `mg h⁻¹` and `wt %` — copy the whole thing, spacing and all, and do not
+    rewrite your own prose to make it one token.
+  - A word after a unit is not part of it, and neither is a substance or a
+    label. In `5 g sample` and `2 h later` the units are `g` and `h`; in
+    `5 wt % Ni` the unit is `wt %`, because the `Ni` is what the percentage is
+    OF, not part of how it is measured.
+  - If the unit at that spot is something the checker cannot read to its end
+    — more than six symbols in a row, or a `/` or `·` with nothing readable
+    after it — the row blocks rather than matching half of it. `uncited` is
+    the honest answer there, and it never counts against the work. One limit: a unit
+    symbol of four or more letters, or a capitalised one, that the checker
+    does not know (`mmHg`, `GBq`) is read as a word after the unit, so the
+    part before it may match — copy the whole unit regardless. And after a
+    spaced unit, anything with the shape of a unit symbol blocks rather than
+    reads as a word: a short symbol pair such as `oz/yd`, `oz·yd` or `oz⋅yd`,
+    a short label such as `run-2` or `m2`, short symbols on a hyphen or
+    underscore such as `kg-m` or `lot_id` (with or without a digit, as in
+    `lot_id/2`), a symbol joined to anything such as `g/xyz`, `dry·g`,
+    `kg-m/s` or `2/g`, anything with a full-width joiner in it such as `kg／m`
+    or `kg／m/dry`, a
+    dotted abbreviation such as `a.u.` (other than e.g., i.e., a.m., p.m.,
+    n.b., c.f.), or a short lower-case word the checker does not know.
+    Hyphenated words, contractions, abbreviations such as `e.g.`, words in
+    another script, words with a percent or per-mille sign such as `sample%`,
+    `dry%` or `wet‰` (not an element symbol such as `Ni‰`), and words with
+    trailing punctuation are read as words. `uncited` is the honest answer
+    where a correct unit blocks.
 - `src` — where you read it, as **the file and a quotation from it**, never as a
   line number and never as a whole file:
   - `{"file": "path/to/file.md", "quote": "…"}`, where the quote is the

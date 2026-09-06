@@ -452,3 +452,18 @@ about any class it does not. A change that touches a mechanism the corpus never
 exercises must bring its own adversarial cases (as the footnote case now does in
 the slice's tests), and a report that quotes W = 0 for such a change says which
 classes the gold covers in the same sentence.
+
+## Amendment 3 (2026-09-06) — the shipped matcher has moved past this study's simulator
+
+`feat/provenance-slice-3` landed D160 ruling 1 (the spaced-unit narrowing) and
+E4 together. `simulate.py`'s standing invariant — *with no extension flag set it
+reproduces the shipped `contains_pair` on all 300 items* — therefore now reports
+**283/300**, and the 17 mismatches are precisely that slice's rows: the 6 M5
+blocks E4 removes and the 11 false passes the narrowing removes (the 9 D160
+names plus the two `20% vol/vol` items R6a reaches). The simulator models the
+matcher as it stood when this gold was labelled; the matcher has moved, and the
+gold's labels are labels about text rather than about code, so they are
+untouched. **The instrument for any measurement taken after that slice is
+`study9/measure.py`**, which imports the shipped `contains_pair` and compares it
+against the merge base's verdict frozen in `key.jsonl`. Numbers in
+`study9/RESULTS.md`.

@@ -1235,7 +1235,8 @@ def test_a_hyphen_range_is_not_an_exponent(span, v, u, expected, why):
     ("2 h-long",      "2", "h-long",       [],             "and the whole token matches"),
     ("3 °C-1",        "3", "°C",           ["CA-NUM-002"], "prefix of a hyphen exponent"),
     ("3 °C-1",        "3", "°C-1",         [],             "and the whole token matches"),
-    ("5 m-2 s-1",     "5", "m-2",          [],             "a space ends the token"),
+    ("5 m-2 s-1",     "5", "m-2",          ["CA-NUM-002"], "nor does a space license one"),
+    ("5 m-2 s-1",     "5", "m-2 s-1",      [],             "the whole spaced expression does"),
     # A range is split, and only where both halves are the same unit.
     ("(20°C-25°C)",   "20", "°C",          [],             "a closed-up range names one unit"),
     ("(20°C-25°C)",   "25", "°C",          [],             "from either end"),
@@ -1508,21 +1509,24 @@ def test_an_unparsed_numeric_notation_is_not_a_match_for_any_unit(
 
 
 @pytest.mark.parametrize("unit,expected", [
-    ("m-2",      []),
-    ("m-2 s-1",  ["CA-NUM-002"]),
+    ("m-2",      ["CA-NUM-002"]),
+    ("m-2 s-1",  []),
     ("m-2s-1",   ["CA-NUM-002"]),
     ("m-2·s-1",  ["CA-NUM-002"]),
 ])
-def test_a_unit_containing_a_space_is_read_as_its_first_token(unit, expected):
+def test_a_unit_written_with_a_space_is_the_whole_spaced_expression(unit, expected):
     """MUTATION: change the shipped wording without changing this.
 
-    This asserts BEHAVIOUR, not strings, because the previous version of this
-    guard checked the instruction text and the instruction was wrong: it said
-    the checker refuses the first half of `m-2 s-1`, and in fact `m-2` PASSES.
-    Whitespace is a boundary, so against `5 m-2 s-1` the token is `m-2` and the
-    second half is invisible to the check. That is the one place a partial unit
-    satisfies, it is structural, and a documentation test could not have caught
-    the contradiction because it never ran the scanner.
+    **This table is inverted from the one that shipped in slice 2, and the
+    inversion is D160 ruling 1.** It used to assert that `m-2` PASSES against a
+    source writing `m-2 s-1` — a space being a boundary, the second half was
+    invisible — and slice 2's contract called that reading structural. The
+    containment gold says it is not structural: it is `unit_token` stopping at
+    whitespace, and it is 9 of the 11 false passes in 150
+    (`RESULTS-GOLD.md` §3), the same prefix defect D157 rounds 3-5 record being
+    fixed three times. So the first token no longer satisfies, the whole spaced
+    expression does, and neither `m-2s-1` nor `m-2·s-1` does, because those are
+    not what is written at that spot either.
 
     The skill and the contract must now describe exactly this table."""
     files = {RECIPE_PATH: b"5 m-2 s-1\n",
@@ -1543,15 +1547,29 @@ def test_the_shipped_words_say_what_the_scanner_does():
     from crossaudit.scaffold import annotation_skill_tree
 
     contract = contracts(["number_source"])["number_source"]
-    assert "first token only" in contract and "'m-2 s-1'" in contract
+    assert "A SPACE IS NOT WHERE A UNIT ENDS" in contract
+    assert "'m-2 s-1'" in contract and "WHOLE spaced expression" in contract
+    assert "exactly as the source writes it, spaces included" in contract
+    assert "'5 wt % Ni' has the unit 'wt %'" in contract
+    assert "reports NO reading and the row BLOCKS" in contract
+    assert "never falls back to the part it managed to read" in contract
+    assert "the fragment table is the only guard" in contract   # round 3's limit
+    assert "first token only" not in contract       # D160 ruling 1 deleted it
+    assert "structural" not in contract
     assert "EMPTY unit imposes no unit constraint" in contract.replace("an EMPTY", "EMPTY")
     assert "never establish that it is unitless" in contract
     assert "'*' and '>'" in contract
     assert contract.count("does not resolve") == 1        # and it reads once
 
     body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
-    assert "first token only" in body.lower() or "FIRST token only" in body
-    assert "m-2s-1" in body and "uncited" in body
+    assert "exactly as the source writes it, spaces included" in body
+    assert "`m-2 s-1`" in body and "uncited" in body
+    assert "`5 wt % Ni` the unit is `wt %`" in body
+    assert "cannot read to its end" in body
+    assert "is read as a word after the unit" in body           # and its limit
+    assert "FIRST token only" not in body           # D160 ruling 1 deleted it
+    assert "structural" not in body
+    assert "so it is one token" not in body         # and the instruction with it
 
 
 def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
@@ -1567,6 +1585,558 @@ def test_an_empty_unit_imposes_no_constraint_and_the_contract_says_so():
         files = {RECIPE_PATH: (span + "\n").encode(),
                  DRAFT_PATH: draft([row(value="5", unit="", src=cite(span))])}
         assert findings(files) == [], span
+
+
+# ------------------- D160 ruling 1: a space is not where a unit ends
+#: Source text, the unit as annotated, and whether the check must block. The
+#: gold cannot supply this table — `RESULTS-GOLD.md` Amendment 2 says W = 0 is
+#: "no evidence against", not "no regression", and the 300 frozen rows contain
+#: exactly one shape of spaced unit (`°C min⁻¹` and its cousins) and no bare
+#: word after a unit at all. Every row here is a class the corpus lacks, so the
+#: cases live in the slice instead of in the study.
+SPACED_UNITS = [
+    # The nine false passes the gold found, in the shapes it found them.
+    ("5 °C min⁻¹",          "°C",        ["CA-NUM-002"], "a prefix across a space"),
+    ("5 °C min⁻¹",          "°C min⁻¹",  [],             "and the whole expression"),
+    ("5 °C min⁻¹",          "°C min",    ["CA-NUM-002"], "a truncated join is not it"),
+    ("5 mg h⁻¹",            "mg",        ["CA-NUM-002"], "the same for a rate"),
+    ("5 mg h⁻¹",            "mg h⁻¹",    [],             "and its whole expression"),
+    ("5 K min⁻¹",           "K",         ["CA-NUM-002"], "and for a ramp"),
+    ("5 K min⁻¹",           "K min⁻¹",   [],             "and its whole expression"),
+    ("5 m s⁻¹",             "m",         ["CA-NUM-002"], "a one-character prefix"),
+    ("5 m s⁻¹",             "m s⁻¹",     [],             "and its whole expression"),
+    ("5 mol L⁻¹",           "mol",       ["CA-NUM-002"], "a concentration prefix"),
+    ("5 mol L⁻¹",           "mol L⁻¹",   [],             "and its whole expression"),
+    ("5 °C min-1",          "°C",        ["CA-NUM-002"], "an ASCII exponent tail too"),
+    ("5 °C min-1",          "°C min-1",  [],             "and its whole expression"),
+    ("5 °C min−1",          "°C",        ["CA-NUM-002"], "and a U+2212 one"),
+    ("5 °C min−1",          "°C min−1",  [],             "and its whole expression"),
+    # A continuation with no exponent at all: the fragment table's one job.
+    ("5 kg m",              "kg",        ["CA-NUM-002"], "a plain unit symbol continues"),
+    ("5 kg m",              "kg m",      [],             "and the pair is one unit"),
+    # The percent split, which used to be a special case and is now this rule.
+    ("5 wt % Ni",           "wt %",      [],             "the basis qualifier is the unit"),
+    ("5 wt % Ni",           "wt",        ["CA-NUM-002"], "and its first token is not"),
+    ("5 wt % Ni",           "wt % Ni",   ["CA-NUM-002"], "an element is not part of it"),
+    ("20% vol/vol ethanol", "%",         ["CA-NUM-002"], "R6a: a basis qualifier is in"),
+    ("20% vol/vol ethanol", "% vol/vol", [],             "and naming it whole matches"),
+    # THE MIRRORS. A word is not a unit fragment, and this is the half of the
+    # rule that a stricter continuation test would break.
+    ("5 g sample",          "g",         [],             "a word does not continue a unit"),
+    ("5 g of powder",       "g",         [],             "nor does a preposition"),
+    ("2 h later",           "h",         [],             "nor does an adverb"),
+    ("10 g at 300 °C",      "g",         [],             "nor `at`, which IS a unit symbol"),
+    ("5 mL in water",       "mL",        [],             "nor `in`, which is an inch"),
+    ("5 g A2",              "g",         [],             "nor a sample label"),
+    ("5 h (heating/cooling rate)", "h",  [],             "nor a parenthetical"),
+    ("5 g heating/cooling", "g",         [],             "nor a long word with a solidus"),
+    ("5 g wet/dry sample",  "g",         [],             "nor a word with a solidus"),
+    ("5 g batch-1",         "g",         [],             "nor a word with a hyphen"),
+    ("5 g sample\u00b9",       "g",         [],             "nor a footnoted word"),
+    ("5 g K",               "g",         [],             "nor potassium"),
+    ("5 g Pa",              "g",         [],             "nor protactinium"),
+    ("5 g A",               "g",         [],             "nor a labelled batch"),
+    ("5 g 10 mL",           "g",         [],             "nor a second numeral"),
+    ("5 g (dry)",           "g",         [],             "nor a parenthetical"),
+    # An expression the module CAN read to its end, in full and never in part.
+    ("5 g / mL",            "g / mL",    [],             "an operator joins one unit"),
+    ("5 g / mL",            "g",         ["CA-NUM-002"], "and its first token is not it"),
+    ("5 kg·m",              "kg·m",      [],             "a middle dot needs no spaces"),
+    ("5 kg·m",              "kg",        ["CA-NUM-002"], "and its first fragment is not it"),
+    ("5 J K⁻¹",             "J K⁻¹",     [],             "a marked capital continues"),
+    ("5 J K⁻¹",             "J",         ["CA-NUM-002"], "so the bare joule does not"),
+]
+
+
+@pytest.mark.parametrize("span,unit,expected,why", SPACED_UNITS)
+def test_a_spaced_unit_is_one_unit_through_the_fence(span, unit, expected, why):
+    """MUTATIONS, four, each with the row it reddens:
+
+    * *stop at whitespace again* — delete the continuation loop in
+      `_spaced_unit`, and every BLOCK row above goes green: that is the shipped
+      behaviour slice 2 called structural and the gold called 9 of 11 false
+      passes;
+    * *accept the bare first token when a continuation exists* — return
+      `[(parts[0], …)] + [(join, …)]` from `_unit_candidates`, and the same BLOCK
+      rows go green while the PASS rows stay green, which is exactly why E4
+      alone does not close the defect (`RESULTS-GOLD.md` §3);
+    * *drop the join* — return `[]` for a spaced expression, and every PASS row
+      whose unit holds a space reddens;
+    * *treat any word as a continuation* — make `_continues_unit` return True,
+      and the MIRRORS redden. That last one is the trade this rule is
+      constantly one edit away from: a continuation test loose enough to catch
+      every unit blocks `5 g sample` on a correct annotation.
+
+    Every fix here ships with its mirror, which is D157 lesson 3."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value=span.split()[0].rstrip("%"), unit=unit,
+                                    src=cite(span))])}
+    assert [f.rule for f in findings(files)] == expected, why
+
+
+@pytest.mark.parametrize("span,unit,expected,why", SPACED_UNITS)
+def test_a_spaced_unit_is_one_unit_through_results_json(span, unit, expected, why):
+    """The same table through the OTHER interface.
+
+    Both locators reach one `contains_pair`, and D157 lesson 3 is that a fix
+    asserted through one interface is a fix asserted once: the `1e+5` sign bug
+    survived 3,015 tests because no test compared a positive explicit exponent
+    with its negative through both. A rule about what a unit IS cannot be
+    allowed to hold for the fence and not for a `results.json` quantity."""
+    value = span.split()[0].rstrip("%")
+    files = {"experiments/e1/metadata.yml":
+             b"code_version: v3\ninputs:\n  - src.txt@v3\n",
+             "experiments/e1/src.txt": ("header\n" + span + "\n").encode(),
+             "experiments/e1/results.json": json.dumps(
+                 {"quantities": [{"name": "q", "value": value, "unit": unit,
+                                  "source": "src.txt@v3#L2"}],
+                  "convergence": {"converged": True}}).encode()}
+    got = [f.rule for f in run_checks(files, ["number_source"]).findings]
+    assert got == expected, why
+
+
+def test_a_continuation_is_unit_shaped_in_itself_not_marker_bearing():
+    """MUTATION: test for a marker ANYWHERE in the token instead of parsing the
+    token as an expression over named fragments.
+
+    That is what the first build of this rule did, and review found it reads
+    short prose as a unit: `wet/dry` is a word with a slash, `batch-1` a word
+    with a hyphen, `sample¹` a word with a footnote, and each turned a correct
+    `(5, g)` into a non-overridable block. Guards against brackets and long
+    words did not draw the boundary either, because the boundary is not length —
+    it is whether the token PARSES: a named fragment, a fragment with an
+    exponent attached, or such atoms joined by a solidus or a middle dot.
+
+    The cost is stated rather than hidden: a unit nothing here names (`mK⁻¹`)
+    does not continue, so before a join the bare token still matches as it does
+    today, and after a join the expression is unreadable and blocks."""
+    from crossaudit.dcl.numbers import _continues_unit
+
+    for token in ("min⁻¹", "h⁻¹", "s-1", "min−1", "m^2", "vol/vol", "%",
+                  "K⁻¹", "Pa·s", "mol⁻¹·K⁻¹·s⁻¹", "hours", "µm"):
+        assert _continues_unit(token), token
+    for token in ("sample", "of", "later", "powder", "Ni", "at", "in", "bar",
+                  "S1", "A2", "(heating/cooling", "heating/cooling", "",
+                  "wet/dry", "batch-1", "sample\u00b9", "mK⁻¹", "/", "g/"):
+        assert not _continues_unit(token), token
+
+
+def test_a_bare_element_symbol_or_capital_needs_a_marker_to_continue():
+    """MUTATION: drop the element and bare-capital refusal from
+    `_continues_unit`.
+
+    `K`, `Pa`, `N`, `C`, `S`, `P`, `H`, `O`, `F`, `B`, `V`, `W`, `Y`, `I` and
+    `U` are unit symbols AND element symbols, and `5 g K` is five grams of
+    potassium far more often than it is grams per kelvin; a bare capital is a
+    labelled batch (`5 g A`) as often as it is an ampere. They are in the
+    fragment table because `5 J K⁻¹` has to read `K⁻¹` — so the refusal is on
+    the BARE form, and a structural marker brings them back."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    for element in ("K", "Pa", "N", "C", "S", "P", "H", "O", "F", "B", "V",
+                    "W", "Y", "I", "U", "Ni", "Ti", "A", "T", "M"):
+        assert contains_pair(f"5 g {element}", "5", "g"), element
+    assert not contains_pair("5 J K⁻¹", "5", "J")
+    assert contains_pair("5 J K⁻¹", "5", "J K⁻¹")
+    assert not contains_pair("5 mPa·s", "5", "mPa")
+
+
+#: A scan that stops without reaching a boundary has read a PREFIX of the unit,
+#: and a prefix never satisfies. Review found the first build handing that
+#: prefix back through three different stops.
+STOPPED_SCANS = [
+    ("5 g / 100 mL",                   "g /",       "an expression ending on an operator"),
+    ("5 g / 100 mL",                   "g",         "and its first token"),
+    ("5 kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹ A⁻¹",  "kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹", "seven tokens, six read"),
+    ("5 kg m sr⁻¹ mol⁻¹ K⁻¹ s⁻¹ A⁻¹",  "kg m",      "and any shorter prefix of them"),
+    ("5 kg m qz",                      "kg m",      "a token the table cannot read"),
+    ("5 kg m qz",                      "kg m qz",   "and the whole line it appears in"),
+]
+
+
+@pytest.mark.parametrize("span,unit,why", STOPPED_SCANS)
+def test_a_stopped_scan_yields_no_reading_at_all(span, unit, why):
+    """MUTATION: return the joined prefix when `_spaced_unit` reports the scan
+    incomplete — that is, delete the `complete` flag and always join.
+
+    Review's first P1. The token cap, an operator with nothing after it, and a
+    token that is neither a unit nor prose each stopped the scan, and
+    `_unit_candidates` then offered what had been joined so far as if it were
+    the whole unit: `5 kg m sr` satisfied `kg m`, a seven-token expression
+    satisfied its first six, and `5 g / 100 mL` satisfied `g /`. Contiguous
+    sweeps confirmed it was a grammar defect and not three curiosities —
+    expressions of 7 to 20 tokens ALL accepted their first six.
+
+    An unreadable unit is a block. The one thing it must never be is a shorter
+    reading that happens to be readable, which is the defect D157 rounds 3-5
+    record being fixed three times and this is the fourth.
+
+    `qz` and not `Ni`: a short LOWERCASE token that is not a named fragment is
+    a unit this table does not know, so the scan truncates. A capitalised one
+    is a substance or a label — `5 wt % Ni` — and ends the expression, which is
+    the row beside this table that must stay green."""
+    files = {RECIPE_PATH: (span + "\n").encode(),
+             DRAFT_PATH: draft([row(value="5", unit=unit, src=cite(span))])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"], why
+
+
+def test_no_prefix_of_an_overflowing_expression_is_ever_a_reading():
+    """The sweep behind the table above, kept as the guard.
+
+    One case would be a curiosity; 14 contiguous expression lengths each
+    handing back their first six tokens is a grammar defect, so the whole range
+    is asserted — the same discipline as the exponent sweep."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    sup = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+    for n in range(2, 21):
+        tokens = ["kg"] + [f"s⁻{sup[i % 9 + 1]}" for i in range(n - 1)]
+        span = "5 " + " ".join(tokens)
+        for k in range(1, n):
+            assert not contains_pair(span, "5", " ".join(tokens[:k])), (n, k)
+        # Within the cap the whole expression reads; past it, nothing does.
+        assert contains_pair(span, "5", " ".join(tokens)) is (n <= 6), n
+
+
+def test_a_substance_or_label_ends_a_joined_expression_before_the_table_is_read():
+    """MUTATION: in `_is_boundary`, consult `_fragment` before the element and
+    bare-capital test — the order the second build had.
+
+    `_continues_unit` already refuses a bare element symbol or bare capital,
+    so the token reaches `_is_boundary`; there `K`, `Pa`, `A` and twelve more
+    elements are ALSO named fragments (for `K⁻¹`, `Pa·s`), and answering the
+    table first made them "a unit this table cannot read" — a block on `wt %`
+    for `5 wt % K` where `5 wt % Ni` passed. The second review counted 15 of
+    118. After `5 g` the first-continuation path never asks, which is why the
+    118-element loop above stayed green while this one was red.
+
+    The mirror: a marker still brings the element back as a unit."""
+    from crossaudit.dcl.numbers import _ELEMENTS, contains_pair
+
+    for element in sorted(_ELEMENTS):
+        assert contains_pair(f"5 wt % {element}", "5", "wt %"), element
+        assert contains_pair(f"5 kg m {element}", "5", "kg m"), element
+    for label in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        assert contains_pair(f"5 wt % {label}", "5", "wt %"), label
+    assert contains_pair("5 wt % Sample", "5", "wt %")
+    assert not contains_pair("5 wt % K⁻¹", "5", "wt %")
+    assert contains_pair("5 wt % K⁻¹", "5", "wt % K⁻¹")
+    assert not contains_pair("5 kg m Pa·s", "5", "kg m")
+    assert contains_pair("5 kg m Pa·s", "5", "kg m Pa·s")
+    for element in sorted(_ELEMENTS):    # the sixth review: a mark on an element is a unit
+        assert not contains_pair(f"5 kg m {element}‰", "5", "kg m"), element
+        assert not contains_pair(f"5 kg m {element}%", "5", "kg m"), element
+
+
+#: Prose after a JOIN, in the shapes the review used after `5 g`, and the
+#: unit-shaped tokens they must not be confused with. Each row is asserted
+#: after `5 wt %` and after `5 kg m`, because both joins reach `_is_boundary`
+#: by the same path and both were wrong.
+JOINED_PROSE = [
+    ("heating/cooling", "words joined by a solidus, a word among them"),
+    ("wet/dry",      "two short words the module names, on a solidus"),
+    ("batch-1",      "a label: a hyphen-numeral on a stem longer than a symbol"),
+    ("sample\u00b9", "a footnote on a long stem"),
+    ("A2",           "a label with a digit"),
+    ("Li₂O",         "a formula with a subscript"),
+    ("H2O",          "a formula with a digit"),
+    ("sample2",      "a digit on a long stem"),
+    ("sample",       "a word"),
+    ("of",           "a function word"),
+    ("Sample",       "a capitalised word"),
+    ("high-purity",  "a hyphenated word — the third review's base-pass regression"),
+    ("as-received",  "a hyphenated word whose first part is a function word"),
+    ("e.g.",         "an abbreviation of single letters"),
+    ("sample，",      "a word with trailing punctuation the scanner keeps"),
+    ("样品",           "a word in a script that writes no unit symbol"),
+    ("we're ready",   "a contraction — the scanner splits at the apostrophe"),
+    ("don't",         "and a straight-apostrophe one"),
+    ("l’état",        "and a typographic one"),
+    ("α",             "a bare Greek letter: a variable"),
+    ("pH",            "a short common word this module names"),
+    ("dry powder",    "and a three-letter one — `dry` has a symbol's length"),
+    ("sample%",       "a long word with a percent sign"),
+    ("dry%",          "a short named word with one — the fifth review's row"),
+    ("wet‰",          "and with a per-mille sign"),
+    ("sample_name",   "an underscored word"),
+    ("n.b.",          "a dotted abbreviation the module names"),
+    ("样品。",          "trailing full-width punctuation"),
+    ("batch-1/2",     "a label with a word among its parts and a digit"),
+    ("Sample%",       "a capitalised word with a percent sign"),
+    ("dry％",          "a full-width percent sign, which the scanner strips as punctuation"),
+    ("2/dry",         "a numeral joined to a word: a label"),
+    ("10",            "a numeral"),
+]
+JOINED_UNREADABLE = [
+    ("xyz⁻¹",  "an exponent on a stem this table does not name"),
+    ("run-2",  "an ASCII one on a three-letter stem — the shape of `s-1`"),
+    ("m2",     "a digit on a short lower-case stem — the shape of `m2` the unit"),
+    ("m₂",     "and a subscript one"),
+    ("kg-m",   "short stems on a hyphen"),
+    ("lot_id", "short stems on an underscore"),
+    ("ab_cd",  "and two unknown ones"),
+    ("oz·yd",  "short unknown parts on a middle dot"),
+    ("oz⋅yd",  "and on a dot operator"),
+    ("abc%",   "a percent sign on a short unnamed stem"),
+    ("Ni‰",    "a per-mille sign on an element symbol — the sixth review's 118 rows"),
+    ("K%",     "and a percent sign on one"),
+    ("lot_id/2", "short parts with a digit added — the sixth review's fail-open"),
+    ("ab_cd/2", "the same"),
+    ("kg-m/2", "fragments with a digit added"),
+    ("oz/yd/2", "short unknown parts with one"),
+    ("qz/2",   "and a short unknown token with one"),
+    ("kg-m/s", "fragments joined to a fragment: a unit half-read"),
+    ("dry·g",  "a word joined to a fragment: the same"),
+    ("kg／m",   "a full-width solidus, which is not a joiner this module reads"),
+    ("kg－m",   "a full-width hyphen"),
+    ("lot＿id", "a full-width underscore"),
+    ("oz／yd",  "and short unknown parts on a full-width solidus"),
+    ("dry／wet", "even when the parts are named words"),
+    ("kg／m/dry", "a full-width joiner beside ASCII ones — the seventh review's bypass"),
+    ("kg／m-batch", "the same"),
+    ("kg－m/batch", "the same"),
+    ("lot＿id/batch", "the same"),
+    ("oz／yd-batch", "the same"),
+    ("dry／wet-batch", "the same"),
+    ("2/g",    "a numeral joined to a fragment — the seventh review's digit exit"),
+    ("2/kg",   "the same"),
+    ("2／g",    "and with a full-width solidus"),
+    ("10／20",  "a full-width joiner between numerals"),
+    ("g/xyz",  "a fragment joined to something that is not one"),
+    ("oz/yd",  "short unknown parts on a solidus — the third review's false pass"),
+    ("x/y",    "and its one-letter form"),
+    ("a.u.",   "arbitrary units: a dotted abbreviation not named as a word — the fourth's"),
+    ("p.u.",   "per-unit, the same shape"),
+    ("r.u.",   "relative units"),
+    ("qz",     "a short lower-case token: not a word, not a fragment"),
+    ("°X",     "a degree sign on an unnamed letter"),
+]
+
+
+@pytest.mark.parametrize("token,why", JOINED_PROSE)
+def test_prose_after_a_join_is_the_boundary_it_is_after_one_token(token, why):
+    """MUTATION: in `_is_boundary`, return False for every token that is not
+    purely alphabetic — the second build's rule, which the review found
+    blocked `wt %` before `wet/dry`, `batch-1`, `sample¹`, `A2`, `Li₂O` and
+    `H2O`: six forms the first-continuation path had just been taught to read
+    as words. The prose shapes are enumerated in `_is_boundary`; this is the
+    enumeration, asserted at both joins."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair(f"5 wt % {token}", "5", "wt %"), why
+    assert contains_pair(f"5 kg m {token}", "5", "kg m"), why
+
+
+@pytest.mark.parametrize("token,why", JOINED_UNREADABLE)
+def test_an_unreadable_unit_after_a_join_still_blocks(token, why):
+    """The mirror of the table above: widening prose to "anything that is not
+    a fragment" would pass these, and each is, or has the shape of, a unit
+    half-read. The third review's `oz/yd` is the row: two short lower-case
+    parts on a solidus are the shape of a unit unless the module names them as
+    words, which is the only reason `wet/dry` reads and `x/y` does not."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert not contains_pair(f"5 wt % {token}", "5", "wt %"), why
+    assert not contains_pair(f"5 kg m {token}", "5", "kg m"), why
+
+
+def test_the_first_continuation_still_reads_the_shapes_the_join_blocks():
+    """`wet/dry`, `run-2`, `m2` after a ONE-token unit end it as they always
+    did (`_continues_unit` refuses them, and no join has begun). The block on
+    the same shapes after a join is the disclosed limit, not a change here."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    for token in ("wet/dry", "x/y", "oz/yd", "run-2", "m2", "kg-m", "high-purity", "样品",
+                  "a.u.", "we're", "qz"):
+        assert contains_pair(f"5 g {token} sample", "5", "g"), token
+
+
+#: Each limit the contract and the shipped skill state, beside the behaviour that makes it
+#: true. The third review found the words present and the behaviour unchecked — a phrase
+#: test binds presence, not truth — so here a phrase is asserted only with its row; the
+#: fourth found five rows skipping the skill, so every row now names a skill phrase too.
+DISCLOSED_LIMITS = [
+    ("the fragment table is the only guard", "is read as a word after the unit",
+     "5 kg m mmHg", "kg m", True),
+    ("more tokens than it scans", "more than six symbols in a row",
+     "5 kg m s⁻² A⁻¹ K⁻¹ mol⁻¹ sr⁻¹", "kg m s⁻² A⁻¹ K⁻¹ mol⁻¹", False),
+    ("more tokens than it scans", "more than six symbols in a row",
+     "5 kg m s⁻² A⁻¹ K⁻¹ mol⁻¹ sr⁻¹", "kg m s⁻² A⁻¹ K⁻¹ mol⁻¹ sr⁻¹", False),
+    ("an operator with nothing after it", "a `/` or `·` with nothing readable after it",
+     "5 g / 100 mL", "g", False),
+    ("an operator with nothing after it", "a `/` or `·` with nothing readable after it",
+     "5 g / 100 mL", "g /", False),
+    ("('GBq' likewise)", "(`mmHg`, `GBq`)", "5 kg m GBq", "kg m", True),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz/yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz·yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 kg m oz⋅yd", "kg m", False),
+    ("('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads)", "such as `oz/yd`, `oz·yd` or `oz⋅yd`", "5 wt % wet/dry", "wt %", True),
+    ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 wt % run-2", "wt %", False),
+    ("('run-2', 'm2')", "such as `run-2` or `m2`", "5 kg m m2", "kg m", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 wt % kg-m", "wt %", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 wt % lot_id", "wt %", False),
+    ("('kg-m', 'lot_id', and 'lot_id/2' with a digit added)", "such as `kg-m` or `lot_id` (with or without a digit, as in `lot_id/2`)",
+     "5 kg m lot_id/2", "kg m", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s', and '2/g' with a numeral in front)", "such as `g/xyz`, `dry·g`, `kg-m/s` or `2/g`",
+     "5 wt % g/xyz", "wt %", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s', and '2/g' with a numeral in front)", "such as `g/xyz`, `dry·g`, `kg-m/s` or `2/g`",
+     "5 wt % dry·g", "wt %", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s', and '2/g' with a numeral in front)", "such as `g/xyz`, `dry·g`, `kg-m/s` or `2/g`",
+     "5 wt % kg-m/s", "wt %", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s', and '2/g' with a numeral in front)", "such as `g/xyz`, `dry·g`, `kg-m/s` or `2/g`",
+     "5 kg m 2/g", "kg m", False),
+    ("('g/xyz', 'dry·g', 'kg-m/s', and '2/g' with a numeral in front)", "such as `g/xyz`, `dry·g`, `kg-m/s` or `2/g`",
+     "5 kg m 2/kg", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 wt % kg／m", "wt %", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m kg／m/dry", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m kg－m/batch", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m lot＿id/batch", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m oz／yd-batch", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m dry／wet-batch", "kg m", False),
+    ("a token with a full-width joiner anywhere in it ('kg／m', 'kg／m/dry')", "a full-width joiner in it such as `kg／m` or `kg／m/dry`",
+     "5 kg m 2／g", "kg m", False),
+    ("('a.u.' is arbitrary units)", "a dotted abbreviation such as `a.u.`", "5 kg m a.u. signal", "kg m", False),
+    ("other than e.g., i.e., a.m., p.m., n.b., c.f.", "(other than e.g., i.e., a.m., p.m., n.b., c.f.)",
+     "5 kg m n.b. note", "kg m", True),
+    ("a short lower-case word this check does not name", "a short lower-case word the checker does not know",
+     "5 wt % qz", "wt %", False),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
+     "5 wt % high-purity powder", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
+     "5 wt % batch-1/2", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
+     "5 wt % we're ready", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "Hyphenated words, contractions, abbreviations such as `e.g.`",
+     "5 wt % e.g. this", "wt %", True),
+    ("hyphenated, contracted, abbreviated, in another script", "words in another script",
+     "5 wt % 样品", "wt %", True),
+    ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % sample，", "wt %", True),
+    ("carrying trailing punctuation", "words with trailing punctuation", "5 wt % 样品。", "wt %", True),
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % sample%", "wt %", True),
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % dry% powder", "wt %", True),
+    ("('sample%', 'dry%', 'wet‰') reads", "such as `sample%`, `dry%` or `wet‰`", "5 wt % wet‰", "wt %", True),
+    ("on an unnamed short stem ('abc%') or an element symbol ('Ni‰') it is a unit", "(not an element symbol such as `Ni‰`)",
+     "5 wt % abc%", "wt %", False),
+    ("on an unnamed short stem ('abc%') or an element symbol ('Ni‰') it is a unit", "(not an element symbol such as `Ni‰`)",
+     "5 kg m Ni‰", "kg m", False),
+]
+
+
+@pytest.mark.parametrize("contract_phrase,skill_phrase,span,unit,expected", DISCLOSED_LIMITS)
+def test_each_disclosed_limit_is_in_the_words_and_in_the_behaviour(
+        contract_phrase, skill_phrase, span, unit, expected):
+    """MUTATION: delete a limit sentence from the contract, or change the
+    behaviour it describes — either alone reddens the row."""
+    from crossaudit.dcl.framework import contracts
+    from crossaudit.dcl.numbers import contains_pair
+    from crossaudit.scaffold import annotation_skill_tree
+
+    contract = " ".join(contracts(["number_source"])["number_source"].split())
+    body = " ".join(annotation_skill_tree(["number_source"])[NUMBERS_SKILL].split())
+    assert contract_phrase in contract, contract_phrase
+    assert skill_phrase in body, skill_phrase     # whitespace-normalised: wrapping is not a claim
+    assert contains_pair(span, "5", unit) is expected, (span, unit)
+
+
+def test_the_cap_is_consulted_only_when_the_next_token_would_continue():
+    """MUTATION: test the cap before asking whether the next token continues —
+    the second build's order, which made a complete six-token expression
+    unreadable whenever ANYTHING followed it on the line: `… mol⁻¹ sample`,
+    `… mol⁻¹ 10 s` and `… mol⁻¹ (dry)` all blocked their whole unit while
+    `… mol⁻¹,` read. The cap is an overflow guard: it fires when a seventh
+    fragment would join, and then nothing reads, as the sweep above asserts."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    six = "kg m s⁻² A⁻¹ K⁻¹ mol⁻¹"
+    for tail in ("", ",", " sample", " 10 s", " (dry)", " of water", " Ni", " —",
+                 " batch-1"):
+        assert contains_pair(f"5 {six}{tail}", "5", six), tail
+        assert not contains_pair(f"5 {six}{tail}", "5", "kg m s⁻² A⁻¹ K⁻¹"), tail
+    for tail in (" sr⁻¹", " · s", " / mL", " qz", " xyz⁻¹"):
+        assert not contains_pair(f"5 {six}{tail}", "5", six), tail
+
+
+#: The entries of the fragment table that nothing but the table guards: an
+#: alphabetic fragment of four or more letters, or a capitalised one, reads as
+#: PROSE when it is not named, so a join before it is offered. Pinned as a
+#: literal so the count in study 9's RESULTS §3 is a tested number, and an
+#: addition to the table that lands in this class is a visible change.
+TABLE_ONLY_GUARDED = frozenset("""
+    Bq GHz GPa Gy Hz MHz MPa MeV Sv Torr Wb mbar mmol nmol sccm torr µmol μmol
+""".split())
+
+
+def test_which_omissions_from_the_table_block_and_which_read_as_prose(monkeypatch):
+    """GENERATED over the whole table, because the second review showed the
+    example-driven claim was false: "after a join an omission is a block" held
+    for `s` and `sr` and failed for `mbar`, `Torr`, `sccm` and `µmol`.
+
+    Every entry is removed in turn and `5 kg m <entry>` is asked for `kg m`
+    (an element or bare capital in its `⁻¹` form, since the bare form is a
+    substance by design). One to three lower-case letters, or any marked
+    entry: BLOCK. Four or more letters, or capitalised: the join is offered,
+    and the table is the only guard — those are the entries listed above,
+    exactly. `µm` stays named when removed because `normalise_unit` folds
+    `μm` onto it; it is asserted for what it does, not skipped. And with its
+    fragment unnamed the WHOLE expression never reads, whichever class."""
+    import crossaudit.dcl.numbers as numbers
+
+    table = set(numbers._UNIT_FRAGMENTS)
+    offered = set()
+    for entry in sorted(table):
+        monkeypatch.setattr(numbers, "_UNIT_FRAGMENTS", frozenset(table - {entry}))
+        bare = entry in numbers._ELEMENTS or (len(entry) == 1 and entry.isupper())
+        form = entry + "⁻¹" if bare else entry
+        if numbers.contains_pair(f"5 kg m {form}", "5", "kg m"):
+            offered.add(entry)
+        if not numbers._fragment(entry):
+            assert not numbers.contains_pair(f"5 kg m {form}", "5", f"kg m {form}"), entry
+    assert offered == TABLE_ONLY_GUARDED
+    assert all(e.isalpha() and (len(e) >= 4 or e[0].isupper()) for e in offered)
+    assert not any(e.isalpha() and (len(e) >= 4 or e[0].isupper()) for e in table - offered
+                   if not numbers._ELEMENTS.__contains__(e) and not (len(e) == 1 and e.isupper()))
+
+
+def test_a_continuation_never_crosses_a_line():
+    """MUTATION: use `\\s` instead of `_INLINE` for the gap in `_spaced_unit`.
+
+    A `results.json` locator still names a line RANGE, so the text this matcher
+    scans can hold several lines, and the token at the head of the next line is
+    that line's prose. Reading it as this number's unit would turn a correct
+    annotation into a non-overridable block for a line break — the same shape as
+    the footnote `_UNPARSED` refuses to read as an exponent (slice 2)."""
+    from crossaudit.dcl.numbers import contains_pair
+
+    assert contains_pair("held at 5 g\nmin⁻¹ was the ramp", "5", "g")
+    assert not contains_pair("held at 5 g min⁻¹", "5", "g")
+
+
+def test_the_pair_interval_covers_the_characters_the_source_wrote():
+    """MUTATION: yield `len(candidate)` instead of the candidate's extent.
+
+    A spaced expression joined with single spaces is SHORTER than the text it
+    covers when the source wrote two spaces, and the interval is what the quote
+    contract tests containment against (slice 2). An interval that stops inside
+    the unit would let a quotation ending mid-unit satisfy the row — the
+    cropping defect slice 2's review found, met one more time."""
+    from crossaudit.dcl.numbers import pair_occurrences
+
+    line = "ramp 5 °C  min⁻¹ then"
+    (start, end), = pair_occurrences(line, "5", "°C min⁻¹")
+    assert line[start:end] == "5 °C  min⁻¹"
+
+    files = {RECIPE_PATH: (line + "\n").encode(),
+             DRAFT_PATH: draft([row(value="5", unit="°C min⁻¹",
+                                    src=cite("5 °C  min"))])}
+    assert [f.rule for f in findings(files)] == ["CA-NUM-002"], "a quote that stops inside the unit"
 
 
 LEGACY_FIXTURES = Path(__file__).parent / "fixtures" / "legacy_provenance_skills"

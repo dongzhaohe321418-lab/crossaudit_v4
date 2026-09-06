@@ -108,6 +108,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from typing import Mapping, NamedTuple
 
 from .framework import ADVISORY, BLOCKER, Finding, register
@@ -306,6 +307,301 @@ SYNONYMS: dict[str, str] = {
     "µm": "μm",
 }
 
+#: **A SPACE IS NOT WHERE A UNIT ENDS.** D160 ruling 1, from the containment
+#: gold: `unit_token` stopped at whitespace, so a bare `°C` satisfied a source
+#: writing `°C min⁻¹`, `mg` satisfied `mg h⁻¹` and `K` satisfied `K min⁻¹` — 9 of
+#: the gold's 11 false passes (7.33%, `RESULTS-GOLD.md` §3). Slice 2's contract
+#: called that reading structural; the gold says it is D157 lesson 2 unfinished,
+#: and a prefix never satisfies whatever character precedes it.
+#:
+#: So a unit reading continues across whitespace while the next token is
+#: UNIT-SHAPED, and the two halves of that one rule are: the bare first token no
+#: longer satisfies when a continuation follows (a NARROWING — it can remove a
+#: pass and never add one), and the whole spaced expression becomes a candidate
+#: the annotation can name in full (E4 — a candidate at least as long as the
+#: whole token, never shorter).
+#:
+#: **A token is unit-shaped in ITSELF, not because it carries a marker
+#: somewhere.** The first build tested for a marker anywhere in the token — a
+#: superscript, a solidus, a middle dot — and review found that reads short prose
+#: as a unit: `wet/dry` is a word with a slash, `batch-1` a word with a hyphen,
+#: `sample¹` a word with a footnote, and all three turned a correct `(5, g)` into
+#: a block. Guards against brackets and long words did not draw the boundary
+#: either, because the boundary is not length. A continuation is now an
+#: EXPRESSION over named fragments: a fragment, a fragment with an exponent
+#: attached, or such atoms joined by a solidus or a middle dot. `min⁻¹` is
+#: `min` + `⁻¹`; `wet/dry` is two words.
+_FRAGMENT_SPLIT = re.compile(r"[/⁄·⋅]")
+#: An exponent ATTACHED to a fragment. ASCII digits need an explicit `^` or a
+#: sign, because a bare letter-digit run is a sample label in exactly the place
+#: materials prose puts one (`A2`, `S1`, `Fig3`) and reading it as a unit blocks
+#: a correct annotation on every one of them. A superscript run stands alone.
+_EXPONENT_TAIL = re.compile(r"(?:\^[+\-−]?[0-9]+|[+\-−][0-9]+|[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)\Z")
+#: A solidus or middle dot with nothing either side of it is an OPERATOR, not a
+#: unit: it continues an expression and can never end one. `5 g / mL` is one
+#: unit written in three tokens; `5 g / 100 mL` runs into a numeral and is not
+#: readable at all, which is a block and not a `g /`.
+_CONNECTORS = frozenset("/⁄·⋅")
+
+#: The named fragments. **Fixed, small, and knowingly incomplete**, and the
+#: incompleteness is now stated honestly in both directions, because review
+#: showed the first version of this sentence was false:
+#:
+#: * BEFORE a join has begun, an omission leaves the shipped behaviour — the
+#:   bare token still matches, exactly as it does today;
+#: * AFTER a join has begun, an omission is a BLOCK for a fragment of one to
+#:   three lower-case letters or any marked one: `5 kg m sr` with `sr` missing
+#:   must not hand back `kg m`; the scan stops without a boundary and
+#:   `_unit_candidates` returns nothing (see `_spaced_unit`). The first build
+#:   returned the joined prefix instead, which is "a prefix never satisfies"
+#:   defeated a fourth time;
+#: * but a fragment of FOUR OR MORE LETTERS, or a capitalised one, that this
+#:   table does not name reads as PROSE, after a join exactly as before one:
+#:   `5 kg m mmHg` offers `kg m` the way `5 g mmHg` offers `g` today, because
+#:   nothing on the surface separates `mmHg` from `sample`. That is the base's
+#:   class, not a new one, and for the entries of that shape listed here —
+#:   `mbar`, `Torr`, `sccm`, `mmol`, `Hz`, `Sv` and their like — this table is
+#:   the only guard. `tests/test_number_source_check.py` enumerates them;
+#: * and where a word and an unnamed unit have the SAME shape — two short
+#:   lower-case parts on a solidus, `oz/yd` — the join blocks, because the
+#:   third review showed `oz/yd` passing `kg m` as prose; `wet/dry` reads only
+#:   because `_SHORT_WORDS` names both halves. At the first continuation either
+#:   still ends the unit.
+#:
+#: What is excluded is still the argument, because a wrong INCLUSION is a false
+#: blocker: no English function word (`of`, `in`, `at`, `per`), no word that is
+#: also a unit (`bar`, so `a 5 g bar` stays prose). Bare capitals and element
+#: symbols ARE named here — they have to be, or `5 J K⁻¹` cannot read `K⁻¹` —
+#: but `_continues_unit` refuses them BARE, so `5 g K` is five grams of
+#: potassium and `5 g Pa` is protactinium, both still matching `g`.
+_UNIT_FRAGMENTS = frozenset("""
+    m cm mm nm pm µm μm km dm
+    g kg mg µg μg ng
+    s ms µs μs ns ps min h
+    L mL µL μL nL dL
+    mol mmol µmol μmol nmol
+    K A N J W V C F S T H B Y I U O P
+    Pa kPa MPa GPa hPa mbar atm Torr torr psi
+    Hz kHz MHz GHz rpm
+    Wb Bq Gy Sv lm lx cd sr rad kat Ω Å
+    eV keV MeV meV kJ mJ kW mW
+    mA µA μA nA mV kV µV μV mN kN
+    M mM µM μM nM
+    wt vol
+    sccm slm ppm ppb
+    °C °F ° % ‰
+""".split())
+#: Every element symbol, so the collision set is exact rather than guessed. A
+#: bare fragment that is one of these needs a structural marker to continue:
+#: `5 g K` is potassium, `5 g Pa` protactinium, `5 g C` carbon — ordinary
+#: materials prose, and the commonest thing written after a mass. With a marker
+#: they are units again (`5 J K⁻¹`, `5 mPa·s`), because no element is written
+#: with an exponent in that position.
+_ELEMENTS = frozenset("""
+    H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni
+    Cu Zn Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe
+    Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu Hf Ta W Re Os Ir Pt Au
+    Hg Tl Pb Bi Po At Rn Fr Ra Ac Th Pa U Np Pu Am Cm Bk Cf Es Fm Md No Lr Rf
+    Db Sg Bh Hs Mt Ds Rg Cn Nh Fl Mc Lv Ts Og
+""".split())
+#: Short function words, which are the prose a quantity is followed by when the
+#: prose is shorter than four characters. Only consulted AFTER a join has begun,
+#: to tell a true boundary from a scan that ran out of vocabulary.
+_STOPWORDS = frozenset("""
+    a an and as at by for from in into is of on or over per than the then to
+    under until up using was were with
+""".split())
+#: How many tokens one unit expression may span. A LOOP GUARD, and since review
+#: emphatically not a candidate producer: hitting it truncates the scan and
+#: yields no reading at all. Seven-token expressions used to hand back their
+#: first six. Consulted only when the next token WOULD CONTINUE the expression:
+#: prose, a numeral or a bracket after six tokens is a boundary exactly as it
+#: is after two, which the second review found it was not.
+_MAX_UNIT_TOKENS = 6
+#: The run of whitespace a unit expression may cross. `_INLINE` and not `\s`:
+#: Python's `\s` already covers U+00A0, U+2003 and U+202F (a hand-written list of
+#: the ones somebody thought of is how the first two got in and the third did
+#: not), and excluding the newline is the rule that a continuation stays on its
+#: own line — a token on the next line of a multi-line span is the next line's
+#: prose, not this number's unit.
+_INLINE_GAP = re.compile(rf"{_INLINE}*")
+
+
+def _fragment(token: str) -> bool:
+    """A named unit fragment, under the synonym table's folding — which is what
+    covers `hours`, `minutes` and `µm` without listing them twice."""
+    return token in _UNIT_FRAGMENTS or normalise_unit(token) in _UNIT_FRAGMENTS
+
+
+def _unit_atom(token: str) -> bool:
+    """A fragment, or a fragment with an exponent attached to it."""
+    if _fragment(token):
+        return True
+    tail = _EXPONENT_TAIL.search(token)
+    return bool(tail) and tail.start() > 0 and _fragment(token[:tail.start()])
+
+
+def _unit_shaped(token: str) -> bool:
+    """Whether this token is a unit EXPRESSION in itself: an atom, or atoms
+    joined by a solidus or a middle dot. `min⁻¹`, `vol/vol`, `mol⁻¹·K⁻¹·s⁻¹`
+    are; `wet/dry`, `batch-1`, `sample¹`, `(heating/cooling` are words."""
+    parts = _FRAGMENT_SPLIT.split(token)
+    if len(parts) > 1:
+        return all(part and _unit_atom(part) for part in parts)
+    return bool(token) and _unit_atom(token)
+
+
+def _continues_unit(token: str) -> bool:
+    """Whether this token, separated from a unit reading by whitespace only, is
+    part of the same unit expression.
+
+    A word is not a unit fragment — the mirror the whole rule is judged by:
+    `5 g sample`, `5 g of powder` and `2 h later` keep matching `g`, `g` and
+    `h`. Neither is a bare element symbol or a bare capital: `5 g K` is
+    potassium and `5 g A` is a labelled batch far more often than either is a
+    unit, so those need a marker (`K⁻¹`, `Pa·s`) before they continue."""
+    if not token or not _unit_shaped(token):
+        return False
+    return not (token in _ELEMENTS or (len(token) == 1 and token.isupper()))
+
+
+def _is_boundary(token: str) -> bool:
+    """Whether the token after a join is the PROSE the unit expression ended
+    at, as opposed to a unit this table cannot read.
+
+    Consulted only once a join has begun (`_spaced_unit`), and only for a
+    token `_continues_unit` refused, so the answer decides between a reading
+    and a block. The prose shapes are ENUMERATED and everything else blocks,
+    because the block is the safe failure:
+
+    * nothing, an opening bracket, a numeral — unless the numeral is joined to a
+      unit fragment (`2/g`), which the seventh review found reading as a
+      numeral: the joiners are read before the digit exits;
+    * trailing punctuation the scanner does not split on (`sample，`) is not
+      part of the word, and a word in a script that writes no unit symbol
+      (`样品`) is a word; a bare Greek letter other than `µ`/`Ω` (`α`) is a
+      variable name;
+    * a bare element symbol, a bare capital, a capitalised word — `5 wt % Ni`,
+      `5 wt % K`, `5 wt % A`, `5 wt % Sample`: the substance or the label the
+      quantity is OF. Decided BEFORE the fragment table is consulted: `K` and
+      `Pa` are in that table for the sake of `K⁻¹` and `Pa·s`, and the second
+      review found the table consulted first, which blocked `wt %` before
+      fifteen elements;
+    * a function word (`of`, `at`, `per`), a short common word this module
+      names (`dry`, `wet`, `raw`, `pH`), an alphabetic word of four or more
+      letters (`sample`, `later`), or one of the dotted abbreviations it names
+      (`e.g.`, `i.e.`, `a.m.`, `p.m.`);
+    * a marked word whose stem is a word (`batch-1`, `sample¹`, `sample%`,
+      `dry%`, `wet‰`) — not an element symbol (`Ni‰`);
+    * a hyphenated, underscored or apostrophised word with a word among its
+      parts (`high-purity`, `sample_name`, `batch-1/2`); a contraction (`we're`, `l'état`)
+      is read in `_spaced_unit`, because the scanner splits at the apostrophe
+      and this function never sees the whole word;
+    * a label or formula carrying a digit on a capital or a long stem (`A2`,
+      `H2O`, `Li₂O`, `sample2`);
+    * words joined by a solidus with a word among them (`heating/cooling`).
+
+    **What blocks, stated because each is the shape of a unit:** a short
+    lower-case token that is none of the above (`qz`, and any three-letter
+    word the short list above does not carry); a stem of one to three letters
+    under an exponent or a digit (`xyz⁻¹`, `run-2`, `m2`, `m₂` — the shapes of
+    `s-1` and `m2`); short stems joined by a hyphen or an underscore (`kg-m`,
+    `lot_id`, and `lot_id/2` with a digit added: the joiners are read before
+    the digit is); a fragment joined to anything that is not one (`g/xyz`,
+    `dry·g`, `kg-m/s`, and `2/g` with a numeral in front); a token with a
+    full-width joiner anywhere in it (`kg／m`, `kg／m/dry`, `lot＿id/batch`),
+    decided before anything else because an ASCII split would hide the
+    full-width expression inside one part; a dotted
+    abbreviation this module does not name (`a.u.`, `p.u.` — arbitrary units,
+    which the fourth review found reading as prose); and a solidus joining
+    nothing but short unknown parts (`oz/yd`), which the third review showed
+    passing `kg m` as prose, and the same on a
+    middle dot or dot operator (`oz·yd`, `oz⋅yd`); `wet/dry` reads,
+    because the short-word list names both halves, and `x/y` blocks. At the
+    first continuation all of these still end the unit, as before.
+
+    **What this cannot tell apart, stated rather than hidden:** an alphabetic
+    token of four or more letters, or a capitalised one, that is a unit this
+    table does not name — `mmHg`, `kcal`, `mrad`, `dbar`, `GBq` — reads as prose, so
+    `5 kg m mmHg` offers `kg m`. That is the base's own class at the first
+    continuation (`5 g mmHg` matches `g` today and always did), reached after
+    a join by the same rule, and no surface test separates `mmHg` from
+    `sample`. The fragment table is the guard for those, and the test file
+    enumerates which of its entries are guarded by nothing else."""
+    if not token:
+        return True
+    if any(ch in _FULLWIDTH_JOINERS for ch in token):
+        return False                         # `kg／m`, `kg／m/dry`: a joiner this module does not read
+    if token[0].isdigit():
+        parts = [part for part in _JOINERS.split(token) if part]
+        return not (len(parts) > 1 and any(_unit_atom(part) for part in parts))
+        # `10`, `2/dry` are numerals and labels; `2/g` has a fragment in it and blocks
+    if token[0] in _OPENERS:
+        return True
+    core = token
+    while core and unicodedata.category(core[-1]).startswith("P") and core[-1] not in "%‰":
+        core = core[:-1]                     # `sample，`: the comma is not the word
+    if not core:
+        return True
+    if any(ch.isalpha() and ord(ch) >= 0x0400 for ch in core):
+        return True                          # `样品`: a script with no unit symbols
+    if len(core) == 1 and 0x0391 <= ord(core) <= 0x03C9 and core not in "µμΩ":
+        return True                          # `α`: a variable, not a unit
+    if core in _ELEMENTS or (core[0].isupper() and core.isalpha()):
+        return True                          # `5 wt % Ni`: a substance, a label
+    if core.isalpha():
+        return _word(core)
+    if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", core):
+        return core.lower().rstrip(".") in _ABBREVIATIONS   # `e.g` a word, `a.u` a unit
+    if core[-1] in "%‰" and core[:-1].isalpha():
+        stem = core[:-1]                     # `sample%`, `dry%`, `wet‰` words; `abc%`, `Ni‰` units
+        return _word(stem) and stem not in _ELEMENTS and not (len(stem) == 1 and stem.isupper())
+    tail = _EXPONENT_TAIL.search(core)
+    if tail and tail.start() > 0:
+        stem = core[:tail.start()]
+        return stem.isalpha() and len(stem) >= 4   # `batch-1` a label, `xyz⁻¹` a unit
+    lettered = re.fullmatch(r"([^\W\d_]+)[0-9₀-₉]+", core)
+    if lettered:
+        stem = lettered.group(1)
+        return not (stem.islower() and len(stem) <= 3)   # `A2` a label, `m2` a unit
+    if _JOINERS.search(core):
+        parts = [part for part in _JOINERS.split(core) if part]
+        if any(_unit_atom(part) for part in parts):
+            return False                     # `g/xyz`, `dry·g`, `kg-m/s`: a unit half-read
+        return any(part.isalpha() and _word(part) for part in parts)
+        # `high-purity`, `sample_name`, `batch-1/2` have a word; `oz/yd`, `lot_id/2` do not
+    if any(ch.isdigit() for ch in core):
+        return True                          # `H2O`, `Li₂O`
+    return False
+
+
+def _word(part: str) -> bool:
+    """A part that is a word on its face: four or more letters, a function
+    word, a short common word this module names, or capitalised. Three
+    letters or fewer in lower case is otherwise the shape of a unit symbol."""
+    return (len(part) >= 4 or part.lower() in _STOPWORDS or part in _SHORT_WORDS
+            or part[:1].isupper())
+
+
+#: Short words that are not function words and follow a quantity often enough
+#: to name: without them `5 wt % dry powder` blocks `wt %`, because `dry` has
+#: the length of a unit symbol. None is a unit symbol or a synonym of one
+#: (`bar`, `min`, `mol`, `oz` are deliberately absent).
+_SHORT_WORDS = frozenset("""
+    dry wet raw hot old new mix air gas oil ice ash sol gel wax dye pH etc cf vs
+""".split())
+#: Dotted abbreviations that are words. Any other run of dotted single letters
+#: — `a.u.`, `p.u.`, `r.u.` — is a unit symbol and blocks after a join.
+_ABBREVIATIONS = frozenset({"e.g", "i.e", "a.m", "p.m", "n.b", "c.f"})
+#: The joiners a word or a unit may be written with. A full-width one (`／`,
+#: `－`, `＿`) is not among them, so a token joined by one is not read and
+#: blocks after a join.
+_JOINERS = re.compile(r"[-'’_/⁄·⋅]")
+_FULLWIDTH_JOINERS = "／－＿"
+#: The apostrophes `_scan` treats as boundaries; a letter directly after one
+#: makes the token before it a contraction, which is a word.
+_APOSTROPHES = "'\u2019\u2018"
+
 
 def _text(data: bytes) -> str | None:
     try:
@@ -348,7 +644,13 @@ def _scan(text: str, skip_space: bool) -> tuple[str, str]:
 
 
 def unit_token(rest: str) -> tuple[str, str]:
-    """The WHOLE unit token following a number, and whatever follows it.
+    """One WHOLE unit token following a number, and whatever follows it.
+
+    **One token is no longer one unit.** Since D160 ruling 1 the unit reading
+    continues across whitespace while the next token is unit-shaped, so this is
+    the FIRST token of the expression `_spaced_unit` assembles, and a caller
+    that compares against this alone is reintroducing the prefix the gold
+    found. `_unit_candidates` is the reading; this is one step of it.
 
     Runs from the first non-space character to a boundary, and **every
     boundary is enumerated**: whitespace, the end of the text, a closing bracket
@@ -365,32 +667,98 @@ def unit_token(rest: str) -> tuple[str, str]:
     return _scan(rest, True)
 
 
-def _unit_candidates(rest: str) -> list[str]:
-    """Every reading of the unit following a number: the whole token, plus two
-    readings that are LONGER than it, never shorter.
+def _spaced_unit(rest: str) -> tuple[list[str], int, bool]:
+    """The whole unit expression following a number: its tokens, where it ends
+    in `rest`, and **whether the scan ended at a true boundary**.
 
-    * a range split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole
-      window — recognised only where both halves are the same unit;
-    * the word split from a percent sign (`wt %`), which the boundary rule would
-      otherwise cut at the space. **It continues past the percent to the next
-      boundary**, so `wt %/s` is one token and does not satisfy `wt %`; taking
-      the percent alone was the same prefix defect one more time. It is in the
-      synonym table for a measured reason, and because it can only ever extend a
-      token it cannot reintroduce a shorter reading.
+    The first token is `unit_token`'s. After it, whitespace is crossed for as
+    long as the next token continues the unit — and only NON-NEWLINE whitespace,
+    because a token on the next line of a multi-line span is not this number's
+    unit, it is the next line's prose.
+
+    One list, both halves of D160 ruling 1: more than one part means the source
+    wrote a spaced unit, so the bare first token stops being a reading (the
+    narrowing) and the join becomes one (E4).
+
+    **The third value is the repair review demanded, and it is load-bearing.**
+    A scan that stops because it hit the token cap, ran into an operator with
+    nothing after it, or met a token it can neither continue nor call a
+    boundary has NOT read the unit — it has read a PREFIX of it. Handing that
+    prefix back made `5 kg m sr` satisfy `kg m` and a seven-token expression
+    satisfy its first six: the prefix defect a fourth time, now on the join.
+    An incomplete scan yields no candidate at all, so the annotation blocks.
+    A single token is always complete, which is the shipped behaviour for
+    every line that holds no spaced unit.
     """
     token, after = unit_token(rest)
     if not token:
+        return [], 0, True
+    parts, end = [token], len(rest) - len(after)
+    complete = True
+    while True:
+        gap = _INLINE_GAP.match(after).end()
+        if not gap:
+            break                            # a boundary character, or the end
+        nxt, remainder = _scan(after[gap:], False)
+        if not nxt:
+            break                            # whitespace, then nothing to read
+        if remainder[:1] in _APOSTROPHES and remainder[1:2].isalpha():
+            break                            # `we're`, `l'état`: a contraction is a word
+        if _continues_unit(nxt) or nxt in _CONNECTORS:
+            if len(parts) >= _MAX_UNIT_TOKENS:
+                complete = False             # an overflow reads nothing at all
+                break
+            parts.append(nxt)
+            end += gap + len(nxt)
+            after = remainder
+            continue
+        if len(parts) == 1 or _is_boundary(nxt):
+            break                            # prose, a numeral, or no join yet
+        complete = False                     # a unit this table cannot read
+        break
+    if parts[-1] in _CONNECTORS:
+        complete = False                     # an expression never ends on `/`
+    return parts, end, complete
+
+
+def _unit_candidates(rest: str) -> list[tuple[str, int]]:
+    """Every reading of the unit following a number, each with where it ends in
+    `rest`: the whole unit expression, plus one reading of a range that is
+    shorter only in the sense that it re-reads a token the source glued
+    together. **No reading is ever a prefix of what the source wrote.**
+
+    * where the source writes the unit as ONE token, that token — plus a range
+      split, so the `20` in `(20°C-25°C)` carries `°C` and not the whole window,
+      recognised only where both halves are the same unit;
+    * where the source writes it across whitespace (`°C min⁻¹`, `wt %`,
+      `kg m`), the WHOLE spaced expression and nothing shorter. That is D160
+      ruling 1 in one line: the bare first token is not offered, because the gold
+      found `°C` satisfying `°C min⁻¹` nine times in 150 passes, and the join is
+      offered, because `°C min⁻¹` is what the source says and an annotation must
+      be allowed to say it;
+    * where the source writes a spaced unit this module cannot read to its end,
+      **nothing**. Neither the join nor the bare token: an unreadable unit is a
+      block, and the one thing it must never be is a shorter reading that
+      happens to be readable. With the one limit `_is_boundary` states: a
+      fragment of four or more letters, or a capitalised one, that the table
+      does not name is not "unreadable" to this module, it is a word, and the
+      expression before it is offered.
+
+    The percent split (`wt %`) that used to be a special case is now this rule:
+    `%` is a continuation like any other, and `wt %/s` is still one expression
+    that `wt %` does not satisfy.
+    """
+    parts, end, complete = _spaced_unit(rest)
+    if not parts:
         return []
-    out = [token]
+    if len(parts) > 1:
+        return [(" ".join(parts), end)] if complete else []
+    token = parts[0]
+    out = [(token, end)]
     span = _RANGE.fullmatch(token)
     if span and normalise_unit(span.group("u1")) == normalise_unit(span.group("u2")):
-        out.append(span.group("u1"))
-    if "%" not in token and "‰" not in token and token.isalpha():
-        gap = len(after) - len(after.lstrip())
-        sign = after[gap:gap + 1]
-        if sign in ("%", "‰"):
-            tail, _ = _scan(after[gap + 1:], False)
-            out.append(f"{token} {sign}{tail}")
+        head = span.group("u1")
+        out.append((head, end - len(token) + len(head)))
     return out
 
 
@@ -420,14 +788,14 @@ def pair_occurrences(span: str, value: str, unit: str):
         if not wanted_unit:
             yield m.start(1), m.end(1)
             continue
-        gap = len(rest) - len(rest.lstrip())
-        for candidate in _unit_candidates(rest):
+        for candidate, end in _unit_candidates(rest):
             if normalise_unit(candidate) == wanted_unit:
-                # Every candidate starts at the first non-space after the
-                # number and is either the token, a prefix of it, or the token
-                # plus a single-spaced percent tail — so its length is its
-                # extent in text whose whitespace has been folded.
-                yield m.start(1), m.end() + gap + len(candidate)
+                # `end` is the candidate's extent in `rest` as the source wrote
+                # it, not the length of the reading: a spaced expression joined
+                # with single spaces is shorter than the characters it covers,
+                # and the interval has to cover them or the quote containment
+                # test would accept a quotation that stops inside the unit.
+                yield m.start(1), m.end() + end
                 break
 
 
@@ -982,10 +1350,39 @@ register("number_source", check_number_source,
          "and exponent notation are not significant, so 1.50, 1.5 and 15e-1 are one "
          "number and a reported precision is not preserved); the unit must equal the "
          "WHOLE unit token following that number, under a fixed synonym table, so a "
-         "prefix of a compound unit never satisfies it, except that a unit written "
-         "with a space inside it is read as its first token only, so 'm-2 s-1' in "
-         "a source is seen as 'm-2' and the rest is invisible to the check; write "
-         "such a unit joined, or annotate it 'uncited'. Punctuation ends a unit "
+         "prefix of a compound unit never satisfies it. A SPACE IS NOT WHERE A UNIT "
+         "ENDS: where the token after the number is followed by whitespace and a "
+         "unit-shaped continuation (a superscript, an exponent tail such as 's-1', "
+         "a solidus, a middle dot, a percent sign, or a known unit fragment), the "
+         "unit is the WHOLE spaced expression, so a source saying 'm-2 s-1' is not "
+         "satisfied by 'm-2' and is satisfied by 'm-2 s-1'. Write the unit exactly "
+         "as the source writes it, spaces included. A WORD is not a continuation, "
+         "so '5 g sample' still matches 'g' and '2 h later' still matches 'h'; "
+         "neither is a substance or a label, so '5 wt % Ni' has the unit 'wt %' "
+         "and '5 g K' still matches 'g'. Where the spaced expression runs past "
+         "what the check can read - more tokens than it scans, an operator with "
+         "nothing after it, or a short or marked fragment it does not name - it "
+         "reports NO reading and the row BLOCKS; it never falls back to the part "
+         "it managed to read, because that part is a prefix. One limit is stated "
+         "rather than hidden: an unnamed fragment of four or more letters, or a "
+         "capitalised one, reads as a WORD, so '5 kg m mmHg' offers 'kg m' exactly "
+         "as '5 g mmHg' offers 'g' ('GBq' likewise), and the fragment table is the "
+         "only guard there. After a join, a solidus, middle dot or dot operator "
+         "joining nothing but short parts this check does not name as words "
+         "('oz/yd', 'oz·yd', 'oz⋅yd'; 'wet/dry' reads), a short stem under an "
+         "exponent or a digit ('run-2', 'm2'), short stems joined by a hyphen or an "
+         "underscore ('kg-m', 'lot_id', and 'lot_id/2' with a digit added), a "
+         "fragment joined to anything that is not one ('g/xyz', 'dry·g', 'kg-m/s', "
+         "and '2/g' with a numeral in front), a token with a full-width joiner "
+         "anywhere in it ('kg／m', 'kg／m/dry'), a dotted abbreviation "
+         "other than e.g., i.e., a.m., p.m., n.b., c.f. ('a.u.' is arbitrary "
+         "units), and a short lower-case word this check does not name BLOCK, each "
+         "being the shape of a unit; a word of any other shape - hyphenated, "
+         "contracted, abbreviated, in another script, or carrying trailing "
+         "punctuation - ends the unit as a word does, and a percent or per-mille "
+         "sign on a word ('sample%', 'dry%', 'wet‰') reads while on an unnamed "
+         "short stem ('abc%') or an element symbol ('Ni‰') it is a unit. "
+         "Punctuation ends a unit "
          "token, but '*' and '>' do not, because multiplication and comparison are "
          "notation a unit can contain. An EMPTY unit imposes no unit constraint at "
          "all — '5' annotated with no unit matches a source saying '5 g' — so the "
