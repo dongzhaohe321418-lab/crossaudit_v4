@@ -1459,14 +1459,19 @@ def test_the_reports_coverage_tables_equal_the_measured_artefact():
         # The header's scenario text is bound to the artefact's: the true delta of each
         # scenario, as the artefact states it (the seventeenth review changed +0.10 to
         # +0.99 and "all beneficial" to "partly beneficial" and stayed green).
-        deltas = [d.replace("−", "-") for d in re.findall(r"true δ = ([+−-]\d\.\d\d)", header)]
-        wanted = [re.search(r"true delta = ([+-]\d\.\d\d)", artefact["scenarios"][s]).group(1)
-                  for s in ("beneficial", "detrimental")]
-        if header_prefix == "| method | role |" and deltas != wanted:
-            problems.append(f"the header's true-δ values {deltas} are not the artefact's {wanted}")
-        if header_prefix == "| method | role |" and not (
-                "all beneficial" in header and "all detrimental" in header):
-            problems.append(f"the header must say 'all beneficial' and 'all detrimental': {header!r}")
+        # Per CELL, not header-wide: the eighteenth review moved both δ values into one
+        # cell and the header-wide search stayed green.
+        if header_prefix == "| method | role |":
+            cells = [c.strip() for c in header.strip().strip("|").split("|")]
+            wanted = [re.search(r"true delta = ([+-]\d\.\d\d)", artefact["scenarios"][s]).group(1)
+                      for s in ("beneficial", "detrimental")]
+            for index, (word, delta) in enumerate(zip(("all beneficial", "all detrimental"), wanted),
+                                                  start=2):
+                cell = cells[index] if index < len(cells) else ""
+                found = [d.replace("−", "-") for d in re.findall(r"true δ = ([+−-]\d\.\d\d)", cell)]
+                if word not in cell or found != [delta]:
+                    problems.append(f"header cell {index} must say {word!r} and true δ = {delta} "
+                                    f"and nothing else of that kind: {cell!r}")
     covered = {(m, s) for m in artefact["coverage"] for s in artefact["coverage"][m]}
     listed = {cell for cells in rows.values() for cell in cells}
     if covered != listed:
@@ -1539,6 +1544,32 @@ def test_splicing_the_generated_tables_into_the_report_changes_nothing():
     assert not missing, missing
     assert len(swapped) >= 9, swapped
     assert spliced == report, "splicing the generated tables changed the report"
+
+
+def test_the_extrapolation_caveat_is_where_the_report_says_it_is():
+    """The report says the unflattened-asymptote caveat is read by a test in the headline,
+    in Table 1's asymptote cell and in the conclusion. This is that test: the headline
+    (the opening's first paragraphs) and the conclusion section each carry the word, and
+    Table 1's generated rows carry the label in every row whose `flat?` cell says `no`. The opening
+    summary's second occurrence and the Limitations paragraph are NOT read here, as the
+    report states. The eighteenth review found the conclusion carrying no caveat at all
+    while the sentence said it did in other words."""
+    report = REPORT.read_text(encoding="utf-8")
+    sections = _sections(report)
+    # the headline's sentence: the cross asymptote "is an extrapolation" — that phrase,
+    # not the opening summary's later "extrapolation against one flattened fit"
+    assert "is an extrapolation" in sections["opening"], "the headline lost its caveat"
+    assert "extrapolation" in sections["conclusion"].lower(), "the conclusion lost its caveat"
+    table = report[report.index("### Table 1"):report.index("### Table 2")]
+    rows = [l for l in table.splitlines() if l.startswith("| `")]
+    assert rows, "Table 1 has no family rows"
+    flagged = 0
+    for line in rows:
+        cells = [c.strip().strip("*") for c in line.strip().strip("|").split("|")]
+        if cells[-1].lower() == "no":
+            flagged += 1
+            assert "extrapolation" in line.lower(), line
+    assert flagged >= 1, "no family is marked unflattened; the label has nothing to bind"
 
 
 if __name__ == "__main__":

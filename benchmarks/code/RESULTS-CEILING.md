@@ -1,6 +1,6 @@
 # The ceiling of AI audit — no improvement from self-audit was established; naming the gap moved flags the most
 
-> **Seventeenth version.** Sixteen independent cross-vendor reviews have read this study. Rounds 1
+> **Nineteenth version.** Eighteen independent cross-vendor reviews have read this study. Rounds 1
 > and 2 refused quotation approval; **rounds 3 and 4 approved it subject to corrections**,
 > all of which were reporting corrections — no analysis has changed since round 2 except
 > that round 5 made two code paths bootstrap one estimand under one seed, and no
@@ -139,7 +139,7 @@ corrected report.
 |---|---|---|---|
 | 1 | The paired interval rescaled a **conditional** Clopper–Pearson by the **observed** discordance fraction, discarding the uncertainty in that fraction. Coverage **0.416**, not 0.95 | coverage = **0.4162688657**, matching the reviewer to 10 digits | Interval replaced. Primary is now the problem-cluster bootstrap; checks are Tango's unconditional score interval and a Berger–Boos-restricted exact unconditional interval. Measured coverages at that round: **0.416 (withdrawn) → 0.960 (Tango) → 0.998 (exact, at n = 40)**; the n = 112 figures the suite pins are 0.416, 0.960 and 0.997 (deviation 34, round 2) |
 | 2 | Binary inference ignored problem clusters that the saturation bootstrap already respected | 112 loop instances from **96** problems; 110 P instances from **56** | Every primary interval is now a problem-cluster bootstrap; a cluster sign-flip permutation p sits beside every McNemar p. Reproduced the reviewer's sensitivities exactly: referent-loop 0.0225 → **0.0469**, referent-minus-cross flags 0.0003 → **0.0009** |
-| 3 | "In the limit of unlimited readings" where the curve had not flattened; "cannot be seen"; the title's causal claim | cross gains **1.93 pp** from K=7 to K=8 | Extrapolation caveat now carried in the headline, Table 1 (`flat?` column) and the conclusion. "Was not flagged by any reading", never "cannot be seen". Title and headline now lead with the between-arm contrast (+5.36 pp, p = 0.146) |
+| 3 | "In the limit of unlimited readings" where the curve had not flattened; "cannot be seen"; the title's causal claim | cross gains **1.93 pp** from K=7 to K=8 | Extrapolation caveat now carried in the headline, Table 1's asymptote cell and the conclusion (bound by a test since round 19; the conclusion's copy was missing until then). "Was not flagged by any reading", never "cannot be seen". Title and headline now lead with the between-arm contrast (+5.36 pp, p = 0.146) |
 | 4 | Twelve planned, **16** computed; the highlighted contrast was not among the twelve; "exactly one clears" was false | 16 `p_exact` entries enumerated | Full planned/performed/exploratory inventory in `numbers.json`; one correction family of 16; threshold 0.00313; every flag contrast labelled EXPLORATORY. Five planned mixed/astra asymptote contrasts were **not delivered** — recorded as deviation 15 |
 | 5 | Timeouts inside a population described as assertion-confirmed | **7** P timeouts, 3 in the loop sample, 3 in the residual | Population renamed "hidden-suite non-passes, including timeouts"; Table 9 adds the assertion-only sensitivity (103 / 32 / 18 / 34 / residual 54), reproducing the reviewer |
 | 6 | Provenance gaps; "no number had left the harness" overstated | `1a66571:tables.md` carries the swapped interval, committed 18:46:39, fixed 18:48:18 | Manifests now carry package versions, per-invocation UTC windows, base URLs, corrected sampling metadata (**the self route sends temperature 0**), the dirty-tree record and re-hashed files. The beta-bug sentence is corrected below |
@@ -570,10 +570,10 @@ randomised cases.
 [0, 1] inside the objective**; for fixed τ the model is linear in A, so the fit reduces to a
 one-dimensional search over τ. Goodness of fit and the raw union at K_max are reported beside
 every asymptote, and an asymptote from a curve that has not flattened is labelled an
-extrapolation where a test reads it — the headline, and Table 1's asymptote cell, which
-the generator writes — and repeated without a check in the opening summary and the
-Limitations paragraph; the conclusion carries the caveat in other words, and no test
-reads it there either.
+extrapolation where a test reads it — the headline, Table 1's asymptote cell (which the
+generator writes) and the conclusion's sentence on saturation — and repeated without a
+check in the opening summary and the Limitations paragraph. The eighteenth review found
+the conclusion carrying no such caveat; it does since, and the test reads all three.
 
 **Multiple comparisons.** Two primary outcomes, each declared singly in the preregistration
 before any model call, are **not** corrected. **The preregistration planned twelve
@@ -1063,7 +1063,9 @@ auditing and revising its own code — produced no measurable gain in hidden-tes
 (+0.89 pp, cluster CI [−3.54, +5.88], every interval spanning zero); that over eight readings each, its union recall was **below** a cross-vendor
 stranger's (raw −12.7 points [−25.0, −0.9]) while its false-positive rate was higher
 (24.0% [17.2, 31.2] against 16.0% [10.1, 22.3]); that
-repetition saturates quickly, and on a temperature-0 route almost immediately; that one
+repetition saturates quickly, and on a temperature-0 route almost immediately (where a
+family's curve had not flattened, its asymptote in Table 1 is an extrapolation, not a
+limit); that one
 frontier reading matched eight shipped readings on recall (30.2% [19.3, 42.0] against
 30.0% [20.0, 40.7]) at lower false-positive cost (9.7% [5.3, 14.5] against 16.0%
 [10.1, 22.3]); and
