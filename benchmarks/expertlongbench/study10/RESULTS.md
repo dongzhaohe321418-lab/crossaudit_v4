@@ -51,6 +51,24 @@ prefix pass against a `wt.%` source, so the narrowing E5 also performs (a prefix
   reaching the notation rule or the scanner), the mirrors listed in the preregistration.
   `tests/test_number_source_check.py` 998 passed. Full suite on the host, runner line: "3785 passed, 4 skipped, 1 warning in 382.93s (0:06:22)".
 
+### What the first review found, and what it changed
+
+E5 lengthened `wt` to `wt.%`, and `_continues_unit` did not know the lengthened token,
+so `5 kg wt.%` ended its join at `kg` and offered the prefix — base BLOCK, head PASS,
+through both interfaces, on 180 of the reviewer's 224 fragment × suffix combinations;
+and after a join, a word carrying `.%` (`approx.%`, `e.g.%`) newly blocked. Three
+repairs: a fragment with `.%`/`.‰` attached is a unit atom (`_unit_atom`), so the join
+continues and `kg` is the prefix it always was; at the boundary a word with `.%` is
+read as the word (`approx.%` prose, `e.g.%` a named abbreviation); and `.%` at a token's
+start is not a unit (`5.%` reads nothing, as before E5). A generated test sweeps every
+alphabetic fragment in the table with `%` and `‰`. Two consequences of E5 are stated
+rather than argued away: an element with `.%` (`K.%`, `Ni.%`) is refused as the bare
+element is, so it ends the unit as before; and a fragment glued to `.%`-junk (`wt.%%`)
+is not unit-shaped and ends the unit, where the base's scanner cut it to `wt` and
+continued — that continuation was the period rule's artefact, not a reading. The gold table above is unchanged
+by the repair (re-measured: base 0/0/0/0, E5 1/0/0/0, E6 2/0/0/0, shipped 3/0/0/0).
+`tests/test_number_source_check.py` 1008 passed. Full suite on the host, runner line: "1 failed, 3800 passed, 4 skipped, 1 warning in 443.77s (0:07:23)".
+
 ## 4. Cost
 
 $0. No generation, no model calls, no new corpus.

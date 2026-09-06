@@ -1965,6 +1965,24 @@ E5_ROWS = [
     ("5 kg.m of torque",     "kg.m",  True,  "a period before a letter continued already"),
     ("5 %. Next",            "%",     True,  "a percent sign then a period: the period ends it"),
 ]
+E5_JOIN_ROWS = [
+    ("5 kg wt.% Ni",        "kg",        False, "the first review's P1: a lengthened token must still continue"),
+    ("5 kg wt.% Ni",        "kg wt.%",   True,  "and the whole join reads"),
+    ("5 kg vol.% ethanol",  "kg",        False, "the same for a volume basis"),
+    ("5 kg wt.‰ ash",       "kg",        False, "and per mille"),
+    ("5 g approx.% x",      "g",         True,  "a word with `.%` still ends a one-token unit"),
+    ("5 kg m approx.% x",   "kg m",      True,  "and a join — the review's new-block regression"),
+    ("5 kg m e.g.% x",      "kg m",      True,  "a dotted abbreviation with `.%` too"),
+    ("5.% excess",          ".%",        False, "`.%` at a token's start is not a unit"),
+    ("5.% excess",          "%",         False, "and nothing else reads there either"),
+    ("5 kg K.% sample",     "kg",        True,  "an element with `.%` is refused as the bare element is"),
+    ("5 kg m Ni.% x",       "kg m",      True,  "and ends a join as the bare element does"),
+    ("5 kg Bq.% sample",    "kg",        False, "a capitalised non-element fragment continues"),
+    ("5 kg Bq.% sample",    "kg Bq.%",   True,  "and the join reads"),
+    ("5 kg wt.%% x",        "kg",        True,  "a fragment glued to junk is not unit-shaped and ends the unit — "
+                                                "the base cut it to `wt` and continued; that was the scanner, not a reading"),
+    ("5 kg .% sample",      "kg",        True,  "a bare `.%` reads nothing, as before"),
+]
 E6_ROWS = [
     ("0.22 s−1 (13 rpm)",    "s⁻¹",   True,  "U+2212 in the source, superscript in the annotation"),
     ("0.22 s⁻¹ (13 rpm)",    "s−1",   True,  "and the other way"),
@@ -1978,11 +1996,26 @@ E6_ROWS = [
 ]
 
 
-@pytest.mark.parametrize("span,unit,expected,why", E5_ROWS + E6_ROWS)
+@pytest.mark.parametrize("span,unit,expected,why", E5_ROWS + E5_JOIN_ROWS + E6_ROWS)
 def test_e5_and_e6_fold_without_shortening_a_token(span, unit, expected, why):
     from crossaudit.dcl.numbers import contains_pair
 
-    assert contains_pair(span, span.split()[0], unit) is expected, why
+    assert contains_pair(span, span.split()[0].rstrip(".%"), unit) is expected, why
+
+
+def test_a_period_percent_atom_continues_a_join_for_every_fragment():
+    """GENERATED over the fragment table (the first review's sweep was 224
+    combinations): for every named fragment f, `5 kg f.%` must block `kg` and
+    read `kg f.%`. MUTATION: drop the `.%` atom from `_unit_atom` — every row
+    reddens, because the join stops at `kg` and the prefix is offered."""
+    from crossaudit.dcl.numbers import _UNIT_FRAGMENTS, _ELEMENTS, contains_pair
+
+    for f in sorted(_UNIT_FRAGMENTS):
+        if f in _ELEMENTS or (len(f) == 1 and f.isupper()) or not f.isalpha():
+            continue                       # bare elements and marks are not continuations by design
+        for sign in ("%", "‰"):           # `sample` after: a word, so the join is complete
+            assert not contains_pair(f"5 kg {f}.{sign} sample", "5", "kg"), (f, sign)
+            assert contains_pair(f"5 kg {f}.{sign} sample", "5", f"kg {f}.{sign}"), (f, sign)
 
 
 def test_the_period_continuer_set_is_e5(monkeypatch):

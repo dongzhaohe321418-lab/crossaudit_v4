@@ -434,8 +434,13 @@ def _fragment(token: str) -> bool:
 
 
 def _unit_atom(token: str) -> bool:
-    """A fragment, or a fragment with an exponent attached to it."""
+    """A fragment, a fragment with an exponent attached, or — E5 — a fragment
+    with `.%`/`.‰` attached (`wt.%`): the first review of slice 4 found that a
+    token E5 lengthened had stopped being unit-shaped, so `5 kg wt.%` ended the
+    join at `kg` and offered the prefix the whole rule exists to refuse."""
     if _fragment(token):
+        return True
+    if len(token) > 2 and token[-1] in "%‰" and token[-2] == "." and _fragment(token[:-2]):
         return True
     tail = _EXPONENT_TAIL.search(token)
     return bool(tail) and tail.start() > 0 and _fragment(token[:tail.start()])
@@ -462,7 +467,10 @@ def _continues_unit(token: str) -> bool:
     unit, so those need a marker (`K⁻¹`, `Pa·s`) before they continue."""
     if not token or not _unit_shaped(token):
         return False
-    return not (token in _ELEMENTS or (len(token) == 1 and token.isupper()))
+    bare = token[:-2] if token[-1] in "%‰" and token[-2:-1] == "." else token
+    return not (bare in _ELEMENTS or (len(bare) == 1 and bare.isupper()))
+    # `K.%` is refused as `K` is: the `.%` E5 keeps on the token is not the
+    # structural marker (`K⁻¹`, `Pa·s`) that brings an element back as a unit
 
 
 def _is_boundary(token: str) -> bool:
@@ -556,6 +564,11 @@ def _is_boundary(token: str) -> bool:
     if core[-1] in "%‰" and core[:-1].isalpha():
         stem = core[:-1]                     # `sample%`, `dry%`, `wet‰` words; `abc%`, `Ni‰` units
         return _word(stem) and stem not in _ELEMENTS and not (len(stem) == 1 and stem.isupper())
+    if core[-1] in "%‰" and core[:-1].endswith("."):
+        stem = core[:-2]                     # E5 keeps `approx.%` and `e.g.%` whole: read the word
+        if re.fullmatch(r"(?:[A-Za-z]\.)+[A-Za-z]?", stem):
+            return stem.lower().rstrip(".") in _ABBREVIATIONS
+        return stem.isalpha() and (_word(stem) or stem in _ELEMENTS)   # `Ni.%` ends it as `Ni` does
     tail = _EXPONENT_TAIL.search(core)
     if tail and tail.start() > 0:
         stem = core[:tail.start()]
@@ -656,8 +669,8 @@ def _scan(text: str, skip_space: bool) -> tuple[str, str]:
             # Anything else — a space, the end of the text, another period,
             # punctuation — ends a sentence, not a unit.
             nxt = text[i + 1:i + 2]
-            if not (nxt.isalnum() or nxt in _PERIOD_CONTINUERS):
-                break
+            if not (nxt.isalnum() or (nxt in _PERIOD_CONTINUERS and i > start)):
+                break                        # `.%` at a token's start is not a unit
         i += 1
     return text[start:i], text[i:]
 
