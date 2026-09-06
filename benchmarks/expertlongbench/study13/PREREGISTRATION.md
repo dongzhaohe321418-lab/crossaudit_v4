@@ -214,3 +214,25 @@ The third review (`…-slice-7-astra-round3.md`) said do not merge on four findi
 Gold re-run: unchanged (R = 11, W = R′ = W′ = 0, 10/10, panel 2/97). Probe: P1 and P3
 unchanged; P2 under the rebuilt instrument, base and E3 alike: **5/930 = 0.54%** on a
 wrong line of the right source (empty-unit pairs 0/20), 3/930 on a line of a wrong source.
+
+## Amendment 4 — 2026-09-06, after the fourth review (8faa0ce → round 5)
+
+The fourth review (`…-slice-7-astra-round4.md`) said do not merge on one finding and noted
+one inexact sentence.
+
+1. **The charset admitted every `str.isnumeric` character** — 1,114 that are no digit
+   (Roman numerals, circled and parenthesised numbers, vulgar fractions, ancient counting
+   marks), 1,023 of which made `0.5` citable after `Ni0.5O`; and the words said "digits".
+   A formula's digits are now the decimal digits of any script (`str.isdecimal`, category
+   Nd) and the twenty sub- and superscript digits (`_SCRIPT_DIGITS`); `str.isdigit` was
+   not used because it admits the circled numbers too. `Ni0.5O½`, which §5's first build
+   had green, is red with `Ni0.5OⅧ`, `Ni0.5O⑧`, `Ni0.5O⑴`; `Ni0.5O２`, `LiNi0.5O₂` and
+   `Fe³Ni0.5O` stay green. The contract and skill name the exclusion, with a row. The guard
+   after the decimal keeps `str.isnumeric`: a numeric symbol continuing the digits refuses
+   the match, which is the safe direction.
+2. **CORRECTIONS #32 said "the three design passages carry a dated note."** One dated
+   note exists (PROVENANCE_CHECKS §6); the figure's other four appearances now carry an
+   inline pointer to the item, and the sentence says exactly that.
+
+Gold and probe re-run: unchanged (R = 11, W = R′ = W′ = 0, 10/10, panel 2/97; P1 17/0,
+P2 5/930 and 3/930, P3 12 of 23).

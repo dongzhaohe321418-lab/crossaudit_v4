@@ -497,11 +497,18 @@ _SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9])")
 #: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
 _TRAILING_PUNCTUATION = ".,;:!?"
 _BRACKETS = set("()[]{}")
+#: The digits a formula may carry besides the decimal digits of any script
+#: (`str.isdecimal`, category Nd): the twenty superscript and subscript digits
+#: (`O₂`, `Fe³`). NOT `str.isnumeric`, which the fourth review found admitting
+#: 1,114 numeric symbols that are no digit — Roman numerals, circled numbers,
+#: vulgar fractions, ancient counting marks — so that `Ni0.5OⅧ` read `0.5`.
+_SCRIPT_DIGITS = frozenset("⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉")
 
 
 def _formula_charset(token: str) -> bool:
-    """What a formula token may be made of: letters and digits of any script
-    (`str.isalpha`, `str.isnumeric` — `LiNi0.5O₂` is a formula), brackets, the
+    """What a formula token may be made of: letters of any script, decimal
+    digits of any script and the sub- and superscript digits (`LiNi0.5O₂` is
+    a formula; `Ni0.5OⅧ` and `Ni0.5O½` are not), brackets, the
     middle dot of a hydrate, a period only between two ASCII digits, and the
     non-stoichiometry marker `−` / `±` (U+2212, U+00B1) only directly before a
     LETTER — never before a digit, where it is a subtraction. A function and
@@ -520,7 +527,7 @@ def _formula_charset(token: str) -> bool:
             if not token[i + 1:i + 2].isalpha():
                 return False
             continue
-        if not (ch.isalpha() or ch.isnumeric()):
+        if not (ch.isalpha() or ch.isdecimal() or ch in _SCRIPT_DIGITS):
             return False
     return bool(token)
 
@@ -535,7 +542,7 @@ _VARIABLES = frozenset("xyzδ")
 
 
 def _letter_runs(token: str) -> list[str]:
-    """Maximal runs of `str.isalpha` characters. Not `[^\W\d_]`, which the
+    r"""Maximal runs of `str.isalpha` characters. Not `[^\W\d_]`, which the
     second review found treating `₂` and `²` as letters, so that `LiNi0.5O₂`
     was refused while `LiNi0.5O2` read."""
     runs, current = [], ""
@@ -1697,7 +1704,9 @@ register("number_source", check_number_source,
          "the digits are compared and the same digits in any other formula "
          "satisfy it too, so the quotation must contain the whole formula, not "
          "the digits alone; a formula token is letters that parse as element "
-         "symbols (x, y, z and δ allowed as variables), digits, brackets, the "
+         "symbols (x, y, z and δ allowed as variables), decimal digits of any "
+         "script and the sub- and superscript digits (not Roman numerals, "
+         "circled numbers or fractions: 'Ni0.5OⅧ' is not read), brackets, the "
          "middle dot and the '−δ' / '±δ' marker, and a token of any other shape "
          "('Figure3.2', 'pH7.4', 'x=Ni0.5', 'run_v1.5') is not read by this rule; "
          "the parse is syntactic, so letters that merely spell symbols "

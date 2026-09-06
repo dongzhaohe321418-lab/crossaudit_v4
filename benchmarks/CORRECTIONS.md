@@ -353,6 +353,7 @@ other sources), and the containment test is the shipped matcher — on Arm 4's 1
 pairs that is **5/930 = 0.54%** line-scoped and 3/930 wrong-source, under base and E3
 alike. The §6 "≤ 5%" bar is therefore met by a real number for the first time; the
 earlier slices' kill conditions did not rest on it (they used the gold's labelled panel).
-The three design passages carry a dated note pointing here; the probe's docstring and
-output label say what its line-scoped number is. Found by the third cross-vendor review
+PROVENANCE_CHECKS §6 carries one dated note; the figure's other two appearances in that
+file and its two in CONTAINMENT_RULE carry an inline pointer to this item; the probe's
+docstring and output label say what its line-scoped number is. Found by the third cross-vendor review
 of slice 7; the four earlier reviews of the design that quoted the number did not.

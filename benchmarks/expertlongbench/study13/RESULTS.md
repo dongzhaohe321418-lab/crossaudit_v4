@@ -1,6 +1,6 @@
 # Study 13 — results: E3, a decimal stoichiometric subscript
 
-*Fourth version, after three reviews' findings (PREREGISTRATION Amendments 1–3). §1 did not move in any rebuild; §2's P2 is a different instrument since the third review (the first was zero by construction); §3–§5 describe the round-4 build.*
+*Fifth version, after four reviews' findings (PREREGISTRATION Amendments 1–4). §1 did not move in any rebuild; §2's P2 is a different instrument since the third review (the first was zero by construction); §3–§5 describe the round-5 build.*
 
 Measured after the implementation, against the expectation in `PREREGISTRATION.md`
 (committed at e28256b, before `src/` was touched). Sheet: the frozen gold, 300 items;
@@ -68,8 +68,8 @@ formula. It is not a kill and was not preregistered as one.
 
 Before the implementation, with the tests committed first: **25 failed, 86 passed** in the
 E3 and disclosure selections (`red-run.txt`, first build). After the round-4 build:
-`tests/test_number_source_check.py` **1208 passed** (1124 + 84: 66 E3 rows, four E3 tests,
-fourteen disclosure rows). Each mutation and the row it reddens:
+`tests/test_number_source_check.py` **1214 passed** (1124 + 90: 71 E3 rows, four E3 tests,
+fifteen disclosure rows). Each mutation and the row it reddens:
 
 | mutation | row |
 |---|---|
@@ -104,6 +104,9 @@ fourteen disclosure rows). Each mutation and the row it reddens:
 * **The interval is the formula** (round 1), so the quotation must contain it.
 * **A sentence-final decimal** (round 3): `Ni0.5.` reads; the period rule is a period AND a
   digit (`v1.2.3`, `Fe1.2.3`), not a period.
+* **A digit is not a numeric symbol** (round 4): `str.isnumeric` admits Roman numerals, circled
+  numbers and fractions; a formula's digits are decimal digits of any script and the sub-
+  and superscript digits, and the words say so.
 * **A probe can be zero by construction** (round 3): the first P2 was; the design's §6
   figure is; see §2 and CORRECTIONS #32.
 * **Observed, not this slice's, and disclosed:** the ordinary scan reads a bare number
@@ -120,7 +123,7 @@ fourteen disclosure rows). Each mutation and the row it reddens:
 Contract clauses, each bound to a row: "decimal stoichiometric subscript", "with the
 empty unit" (the `(0.8, M)` row), "an integer subscript glued to a letter", "'3' in
 'Cr2O3'", "after a bracket or a middle dot" (two rows), "the '−δ' / '±δ' marker", "parse
-as element symbols", "'pH7.4'", "'x=Ni0.5'", "'run_v1.5'", "the parse is syntactic",
+as element symbols", "not Roman numerals", "'pH7.4'", "'x=Ni0.5'", "'run_v1.5'", "the parse is syntactic",
 "weakest match this check makes", "the quotation must contain the whole formula" (its
 interval half bound by the fenced-interface test). Skill phrases: "decimal stoichiometric
 subscript", "with the empty unit", "integer subscript glued to a letter", "`3` in `Cr2O3`",
@@ -135,4 +138,4 @@ kernel dirs untouched; `number_source` in no profile. Full suite on the branch: 
 
 ## 7. Full suite
 
-First build (fe42d31): `3952 passed, 4 skipped, 6 warnings in 388.57s (0:06:28)`. Second build (1141248): `3971 passed, 4 skipped, 1 warning in 381.56s (0:06:21)`. Third build (efd38ff): `3981 passed, 4 skipped, 6 warnings in 381.86s (0:06:21)`. Fourth build: `3995 passed, 4 skipped, 6 warnings in 386.82s (0:06:26)`.
+First build (fe42d31): `3952 passed, 4 skipped, 6 warnings in 388.57s (0:06:28)`. Second build (1141248): `3971 passed, 4 skipped, 1 warning in 381.56s (0:06:21)`. Third build (efd38ff): `3981 passed, 4 skipped, 6 warnings in 381.86s (0:06:21)`. Fourth build (8faa0ce): `3995 passed, 4 skipped, 6 warnings in 386.82s (0:06:26)`. Fifth build: `4001 passed, 4 skipped, 1 warning in 346.94s (0:05:46)`.
