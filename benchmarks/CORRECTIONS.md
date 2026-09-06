@@ -337,3 +337,22 @@ these corrections incomplete: the 1 of 189 projection had been given the Wilson
 interval of 1 of 190 (the unit-shortening row's), D161 still said the false-pass class
 "did not return", and the handbook's copy of the `uncited` sentence was missed; all
 three are fixed in the same file set.
+
+**32. The design's line-scoped coincidental-containment rate was zero by construction.**
+`provenance_probe.py` (Arm 1, §6 of `docs/design/PROVENANCE_CHECKS.md`) named the
+"owner" lines of a pair as every line its own reader found the pair in, excluded them, and
+then asked the same reader whether the remaining lines held the pair — which no remaining
+line could. The **0.0% (0/1825)** quoted in PROVENANCE_CHECKS §6 (three places),
+CONTAINMENT_RULE §2 and §3, and the probe's docstring is therefore not a measurement of
+anything; the file-scoped 27.7% (596/2150) is a real measurement and stands. Study 13's
+first probe inherited the shape (owners by `contains_pair`, others tested by
+`contains_pair`) and reported 0/3910; the third review of slice 7 found it. The
+instrument is rebuilt in `study13/probe.py`: the owner line is the one the generator's own
+quotation names, the wrong lines are the rest of that source (and, file-scoped, lines of
+other sources), and the containment test is the shipped matcher — on Arm 4's 186 traced
+pairs that is **5/930 = 0.54%** line-scoped and 3/930 wrong-source, under base and E3
+alike. The §6 "≤ 5%" bar is therefore met by a real number for the first time; the
+earlier slices' kill conditions did not rest on it (they used the gold's labelled panel).
+The three design passages carry a dated note pointing here; the probe's docstring and
+output label say what its line-scoped number is. Found by the third cross-vendor review
+of slice 7; the four earlier reviews of the design that quoted the number did not.

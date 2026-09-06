@@ -377,6 +377,13 @@ blocker. Reproduce in ~2 s, no keys, network or model, from a checkout holding
 the gitignored corpus (or with `CROSSAUDIT_T03_CORPUS` set):
 `python3 benchmarks/expertlongbench/provenance_probe.py`.
 
+> **Correction, 2026-09-06 (CORRECTIONS #32).** The line-scoped figure above, and its two
+> other appearances in this file, are zero by construction: the probe excluded every line
+> its own reader found the pair in and tested the rest with the same reader. The
+> file-scoped 27.7% stands. A real line-scoped measurement — owner line named by the
+> generator's quotation — is study 13's P2: **5/930 = 0.54%** on Arm 4's traced pairs,
+> under the ≤ 5% bar. Nothing else in this section changes.
+
 ### Arm 2 — the generator, with the annotation skill (≈$3, 16 instances)
 
 Regenerate the same 16 instances with a house skill carrying §2.1's contract,

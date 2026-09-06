@@ -6,10 +6,10 @@ and the two archived draft sets; writes counts and formula-token shapes only.
 
   P1  every whitespace-delimited token in every source procedure that the shipped
       `_SUBSCRIPT` hook reads, with the value it yields — for classification by hand
-  P2  `provenance_probe.py`'s line-scoped coincidental-containment instrument
-      (seed 20261104, five wrong-line draws per traced pair), with `contains_pair`
-      as the containment test, under base (E3 off) and shipped; all pairs and
-      empty-unit pairs alone
+  P2  the line-scoped coincidental-containment rate with the owner line named by
+      the generator's own quotation (Arm 4's 26 annotated drafts; seed 20261104,
+      five wrong-line draws per traced pair, and five draws from other sources),
+      under base (E3 off) and shipped; all pairs and empty-unit pairs alone
   P3  subscript decoys: values E3 reads from more than one distinct formula token
 
     PYTHONPATH=src .venv/bin/python benchmarks/expertlongbench/study13/probe.py [--config base|shipped]
@@ -72,30 +72,65 @@ def p1_tokens(corpus: dict) -> dict[str, set[str]]:
     return read
 
 
-def p2_rates(corpus: dict, seed: int = P.SEED, draws: int = P.DRAWS):
+FENCE = re.compile(r"```crossaudit-numbers\s*\n(.*?)\n```", re.S)
+
+
+def annotated_rows(draft_text: str):
+    for block in FENCE.findall(draft_text):
+        try:
+            rows = json.loads(block)
+        except ValueError:
+            continue
+        for row in rows:
+            src = row.get("src") or {}
+            if isinstance(src, dict) and src.get("quote") and isinstance(row.get("v"), str):
+                yield row["v"], row.get("u") or "", src["quote"]
+
+
+def p2_rates(seed: int = P.SEED, draws: int = P.DRAWS):
+    """The line-scoped coincidental-containment rate, with the OWNER line named by
+    the generator's own quotation and not by the matcher. The third review found
+    the first version excluding every line the matcher accepted and then testing
+    the rest with the same matcher — zero by construction. Here a traced pair is
+    one whose quoted line contains it; the wrong lines are the other non-empty
+    lines of the same source (five draws), and, file-scoped, five lines of other
+    instances' sources; a draw that contains the pair is a coincidence a wrong
+    citation would have enjoyed. Only the 26 Arm 4 drafts carry annotations."""
     rng = random.Random(seed)
-    out = {"all": [0, 0], "empty": [0, 0]}
-    n_pairs = 0
-    for label, root, draft_rel, suffix in DRAFTS:
-        root = os.path.expanduser(root)
-        for name in sorted(os.listdir(root)):
-            row = corpus.get(instance_key(name, suffix))
-            draft = os.path.join(root, name, draft_rel)
-            if row is None or not os.path.exists(draft):
+    root = os.path.expanduser(DRAFTS[1][1])
+    sources = {}
+    for name in sorted(os.listdir(root)):
+        path = os.path.join(root, name, "project/work/synthesis/RECIPE.md")
+        if os.path.exists(path):
+            sources[name] = [ln for ln in open(path, encoding="utf-8").read().split("\n") if ln.strip()]
+    out = {k: [0, 0] for k in ("line", "line-empty", "file", "file-empty")}
+    n_rows = n_traced = n_unlocated = 0
+    for name, lines in sources.items():
+        draft = os.path.join(root, name, "project/work/synthesis/explanation.md")
+        if not os.path.exists(draft):
+            continue
+        for v, u, quote in annotated_rows(open(draft, encoding="utf-8").read()):
+            n_rows += 1
+            owners = [i for i, ln in enumerate(lines) if quote in ln]
+            if not owners:
+                n_unlocated += 1
                 continue
-            lines = [ln for ln in row["input"].split("\n") if ln.strip()]
-            for value, unit in P.pairs(open(draft).read()):
-                n_pairs += 1
-                owners = [i for i, ln in enumerate(lines) if N.contains_pair(ln, value, unit)]
-                if not owners:
-                    continue
-                others = [i for i in range(len(lines)) if i not in owners]
-                for i in rng.sample(others, min(draws, len(others))):
-                    hit = N.contains_pair(lines[i], value, unit)
-                    for k in ("all",) + (("empty",) if unit == "" else ()):
-                        out[k][1] += 1
-                        out[k][0] += hit
-    return n_pairs, out
+            if not any(N.contains_pair(lines[i], v, u) for i in owners):
+                continue
+            n_traced += 1
+            others = [i for i in range(len(lines)) if i not in owners]
+            for i in rng.sample(others, min(draws, len(others))):
+                hit = N.contains_pair(lines[i], v, u)
+                out["line"][1] += 1; out["line"][0] += hit
+                if u == "":
+                    out["line-empty"][1] += 1; out["line-empty"][0] += hit
+            for other in rng.sample([k for k in sources if k != name], draws):
+                ln = rng.choice(sources[other])
+                hit = N.contains_pair(ln, v, u)
+                out["file"][1] += 1; out["file"][0] += hit
+                if u == "":
+                    out["file-empty"][1] += 1; out["file-empty"][0] += hit
+    return n_rows, n_traced, n_unlocated, out
 
 
 def main(argv=None) -> int:
@@ -113,12 +148,14 @@ def main(argv=None) -> int:
     for tok in sorted(read):
         print(f"    {tok}  <- {sorted(read[tok], key=float)}")
 
-    n_pairs, rates = p2_rates(corpus)
-    print(f"P2  draft pairs {n_pairs}; line-scoped coincidental containment: "
-          f"all {rates['all'][0]}/{rates['all'][1]}"
-          f"={100 * rates['all'][0] / max(1, rates['all'][1]):.2f}%   "
-          f"empty-unit {rates['empty'][0]}/{rates['empty'][1]}"
-          f"={100 * rates['empty'][0] / max(1, rates['empty'][1]):.2f}%")
+    n_rows, n_traced, n_unlocated, rates = p2_rates()
+    def pct(k):
+        c, n = rates[k]
+        return f"{c}/{n}={100 * c / max(1, n):.2f}%"
+    print(f"P2  Arm 4 annotated rows {n_rows}; quote unlocated {n_unlocated}; traced by the "
+          f"generator's own quote {n_traced}; coincidental containment, wrong line of the "
+          f"right source: all {pct('line')}  empty-unit {pct('line-empty')}; a line of a "
+          f"wrong source: all {pct('file')}  empty-unit {pct('file-empty')}")
 
     by_value: dict[str, set[str]] = defaultdict(set)
     for tok, vals in read.items():

@@ -17,7 +17,7 @@ P1  tokens E3 reads: 17 distinct, 39 (token, value) readings
     Ni0.92Co0.04Mn0.04(OH)2  <- ['0.04', '0.92']
     Ni0.95Co0.04Mn0.01(OH)2  <- ['0.01', '0.04', '0.95']
     SrCo0.6Fe0.4O3−δ  <- ['0.4', '0.6']
-P2  draft pairs 874; line-scoped coincidental containment: all 0/3910=0.00%   empty-unit 0/2205=0.00%
+P2  Arm 4 annotated rows 190; quote unlocated 0; traced by the generator's own quote 186; coincidental containment, wrong line of the right source: all 5/930=0.54%  empty-unit 0/20=0.00%; a line of a wrong source: all 3/930=0.32%  empty-unit 0/20=0.00%
 P3  values read from more than one distinct formula token: 12 of 23
     1e-2: 2 tokens
     4e-2: 4 tokens
@@ -33,5 +33,5 @@ P3  values read from more than one distinct formula token: 12 of 23
     13e-1: 2 tokens
 config base   corpus instances 50
 P1  tokens E3 reads: 0 distinct, 0 (token, value) readings
-P2  draft pairs 874; line-scoped coincidental containment: all 0/3900=0.00%   empty-unit 0/2195=0.00%
+P2  Arm 4 annotated rows 190; quote unlocated 0; traced by the generator's own quote 186; coincidental containment, wrong line of the right source: all 5/930=0.54%  empty-unit 0/20=0.00%; a line of a wrong source: all 3/930=0.32%  empty-unit 0/20=0.00%
 P3  values read from more than one distinct formula token: 0 of 0

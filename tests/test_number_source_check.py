@@ -2287,6 +2287,14 @@ E3_ROWS = [
     ("Ni0.5O2）",                "0.5",  "",  False, "a full-width bracket is outside the charset"),
     ("Ni0.5O2’s",               "0.5",  "",  False, "an apostrophe likewise"),
     ("Ni\u200d0.5O",            "0.5",  "",  True,  "a zero-width joiner before the digits: the ORDINARY scan's bare number (pre-existing), not E3 — see the interval test"),
+    ("Ni0.5O−₂",                "0.5",  "",  False, "the marker before a subscript numeral (the third review)"),
+    ("Ni0.5O−²",                "0.5",  "",  False, "before a superscript numeral"),
+    ("Ni0.5O−Ⅷ",                "0.5",  "",  False, "before a Roman numeral"),
+    ("Ni0.5±₂",                 "0.5",  "",  False, "`±` likewise"),
+    ("Ni0.5.",                  "0.5",  "",  True,  "a decimal ending the token, sentence-final (the third review)"),
+    ("Ni0.5,",                  "0.5",  "",  True,  "before a comma"),
+    ("Fe1.2.3",                 "1.2",  "",  False, "a period and a digit follow: a version, whatever the letters"),
+    ("Ni.0.5O",                 "0.5",  "",  False, "a period before the digits: neither the ordinary scan nor E3"),
     ("Ni0.5２O",                 "0.5",  "",  False, "a full-width digit continues the number (the first review)"),
     ("Ni0.5₂O",                 "0.5",  "",  False, "a subscript digit continues it"),
     ("Ni0.5٢O",                 "0.5",  "",  False, "an Arabic-Indic digit continues it"),
@@ -2325,7 +2333,8 @@ def test_e3_is_the_subscript_hook_and_nothing_else(monkeypatch):
 def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
     """MUTATION, one per guard, each with the row it turns green: read integer
     subscripts (`H2O` with `2` goes green); drop the charset requirement
-    (`x=Ni0.5` goes green — `run_v1.5` is held red by the element parse too);
+    (`x=Ni0.5` and `Ni0.5O−₂` go green — `run_v1.5` is held red by the element
+    parse too); drop the version guard (`Fe1.2.3` goes green);
     drop the element-symbol parse (`Figure3.2` goes green); drop the any-script
     digit guard after the decimal (`Ni0.5２O`, `Ni0.5₂O` go green); drop the
     letter guard before it (`Ni２0.5O`, `x²0.5` go green — the second review's
@@ -2341,8 +2350,15 @@ def test_e3_reads_decimals_only_glued_to_a_letter_inside_a_formula(monkeypatch):
     monkeypatch.undo()
 
     assert not numbers.contains_pair("x=Ni0.5", "0.5", "")
-    monkeypatch.setattr(numbers, "_FORMULA_TOKEN", re.compile(r".*"))
+    assert not numbers.contains_pair("Ni0.5O−₂", "0.5", "")
+    monkeypatch.setattr(numbers, "_formula_charset", lambda token: True)
     assert numbers.contains_pair("x=Ni0.5", "0.5", "")     # its letters parse; only the `=` held it
+    assert numbers.contains_pair("Ni0.5O−₂", "0.5", "")    # the marker before a numeral (the third review)
+    monkeypatch.undo()
+
+    assert not numbers.contains_pair("Fe1.2.3", "1.2", "")
+    monkeypatch.setattr(numbers, "_continued_by_version", lambda span, i: False)
+    assert numbers.contains_pair("Fe1.2.3", "1.2", "")     # a period and a digit: a version
     monkeypatch.undo()
 
     assert not numbers.contains_pair("Figure3.2", "3.2", "")
@@ -2378,6 +2394,8 @@ def test_e3_covers_the_whole_formula_in_the_quote_interval():
     # number after it — the frozen base's behaviour, not this slice's; E3 refuses the
     # token (the joiner is outside the charset) and yields nothing.
     assert list(pair_occurrences("Ni\u200d0.5O", "0.5", "")) == [(3, 6)]
+    # A decimal ending the token before sentence punctuation: the token, not the period.
+    assert list(pair_occurrences("the Ni0.5.", "0.5", "")) == [(4, 9)]
 
 
 def test_e3_through_the_fenced_interface_needs_the_formula_quoted():

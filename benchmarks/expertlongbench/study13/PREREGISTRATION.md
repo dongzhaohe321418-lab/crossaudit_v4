@@ -182,3 +182,35 @@ The second review (`…-slice-7-astra-round2.md`) said do not merge on four find
 
 Gold and probe re-run: identical to the first run (R = 11, W = R′ = W′ = 0, 10/10, panel
 2/97; P1 17/0, P2 0/3910 and 0/2205, P3 12 of 23).
+
+## Amendment 3 — 2026-09-06, after the third review (efd38ff → round 4)
+
+The third review (`…-slice-7-astra-round3.md`) said do not merge on four findings.
+
+1. **The marker guard used `[^\W\d_]`** for "a letter follows", which admits every
+   numeric character that is not `\d` — `Ni0.5O−₂`, `Ni0.5O−²`, `Ni0.5O−Ⅷ`, `Ni0.5±₂`
+   read `0.5` (1,151 such characters in the review's sweep). The charset is now a
+   function, `_formula_charset`, in which the marker must be followed by `str.isalpha`,
+   a period must sit between two ASCII digits, and everything else is `isalpha`,
+   `isnumeric`, a bracket or the middle dot. Rows for the four shapes; the charset
+   mutation now also turns `Ni0.5O−₂` green.
+2. **P2 was zero by construction.** The probe named the owner lines of a pair as every
+   line `contains_pair` accepted, excluded them, and tested the rest with `contains_pair`.
+   §3a's "P2 — the line-scoped coincidental rate" and its kill condition were therefore
+   not measurements. The design's own §6 figure (0/1825) has the same shape, and is
+   withdrawn in CORRECTIONS #32 with a dated note in both design files. P2 is rebuilt:
+   the owner line is the one the generator's own quotation names (Arm 4's 26 annotated
+   drafts, 190 rows, 186 traced by their quote), the wrong lines are the other lines of
+   that source (five draws) and lines of other sources (five draws), the containment test
+   is the shipped matcher. Arm T's 16 drafts carry no annotations and drop out of P2. The
+   kill stays as preregistered (> 5%) and is now decided by a real number.
+3. **A decimal ending the token before sentence punctuation** (`Ni0.5.`) was refused by the
+   regex's `(?![0-9.])` before punctuation stripping ran; `Ni0.5` and `Ni0.5,` read. The
+   lookahead is `(?![0-9])` and the period rule is a named guard, `_continued_by_version`
+   (a period AND a digit: `v1.2.3`), with its mutation row `Fe1.2.3`.
+4. **RESULTS §4 said the ordinary scan reads a number after "any character that is not a
+   word character"**; a period is the exception (`Ni.0.5O` blocks). Corrected, with a row.
+
+Gold re-run: unchanged (R = 11, W = R′ = W′ = 0, 10/10, panel 2/97). Probe: P1 and P3
+unchanged; P2 under the rebuilt instrument, base and E3 alike: **5/930 = 0.54%** on a
+wrong line of the right source (empty-unit pairs 0/20), 3/930 on a line of a wrong source.

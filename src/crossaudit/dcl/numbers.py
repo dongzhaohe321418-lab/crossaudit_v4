@@ -484,21 +484,45 @@ _INLINE_GAP = re.compile(rf"{_INLINE}*")
 #: (`_glued_to_letter`), they are not continued by a digit of any script
 #: (`_continued_by_digit`), and the whitespace-delimited token holding them is
 #: formula-shaped (`_formula_shaped`: the charset, and letters that parse as
-#: element symbols). The regex's own lookarounds are ASCII and only keep the
-#: match from starting or ending inside an ASCII number; the second review
-#: found `Ni２0.5O` reading `0.5` when the letter guard was absent. Named so the
-#: study's ablation can empty it.
-_SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9.])")
-
-#: What a formula token may be made of: letters and digits of any script
-#: (`\w` without the underscore: `LiNi0.5O₂` is a formula), brackets, the
-#: middle dot of a hydrate, a period only between two digits, and the
-#: non-stoichiometry marker `−δ` / `±δ` — U+2212 or U+00B1 directly before a
-#: letter, never before a digit, where it would be a subtraction.
-_FORMULA_TOKEN = re.compile(r"^(?:[^\W_]|[()\[\]{}·]|[−±](?=[^\W\d_])|(?<=[0-9])\.(?=[0-9]))+$")
+#: element symbols), and they are not continued by a period and a digit
+#: (`_continued_by_version`: `v1.2.3`; a sentence-final period after `Ni0.5.`
+#: is punctuation, which the third review found the regex refusing). The
+#: regex's own lookarounds are ASCII and only keep the match from starting or
+#: ending inside an ASCII number; the second review found `Ni２0.5O` reading
+#: `0.5` when the letter guard was absent. Named so the study's ablation can
+#: empty it.
+_SUBSCRIPT = re.compile(r"(?<![0-9.])([0-9]+\.[0-9]+)(?![0-9])")
 
 #: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
+#: Sentence punctuation a formula token may end with (`… LiNi0.8Co0.2O2.`).
 _TRAILING_PUNCTUATION = ".,;:!?"
+_BRACKETS = set("()[]{}")
+
+
+def _formula_charset(token: str) -> bool:
+    """What a formula token may be made of: letters and digits of any script
+    (`str.isalpha`, `str.isnumeric` — `LiNi0.5O₂` is a formula), brackets, the
+    middle dot of a hydrate, a period only between two ASCII digits, and the
+    non-stoichiometry marker `−` / `±` (U+2212, U+00B1) only directly before a
+    LETTER — never before a digit, where it is a subtraction. A function and
+    not a regex: the third review found the regex's `[^\\W\\d_]` after the
+    marker admitting `₂`, `²` and `Ⅷ`, 1,151 numeric characters that are not
+    `\\d`, so `Ni0.5O−₂` read `0.5`."""
+    for i, ch in enumerate(token):
+        if ch in _BRACKETS or ch == "·":
+            continue
+        if ch == ".":
+            if not (token[i - 1:i].isascii() and token[i - 1:i].isdigit()
+                    and token[i + 1:i + 2].isascii() and token[i + 1:i + 2].isdigit()):
+                return False
+            continue
+        if ch in "−±":
+            if not token[i + 1:i + 2].isalpha():
+                return False
+            continue
+        if not (ch.isalpha() or ch.isnumeric()):
+            return False
+    return bool(token)
 
 #: The variables of a non-stoichiometric formula (`O2−xFx`, `O3−δ`), admitted
 #: beside `_ELEMENTS` — the module's own table of the 118 symbols, above —
@@ -543,7 +567,7 @@ def _element_symbols(run: str) -> bool:
 
 def _formula_shaped(token: str) -> bool:
     """The charset, and every run of letters an element-symbol sequence."""
-    return bool(_FORMULA_TOKEN.match(token)) and all(
+    return _formula_charset(token) and all(
         _element_symbols(run) for run in _letter_runs(token))
 
 
@@ -564,6 +588,12 @@ def _continued_by_digit(span: str, i: int) -> bool:
     return i < len(span) and span[i].isnumeric()
 
 
+def _continued_by_version(span: str, i: int) -> bool:
+    """Whether a period AND a digit follow offset `i` — `v1.2.3` is a version,
+    `Ni0.5.` is a formula at the end of a sentence."""
+    return span[i:i + 1] == "." and span[i + 1:i + 2].isnumeric()
+
+
 def _formula_subscripts(span: str, wanted_value: str):
     """E3: every decimal subscript in `span` whose value is `wanted_value`, as
     the half-open interval of the formula token holding it."""
@@ -574,6 +604,8 @@ def _formula_subscripts(span: str, wanted_value: str):
             continue                      # `Ni２0.5O`, `·0.5`: not this rule's
         if _continued_by_digit(span, m.end(1)):
             continue                      # `Ni0.5₂O`: not these digits
+        if _continued_by_version(span, m.end(1)):
+            continue                      # `v1.2.3`: not this number
         if _UNPARSED.match(span[m.end(1):]):
             continue                      # `Ni0.5×10³`: not this number
         start, end = m.start(1), m.end(1)
