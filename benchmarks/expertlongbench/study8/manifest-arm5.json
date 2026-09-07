@@ -1,0 +1,2440 @@
+{
+  "study": "study8 / Arm 5",
+  "preregistration": "benchmarks/expertlongbench/study8/PREREGISTRATION-ARM5.md",
+  "plan": {
+    "run_id": "arm5-20260906T183602Z",
+    "task": "T03MaterialSEG",
+    "corpus_sha256": "0b525eae93aab406d13e5f90b61afbed575dae7d789e70af6a470a764a2b1af0",
+    "instance_ids": [
+      "T03MaterialSEG-10.1002/smtd.202400640",
+      "T03MaterialSEG-10.1002/solr.202201078",
+      "T03MaterialSEG-10.1002/zaac.202200095",
+      "T03MaterialSEG-10.1002/adfm.202411737",
+      "T03MaterialSEG-10.1126/sciadv.adp3309",
+      "T03MaterialSEG-10.1002/cssc.202300809",
+      "T03MaterialSEG-10.1002/anie.201913331",
+      "T03MaterialSEG-10.1002/ange.202300209",
+      "T03MaterialSEG-10.1002/celc.202200984",
+      "T03MaterialSEG-10.1002/adfm.202002249",
+      "T03MaterialSEG-10.1002/anie.201809897",
+      "T03MaterialSEG-10.1002/cssc.201000245",
+      "T03MaterialSEG-10.1002/asia.202100022",
+      "T03MaterialSEG-10.1002/celc.202200772",
+      "T03MaterialSEG-10.1002/adma.202416342",
+      "T03MaterialSEG-10.1002/adfm.202209924",
+      "T03MaterialSEG-10.1002/chem.202302565",
+      "T03MaterialSEG-10.1002/aic.18378",
+      "T03MaterialSEG-10.1002/advs.202200998",
+      "T03MaterialSEG-10.1002/pssa.201800896",
+      "T03MaterialSEG-10.1002/pssb.201900312",
+      "T03MaterialSEG-10.1002/adfm.202402444",
+      "T03MaterialSEG-10.1002/advs.202406453",
+      "T03MaterialSEG-10.1002/smll.201800441",
+      "T03MaterialSEG-10.1002/aesr.202200017",
+      "T03MaterialSEG-10.1002/chem.201905217",
+      "T03MaterialSEG-10.1002/adma.202208974",
+      "T03MaterialSEG-10.1002/cjce.23950",
+      "T03MaterialSEG-10.1002/aenm.202203860",
+      "T03MaterialSEG-10.1002/adfm.201000591",
+      "T03MaterialSEG-10.1126/sciadv.adj5431",
+      "T03MaterialSEG-10.1002/cjce.24030",
+      "T03MaterialSEG-10.1002/smll.202408072",
+      "T03MaterialSEG-10.1002/ange.202112688",
+      "T03MaterialSEG-10.1002/batt.202100174",
+      "T03MaterialSEG-10.1002/smll.202406074",
+      "T03MaterialSEG-10.1002/smll.202206248",
+      "T03MaterialSEG-10.1002/cssc.201700885",
+      "T03MaterialSEG-10.1002/jbm.a.36681",
+      "T03MaterialSEG-10.1002/adfm.202309656",
+      "T03MaterialSEG-10.1002/cnma.202200403",
+      "T03MaterialSEG-10.1002/anie.201812472",
+      "T03MaterialSEG-10.1002/ejic.202100901",
+      "T03MaterialSEG-10.1002/ijch.201400157",
+      "T03MaterialSEG-10.1002/cnma.201600033",
+      "T03MaterialSEG-10.1002/anie.202410016",
+      "T03MaterialSEG-10.1002/batt.202100179",
+      "T03MaterialSEG-10.1002/zaac.201800357",
+      "T03MaterialSEG-10.1002/batt.202200056",
+      "T03MaterialSEG-10.1002/adma.202100312"
+    ],
+    "replicate_of_arm4_ids": [
+      "T03MaterialSEG-10.1002/smtd.202400640",
+      "T03MaterialSEG-10.1002/solr.202201078",
+      "T03MaterialSEG-10.1002/adfm.202411737",
+      "T03MaterialSEG-10.1126/sciadv.adp3309",
+      "T03MaterialSEG-10.1002/ange.202300209",
+      "T03MaterialSEG-10.1002/celc.202200984",
+      "T03MaterialSEG-10.1002/anie.201809897",
+      "T03MaterialSEG-10.1002/cssc.201000245",
+      "T03MaterialSEG-10.1002/adma.202416342",
+      "T03MaterialSEG-10.1002/chem.202302565",
+      "T03MaterialSEG-10.1002/advs.202200998",
+      "T03MaterialSEG-10.1002/pssa.201800896",
+      "T03MaterialSEG-10.1002/pssb.201900312",
+      "T03MaterialSEG-10.1002/aesr.202200017",
+      "T03MaterialSEG-10.1002/adma.202208974",
+      "T03MaterialSEG-10.1002/aenm.202203860",
+      "T03MaterialSEG-10.1002/smll.202406074",
+      "T03MaterialSEG-10.1002/smll.202206248",
+      "T03MaterialSEG-10.1002/adfm.202309656",
+      "T03MaterialSEG-10.1002/ejic.202100901",
+      "T03MaterialSEG-10.1002/ijch.201400157",
+      "T03MaterialSEG-10.1002/cnma.201600033",
+      "T03MaterialSEG-10.1002/anie.202410016",
+      "T03MaterialSEG-10.1002/batt.202100179",
+      "T03MaterialSEG-10.1002/zaac.201800357",
+      "T03MaterialSEG-10.1002/adma.202100312"
+    ],
+    "new_to_the_shipped_skill_ids": [
+      "T03MaterialSEG-10.1002/zaac.202200095",
+      "T03MaterialSEG-10.1002/cssc.202300809",
+      "T03MaterialSEG-10.1002/anie.201913331",
+      "T03MaterialSEG-10.1002/adfm.202002249",
+      "T03MaterialSEG-10.1002/asia.202100022",
+      "T03MaterialSEG-10.1002/celc.202200772",
+      "T03MaterialSEG-10.1002/adfm.202209924",
+      "T03MaterialSEG-10.1002/aic.18378",
+      "T03MaterialSEG-10.1002/adfm.202402444",
+      "T03MaterialSEG-10.1002/advs.202406453",
+      "T03MaterialSEG-10.1002/smll.201800441",
+      "T03MaterialSEG-10.1002/chem.201905217",
+      "T03MaterialSEG-10.1002/cjce.23950",
+      "T03MaterialSEG-10.1002/adfm.201000591",
+      "T03MaterialSEG-10.1126/sciadv.adj5431",
+      "T03MaterialSEG-10.1002/cjce.24030",
+      "T03MaterialSEG-10.1002/smll.202408072",
+      "T03MaterialSEG-10.1002/ange.202112688",
+      "T03MaterialSEG-10.1002/batt.202100174",
+      "T03MaterialSEG-10.1002/cssc.201700885",
+      "T03MaterialSEG-10.1002/jbm.a.36681",
+      "T03MaterialSEG-10.1002/cnma.202200403",
+      "T03MaterialSEG-10.1002/anie.201812472",
+      "T03MaterialSEG-10.1002/batt.202200056"
+    ],
+    "arm": "S",
+    "models": {
+      "generator": "anthropic:claude-sonnet-4-6",
+      "auditor": "openai:gpt-5.6-terra"
+    },
+    "settings": {
+      "max_rounds": 1,
+      "checks": [
+        "number_source"
+      ],
+      "audit_rules": "general",
+      "scope": "work",
+      "increment_dir": "work/synthesis",
+      "output": "work/synthesis/explanation.md",
+      "recipe": "work/synthesis/RECIPE.md",
+      "budget_usd": 5.0,
+      "bootstrap_seed": 20261107
+    },
+    "skill_sha256": "7b0b8ebaa909fb25fcaf7a6a8b236fbb70a71eff322be056785724837fb0b7fb",
+    "contract_sha256": "48d38f0c1132a9febd179800ecd2184ff588ea427d048ede8e1c0a48d763a6ca",
+    "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf",
+    "code_sha": "38d3d222da98b9bc13b7bb2d257dbc129baa9ab6",
+    "python": "3.13.5",
+    "platform": "darwin",
+    "started_utc": "2026-09-06T18:36:02.368760+00:00",
+    "git_status_note": "This plan.json was restored from arm5.log after the first retry invocation rewrote it; the log printed every field except git_status. The git_status here is the DRY RUN's, taken at the same tree BEFORE the preregistration commit 38d3d22 (hence the modified report script and the untracked Arm 5 files); the run itself started at code_sha 38d3d22 (printed in the log) and its own git_status at start is not recorded. The corpus symlink benchmarks/expertlongbench/data was untracked throughout."
+  },
+  "git_status_at_start": " M benchmarks/expertlongbench/provenance_arm4_report.py\n?? benchmarks/expertlongbench/data\n?? benchmarks/expertlongbench/provenance_arm5.py\n?? benchmarks/expertlongbench/study8/PREREGISTRATION-ARM5.md\n?? benchmarks/expertlongbench/study8/arm5_census.py\n?? benchmarks/expertlongbench/study8/arm5_census.txt\n?? benchmarks/expertlongbench/study8/arm5_sheet.py\n",
+  "drafts": [
+    {
+      "instance": "T03MaterialSEG-10.1002/smtd.202400640",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 40.46,
+      "prompt_sha256": "f9491016ddd716442d02959edece68822ee6adf6c9f335a568644c0e37b484e3",
+      "started_utc": "2026-09-06T18:36:02.369457+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19243,
+          "output": 1808,
+          "cost_usd": 0.08261500000000001
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14775,
+          "output": 1502,
+          "cost_usd": 0.066855
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4468,
+          "output": 306,
+          "cost_usd": 0.01576
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "d7c2c6e431d588573da920744bf1b5bb85a3c57a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "25c5a577c7dc23f46358a179d4b34913f7fcac46ba3b56eaf1fdb84b0c9db72d",
+      "draft_chars": 5314,
+      "draft_lines": 28,
+      "numbers_present": 14,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/solr.202201078",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 52.59,
+      "prompt_sha256": "9e0f18df67025dc8c59fd59775358c05071e8bb35f1f267623ac93259f27d35f",
+      "started_utc": "2026-09-06T18:36:43.156518+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19445,
+          "output": 2672,
+          "cost_usd": 0.096085
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14785,
+          "output": 1899,
+          "cost_usd": 0.07284
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4660,
+          "output": 773,
+          "cost_usd": 0.023245
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "ba3af8282506304dcb0f81c0b16177f3f9b80b72",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "f7d54c26d050970df4428acd749aa27b191461fc949209d4e69ec1603355dc11",
+      "draft_chars": 5889,
+      "draft_lines": 34,
+      "numbers_present": 24,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/zaac.202200095",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 55.81,
+      "prompt_sha256": "fb1396ed596efe1291df7d3e270f2db6367d835d4d9e3b34e9351499c6a8e71a",
+      "started_utc": "2026-09-06T18:37:35.995223+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20242,
+          "output": 2898,
+          "cost_usd": 0.1015935
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15037,
+          "output": 2244,
+          "cost_usd": 0.07877100000000001
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5205,
+          "output": 654,
+          "cost_usd": 0.0228225
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "1dbec0d6d6727fb7a672df325c1db7c6ea0a98a1",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "24638597a3e5198c1cd248ff22a8362407a3ce5ea51bc54a19384536677e678e",
+      "draft_chars": 6423,
+      "draft_lines": 41,
+      "numbers_present": 24,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.202411737",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 50.62,
+      "prompt_sha256": "3dcdb9087362e76ca502d59927ca2ca9e974d6b9e8a886e139b592bcac07f3fc",
+      "started_utc": "2026-09-06T18:38:32.083927+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12097,
+          "output": 2505,
+          "cost_usd": 0.0715005
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7366,
+          "output": 1949,
+          "cost_usd": 0.051333
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4731,
+          "output": 556,
+          "cost_usd": 0.0201675
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "67fc532d730946b963f304d67fea7a6009136c99",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "07c5d6ee375e8d5de2562448e3fb14c311e1a73f02f762d42a09ee6926be2b90",
+      "draft_chars": 6495,
+      "draft_lines": 31,
+      "numbers_present": 15,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1126/sciadv.adp3309",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 41.8,
+      "prompt_sha256": "75d32c1907026141ae1a09f7398a225dcb95a92466a1529053d4d67713536d4c",
+      "started_utc": "2026-09-06T18:39:22.962882+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18884,
+          "output": 2206,
+          "cost_usd": 0.0876065
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14613,
+          "output": 1528,
+          "cost_usd": 0.066759
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4271,
+          "output": 678,
+          "cost_usd": 0.0208475
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "640874e478b65e36dd30593bdbf3a4823b09c868",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "0d94e1562db7c1f3dc99338182d8cb1907f1e7774b7ae668bd05092986b3f0d2",
+      "draft_chars": 4458,
+      "draft_lines": 26,
+      "numbers_present": 28,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cssc.202300809",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 52.71,
+      "prompt_sha256": "f2fdd264fa05972134ec88f82a20e8a9ecabce649aa4b9209472a903d46f8e89",
+      "started_utc": "2026-09-06T18:40:05.016376+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20072,
+          "output": 2639,
+          "cost_usd": 0.0971915
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14853,
+          "output": 2347,
+          "cost_usd": 0.079764
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5219,
+          "output": 292,
+          "cost_usd": 0.0174275
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "bca8849c5d9b88bed0a47b957866536407417bb9",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "30b360051a8b2f4a8b370d174d1789b182d5bcb66ef89c18d4b0f2c97e404be4",
+      "draft_chars": 7576,
+      "draft_lines": 51,
+      "numbers_present": 25,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/anie.201913331",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 53.43,
+      "prompt_sha256": "3882e6dc9608fbd3d475168ccc3299dfd265cbf89d20f1ad8ce13160cffc5a65",
+      "started_utc": "2026-09-06T18:40:57.968997+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19949,
+          "output": 2540,
+          "cost_usd": 0.095335
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14725,
+          "output": 2239,
+          "cost_usd": 0.07776
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5224,
+          "output": 301,
+          "cost_usd": 0.017575
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "94fa87db0a2d1bd9b81e5e7bd48186432ad7a842",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "528d6a3dbb94f5a17512b6995a8bd6f9da6b20bddfbc19f935e17e8f3ecb80f4",
+      "draft_chars": 6753,
+      "draft_lines": 37,
+      "numbers_present": 25,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/ange.202300209",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 48.53,
+      "prompt_sha256": "72531c292b1cda7f68766b8d94d2408af9133b4e12c3a6fe211b24085d503b36",
+      "started_utc": "2026-09-06T18:41:51.638258+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12050,
+          "output": 2425,
+          "cost_usd": 0.070164
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7328,
+          "output": 1991,
+          "cost_usd": 0.051849
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4722,
+          "output": 434,
+          "cost_usd": 0.018315
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "c13094830d2dd631724adc890d4bbf4bd7638843",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "ca06db989e68526ffbcb15aae69a4f667f8eaeedf818193408daa9ad24278191",
+      "draft_chars": 5965,
+      "draft_lines": 49,
+      "numbers_present": 18,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/celc.202200984",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 57.38,
+      "prompt_sha256": "2e479ca2f603e1563117867c8352b5dac44f62680530ac65859f9f66c04a4646",
+      "started_utc": "2026-09-06T18:42:40.417618+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20040,
+          "output": 2970,
+          "cost_usd": 0.1020515
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14803,
+          "output": 2547,
+          "cost_usd": 0.08261399999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5237,
+          "output": 423,
+          "cost_usd": 0.0194375
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "ff2b3b63bf8e07f8478ebad7997d52cadad93781",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "465e70192fd97f98bef9e8e98778c342eb3d10b34c8c6be7f219a691ab9ba239",
+      "draft_chars": 8062,
+      "draft_lines": 47,
+      "numbers_present": 25,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.202002249",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 66.07,
+      "prompt_sha256": "9f9950030def12f6ae2a8dcd0efcb4e1b008d094c94fedb3d34b03d169cfa3e0",
+      "started_utc": "2026-09-06T18:43:38.069837+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12676,
+          "output": 3947,
+          "cost_usd": 0.094623
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7456,
+          "output": 2333,
+          "cost_usd": 0.057363
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5220,
+          "output": 1614,
+          "cost_usd": 0.03726
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "4d90c1a9470402a0713f1cc04fcd509bb6f0494d",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "6b36e21e0cbb4384e09536f9619a32703cf20ea0feb5301acd13b1762dc69909",
+      "draft_chars": 7275,
+      "draft_lines": 37,
+      "numbers_present": 21,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/anie.201809897",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 35.3,
+      "prompt_sha256": "752871c11ea12a22ce2856640458bce799ca61a7574c0080561676bb674b1c79",
+      "started_utc": "2026-09-06T18:44:44.409148+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19050,
+          "output": 1666,
+          "cost_usd": 0.0799475
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14665,
+          "output": 1280,
+          "cost_usd": 0.063195
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4385,
+          "output": 386,
+          "cost_usd": 0.0167525
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "6ea9293f0e193cf60b2af45810098cb9ea659f90",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "a62e9ae109972b6a4b944ef8d3fa9d438ea2f33b9776078ac477dba93faf859d",
+      "draft_chars": 3825,
+      "draft_lines": 23,
+      "numbers_present": 7,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cssc.201000245",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 48.58,
+      "prompt_sha256": "10bcfcddc10080fb64fe8dac4558bb250e9371707fc6a7f50ffd8af5e806c727",
+      "started_utc": "2026-09-06T18:45:19.939964+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12555,
+          "output": 2638,
+          "cost_usd": 0.0746295
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7344,
+          "output": 2206,
+          "cost_usd": 0.055122
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5211,
+          "output": 432,
+          "cost_usd": 0.0195075
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "908a02634f6c549e52eb90715aa0a9605e65f8ac",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "ea70f79025664cbec6b142e502a48f7036b3b444a693e80ee5894a34fd7dff59",
+      "draft_chars": 7256,
+      "draft_lines": 36,
+      "numbers_present": 26,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/asia.202100022",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 40.27,
+      "prompt_sha256": "19c7a1b213e713e78580836785f6c88d915da224bfb960971bb8899c6c9a630b",
+      "started_utc": "2026-09-06T18:46:08.790526+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19154,
+          "output": 1856,
+          "cost_usd": 0.0830705
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14691,
+          "output": 1630,
+          "cost_usd": 0.068523
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4463,
+          "output": 226,
+          "cost_usd": 0.0145475
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "20e82a9b446fd4573afeff7ed423311951bf643f",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "fc2068ed4ab13d720108f568498fadfe51aa6627f24c29c6b95b1a74561fba06",
+      "draft_chars": 5829,
+      "draft_lines": 29,
+      "numbers_present": 13,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/celc.202200772",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 52.88,
+      "prompt_sha256": "14b9dabf83cb1308e3501e3745cd9bd1e5dfd053245b83370d69d698b58a5716",
+      "started_utc": "2026-09-06T18:46:49.307617+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19983,
+          "output": 2520,
+          "cost_usd": 0.095203
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14891,
+          "output": 2240,
+          "cost_usd": 0.078273
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5092,
+          "output": 280,
+          "cost_usd": 0.01693
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "852a62d1a013f4c6b36d356a4b639b9c3a1de984",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "129c7f9cc468a94095a4b2c60cfb8d7b9fb9638fb023a65ce937c240af3e2b99",
+      "draft_chars": 7375,
+      "draft_lines": 46,
+      "numbers_present": 25,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adma.202416342",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 51.72,
+      "prompt_sha256": "b719cce976aee296181c0cc976d56c91b5bab062effa4d3d8104cdede60f8b02",
+      "started_utc": "2026-09-06T18:47:42.429467+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12474,
+          "output": 2660,
+          "cost_usd": 0.0747755
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7381,
+          "output": 2153,
+          "cost_usd": 0.054438
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5093,
+          "output": 507,
+          "cost_usd": 0.0203375
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "24884efcfe309db1b07d86b74f6983fbee534b33",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "01af9a9a326d352c5c39dcec480382aa94586de41cb1defd344c82e2ebef68a7",
+      "draft_chars": 7597,
+      "draft_lines": 57,
+      "numbers_present": 18,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.202209924",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 60.52,
+      "prompt_sha256": "25967b8a02aaf34af39c1844687d8a0c1d1b5c43dceb86eaeb87b404d76eee1e",
+      "started_utc": "2026-09-06T18:48:34.374969+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20350,
+          "output": 2942,
+          "cost_usd": 0.1024395
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14869,
+          "output": 2483,
+          "cost_usd": 0.08185200000000001
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5481,
+          "output": 459,
+          "cost_usd": 0.0205875
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "ee3d43104bb5a2d5fd2ff2318783aaf0c7ba5781",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "86ba3cd313227c79ad19703664c93a1705f851b1d6fff370c9e430400022fa90",
+      "draft_chars": 8279,
+      "draft_lines": 51,
+      "numbers_present": 22,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/chem.202302565",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 54.01,
+      "prompt_sha256": "676fa4c5f8afcf1c5e497d71c53fb809037f6f2932404e811b73c4817d8ca40a",
+      "started_utc": "2026-09-06T18:49:35.132904+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12435,
+          "output": 2817,
+          "cost_usd": 0.0770185
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7352,
+          "output": 2175,
+          "cost_usd": 0.054681
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5083,
+          "output": 642,
+          "cost_usd": 0.0223375
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "1e390d91cd29f8a8b8f6b18ccd74a4898d80710a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "22c0455e5f716c0fce8ec6d2ddccc0834708ec53de1c1b126a532021a0f3535f",
+      "draft_chars": 8362,
+      "draft_lines": 64,
+      "numbers_present": 38,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/aic.18378",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 76.04,
+      "prompt_sha256": "02d27a2c8adb74348c75c6321f537f59ddf1417f2d2f29c8f3aea52767857851",
+      "started_utc": "2026-09-06T18:50:29.386539+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 21912,
+          "output": 4330,
+          "cost_usd": 0.1273905
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15321,
+          "output": 3853,
+          "cost_usd": 0.10375799999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 6591,
+          "output": 477,
+          "cost_usd": 0.0236325
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "f277d8362cef46005fcc66b870fcd87e1aeb54b0",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "7555a4f8b80a77e5c9bd862f2d732b61914a46dcb6fbed71d5b185088d7475c3",
+      "draft_chars": 11812,
+      "draft_lines": 79,
+      "numbers_present": 58,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/advs.202200998",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 62.29,
+      "prompt_sha256": "593dbb82e74e590ebbea7e72fb12b8f405c590b1204f338355018a9244e25e1a",
+      "started_utc": "2026-09-06T18:51:45.742597+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 13335,
+          "output": 3528,
+          "cost_usd": 0.089991
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7467,
+          "output": 2678,
+          "cost_usd": 0.062571
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5868,
+          "output": 850,
+          "cost_usd": 0.02742
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "f4945ac54505fcd60645975d611dff730fd319a4",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "edbedf49204d5aeb12eb61fcd19b448b4a5f7fccfb3119201a3621d22b84b62f",
+      "draft_chars": 8321,
+      "draft_lines": 65,
+      "numbers_present": 38,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/pssa.201800896",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 50.45,
+      "prompt_sha256": "136e2efd5a05c56d0fd9ed0dcf261717590f169628cde7bf148465c151164cd8",
+      "started_utc": "2026-09-06T18:52:48.309377+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12589,
+          "output": 2583,
+          "cost_usd": 0.073948
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7461,
+          "output": 2173,
+          "cost_usd": 0.054978
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5128,
+          "output": 410,
+          "cost_usd": 0.01897
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "9a7e6d595c7241389e8e1612fabf7fb8e2690d68",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bd6185df8810a7f68d20e593f747c72f2b1bbf8f1eac67b0a99af7f9255dd49c",
+      "draft_chars": 7899,
+      "draft_lines": 34,
+      "numbers_present": 22,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/pssb.201900312",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 60.84,
+      "prompt_sha256": "62dc20f54cd0a4b16f4cf89f356dea26358cd5722ff2bca419cbe61a8a1aaea9",
+      "started_utc": "2026-09-06T18:53:39.025321+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12853,
+          "output": 3119,
+          "cost_usd": 0.082617
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7399,
+          "output": 2563,
+          "cost_usd": 0.060642
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5454,
+          "output": 556,
+          "cost_usd": 0.021975
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "afb7644add38f15e7d3e45972f1e8c99a0037159",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "d2c436630371e06ac30e8cecf8cb584204257ff1558cc7b84a74458bec1c7a18",
+      "draft_chars": 8364,
+      "draft_lines": 64,
+      "numbers_present": 29,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.202402444",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 65.65,
+      "prompt_sha256": "0f74882500c6b1a8400f850a93faac3b80fd3a55899f51028b07f1c6e7c49c7a",
+      "started_utc": "2026-09-06T18:54:40.123306+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 21125,
+          "output": 3448,
+          "cost_usd": 0.112095
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15125,
+          "output": 3213,
+          "cost_usd": 0.09356999999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 6000,
+          "output": 235,
+          "cost_usd": 0.018525
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "e9aa7b8ffa7932075688469fd83a1cb1a6f154d1",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "7f877e72049bae5f3b2833bbc8610338cb4d9cd36400c35280d64f719b30be68",
+      "draft_chars": 9609,
+      "draft_lines": 60,
+      "numbers_present": 32,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/advs.202406453",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 48.37,
+      "prompt_sha256": "65464eadcb9df8add24498c9dc8e1ea079a292d18d60e1ee891f3c9d5e57bcaa",
+      "started_utc": "2026-09-06T18:55:46.026171+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20256,
+          "output": 2270,
+          "cost_usd": 0.09214549999999999
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14911,
+          "output": 2244,
+          "cost_usd": 0.07839299999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5345,
+          "output": 26,
+          "cost_usd": 0.0137525
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "b21e7e0490489d703dd6eeab24daa1a4e762085b",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "d4505bcf1f7178ce234a2229fe52830b281bf2d7321b355c85f0646b67572445",
+      "draft_chars": 7382,
+      "draft_lines": 38,
+      "numbers_present": 27,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/smll.201800441",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 54.1,
+      "prompt_sha256": "39e6ecd06e631f459e9555523cb61f443b53413bebc874b0ea8c96a5ce99903e",
+      "started_utc": "2026-09-06T18:56:34.647830+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12824,
+          "output": 2805,
+          "cost_usd": 0.077851
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7432,
+          "output": 2457,
+          "cost_usd": 0.059151
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5392,
+          "output": 348,
+          "cost_usd": 0.0187
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "d04d7ae97a494577da7a9fa8514e396bad419158",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "ab600098410db90c10b3f9b86a2846dee18c88038b0d2206014591f44b13dddc",
+      "draft_chars": 7862,
+      "draft_lines": 35,
+      "numbers_present": 32,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/aesr.202200017",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 52.08,
+      "prompt_sha256": "00fb61d4c7987e28c0bf1b9e88015fd1bae58806f5830cc3139088197be1aa41",
+      "started_utc": "2026-09-06T18:57:29.004821+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12894,
+          "output": 2628,
+          "cost_usd": 0.07537250000000001
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7435,
+          "output": 2282,
+          "cost_usd": 0.056535
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5459,
+          "output": 346,
+          "cost_usd": 0.0188375
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "f2fad9a90036bf3805b6b52d184bedb3da9321f4",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "f3aa0669da2a1a532617c01be6c3c282b3b63d5416724543093aeb4d662e37b6",
+      "draft_chars": 7599,
+      "draft_lines": 48,
+      "numbers_present": 21,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/chem.201905217",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 38.1,
+      "prompt_sha256": "79eaa66194461793be018596c086b0117c0ac18785e70ad07eff193449f6cbb7",
+      "started_utc": "2026-09-06T18:58:21.339585+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18807,
+          "output": 1814,
+          "cost_usd": 0.08156
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14665,
+          "output": 1385,
+          "cost_usd": 0.06477
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4142,
+          "output": 429,
+          "cost_usd": 0.01679
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "bfa4d3239a90066c80b32bc975ef67e23ea7f15d",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "a1cabaab7da3e5f9475ab2cf6e8d52ef04a6ddc5fdfefef35f13f54c543d9ae5",
+      "draft_chars": 4447,
+      "draft_lines": 25,
+      "numbers_present": 4,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adma.202208974",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 64.02,
+      "prompt_sha256": "a037b93554268ce48d4dffbfb37bec4eae54b4450bef4e833d5e19a801253ffc",
+      "started_utc": "2026-09-06T18:58:59.693361+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 21015,
+          "output": 3502,
+          "cost_usd": 0.11264300000000001
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15151,
+          "output": 3040,
+          "cost_usd": 0.09105300000000001
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5864,
+          "output": 462,
+          "cost_usd": 0.02159
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "b67f9f5cd10e819683c2867f7b6bf41751c8ef09",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "995aa0ba2db5c0af1b969cc9138c53f4ba297da40181e5960e76f08fb53108ad",
+      "draft_chars": 9859,
+      "draft_lines": 46,
+      "numbers_present": 29,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cjce.23950",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 63.56,
+      "prompt_sha256": "8cfd99f2f96a68de1e2f21e6a191e0fb1edb5ef978aded8860c720b2ef88192f",
+      "started_utc": "2026-09-06T19:00:03.971617+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 21037,
+          "output": 3377,
+          "cost_usd": 0.110807
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15119,
+          "output": 2896,
+          "cost_usd": 0.088797
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5918,
+          "output": 481,
+          "cost_usd": 0.02201
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "730a9e6312ccbe7d6c0f6d2658eb0f35131434e1",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "1344c55e5f7bb559f73b4e4e160f789342a9ec7fdfca6c686d88e8dec5abc4e3",
+      "draft_chars": 9059,
+      "draft_lines": 48,
+      "numbers_present": 42,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/aenm.202203860",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 70.03,
+      "prompt_sha256": "8f52f664e6ead436355cb77e76638696f79bdb8b47044a70573782e4b425b8d3",
+      "started_utc": "2026-09-06T19:01:07.792673+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20413,
+          "output": 3544,
+          "cost_usd": 0.111694
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15003,
+          "output": 2502,
+          "cost_usd": 0.082539
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5410,
+          "output": 1042,
+          "cost_usd": 0.029155
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "790368479e9249d4e1fa2791494e8b6112ad758d",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "253f10ffa1d7395dfc3dd86c8c06b5f611f3fa842c9c75a676cb59c93677b6b6",
+      "draft_chars": 8387,
+      "draft_lines": 39,
+      "numbers_present": 18,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.201000591",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 45.1,
+      "prompt_sha256": "378fb5e18afbd30fd9773978474b3fee31147a5d5105248b4fda8676222b3321",
+      "started_utc": "2026-09-06T19:02:18.064422+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19122,
+          "output": 2064,
+          "cost_usd": 0.0861055
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14681,
+          "output": 1604,
+          "cost_usd": 0.068103
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4441,
+          "output": 460,
+          "cost_usd": 0.0180025
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "c156673a7ef22a6ce3e8f4112232369b44945091",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "d51fa2a8d036a301a4939132d0146e2371aff505abc542610b7d1285505cf388",
+      "draft_chars": 5533,
+      "draft_lines": 31,
+      "numbers_present": 17,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1126/sciadv.adj5431",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 54.86,
+      "prompt_sha256": "92bff1b58aab86001bdb15d49d3c6d6cdc03cb7f969e0e6f987043ab5cdd5715",
+      "started_utc": "2026-09-06T19:03:03.409092+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12286,
+          "output": 2817,
+          "cost_usd": 0.076644
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7348,
+          "output": 2083,
+          "cost_usd": 0.053289
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4938,
+          "output": 734,
+          "cost_usd": 0.023355
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "0bd0ae8360c6fb9f7604e36265d0c4bc0968d62e",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bfabddefce4d787b76d4c3dfc0345801571a3ad8d6bc5dfc19dff4cc07aa2e67",
+      "draft_chars": 7447,
+      "draft_lines": 55,
+      "numbers_present": 11,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cjce.24030",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 57.19,
+      "prompt_sha256": "8901ee3a34a9a7d81527fd35901f73f55de49da832890a545b9dcea1d8d21c80",
+      "started_utc": "2026-09-06T19:03:58.520571+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20533,
+          "output": 3029,
+          "cost_usd": 0.104282
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15029,
+          "output": 2580,
+          "cost_usd": 0.083787
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5504,
+          "output": 449,
+          "cost_usd": 0.020495
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "a96bdc9f82458677717e219954b8e46dd5d57401",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "2b76c11dc4b408e26aa7e72e7194e5e34eeb76a78d0ccf5a0ce6dee66b9bdb2d",
+      "draft_chars": 8328,
+      "draft_lines": 44,
+      "numbers_present": 33,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/smll.202408072",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 53.55,
+      "prompt_sha256": "28cdb1ec5caabdb6f9a93c9c07bf8e3f697ac5194337f39af349b605baeb2a91",
+      "started_utc": "2026-09-06T19:04:55.967213+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19921,
+          "output": 2923,
+          "cost_usd": 0.101038
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14781,
+          "output": 2048,
+          "cost_usd": 0.07506299999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5140,
+          "output": 875,
+          "cost_usd": 0.025975
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "ddac3db39981c2c764667c5856ee8d64ef9f286a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "0c7b8d27ff8482096c6daec267eed1d3185811a088624a92eb714079e1a2bd5a",
+      "draft_chars": 6114,
+      "draft_lines": 43,
+      "numbers_present": 15,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/ange.202112688",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 44.84,
+      "prompt_sha256": "4856985f2059b0b0faf85f327c6bf9626b8a0c86b21526306c223dfc470f3b98",
+      "started_utc": "2026-09-06T19:05:49.783395+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18822,
+          "output": 1845,
+          "cost_usd": 0.08201549999999999
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14571,
+          "output": 1484,
+          "cost_usd": 0.065973
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4251,
+          "output": 361,
+          "cost_usd": 0.0160425
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "c81af01e015a7994aa5825dc33d7db8c4ef327ce",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "6ed364c941b6ba0156387951bf49d22513cfd960c7934242a1be75f011ef4f49",
+      "draft_chars": 4871,
+      "draft_lines": 32,
+      "numbers_present": 10,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/batt.202100174",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 38.1,
+      "prompt_sha256": "6e6e10badd4eb30bb5109b5a0459cf203e5195849e6c1859d27d2855fd6ffa31",
+      "started_utc": "2026-09-06T19:06:34.858391+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18817,
+          "output": 1718,
+          "cost_usd": 0.080107
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14589,
+          "output": 1459,
+          "cost_usd": 0.065652
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4228,
+          "output": 259,
+          "cost_usd": 0.014455
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "55ba4d08197cbb0dc42d8bb78b276f1474618942",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "8d37683b98b483667e6618f63e2c0447f88d3a7d8d4935abc419fb5f8a9dee4b",
+      "draft_chars": 4546,
+      "draft_lines": 24,
+      "numbers_present": 17,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/smll.202406074",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 48.8,
+      "prompt_sha256": "6092badc0630254a80dd5c7b7f8f2b43a851cdf503201aa10529bcf42fdc518e",
+      "started_utc": "2026-09-06T19:07:13.204317+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19677,
+          "output": 2432,
+          "cost_usd": 0.09307900000000001
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14813,
+          "output": 2036,
+          "cost_usd": 0.074979
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4864,
+          "output": 396,
+          "cost_usd": 0.0181
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "b7a32723cbcc67a172afcfe1f710ff6577a4b865",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "0097c59373320d03db5b82c26311890c09d70fb35f973f2cea3b38ebd53cacba",
+      "draft_chars": 6416,
+      "draft_lines": 40,
+      "numbers_present": 17,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/smll.202206248",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 42.72,
+      "prompt_sha256": "5490872f2fc8a015d650b722899b03896a2884be1975284843f6071dcfff1245",
+      "started_utc": "2026-09-06T19:08:02.254570+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 11749,
+          "output": 2067,
+          "cost_usd": 0.06403249999999999
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7310,
+          "output": 1546,
+          "cost_usd": 0.04512
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4439,
+          "output": 521,
+          "cost_usd": 0.0189125
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "936d7415d59fb20394b2622ffdc53b94bb2daa8d",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "9bf8ea739094b636b88195ba945422660a7a12acd81c65a1ea0ead4ed34f9cad",
+      "draft_chars": 5333,
+      "draft_lines": 28,
+      "numbers_present": 17,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cssc.201700885",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 53.29,
+      "prompt_sha256": "84feb3c33e782df5c578b7003628fd74176f0ac1e688b879478d56f1e4b76fa1",
+      "started_utc": "2026-09-06T19:08:45.238324+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12617,
+          "output": 2801,
+          "cost_usd": 0.077305
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7495,
+          "output": 2245,
+          "cost_usd": 0.05616
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5122,
+          "output": 556,
+          "cost_usd": 0.021145
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "0dee1e8d8805129c6d8434a99d6f268ca47a8db6",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "c5c039177dfd896c3e7fd602632d19fb550a7ca5653d7e09d3a970d865fd6335",
+      "draft_chars": 7106,
+      "draft_lines": 36,
+      "numbers_present": 22,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/jbm.a.36681",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 45.97,
+      "prompt_sha256": "a2ccc3bb51ddbeac4d512d98993f1d0da9bca5f31f8a0768bd9e913daf8b6f3d",
+      "started_utc": "2026-09-06T19:09:38.763901+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19667,
+          "output": 2644,
+          "cost_usd": 0.096241
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14827,
+          "output": 2045,
+          "cost_usd": 0.075156
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4840,
+          "output": 599,
+          "cost_usd": 0.021085
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "c4f58860b7c2a86cafca80936ddd2bed0107cfb5",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bfb0f4a30ee10ec99bb68fb62e6edd57b6fffb37fc91ff937b5595e7438f34fd",
+      "draft_chars": 6077,
+      "draft_lines": 35,
+      "numbers_present": 34,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adfm.202309656",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 55.31,
+      "prompt_sha256": "9a4a017a7a66f915a58439d52f17b8b46db14ccf556dfad67388cb0d7b06466f",
+      "started_utc": "2026-09-06T19:10:24.957596+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12905,
+          "output": 3027,
+          "cost_usd": 0.081405
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7475,
+          "output": 2476,
+          "cost_usd": 0.059565
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5430,
+          "output": 551,
+          "cost_usd": 0.02184
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "5b151034f4bbc1bf67c6d3dd4ad9bfd86255ac89",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "c149e70cb781a06f98d454ca619a63808c6ad64bc827b1d055110b3cbce0d6b3",
+      "draft_chars": 7512,
+      "draft_lines": 54,
+      "numbers_present": 34,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cnma.202200403",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 47.83,
+      "prompt_sha256": "2feb0abeea08507d7f1a058dc1c42f92e1988796a1f106bc412ab5f802241852",
+      "started_utc": "2026-09-06T19:11:20.517080+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 19169,
+          "output": 2112,
+          "cost_usd": 0.086927
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14649,
+          "output": 1755,
+          "cost_usd": 0.070272
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4520,
+          "output": 357,
+          "cost_usd": 0.016655
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "3ce084398815ad528469beb9bd7c8b1447a2f127",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "575f4a5e64bca7c4871c95429e35e92ec715396f681223aabdc222bf753f6cef",
+      "draft_chars": 6679,
+      "draft_lines": 37,
+      "numbers_present": 12,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/anie.201812472",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 36.88,
+      "prompt_sha256": "f92facb4b33751db838f0911ddaa19fd8399544398b4aec2b8de075db4e234d1",
+      "started_utc": "2026-09-06T19:12:08.583195+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18785,
+          "output": 1632,
+          "cost_usd": 0.078763
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14641,
+          "output": 1355,
+          "cost_usd": 0.064248
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4144,
+          "output": 277,
+          "cost_usd": 0.014515
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "e6a1ce745e18a9e3c1e4f1edc6c10f18d4460f78",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "c323749958161581e4aed5cd0f5eb7c0f77a7f4f5c0b96eb813910ec8f8280d0",
+      "draft_chars": 4500,
+      "draft_lines": 23,
+      "numbers_present": 9,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/ejic.202100901",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 57.09,
+      "prompt_sha256": "388685a900a6ea1be4c436cffaea8024d63754ec797c3e43c2c2ac6a2becf205",
+      "started_utc": "2026-09-06T19:12:45.705895+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20672,
+          "output": 2742,
+          "cost_usd": 0.1003135
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15007,
+          "output": 2464,
+          "cost_usd": 0.081981
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5665,
+          "output": 278,
+          "cost_usd": 0.0183325
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "3a78ac3bf0619e78c19d850e7db5e0fc19eeb47e",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "6a584bb1ff844b060a4a4195404d5c7d2eff698ccb933a65ae32b06beb4dbacf",
+      "draft_chars": 8359,
+      "draft_lines": 68,
+      "numbers_present": 30,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/ijch.201400157",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 36.67,
+      "prompt_sha256": "f64fd8e7f06879db6f538143ab1dae18c8139eb0c49f452e5bbf7d65f6071ed1",
+      "started_utc": "2026-09-06T19:13:43.050296+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18821,
+          "output": 1686,
+          "cost_usd": 0.079645
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14605,
+          "output": 1389,
+          "cost_usd": 0.06465
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4216,
+          "output": 297,
+          "cost_usd": 0.014995
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "34fe7baaa375250ec6abec68b6211877c43ede5e",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "973f601814be93d6aa02fb01cbd56750e0d70cca94480b873f15df3e0e2088a8",
+      "draft_chars": 4224,
+      "draft_lines": 24,
+      "numbers_present": 16,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/cnma.201600033",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 61.35,
+      "prompt_sha256": "0407e1ef73101adfef8f68421b3fa9aaf43bd0e6d74bb6f6c90ac96402920371",
+      "started_utc": "2026-09-06T19:14:19.984882+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 13655,
+          "output": 3696,
+          "cost_usd": 0.0933545
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7554,
+          "output": 3175,
+          "cost_usd": 0.070287
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 6101,
+          "output": 521,
+          "cost_usd": 0.0230675
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "580a1c6ab1c66bc36bb6a0e0f6fd30625118a0c8",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "2992ea41660ba07323f34f2612d08c97287163c7a59482ffde48476535f096ab",
+      "draft_chars": 10048,
+      "draft_lines": 79,
+      "numbers_present": 37,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/anie.202410016",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 40.58,
+      "prompt_sha256": "6d13096f6eecb415fb1b5b04b3020e6bea07a55f170c5f090dbdee8c15827a65",
+      "started_utc": "2026-09-06T19:15:21.614316+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 18832,
+          "output": 1787,
+          "cost_usd": 0.0811725
+        },
+        "generator": {
+          "calls": 2,
+          "input": 14575,
+          "output": 1499,
+          "cost_usd": 0.06620999999999999
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4257,
+          "output": 288,
+          "cost_usd": 0.0149625
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "14d579f0597b5a2a818b2c657b2a994eb765b536",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "51ec61e5f2b8c70f9e5e7c7ad475c3f7f852e1356d3a19394a43e76771098d26",
+      "draft_chars": 5179,
+      "draft_lines": 29,
+      "numbers_present": 9,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/batt.202100179",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 57.39,
+      "prompt_sha256": "f95614135ee0cf4b92328247423912d6f57425803c9192428b3263e1968b4995",
+      "started_utc": "2026-09-06T19:16:02.460627+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12688,
+          "output": 3178,
+          "cost_usd": 0.08313
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7480,
+          "output": 2401,
+          "cost_usd": 0.058455
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5208,
+          "output": 777,
+          "cost_usd": 0.024675
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "0c2f8280158c6be632f534bcb549cdfe25740660",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "5599808b8da6249fb2f73e4e2ce508ce9bbaa0df596667c23c111a0325cd6589",
+      "draft_chars": 7381,
+      "draft_lines": 39,
+      "numbers_present": 16,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/zaac.201800357",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 54.31,
+      "prompt_sha256": "56c7ff5239811f1e00748e2208f77d9169a71a97c59bda23ce38668478505a70",
+      "started_utc": "2026-09-06T19:17:00.108897+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 20411,
+          "output": 2707,
+          "cost_usd": 0.099176
+        },
+        "generator": {
+          "calls": 2,
+          "input": 15087,
+          "output": 2363,
+          "cost_usd": 0.080706
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 5324,
+          "output": 344,
+          "cost_usd": 0.01847
+        },
+        "generator_role_calls": 2
+      },
+      "science_sha": "31a6f24f8c270cd56b7aedcfa195893dbf1fcd48",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "95d967d36eaea79bd4b63a64b05b424c13fb72b9f92353a9fcaf3200224d24ea",
+      "draft_chars": 7594,
+      "draft_lines": 42,
+      "numbers_present": 22,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/batt.202200056",
+      "arm": "S",
+      "ok": false,
+      "error": "the loop produced no work/synthesis/explanation.md",
+      "exit_code": 11,
+      "rounds": 0,
+      "wall_s": 26.96,
+      "prompt_sha256": "501ec91e168cca23083ff3d8687189a0fba26b807fd53e8871647ff7ed7f7539",
+      "started_utc": "2026-09-06T19:17:54.662515+00:00",
+      "usage": {
+        "all": {
+          "calls": 0,
+          "input": 0,
+          "output": 0,
+          "cost_usd": 0
+        },
+        "generator": {
+          "calls": 0,
+          "input": 0,
+          "output": 0,
+          "cost_usd": 0
+        },
+        "auditor": {
+          "calls": 0,
+          "input": 0,
+          "output": 0,
+          "cost_usd": 0
+        },
+        "generator_role_calls": 0
+      },
+      "science_sha": "",
+      "increment_files": null,
+      "manifest_agrees": null,
+      "output_sha256": null,
+      "draft_chars": null,
+      "draft_lines": null,
+      "numbers_present": null,
+      "fence_blocks": null,
+      "shipped_check_blocks": null,
+      "matcher_version": null
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/adma.202100312",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 46.49,
+      "prompt_sha256": "f267b442673278cfe53f4afb81895c28650ad7550e5f96aa258a9b674182387b",
+      "started_utc": "2026-09-06T19:18:21.752387+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 12294,
+          "output": 2405,
+          "cost_usd": 0.070496
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7372,
+          "output": 2103,
+          "cost_usd": 0.053661
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 4922,
+          "output": 302,
+          "cost_usd": 0.016835
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "51c5ecb849b4f2321461be194b5f0f53f8bb9b69",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "435d1d0f36eed72e14c0d63173be295a10b490c7bca84c2d35ca3c472c813c9a",
+      "draft_chars": 6451,
+      "draft_lines": 50,
+      "numbers_present": 26,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T03MaterialSEG-10.1002/batt.202200056",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 68.45,
+      "prompt_sha256": "501ec91e168cca23083ff3d8687189a0fba26b807fd53e8871647ff7ed7f7539",
+      "started_utc": "2026-09-07T04:08:44.397150+00:00",
+      "usage": {
+        "all": {
+          "calls": 2,
+          "input": 13563,
+          "output": 3660,
+          "cost_usd": 0.092553
+        },
+        "generator": {
+          "calls": 1,
+          "input": 7491,
+          "output": 3330,
+          "cost_usd": 0.072423
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 6072,
+          "output": 330,
+          "cost_usd": 0.02013
+        },
+        "generator_role_calls": 1
+      },
+      "science_sha": "4d2a587c47cde00bbc94b7e1a5e99e0e3937347e",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "53ffd7bf24fd15d75e265ee34a2e3db98de30faa7297cff4b540a76fe32ddfe8",
+      "draft_chars": 9379,
+      "draft_lines": 51,
+      "numbers_present": 46,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    }
+  ],
+  "rows_recorded": 446,
+  "drafts_recorded": 51,
+  "rows_sha256": "b3751c87a41856630ba89919f649ebfab651d30429a3e5ffd1cd036eb0be64d6",
+  "gold_sha256": "ebee5ac92f8da97510ff9e38e7571867f588abb7beebdc0fb3f343e8595cd96d"
+}

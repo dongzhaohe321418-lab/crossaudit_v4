@@ -25,7 +25,10 @@ from provenance_arm3_report import disposition                      # noqa: E402
 
 BLOCKER, ADVISORY, PASS = "BLOCKER", "ADVISORY", "PASS"
 RESAMPLES = 10_000
-SEED = 20261106
+#: The registered bootstrap seed of each arm (PREREGISTRATION-ARM4 §6, -ARM5 §6). The
+#: first Arm 5 review found Arm 4's seed used for Arm 5; the seed follows `--arm` now.
+SEED_BY_ARM = {"4": 20261106, "5": 20261107}
+SEED = SEED_BY_ARM["4"]
 ARM3_UNCITED = {"A": 10.68, "B": 6.80}
 
 
@@ -34,15 +37,20 @@ def load_records(run_dir: Path) -> list[dict]:
     return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
+#: Which arm's key and gold this report reads; Arm 5 (`provenance_arm5.py`) reuses
+#: this report with `--arm 5` — its files are `key-arm5.jsonl` / `GOLD-arm5.csv`.
+ARM_SUFFIX = "arm4"
+
+
 def load_labels() -> dict[tuple[str, int], tuple[str, str, str]]:
     """(instance, row) -> (kind, label, rule). Items with no located line are
     `block-no-location` and carry the label N by definition (§3)."""
-    key_path = HERE / "study8" / "key-arm4.jsonl"
+    key_path = HERE / "study8" / f"key-{ARM_SUFFIX}.jsonl"
     if not key_path.exists():
         return {}
     key = {r["id"]: r for r in (json.loads(l) for l in
            key_path.read_text(encoding="utf-8").splitlines() if l.strip())}
-    gold_path = HERE / "study8" / "GOLD-arm4.csv"
+    gold_path = HERE / "study8" / f"GOLD-{ARM_SUFFIX}.csv"
     labels: dict[str, tuple[str, str]] = {}
     if gold_path.exists():
         for line in gold_path.read_text(encoding="utf-8").splitlines():
@@ -108,14 +116,19 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir", type=Path)
     ap.add_argument("--json", type=Path, default=None)
+    ap.add_argument("--arm", default="4", choices=["4", "5"],
+                    help="whose key and gold to read (default: Arm 4's)")
     args = ap.parse_args(argv)
+    global ARM_SUFFIX, SEED
+    ARM_SUFFIX = f"arm{args.arm}"
+    SEED = SEED_BY_ARM[args.arm]
     records = load_records(args.run_dir)
     ok = [r for r in records if r.get("ok") and r.get("rows") is not None
           and not r.get("analysis_error")]
     errored = [r["instance"] for r in records if r not in ok]
     labels = load_labels()
     out: dict = {"drafts": len(records), "drafts_ok": len(ok), "errored": errored}
-    print(f"Arm 4 — {len(records)} drafts recorded, {len(ok)} analysed, "
+    print(f"Arm {args.arm} — {len(records)} drafts recorded, {len(ok)} analysed, "
           f"{len(errored)} errored (excluded, counted): {errored}")
 
     def label_of(r):

@@ -1,0 +1,10 @@
+task             rows  in_chars  in_nums ref_nums  traced%  unit% ref_total
+T03MaterialSEG     50       626     16.5      0.0      0.0    0.0         0
+T04EduPAE         100      1294      0.0      0.0     63.2   26.3        19
+T06HealthCNG      100      5298      0.0      9.5     16.3   20.2       987
+T07ChemMDG        100        68      0.0     11.0     39.0    0.1      1342
+T08BioPDG         100       209      0.0     17.5      0.0    0.0      1779
+T11CyberRDG       100      1720     10.0      1.0     47.1    1.3       155
+T01LegalMDS       100    249589   5067.5     53.5     93.3    0.6      6938
+
+T03's raw_human_reference is null in the release (its reference is the checklist), so its reference columns read 0; T03 is the task every earlier arm ran on.
