@@ -183,3 +183,12 @@ out of `records.jsonl` into `records-outage.jsonl` (kept, counted in the results
 the same run directory, which records the 6 completed drafts as done and runs the other
 27. The results report 33 drafts with the outage count beside them; an instance that
 fails again for a product reason is recorded and counted as the preregistration says.
+
+## Amendment 4 — 2026-09-07, minutes after Amendment 3; a count corrected, nothing else
+
+Amendment 3 was written from the log at instance 12. Before the process was stopped it had
+gone on to instances 13 and 14, which failed the same way (credit), and instance 15 had
+begun (no record; its directory is kept as `…partial-at-kill`). So the pause leaves **6
+drafts completed and 8 provider-outage records**, all eight moved to `records-outage.jsonl`
+with their directories under `instances-outage/`; the resumption runs the other 27
+instances. The rule of Amendment 3 is unchanged.
