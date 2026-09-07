@@ -122,10 +122,15 @@ def main(argv: list[str] | None = None) -> int:
         "python": sys.version.split()[0], "platform": sys.platform,
         "started_utc": datetime.now(timezone.utc).isoformat(),
     }
-    (out_dir / "plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
-    (out_dir / "contract-S.txt").write_text(contract + "\n", encoding="utf-8")
-    (out_dir / "skill-S.md").write_text(skill, encoding="utf-8")
-    print(json.dumps({k: v for k, v in plan.items() if k != "git_status"}, indent=2))
+    if args.only and (out_dir / "plan.json").exists():
+        # A retry never rewrites the run's plan: the first retry of Arm 5 did, and the
+        # plan had to be restored from the log where it was printed.
+        print(f"retry of {args.only}: the run's plan.json is kept")
+    else:
+        (out_dir / "plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+        (out_dir / "contract-S.txt").write_text(contract + "\n", encoding="utf-8")
+        (out_dir / "skill-S.md").write_text(skill, encoding="utf-8")
+        print(json.dumps({k: v for k, v in plan.items() if k != "git_status"}, indent=2))
     if args.dry_run:
         return 0
 
