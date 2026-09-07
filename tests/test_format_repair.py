@@ -500,8 +500,10 @@ def test_a_marker_inside_a_valid_file_body_is_content_not_an_envelope():
     Two guards, each with the mutation that reddens it (the fifth review found
     the first form naming the wrong one):
     * the file parser decides FIRST — MUTATION: run the unterminated scan
-      before `parse_work_reply` in `_parse_reply`, and the five accepted replies
-      below deny instead of parsing;
+      before `parse_work_reply` in `_parse_reply`, and the TWO accepted replies
+      with a stray opener outside a file block deny instead of parsing (the
+      three whose only markers sit inside a body keep parsing, because the
+      blanking hides them from the scan — the sixth review executed it);
     * the scan reads OUTSIDE file blocks — reached only for a reply the file
       parser refused, so its guard is such a reply: duplicate file blocks whose
       body holds a tool opener must keep the FILE denial (`envelope="file"`) —
