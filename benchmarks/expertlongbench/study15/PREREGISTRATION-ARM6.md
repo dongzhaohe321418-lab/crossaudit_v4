@@ -126,3 +126,32 @@ python3 benchmarks/expertlongbench/provenance_arm4_report.py <abs> --arm 6
 One generator; L2 a model; the gold rule about characters, on a domain where the numbers
 are dates and identifiers; a size-capped population; the checklist quality of the
 summaries is not measured (the arm measures the check, not the summary).
+
+## Amendment 1 — 2026-09-07, after attempt 1 and before attempt 2; nothing above is edited
+
+1. **Attempt 1 (run `arm6-20260907T061203Z`) escalated 8 of 8 instances in round 1** and was
+   stopped by the author after the eighth; `ATTEMPT-1.md` records the cause read from the
+   product's code: an outlined source (over `MAX_FILE_BYTES`) needs a `file_read` tool call,
+   the generator narrates the call beside the envelope, and the single re-ask restated the
+   file envelope. The eight records stay in the archive (`arm6-attempt1-escalated/`) and are
+   reported as the arm's first attempt; they carry no rows and enter no rate.
+2. **The product changed between attempts**: `fix/envelope-re-ask` (the re-ask restates the
+   envelope the reply attempted; the parser unchanged), reviewed cross-vendor and merged
+   before attempt 2; its commit is in attempt 2's `plan.json` as `code_sha`, and D165 records
+   the ruling. Attempt 2 measures the product after that merge — a product-path fix, not a
+   change to the check, the skill, the contract or the matcher (their sha256s in the plan
+   are asserted equal to attempt 1's).
+3. **The eight instances of attempt 1 were re-run once under the fix as the fix's probe**
+   (`PROBE-envelope-fix.md`, archive `probe-envelope-fix/`), from the fix's tree at 066a7a1 +
+   the Arm 6 commits. Attempt 2 **does not run them a third time**: their probe records and
+   project directories are copied into attempt 2's run directory before it starts, so the
+   runner records them as done, and attempt 2 runs the remaining 25. The eight therefore
+   count in attempt 2's rates exactly as the other 25 do — same product code path, same
+   skill, contract and matcher — with the one difference that their run predates the
+   review's merge; if the review changes the fix, they are re-run instead.
+4. **What the probe previewed is not a result and is not pre-empted here**: 3 of 8 drafts
+   with a fence, 9 rows, 0 passes, 3 cross-line. H6b's bar (20%) and §8g stand as written;
+   the annotation rate (secondary 8) is reported with intervals and, if it is below Arm 5's
+   by more than the intervals allow, said in the first paragraph. `file_read` returns up to
+   512 KiB (`gitio.MAX_BLOB_BYTES`), so every source in the population was returned whole;
+   a low annotation rate is the generator's, not a truncated read's.
