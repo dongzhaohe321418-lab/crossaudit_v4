@@ -145,3 +145,13 @@ python3 benchmarks/expertlongbench/provenance_arm4_report.py <abs> --arm 5
 Arm 4 §11's, and: the instances are not fresh (§2.4), so a generator that memorised
 nothing across runs is assumed and not checked; one task family still; the T01 option
 was censused and deferred, not refused.
+
+## Amendment 1 — 2026-09-07, after the second review; nothing above is edited
+
+**Erratum to §0's census rationale.** §0 says none of the other six public tasks "carries
+numbers a provenance check can trace". The census table this file cites shows T01LegalMDS
+with 93.3% of its reference numbers occurring in the input: T01 *is* traceable. The reason
+T01 was not chosen is its shape and cost — 250,000 characters of legal record per instance,
+and numbers that are dates and docket numbers with no unit — and RESULTS-ARM5 says so; §9's
+"inconclusive" branch already names T01 as the next corpus. The four tasks the sentence is
+true of are T04, T07, T08 and T11; T06 writes most of its numbers in words.

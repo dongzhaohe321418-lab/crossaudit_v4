@@ -1,6 +1,6 @@
 # Arm 5 — the shipped check, after the containment extensions, on every T03 instance
 
-*Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
+*Third version, after two cross-vendor reviews (the second: `…-arm5-astra-round2.md` — the unit-shortening sentence, the missing intervals, the diff script's count, the preregistration's census rationale). Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
 
 Study 8. Preregistered at `benchmarks/expertlongbench/study8/PREREGISTRATION-ARM5.md`,
 committed at `38d3d22` **before any study model call** (20 s before the plan was written,
@@ -81,7 +81,8 @@ inside the quotation, read in its line** (`_pair_in_quote`): of 401 located rows
 under both, 7 block under both, and 33 pass now that blocked under the slice-3 matcher**.
 Read on the whole located line instead, the counts are 361 / 6 / 34: the one row that
 differs is the M9b block, whose line states the pair outside the quotation. The
-extensions moved **33 rows** — 8.2% of located rows — on a real generator's output, and
+extensions moved **33 rows** — 33 of 401 = 8.2% of located rows (Wilson 5.92–11.33%;
+draft-clustered bootstrap, seed 20261107, 4.36–12.58%) — on a real generator's output, and
 none the other way.
 
 ## 4. The two strata (secondary 11), reported and deciding nothing
@@ -97,19 +98,26 @@ new stratum higher, and neither alone would read differently from PASS at its ow
 ## 5. Secondaries, in the preregistration's order
 
 1. **`uncited`**: 40 of 446 = **8.97%** (Wilson 6.66–11.98%; bootstrap 5.46–13.16%). Arm 3
-   read 10.68% (A) and 6.80% (B); Arm 4 read 7.77% (Wilson 4.77–12.42%). No materiality
+   read A 25 of 234 = 10.68% (Wilson 7.34–15.30%) and B 14 of 206 = 6.80% (4.09–11.08%);
+   Arm 4 read 16 of 206 = 7.77% (Wilson 4.77–12.42%). No materiality
    threshold was registered, so none is claimed; the number is reported first because the
    design asks for it.
 2. **Resolved**: 394 of 401 blockable = 98.25% (Wilson 96.44–99.15%; bootstrap 97.06–99.34%);
    394 of 406 addressed = 97.04% (94.91–98.30%; 94.90–98.75%).
 3. **Ambiguous** (a quotation the file says on more than one line): 5 of 406 = 1.23%
    (0.53–2.85%; 0.00–3.23%).
-4. **Quote-absent** 0 of 406 (Wilson 0.00–0.94%); **cross-line** 0 of 406 (0.00–0.94%).
+4. **Quote-absent** 0 of 406 (Wilson 0.00–0.94%; bootstrap 0.00–0.00%); **cross-line** 0 of
+   406 (Wilson 0.00–0.94%; bootstrap 0.00–0.00%).
 5. **Mechanisms**: §2; carried in `study8/rows-arm5.jsonl`.
 6. **Matcher version**: `620fb3bc…` in every row.
 7. **Unit shortening**: the instrument flags 2 of 401 (Wilson 0.14–1.80%; bootstrap
-   0.00–1.27%). One is an M4 block (the flag reads the value's digit inside another number
-   on the line, an artefact of the instrument); one is a pass on a hyphen-glued range with
+   0.00–1.27%). One is an M4 block: the instrument's sole triggering occurrence there is
+   the transcribed value itself, preceded by a tilde and followed by whitespace, and the
+   unit token at that occurrence begins with the transcribed unit followed by a hyphen —
+   the hyphen-glued unit-and-word token that M4 names, so the flag is the M4 block seen
+   again, not a shortened unit (the second version called this an artefact of the digit
+   inside another number; the second review executed the instrument and it is not); one
+   is a pass on a hyphen-glued range with
    the unit written on both endpoints: the shipped scanner offers the low endpoint's own
    unit there (`_unit_candidates` yields both the whole hyphenated token and the low
    endpoint's unit), which the gold rule counts as stated (R7) and which is the correct
@@ -117,7 +125,9 @@ new stratum higher, and neither alone would read differently from PASS at its ow
    a prefix of the token after the value — is not the design's "a reading shorter than the
    whole token", because here the token is not one unit; noted for the next arm's
    instrument.
-8. **Annotation rate**: 446 rows / 1,170 numbers present = 38.1%.
+8. **Annotation rate**: 446 rows / 1,170 numbers present = 38.1% (Wilson 35.38–40.94%;
+   draft-clustered bootstrap 34.47–41.94% — a ratio of rows to numbers, quoted with the
+   registered intervals for form's sake).
 9. **Cost**: $4.4417, $0.0888 per draft; **malformed-envelope re-ask on 31 of 50 drafts**,
    counted and not fixed.
 10. **`adjudicator_b`** (exact substring) against the gold on the 57 labelled rows: C rows
@@ -149,7 +159,8 @@ new stratum higher, and neither alone would read differently from PASS at its ow
 `study8/rows-arm5.jsonl` (446 rows), `manifest-arm5.json`, `key-arm5.jsonl`,
 `L1-arm5.csv`, `L2-arm5.csv`, `GOLD-arm5.csv`, `arm5_census.txt`, `report-arm5.json`;
 **no corpus text, no draft, no quotation** — this version was checked against the corpus
-before commit. Drafts, projects, the sheet and the log are at
+before commit for 2–5-word runs (ordinary words that any text shares are not what the
+rule forbids). Drafts, projects, the sheet and the log are at
 `~/Documents/Crossaudit/study-data/wt-arm5-runs/` (CC BY-NC-SA 4.0, not redistributed),
 with `MANIFEST.sha256` and an entry in the archive's `MANIFEST.json`.
 

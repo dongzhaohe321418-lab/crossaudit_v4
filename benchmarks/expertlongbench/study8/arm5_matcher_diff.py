@@ -78,7 +78,8 @@ def main(argv=None) -> int:
             now = shipped.contains_pair(loc[1], v, u)
             before = old.contains_pair(loc[1], v, u)
             tally[f"line: shipped {'pass' if now else 'block'} / arm4-matcher {'pass' if before else 'block'}"] += 1
-    print(f"located rows {sum(tally.values()) - tally['no located line']}; no located line {tally['no located line']}")
+    located = sum(n for k, n in tally.items() if k.startswith("quotation:"))
+    print(f"located rows {located} (each tallied once per reading); no located line {tally['no located line']}")
     for k, n in sorted(tally.items()):
         if k != "no located line":
             print(f"  {k}: {n}")
