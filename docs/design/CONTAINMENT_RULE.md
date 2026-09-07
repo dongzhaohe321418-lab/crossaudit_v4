@@ -248,3 +248,38 @@ rows), the residue is **7 = 1.75% [0.85, 3.56]** — point estimate under the li
 bound above it, exactly the position D157 recorded for Arm 1 and refused to call a pass.
 D159's "next constraint" is real and it is **not** the last one: the last one is the
 generator's transcription discipline, which Arm 4 measures and no matcher change can.
+
+## 6. Classes found after the gold (D161 ruling 4, D164 ruling 2)
+
+Each arm's blocks carry a mechanism label; a class the gold did not hold gets a note here
+before anyone touches the matcher for it, with the same terms as §2: its shape, the rule
+that produces it, the rows that would license a reading, and the measurement (W = 0 on
+the frozen gold plus a designed panel; "measured and not shipped" is a legitimate outcome,
+as study 14 showed).
+
+**M10 — a negative exponent written with an en dash** (Arm 4, two rows). Ruled: study 14
+implemented the reading as preregistered, measured it (gold all zeros, the two rows
+recovered) and did not ship it, because a range across two units has an exponent's shape
+and the rule regressed the contract's own `5 g–10 mL` example. The contract and skill say
+the shape is not read.
+
+**M12 — a percent sign followed by a capitalised two-letter abbreviation naming the
+quantity's basis** (Arm 5, one row, gold C; the source writes the basis after the sign, as
+relative humidity is written). *The rule that produces it:* `_is_boundary` reads a bare
+capital or a capitalised word after a unit as the SUBSTANCE or the label the quantity is
+of — `5 wt % Ni` is nickel, `5 wt % A` a label — and that reading is right for the 118
+element symbols and for every capitalised word the gold holds; the basis abbreviation
+collides with it exactly, so the join stops at the sign and the transcribed unit (sign +
+abbreviation) does not match. *What a reading would need:* a named, finite list of basis
+abbreviations that may follow a percent sign (relative humidity's is the one observed;
+`v/v`, `w/w`, `w/v` are already carried by R6a as qualifiers, before or after the sign),
+read only directly after `%`/`‰`, never after another unit, so that `5 wt % Ni` keeps
+its element reading. *Rows:* the frozen gold holds none; Arm 5's one row is the positive;
+a designed panel must hold the element collisions (`% Ni`, `% K`, `% Pa` — bare symbols
+after a percent sign stay unread) and capitalised words (`% Sample`), each labelled by the
+frozen rule. *Measurement:* study N with W = 0 and W′ = 0 on the frozen gold, the panel
+as committed tests, the D64 mutation (empty the list) and a preregistered expectation of
+R = 0 on the gold (it has no such row) — which means the only positive evidence is the
+one Arm 5 row and the panel's own rows, and the note says so: one row is not a licence,
+and a list that admits one abbreviation is a rule about that abbreviation. Not scheduled;
+recorded so that the next arm's block classification has the name.
