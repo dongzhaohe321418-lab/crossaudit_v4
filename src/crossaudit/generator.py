@@ -577,10 +577,12 @@ def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     if tool is not None:
         return tool
     unterminated = _unterminated_envelope(text)
-    if unterminated is not None:
-        noun = "MCP tool request" if unterminated == "tool" else "compute request"
-        raise ProviderDenial(f"the {noun} envelope was opened and never closed",
-                             category="format", envelope=unterminated)
+    if unterminated == "tool":
+        raise ProviderDenial("the MCP tool request envelope was opened and never closed",
+                             category="format", envelope="tool")
+    if unterminated == "compute":
+        raise ProviderDenial("the compute request envelope was opened and never closed",
+                             category="format", envelope="compute")
     return parse_work_reply(text)
 
 
