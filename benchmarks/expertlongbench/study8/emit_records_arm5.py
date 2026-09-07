@@ -24,6 +24,13 @@ HERE = pathlib.Path(__file__).resolve().parent
 #: after the run; the assertion below refuses to emit records while a block has none.
 #: No source text in the comments (corpus licence): the shapes only.
 MECHANISM: dict[tuple[str, int], str] = {
+    ("T03MaterialSEG-10.1002/advs.202406453", 2): "M9b",   # the quoted sentence writes the unit as an English word; the line's range, which the quote excludes, states the pair (gold C)
+    ("T03MaterialSEG-10.1002/adfm.202402444", 7): "M1b",   # the value in words (gold N)
+    ("T03MaterialSEG-10.1002/cjce.23950", 7): "M4",        # a hyphen joining the unit to the next word (gold C; right by contract, disclosed)
+    ("T03MaterialSEG-10.1002/adfm.202309656", 12): "M4",   # the same shape, with a tilde before the value (gold C)
+    ("T03MaterialSEG-10.1002/adfm.202209924", 0): "M1b",   # the value in words (gold N)
+    ("T03MaterialSEG-10.1002/zaac.202200095", 6): "M9a",   # a power of ten after the value (gold N)
+    ("T03MaterialSEG-10.1002/batt.202200056", 8): "M12",   # NEW (M11 is taken by the gold study's 80-character-cap class): a percent sign followed by a two-letter capitalised abbreviation naming the quantity's basis; the boundary rule reads a bare capital as prose (gold C)
 }
 
 

@@ -25,7 +25,10 @@ from provenance_arm3_report import disposition                      # noqa: E402
 
 BLOCKER, ADVISORY, PASS = "BLOCKER", "ADVISORY", "PASS"
 RESAMPLES = 10_000
-SEED = 20261106
+#: The registered bootstrap seed of each arm (PREREGISTRATION-ARM4 §6, -ARM5 §6). The
+#: first Arm 5 review found Arm 4's seed used for Arm 5; the seed follows `--arm` now.
+SEED_BY_ARM = {"4": 20261106, "5": 20261107}
+SEED = SEED_BY_ARM["4"]
 ARM3_UNCITED = {"A": 10.68, "B": 6.80}
 
 
@@ -116,15 +119,16 @@ def main(argv=None) -> int:
     ap.add_argument("--arm", default="4", choices=["4", "5"],
                     help="whose key and gold to read (default: Arm 4's)")
     args = ap.parse_args(argv)
-    global ARM_SUFFIX
+    global ARM_SUFFIX, SEED
     ARM_SUFFIX = f"arm{args.arm}"
+    SEED = SEED_BY_ARM[args.arm]
     records = load_records(args.run_dir)
     ok = [r for r in records if r.get("ok") and r.get("rows") is not None
           and not r.get("analysis_error")]
     errored = [r["instance"] for r in records if r not in ok]
     labels = load_labels()
     out: dict = {"drafts": len(records), "drafts_ok": len(ok), "errored": errored}
-    print(f"Arm 4 — {len(records)} drafts recorded, {len(ok)} analysed, "
+    print(f"Arm {args.arm} — {len(records)} drafts recorded, {len(ok)} analysed, "
           f"{len(errored)} errored (excluded, counted): {errored}")
 
     def label_of(r):

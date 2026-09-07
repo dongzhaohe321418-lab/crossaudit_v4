@@ -63,9 +63,21 @@ def main(argv=None) -> int:
             if loc is None:
                 tally["no located line"] += 1
                 continue
+            # The contract reads the QUOTATION (the pair must lie inside the quoted run,
+            # read in its own line: `_pair_in_quote`), not the whole located line. The
+            # first review found the line-level count one higher — a row whose line
+            # states the pair outside the quotation — so both are tallied and the
+            # quotation-level one is the contract's.
+            quote = ann["src"]["quote"]
+            body = arm3._decode(files, loc[0])
+            def under(mod):
+                located, _ = mod._quote_span(body, quote)
+                return located is not None and mod._pair_in_quote(located, v, u)
+            now_q, before_q = under(shipped), under(old)
+            tally[f"quotation: shipped {'pass' if now_q else 'block'} / arm4-matcher {'pass' if before_q else 'block'}"] += 1
             now = shipped.contains_pair(loc[1], v, u)
             before = old.contains_pair(loc[1], v, u)
-            tally[f"shipped {'pass' if now else 'block'} / arm4-matcher {'pass' if before else 'block'}"] += 1
+            tally[f"line: shipped {'pass' if now else 'block'} / arm4-matcher {'pass' if before else 'block'}"] += 1
     print(f"located rows {sum(tally.values()) - tally['no located line']}; no located line {tally['no located line']}")
     for k, n in sorted(tally.items()):
         if k != "no located line":

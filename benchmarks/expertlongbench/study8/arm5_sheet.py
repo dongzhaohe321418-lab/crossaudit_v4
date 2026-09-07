@@ -9,7 +9,7 @@ ids and identities only — is committed beside this file as `key-arm5.jsonl`.
 Items: every BLOCK whose quotation the shipped rule locates on one line (a
 block with no located line — quote absent, across a line break, unresolved —
 has nothing to label and is N by definition, counted in the key as
-`no-location`), and a sample of 50 PASSES drawn with seed 20261106.
+`no-location`), and a sample of 50 PASSES drawn with seed 20261107.
 
     PYTHONPATH=<worktree>/src python3 benchmarks/expertlongbench/study8/arm5_sheet.py \\
         --runs ~/Documents/Crossaudit/study-data/wt-arm5-runs/arm5 \\
