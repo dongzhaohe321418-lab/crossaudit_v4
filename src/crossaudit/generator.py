@@ -564,7 +564,10 @@ def _unterminated_envelope(text: str) -> str | None:
     failure of the envelope it attempted."""
     for kind, opener, closer in (("tool", "<<<CROSSAUDIT-MCP-TOOL>>>", "<<<END-CROSSAUDIT-MCP-TOOL>>>"),
                                  ("compute", "<<<CROSSAUDIT-HPC-JOB>>>", "<<<END-CROSSAUDIT-HPC-JOB>>>")):
-        if opener in text and closer not in text:
+        at = text.find(opener)
+        if at != -1 and text.find(closer, at + len(opener)) == -1:
+            # opened, and no closer AFTER the opener — a closer that precedes
+            # it (the third review's reordered form) does not close it
             return kind
     return None
 

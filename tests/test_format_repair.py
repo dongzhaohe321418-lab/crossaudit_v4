@@ -356,7 +356,8 @@ def test_conflicting_duplicate_still_fails_closed_after_recovery():
 
 # The Arm 6 shape (study 15, attempt 1): the source file is outlined, the generator
 # narrates "I'll read it first" beside a VALID tool envelope for an approved tool,
-# and — asked correctly — resends the clean envelope, which then executes.
+# and — asked correctly — resends the clean envelope, which `generate` returns as a
+# ToolRequest for the loop to execute (execution is the loop's, not tested here).
 NARRATED_TOOL = (
     "I will read the source documents first so the summary is grounded.\n"
     "<<<CROSSAUDIT-MCP-TOOL>>>\n"
@@ -382,7 +383,7 @@ def _obeying_model(calls):
     return complete
 
 
-def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_then_executes():
+def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_the_clean_request_returns():
     """MUTATION (D64; the ruling is recorded as D165 at merge): make
     `repair_addendum` return the file addendum for a tool failure, as the code
     did before 2026-09-07. With the obeying model above the second reply is then
@@ -407,35 +408,43 @@ def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_then_execute
     assert "every file in" not in re_ask
 
 
+def _function_source(module_source: str, header: str) -> str:
+    """The body of one function in a module's source: from its `def` line to the
+    next `def` at the same or lower indentation."""
+    import re
+    m = re.search(r"^([ \t]*)def " + re.escape(header) + r"\(", module_source, re.M)
+    assert m, header
+    indent = m.group(1)
+    rest = module_source[m.end():]
+    nxt = re.search(r"^" + re.escape(indent) + r"(?:def |class |@)", rest, re.M)
+    return module_source[m.start():m.end() + (nxt.start() if nxt else len(rest))]
+
+
 def test_the_compute_re_ask_teaches_the_schema_the_executor_reads():
     """The first review: the compute addendum showed `host`/`command`, which
     parses and cannot run. The addendum repeats the system prompt's example
-    verbatim, and the example carries every key the executor reads — read from
-    `hpc.py`'s own source (`payload.get("…")` / `payload["…"]`), so a key the
-    executor starts reading tomorrow reddens this test rather than a list
-    someone typed (the second review: a hard-coded key list proved nothing
-    about the executor)."""
+    verbatim, and the example offers every request key the executor's request
+    path reads — read from the source of the THREE functions that path is made
+    of: `Manager.submit_agent` (the generator-facing entry, reads `request`),
+    `Manager.submit` (reads `payload`) and `Manager._resources` (reads the
+    resources block). A key any of the three starts reading reddens this test;
+    a reader added elsewhere does not, and the test does not claim it does (the
+    third review: a module-wide claim was disproved by a key added to a fourth
+    place). Nothing here submits a job."""
     import inspect, json, re
     from crossaudit import hpc
     shown = re.search(r"<<<CROSSAUDIT-HPC-JOB>>>\n(.*?)\n<<<END-CROSSAUDIT-HPC-JOB>>>",
                       gen.GENERATOR_SYSTEM, re.S).group(1)
     assert shown == gen.COMPUTE_ENVELOPE_EXAMPLE
     example = json.loads(shown)
-    # The function that submits a job is the one reading `payload.get("script")`;
-    # its body, up to the next method, is the executor's contract for a request.
     source = inspect.getsource(hpc)
-    at = source.index('payload.get("script"')
-    start = source.rfind("\n    def ", 0, at)
-    end = source.find("\n    def ", at)
-    body = source[start:end if end != -1 else len(source)]
-    executor_keys = set(re.findall(r'payload(?:\.get\(|\[)"([a-z_]+)"', body))
-    assert {"host_id", "script"} <= executor_keys, executor_keys
+    read = set()
+    for header in ("submit_agent", "submit", "_resources"):
+        body = _function_source(source, header)
+        read |= set(re.findall(r'(?:request|payload)(?:\.get\(|\[)"([a-z_]+)"', body))
+    assert {"host_id", "script", "resources"} <= read, read
     offered = set(example) | set(example["resources"])
-    assert executor_keys <= offered, executor_keys - offered
-    addendum = gen.repair_addendum(ProviderDenial(
-        "the compute request envelope must be the entire reply",
-        category="format", envelope="compute"))
-    assert gen.COMPUTE_ENVELOPE_EXAMPLE in addendum and "every file in" not in addendum
+    assert read <= offered, read - offered
 
 
 def test_the_re_ask_is_chosen_by_the_denials_envelope_attribute_not_its_text():
@@ -459,9 +468,14 @@ def test_an_unterminated_tool_or_compute_envelope_is_re_asked_for_that_envelope(
     """The second review: a reply that OPENS a tool envelope and never closes it
     made both parsers return None, fell through to the file parser, and got the
     file re-ask. MUTATION: drop `_unterminated_envelope` from `_parse_reply` —
-    the two `envelope` assertions redden (they read "file")."""
+    the `envelope` assertions redden (they read "file"), for the plain and the
+    reordered forms alike."""
     for text, kind in (("I will read it.\n<<<CROSSAUDIT-MCP-TOOL>>>\n{\"tool\":\"file_read\"}", "tool"),
-                       ("<<<CROSSAUDIT-HPC-JOB>>>\n{\"host_id\":\"h\"}\nthen the rest", "compute")):
+                       ("<<<CROSSAUDIT-HPC-JOB>>>\n{\"host_id\":\"h\"}\nthen the rest", "compute"),
+                       # the third review's reordered form: a closer BEFORE the opener does
+                       # not close it
+                       ("<<<END-CROSSAUDIT-MCP-TOOL>>>\n<<<CROSSAUDIT-MCP-TOOL>>>\n{}", "tool"),
+                       ("<<<END-CROSSAUDIT-HPC-JOB>>> stray\n<<<CROSSAUDIT-HPC-JOB>>>\n{}", "compute")):
         with pytest.raises(ProviderDenial) as exc:
             gen._parse_reply(text)
         assert exc.value.detail.get("category") == "format"
