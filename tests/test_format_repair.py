@@ -386,9 +386,10 @@ def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_then_execute
     """MUTATION (D64; the ruling is recorded as D165 at merge): make
     `repair_addendum` return the file addendum for a tool failure, as the code
     did before 2026-09-07. With the obeying model above the second reply is then
-    the narration again, `generate` raises (a conversational denial), and the
-    first assertion reddens — the loop-level outcome, not a string. Independently
-    of it, the two re-ask assertions redden too. The parser stays strict: prose
+    the narration again and `generate` RAISES a conversational denial at the
+    call below — the test reddens there, before any assertion runs (the second
+    review traced it: none of the assertions executes under the mutation, so
+    none of them is what detects it; the loop-level outcome is). The parser stays strict: prose
     beside the envelope is still a format failure; the ONE re-ask names the
     envelope that failed. Study 15, Arm 6 attempt 1: 8 of 8 instances escalated
     (3 on format, 5 with the narration surfaced as an answer) under the old
@@ -409,13 +410,28 @@ def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_then_execute
 def test_the_compute_re_ask_teaches_the_schema_the_executor_reads():
     """The first review: the compute addendum showed `host`/`command`, which
     parses and cannot run. The addendum repeats the system prompt's example
-    verbatim, and both are the executor's keys."""
-    import json, re
+    verbatim, and the example carries every key the executor reads — read from
+    `hpc.py`'s own source (`payload.get("…")` / `payload["…"]`), so a key the
+    executor starts reading tomorrow reddens this test rather than a list
+    someone typed (the second review: a hard-coded key list proved nothing
+    about the executor)."""
+    import inspect, json, re
+    from crossaudit import hpc
     shown = re.search(r"<<<CROSSAUDIT-HPC-JOB>>>\n(.*?)\n<<<END-CROSSAUDIT-HPC-JOB>>>",
                       gen.GENERATOR_SYSTEM, re.S).group(1)
     assert shown == gen.COMPUTE_ENVELOPE_EXAMPLE
-    assert sorted(json.loads(shown)) == ["host_id", "inputs", "name", "outputs",
-                                         "resources", "script"]
+    example = json.loads(shown)
+    # The function that submits a job is the one reading `payload.get("script")`;
+    # its body, up to the next method, is the executor's contract for a request.
+    source = inspect.getsource(hpc)
+    at = source.index('payload.get("script"')
+    start = source.rfind("\n    def ", 0, at)
+    end = source.find("\n    def ", at)
+    body = source[start:end if end != -1 else len(source)]
+    executor_keys = set(re.findall(r'payload(?:\.get\(|\[)"([a-z_]+)"', body))
+    assert {"host_id", "script"} <= executor_keys, executor_keys
+    offered = set(example) | set(example["resources"])
+    assert executor_keys <= offered, executor_keys - offered
     addendum = gen.repair_addendum(ProviderDenial(
         "the compute request envelope must be the entire reply",
         category="format", envelope="compute"))
@@ -437,3 +453,21 @@ def test_the_re_ask_is_chosen_by_the_denials_envelope_attribute_not_its_text():
         with pytest.raises(ProviderDenial) as exc:
             gen._parse_reply(text)
         assert exc.value.detail.get("envelope") == kind
+
+
+def test_an_unterminated_tool_or_compute_envelope_is_re_asked_for_that_envelope():
+    """The second review: a reply that OPENS a tool envelope and never closes it
+    made both parsers return None, fell through to the file parser, and got the
+    file re-ask. MUTATION: drop `_unterminated_envelope` from `_parse_reply` —
+    the two `envelope` assertions redden (they read "file")."""
+    for text, kind in (("I will read it.\n<<<CROSSAUDIT-MCP-TOOL>>>\n{\"tool\":\"file_read\"}", "tool"),
+                       ("<<<CROSSAUDIT-HPC-JOB>>>\n{\"host_id\":\"h\"}\nthen the rest", "compute")):
+        with pytest.raises(ProviderDenial) as exc:
+            gen._parse_reply(text)
+        assert exc.value.detail.get("category") == "format"
+        assert exc.value.detail.get("envelope") == kind, text
+        assert "never closed" in exc.value.reason
+    # and the re-ask follows the attribute
+    with pytest.raises(ProviderDenial) as exc:
+        gen._parse_reply("<<<CROSSAUDIT-MCP-TOOL>>>\n{}")
+    assert "<<<CROSSAUDIT-MCP-TOOL>>>" in gen.repair_addendum(exc.value)

@@ -556,6 +556,19 @@ def repair_addendum(exc: ProviderDenial) -> str:
     return REPAIR_ADDENDUM.format(error=exc.reason)
 
 
+def _unterminated_envelope(text: str) -> str | None:
+    """The kind of a tool or compute envelope the reply OPENED and never
+    closed — the second review of the re-ask fix: both parsers return None
+    without the closing marker, so an unterminated tool envelope fell through
+    to the file parser and got the file re-ask. Such a reply is a format
+    failure of the envelope it attempted."""
+    for kind, opener, closer in (("tool", "<<<CROSSAUDIT-MCP-TOOL>>>", "<<<END-CROSSAUDIT-MCP-TOOL>>>"),
+                                 ("compute", "<<<CROSSAUDIT-HPC-JOB>>>", "<<<END-CROSSAUDIT-HPC-JOB>>>")):
+        if opener in text and closer not in text:
+            return kind
+    return None
+
+
 def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     compute = parse_compute_request(text)
     if compute is not None:
@@ -563,6 +576,11 @@ def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     tool = parse_tool_request(text)
     if tool is not None:
         return tool
+    unterminated = _unterminated_envelope(text)
+    if unterminated is not None:
+        noun = "MCP tool request" if unterminated == "tool" else "compute request"
+        raise ProviderDenial(f"the {noun} envelope was opened and never closed",
+                             category="format", envelope=unterminated)
     return parse_work_reply(text)
 
 
