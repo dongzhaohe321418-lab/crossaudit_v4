@@ -318,8 +318,11 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
 def test_the_check_is_registered_and_selectable_and_in_the_science_profile_only():
     """MUTATION (D164 ruling 1): take `number_source` out of
     `dcl.PROFILES["science"]` — this node and `test_check_profiles.py`'s science
-    test redden. Or, in the other direction, unregister it so an explicit
-    `checks: [..., number_source]` denies — the last three assertions redden.
+    test redden. Or, in the other direction, unregister it: the `available()`
+    assertion reddens and the fenced run below raises `ConfigDenial` before its
+    assertion is reached; the explicit-list `resolve` assertion does NOT
+    detect that mutation, because `resolve` passes an explicit list through
+    without checking registration (the second review executed all three).
 
     **What this node does NOT detect, stated so the docstring does not
     overclaim (AGENTS.md §3.5):** it reads `dcl.profiles` only. Taking the check
