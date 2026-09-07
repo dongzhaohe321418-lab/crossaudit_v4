@@ -352,3 +352,88 @@ def test_conflicting_duplicate_still_fails_closed_after_recovery():
              '<<<CROSSAUDIT-OUTPUT-FILE path="a.md">>>\nTWO')
     with pytest.raises(ProviderDenial, match="duplicate file request"):
         parse_work_reply(reply)
+
+
+# The Arm 6 shape (study 15, attempt 1): the source file is outlined, the generator
+# narrates "I'll read it first" beside a VALID tool envelope for an approved tool,
+# and — asked correctly — resends the clean envelope, which then executes.
+NARRATED_TOOL = (
+    "I will read the source documents first so the summary is grounded.\n"
+    "<<<CROSSAUDIT-MCP-TOOL>>>\n"
+    '{"server_id":"aabbccddeeff0011","tool":"file_read","arguments":{"path":"work/synthesis/RECIPE.md"}}\n'
+    "<<<END-CROSSAUDIT-MCP-TOOL>>>")
+CLEAN_TOOL = (
+    "<<<CROSSAUDIT-MCP-TOOL>>>\n"
+    '{"server_id":"aabbccddeeff0011","tool":"file_read","arguments":{"path":"work/synthesis/RECIPE.md"}}\n'
+    "<<<END-CROSSAUDIT-MCP-TOOL>>>")
+
+
+def _obeying_model(calls):
+    """A scripted generator that does what the re-ask SAYS: it narrates its tool
+    call the first time; on a re-ask that restates the tool envelope it resends
+    the clean envelope; on any other re-ask (the file addendum) it can only
+    narrate again, because it has not read the file it needs. So the outcome
+    depends on the addendum's content, which is what the mutation must move."""
+    def complete(*, system, prompt):
+        calls.append(prompt)
+        if len(calls) == 1:
+            return Reply(NARRATED_TOOL)
+        return Reply(CLEAN_TOOL if "resend ONLY the tool envelope" in prompt else NARRATED_TOOL)
+    return complete
+
+
+def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_then_executes():
+    """MUTATION (D64; the ruling is recorded as D165 at merge): make
+    `repair_addendum` return the file addendum for a tool failure, as the code
+    did before 2026-09-07. With the obeying model above the second reply is then
+    the narration again, `generate` raises (a conversational denial), and the
+    first assertion reddens — the loop-level outcome, not a string. Independently
+    of it, the two re-ask assertions redden too. The parser stays strict: prose
+    beside the envelope is still a format failure; the ONE re-ask names the
+    envelope that failed. Study 15, Arm 6 attempt 1: 8 of 8 instances escalated
+    (3 on format, 5 with the narration surfaced as an answer) under the old
+    addendum; the same eight completed under this one."""
+    calls = []
+    outcome = gen.generate(task="summarise the case", constitution="rules",
+                           current={}, mcp_servers=[{"server_id": "aabbccddeeff0011",
+                                                     "tools": [{"name": "file_read"}]}],
+                           complete=_obeying_model(calls), allowed_dirs=["work"])
+    assert isinstance(outcome, gen.ToolRequest)
+    assert outcome.request["tool"] == "file_read"
+    assert len(calls) == 2
+    re_ask = calls[1][len(calls[0]):]
+    assert "<<<CROSSAUDIT-MCP-TOOL>>>" in re_ask and "resend ONLY the tool envelope" in re_ask
+    assert "every file in" not in re_ask
+
+
+def test_the_compute_re_ask_teaches_the_schema_the_executor_reads():
+    """The first review: the compute addendum showed `host`/`command`, which
+    parses and cannot run. The addendum repeats the system prompt's example
+    verbatim, and both are the executor's keys."""
+    import json, re
+    shown = re.search(r"<<<CROSSAUDIT-HPC-JOB>>>\n(.*?)\n<<<END-CROSSAUDIT-HPC-JOB>>>",
+                      gen.GENERATOR_SYSTEM, re.S).group(1)
+    assert shown == gen.COMPUTE_ENVELOPE_EXAMPLE
+    assert sorted(json.loads(shown)) == ["host_id", "inputs", "name", "outputs",
+                                         "resources", "script"]
+    addendum = gen.repair_addendum(ProviderDenial(
+        "the compute request envelope must be the entire reply",
+        category="format", envelope="compute"))
+    assert gen.COMPUTE_ENVELOPE_EXAMPLE in addendum and "every file in" not in addendum
+
+
+def test_the_re_ask_is_chosen_by_the_denials_envelope_attribute_not_its_text():
+    """The first review: routing by message substring sent a FILE failure whose
+    duplicate path was named `compute.md` to the compute addendum. Every format
+    denial now carries `envelope=` from its raise site, and that decides."""
+    dup = ('<<<CROSSAUDIT-OUTPUT-FILE path="work/compute.md">>>a<<<END-CROSSAUDIT-OUTPUT-FILE>>>\n'
+           '<<<CROSSAUDIT-OUTPUT-FILE path="work/compute.md">>>b<<<END-CROSSAUDIT-OUTPUT-FILE>>>')
+    with pytest.raises(ProviderDenial) as exc:
+        gen.parse_work_reply(dup)
+    assert exc.value.detail.get("envelope") == "file"
+    assert "every file in" in gen.repair_addendum(exc.value)
+    for text, kind in ((NARRATED_TOOL, "tool"),
+                       ("Let me run it.\n<<<CROSSAUDIT-HPC-JOB>>>{}<<<END-CROSSAUDIT-HPC-JOB>>>", "compute")):
+        with pytest.raises(ProviderDenial) as exc:
+            gen._parse_reply(text)
+        assert exc.value.detail.get("envelope") == kind
