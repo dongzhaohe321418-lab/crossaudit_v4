@@ -8,7 +8,7 @@ label (`GOLD-arm6.csv` via `key-arm6.jsonl`) and the block mechanism
 (`CONTAINMENT_RULE.md` §1's M-labels, read from the archived drafts by hand
 after labelling) are joined in.
 
-    python3 benchmarks/expertlongbench/study8/emit_records_arm6.py <run-dir>
+    python3 benchmarks/expertlongbench/study15/emit_records_arm6.py <run-dir>
 """
 from __future__ import annotations
 
