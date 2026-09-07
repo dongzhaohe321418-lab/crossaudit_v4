@@ -7553,3 +7553,45 @@ the third: "execution confirms the corrected mutation claims"). `number_source` 
 both `dcl.PROFILES["science"]` and `scaffold.SCIENCE_CHECKS`; six guards pin its presence
 and say exactly which list each holds; a science project created by either path gets the
 check, the shipped skill and the fence; `general` and `research` are untouched.*
+
+## D165 — The malformed-envelope re-ask is understood: the re-ask named the wrong envelope; fixed, and Arm 6 waits on it
+
+**Date:** 2026-09-07. **Branch:** `fix/envelope-re-ask` (code at cd0b0d5), merged at bd491d5 after
+seven cross-vendor review round(s). **Evidence:** `benchmarks/expertlongbench/study15/ATTEMPT-1.md`
+(Arm 6 attempt 1: 8 of 8 instances escalated in round 1 — 3 labelled `generator_format`, 5
+`answered`, one root cause — $0.365), and the probe on the same eight instances under the
+fix (`study15/PROBE-envelope-fix.md`): 8 of 8 complete round 1 with a deliverable, three to
+four generator calls each, $3.35; two of the eight hit the 4,096-token output ceiling on the
+continuation and needed a further re-ask, a second shape recorded and not fixed here.
+
+**What was wrong.** `generator.generate` sends one corrective re-ask when a reply does
+not parse; the addendum restated the FILE envelope whatever had failed. A generator that
+narrates a tool call in prose beside a tool envelope — the commonest shape when a scope
+file is outlined (`context/outline.py: MAX_FILE_BYTES = 48,000`) and the generator must
+`file_read` it before writing — was told to "resend every file in its own block" before
+it had read the file; it could not, and the round escalated. Arms 2–5 saw this only as an
+incidental (D159: "re-ask on 23 of 24 rounds … did not reproduce in Arm 3 … not yet
+understood and must not be fixed until it is"), because T03's 600-character recipes are
+inlined and no tool is needed; every T01 input is over 100,000 characters, so Arm 6 hit it
+on every instance.
+
+RULINGS:
+
+1. **The re-ask restates the envelope the reply attempted** — tool, compute or file —
+   decided from an `envelope` attribute every format denial carries from its raise site
+   (never from the message text), and the compute re-ask repeats the executor's own
+   schema through the one constant the system prompt shows; the parser stays strict, so prose beside a
+   tool envelope for a tool the run lacks still surfaces as the generator's answer (the
+   behaviour `test_prose_wrapping_a_tool_envelope_surfaces_as_an_answer` pins). Three
+   tests, one with the D64 mutation (send the file addendum for a tool failure).
+2. **Arm 6 measures the product after this merge**, with a preregistration amendment
+   naming attempt 1, this change, and the fact that the eight probe instances were run
+   twice (once to fail, once under the fix); attempt 1's records stay in the archive and
+   count as the arm's first, escalated, attempt.
+3. **D159's incidental is closed as understood.** The Arm 2 count (23 of 24) and Arm 3's
+   (7 of 48) are re-read as "re-asks that named the wrong envelope" wherever the reply
+   was a narrated tool or compute request, and as ordinary format slips elsewhere; the
+   split is not recoverable from the archived usage rows and is not claimed.
+
+Recorded because a study that could not run is a product finding, and the product finding
+was one the record had already flagged as not understood.
