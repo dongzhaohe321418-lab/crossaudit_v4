@@ -22,19 +22,22 @@ def test_off_profile_disables_all_checks():
     assert resolve("off") == []
 
 
-def test_science_profile_is_the_structured_science_pack():
-    """MUTATION (D158 ruling 1): put `number_source` back in this list.
+def test_science_profile_is_the_structured_science_pack_with_number_source():
+    """MUTATION (D164 ruling 1): take `number_source` back out of this list.
 
     §1's existence gap is closed inside `check_provenance`, not by adding the
     neutral pack's `declared` here — that reads `sources`/`requires` as
     filenames too and blocked legitimate metadata. `number_source` joined with
-    §2.1's span contract on 2026-09-06 and left the same day: Arm 2
-    (`benchmarks/expertlongbench/RESULTS-ARM2.md`) blocked 24 of 24 drafts and
-    passed 0 of 215 annotation rows, because the generator is never shown line
-    numbers and cannot address them. A profile a project selects by name may
-    not contain a check that blocks every round. `general` is untouched, so no
-    existing default-profile project changes behaviour either way."""
-    assert resolve("science") == ["schema", "units", "convergence", "provenance"]
+    §2.1's span contract on 2026-09-06 and left the same day (D158 ruling 1:
+    Arm 2 blocked 24 of 24 drafts, because the generator is never shown line
+    numbers). It re-enters on 2026-09-07 under D164: after content addressing
+    (D159) and five containment extensions measured on a frozen gold, Arm 5
+    (`benchmarks/expertlongbench/RESULTS-ARM5.md`) measured the shipped check
+    blocking 4 of 398 correct annotations (Wilson 0.39–2.56%), the
+    preregistered §8g PASS band. `general` is untouched, so no existing
+    default-profile project changes behaviour either way."""
+    assert resolve("science") == ["schema", "units", "convergence", "provenance",
+                                  "number_source"]
 
 
 def test_research_profile_is_the_general_pack_plus_the_provenance_checks():

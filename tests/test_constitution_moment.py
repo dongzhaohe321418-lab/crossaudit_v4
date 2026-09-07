@@ -299,13 +299,19 @@ def test_no_placeholder_token_survives_into_a_committed_file(
 
 
 @pytest.mark.parametrize("profile,expected_checks,marker", [
-    ("science", "schema, units, convergence, provenance",
+    ("science", "schema, units, convergence, provenance, number_source",
      "metadata.yml"),
     ("general", "parseable, declared, internal, complete", "TODO"),
 ])
 def test_an_explicit_profile_is_honoured(tmp_path, monkeypatch, capsys,
                                          profile, expected_checks, marker):
-    """Science users keep their path; silence never selects it for them."""
+    """Science users keep their path; silence never selects it for them.
+
+    The science row pins `scaffold.SCIENCE_CHECKS` as `crossaudit init
+    --profile science` writes it, `number_source` last (D164 ruling 1, after
+    Arm 5's 4 of 398). MUTATION: take the check out of `SCIENCE_CHECKS` and the
+    science row reddens — this is one of the three tests that hold the
+    scaffold's list, which `dcl.PROFILES` tests cannot see."""
     project, _out = _init(tmp_path, monkeypatch, capsys, name=profile,
                           profile=profile)
     assert f"checks: [{expected_checks}]" in (

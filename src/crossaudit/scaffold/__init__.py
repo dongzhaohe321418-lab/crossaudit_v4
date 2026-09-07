@@ -9,11 +9,15 @@ GENERAL_CHECKS = ["parseable", "declared", "internal", "complete"]
 # Kept identical to dcl/profiles.py PROFILES["science"]: a project scaffolded
 # as "science" and a project that writes `checks: science` must mean the same
 # thing, or the profile name is documentation for a list nobody uses.
-# `number_source` left this list with D158 ruling 1, for the reason recorded
-# in `dcl/profiles.py`: the generator cannot address lines it is never shown,
-# so the check blocked 24 of 24 measured drafts. A project that wants it
-# writes it into `checks:` by name.
-SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance"]
+# `number_source` left this list with D158 ruling 1 (the generator could not
+# address lines it was never shown; 24 of 24 measured drafts blocked) and
+# returned with D164 ruling 1, after content addressing and the containment
+# extensions brought the shipped check to 4 of 398 wrong blocks on Arm 5 —
+# the reason is recorded in `dcl/profiles.py`. It is last on purpose, and a
+# science project scaffolded from this list is also handed the skill that
+# asks the generator for the annotation (`annotation_skill_tree`), never the
+# check alone.
+SCIENCE_CHECKS = ["schema", "units", "convergence", "provenance", "number_source"]
 # The CLI keeps its established science-first scaffold for compatibility. The
 # browser project wizard chooses explicitly between GENERAL_CHECKS and
 # SCIENCE_CHECKS instead of silently applying a laboratory contract to prose.

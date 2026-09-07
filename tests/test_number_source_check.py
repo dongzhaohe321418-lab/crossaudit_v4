@@ -90,17 +90,20 @@ def findings(files: dict[str, bytes]):
 
 
 def science_with_numbers() -> list[str]:
-    """The science pack composed with `number_source` by name.
+    """The science pack, which carries `number_source` since D164 ruling 1.
 
-    Since D158 ruling 1 the profile does not carry this check, so a project that
-    wants it writes it into `checks:` beside the pack — and that composition is
-    what the tests below exercise, because the defects they guard were found
-    where `provenance` and `number_source` read the same `results.json` in the
-    same run. Composed here rather than hard-coded so that a change to the
-    science pack still reaches them."""
+    Between D158 ruling 1 and D164 the profile did not carry the check, and this
+    helper composed the pack with it by name; the tests below exercise that
+    composition because the defects they guard were found where `provenance`
+    and `number_source` read the same `results.json` in the same run. It now
+    returns the resolved profile itself and asserts the check is in it, so a
+    ruling that took the check out again would redden every caller here rather
+    than silently list it twice."""
     from crossaudit.dcl.profiles import resolve
 
-    return [*resolve("science"), "number_source"]
+    checks = resolve("science")
+    assert "number_source" in checks          # D164 ruling 1; the pack carries it
+    return checks
 
 
 # ------------------------------------------------------------- the seven (1/7)
@@ -312,60 +315,45 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
 
 
 # ------------------------------------------------------------- the seven (6/7)
-def test_the_check_is_registered_and_selectable_and_in_no_profile():
-    """MUTATION (D158 ruling 1, inverting §4 row 7): put `number_source` back
-    into either profile — or, in the other direction, unregister it so an
-    explicit `checks: [..., number_source]` denies.
+def test_the_check_is_registered_and_selectable_and_in_the_science_profile_only():
+    """MUTATION (D164 ruling 1): take `number_source` out of
+    `dcl.PROFILES["science"]` — this node and `test_check_profiles.py`'s science
+    test redden. Or, in the other direction, unregister it: the `available()`
+    assertion reddens and the fenced run below raises `ConfigDenial` before its
+    assertion is reached; the explicit-list `resolve` assertion does NOT
+    detect that mutation, because `resolve` passes an explicit list through
+    without checking registration (the second review executed all three).
 
-    §4 row 7 shipped it in both profiles on 2026-09-06 and this test asserted
-    that. Arm 2 (`benchmarks/expertlongbench/RESULTS-ARM2.md`) then ran the
-    shipped check against generator-written annotations: **0 of 215 rows
-    passed, 24 of 24 drafts BLOCKED**, because the generator is never shown
-    line numbers (`generator.py:449-450`) and so cannot name the lines §2.1
-    asks it for. The verifier was wrong about a span zero times in 189 blocks —
-    the addressing contract failed, not the check — so the check is kept whole
-    and taken out of the lists a project selects by NAME. Both profiles return
-    to their pre-D157 state; nothing that existed before that day is removed.
+    **What this node does NOT detect, stated so the docstring does not
+    overclaim (AGENTS.md §3.5):** it reads `dcl.profiles` only. Taking the check
+    out of `scaffold.SCIENCE_CHECKS` alone leaves it green; that list is held
+    by `test_a_fresh_science_project_is_told_about_numbers` (which asserts the
+    two lists equal and scaffolds a project), by
+    `test_projects_ui.py::test_browser_creation_can_explicitly_choose_the_science_contract`
+    and by `test_constitution_moment.py::test_an_explicit_profile_is_honoured`.
+    The two lists are separate objects and each needs a test that names it.
 
-    Selectable by explicit name is the half that must not rot: a project that
-    wants this contract today writes it into `checks:` and gets the check, the
-    skill and the blocker, exactly as measured.
-
-    Each half of the mutation was run separately against the full suite. This
-    node is in both, which is what makes it the guard that names both lists:
-
-        `PROFILES["science"]` += number_source   -> 106 failed, 3169 passed
-            tests/test_check_profiles.py::
-                test_science_profile_is_the_structured_science_pack
-            tests/test_number_source_check.py::
-                test_the_check_is_registered_and_selectable_and_in_no_profile
-                test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for_one
-                test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance
-                test_a_fresh_science_project_is_told_nothing_about_numbers
-            (the remaining 101 node ids are `test_signed_notation_...` and
-             `test_the_exponent_sign_...[1-100]`, which redden incidentally:
-             `science_with_numbers()` then lists the check TWICE and every
-             finding is duplicated. They do not detect the profile change on
-             their own merits and are not counted as guards for it.)
-
-        `PROFILES["research"]` += number_source  -> 3 failed, 3272 passed
-            tests/test_check_profiles.py::
-                test_research_profile_is_the_general_pack_plus_the_provenance_checks
-            tests/test_number_source_check.py::
-                test_the_check_is_registered_and_selectable_and_in_no_profile
-                test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for_one
-
-    Neither profile mutation reddens the scaffold's own list, and the
-    `SCIENCE_CHECKS` mutation reddens neither profile assertion. The two lists
-    need tests that name each, which is why both exist."""
+    History, because the list has moved twice: §4 row 7 shipped the check in
+    both profiles on 2026-09-06; Arm 2 (`RESULTS-ARM2.md`) then found **0 of
+    215 rows passed, 24 of 24 drafts BLOCKED** — the generator is never shown
+    line numbers and could not address them — and D158 ruling 1 took it out the
+    same day, keeping it selectable by name. D159 replaced line numbers with
+    content addressing; D160 licensed five containment extensions, each
+    measured on a frozen gold at W = 0 (slices 4–8); Arm 5 (`RESULTS-ARM5.md`)
+    then measured the shipped check on every T03 instance at **4 of 398 correct
+    annotations blocked, Wilson 0.39–2.56%**, the preregistered §8g PASS band,
+    and D164 ruling 1 put it back into the science list — both lists together,
+    so a science project gets the check, the skill and the blocker at once.
+    `general` and `research` are untouched."""
     from crossaudit.dcl.framework import available
     from crossaudit.dcl.profiles import PROFILES, resolve
 
-    assert resolve("science") == ["schema", "units", "convergence", "provenance"]
+    assert resolve("science") == ["schema", "units", "convergence", "provenance",
+                                  "number_source"]
     assert resolve("research") == ["parseable", "declared", "internal", "complete",
                                    "source_provenance"]
     for name, checks in PROFILES.items():
-        assert "number_source" not in checks, name
+        assert ("number_source" in checks) == (name == "science"), name
 
     # Registered, described, and it still runs when it is asked for by name.
     assert "number_source" in available()
@@ -558,14 +546,14 @@ def test_a_project_whose_checks_read_an_annotation_ships_the_skill_that_asks_for
                                      annotation_skill_tree)
     from crossaudit.dcl.profiles import PROFILES
 
-    # Neither shipped profile enables an annotation check any more (D158
-    # ruling 1 for `number_source`), so neither gets a numbers skill written —
-    # the gate is the check list, and it is read here rather than assumed.
-    for checks in (GENERAL_CHECKS, SCIENCE_CHECKS, PROFILES["science"]):
-        assert annotation_skill_tree(checks) == {}, checks
+    # The science pack carries `number_source` (D164 ruling 1), so a science
+    # project is handed the numbers skill with the check; `general` enables no
+    # annotation check and gets no such file. The gate is the check list, read
+    # here rather than assumed.
+    assert annotation_skill_tree(GENERAL_CHECKS) == {}
+    for checks in (SCIENCE_CHECKS, PROFILES["science"], ["number_source"]):
+        assert NUMBERS_SKILL in annotation_skill_tree(checks), checks
     assert sorted(annotation_skill_tree(PROFILES["research"])) == [SOURCES_SKILL]
-    for checks in ([*SCIENCE_CHECKS, "number_source"], ["number_source"]):
-        assert NUMBERS_SKILL in annotation_skill_tree(checks)
 
     body = annotation_skill_tree(["number_source"])[NUMBERS_SKILL]
     # It tells the generator to transcribe and to locate. It must never ask it
@@ -750,11 +738,10 @@ def test_a_results_source_span_is_verified_by_this_check_and_not_by_provenance(
     # half must not have been left behind with nobody asserting it.
     monkeypatch.setattr(numbers, "_span", lambda text, start, end: text)
     assert run_checks(project("runs.csv@v3#L3"), ["number_source"]).findings == []
-    # The pair still has to run together — `provenance` from the pack and
-    # `number_source` by name, which is the only way to get it after D158.
+    # The pair runs together in the science pack itself since D164 ruling 1
+    # (between D158 and D164 the check was reachable only by name).
     from crossaudit.dcl.profiles import PROFILES
-    assert "provenance" in PROFILES["science"]
-    assert "number_source" not in PROFILES["science"]
+    assert {"provenance", "number_source"} <= set(PROFILES["science"])
     assert {"provenance", "number_source"} <= set(science_with_numbers())
 
 
@@ -916,38 +903,20 @@ def _first_round_prompt(root) -> str:
         skills=skills_mod.render(in_force), allowed_dirs=cfg.scope_dirs)
 
 
-def test_a_fresh_science_project_is_told_nothing_about_numbers(tmp_path,
-                                                               monkeypatch):
-    """MUTATION (D158 ruling 1): put `number_source` back into
-    `scaffold.SCIENCE_CHECKS`. That is the list BOTH creation paths read —
-    `console/projects.py:1597` and `cli/wizard.py:438` — and restoring it
-    reddens every assertion below: the file is written, the fence returns to
-    the prompt, and every science project is once again handed an addressing
-    contract its generator cannot satisfy (Arm 2: 24 of 24 drafts BLOCKED).
+def test_a_fresh_science_project_is_told_about_numbers(tmp_path, monkeypatch):
+    """MUTATION (D164 ruling 1): take `number_source` out of
+    `scaffold.SCIENCE_CHECKS` — the list BOTH creation paths read
+    (`console/projects.py:1597` and `cli/wizard.py:438`) — and every assertion
+    below reddens: the skill file is not written, the fence leaves the prompt,
+    and a science project runs a check nobody told its generator to satisfy
+    (§5.4's silent pass) or, worse, none at all.
 
-    Run against the full suite, that mutation alone is **14 failed, 3261
-    passed, 8 skipped**, this node among them:
-
-        tests/test_number_source_check.py::
-            test_a_fresh_science_project_is_told_nothing_about_numbers
-
-    **The docstring here first named `PROFILES["science"]` as an equivalent
-    mutation, and an independent review proved it is not.** No creation path
-    reads the profile — `console/projects.py:1597` and `cli/wizard.py:438` both
-    read `SCIENCE_CHECKS`, and `dcl.profiles.resolve` is reached only from
-    `config.load` (a project that writes `checks: science` as a NAME) and
-    `receipt/verify.py`. Restoring the check in the profile alone therefore left
-    this test green, and the docstring was claiming detection the test did not
-    have: AGENTS.md §3.5, a test that overclaims is worse than a missing test.
-
-    The two lists are separate objects coupled only by a comment
-    (`scaffold/__init__.py:9-11`, "Kept identical to dcl/profiles.py"), which is
-    exactly the drift a guard should catch. So the equality is asserted
-    directly below, and the profile-only mutation now does redden this test —
-    **106 failed, 3169 passed, 8 skipped**, this node among them — as well as
-    reddening `test_the_check_is_registered_and_selectable_and_in_no_profile`
-    and `test_check_profiles.py::test_science_profile_is_the_structured_science_pack`,
-    which name that list directly.
+    **The two lists are separate objects** coupled only by a comment
+    (`scaffold/__init__.py`, "Kept identical to dcl/profiles.py"), which is
+    exactly the drift a guard should catch; an independent review of the
+    earlier form of this test proved that a profile-only mutation left a
+    scaffold test green, so the equality of the two lists is asserted here
+    directly, and a mutation of either list reddens this node.
 
     The assertion is on the rendered generator prompt and not only on the file,
     because a skill delivered but never rendered and a skill never written are
@@ -960,18 +929,17 @@ def test_a_fresh_science_project_is_told_nothing_about_numbers(tmp_path,
     root = _science_project(tmp_path, monkeypatch, "labdefault")
     cfg = load(root / "crossaudit.yml")
 
-    assert "number_source" not in cfg.checks
+    assert "number_source" in cfg.checks
     # The scaffold's list and the profile's are two objects, and a project that
     # scaffolds as "science" and one that writes `checks: science` must still
-    # mean the same thing. Pinning both here is what makes the profile-only
-    # mutation visible to a test that scaffolds.
+    # mean the same thing.
     assert cfg.checks == resolve("science")
-    assert not (root / NUMBERS_SKILL).exists()
-    assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == ""
+    assert (root / NUMBERS_SKILL).exists()
+    assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == NUMBERS_SKILL
 
     prompt = _first_round_prompt(root)
-    assert "crossaudit-numbers" not in prompt
-    assert "uncited" not in prompt
+    assert "crossaudit-numbers" in prompt
+    assert "uncited" in prompt
 
 
 def test_a_project_that_names_the_check_gets_the_skill_and_the_instruction(
@@ -982,14 +950,16 @@ def test_a_project_that_names_the_check_gets_the_skill_and_the_instruction(
     running it against a generator nobody told to annotate — §5.4's silent pass,
     a check that guards nothing while wearing the name of one that does.
 
-    D158 took `number_source` out of the profiles and kept it selectable. This
-    is the half that keeps that promise honest: the same creation-path helper
-    both the CLI and the console call (`wizard.annotation_skills_owned`), handed
-    a check list that names it, writes the skill — and the first round's prompt
-    carries the fence."""
+    The check is selectable by name in any project (D158 kept that; D164 put it
+    into the science pack, so a SCIENCE project already has the skill). This is
+    the half that keeps the promise honest for a project whose pack does not
+    carry it — a `general` project that writes the check into `checks:` by
+    name: the same creation-path helper both the CLI and the console call
+    (`wizard.annotation_skills_owned`), handed a check list that names it,
+    writes the skill — and the first round's prompt carries the fence."""
     from crossaudit.cli import wizard
 
-    root = _science_project(tmp_path, monkeypatch, "labexplicit")
+    root = _science_project(tmp_path, monkeypatch, "labexplicit", project_type="general")
     config = root / "crossaudit.yml"
     config.write_text(
         re.sub(r"^checks: \[(.*)\]$", r"checks: [\1, number_source]",
@@ -2752,7 +2722,7 @@ def test_nothing_to_prune_is_not_an_error(tmp_path):
     assert prune_legacy_annotation_skill(None) == []
 
 
-def _science_project(tmp_path, monkeypatch, name):
+def _science_project(tmp_path, monkeypatch, name, project_type="science"):
     """A real project on disk, made by the console creation path."""
     from crossaudit.console import projects
 
@@ -2762,7 +2732,7 @@ def _science_project(tmp_path, monkeypatch, name):
         {"name": name, "description": "Numbers need units and sources.",
          "max_rounds": 3, "auditor_vendor": "openai", "auditor_model": "gpt-5.6-sol",
          "generator_vendor": "anthropic", "generator_model": "claude-sonnet-4-6",
-         "github": False, "project_type": "science"},
+         "github": False, "project_type": project_type},
         lambda *_: None)["root"])
 
 
@@ -2860,12 +2830,16 @@ def test_each_creation_path_removes_a_tracked_legacy_skill_and_commits_it(
     # must not depend on how similar the replacement happens to be.
     assert f"D\t{legacy_path}" in _git(
         root, "log", "--no-renames", "--name-status", "--format=", "-3")
-    # And nothing was written in its place: since D158 ruling 1 a science
-    # scaffold enables no annotation check, so the removal is a removal and not
-    # a swap. The migration still has to STICK, which is what the assertions
-    # above are for.
-    assert not (root / NUMBERS_SKILL).exists()
-    assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == ""
+    # And what was written in its place is the SHIPPED skill, byte for byte,
+    # tracked in the same setup commit: since D164 ruling 1 a science scaffold
+    # enables `number_source`, so the migration is a removal AND a swap, and
+    # both halves have to stick — a legacy file left alive would shadow the
+    # rendered one in the generator's prompt.
+    from crossaudit.scaffold import SCIENCE_CHECKS, annotation_skill_tree
+    assert (root / NUMBERS_SKILL).exists()
+    assert _git(root, "ls-files", "--", NUMBERS_SKILL).strip() == NUMBERS_SKILL
+    assert (root / NUMBERS_SKILL).read_text(encoding="utf-8") == \
+        annotation_skill_tree(SCIENCE_CHECKS)[NUMBERS_SKILL]
 
 
 @pytest.mark.parametrize("path_name", ["cli", "console"])
