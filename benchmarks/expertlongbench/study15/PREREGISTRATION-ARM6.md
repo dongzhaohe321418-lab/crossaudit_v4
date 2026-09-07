@@ -166,3 +166,20 @@ form), so the probe archive measured a parser that is not the one that merges. P
 rule, **attempt 2 runs all 33 instances under the merged product**; the probe stays in the
 archive as the fix's evidence and enters no rate. The run directory seeded from the probe
 was set aside unused (`wt-arm6-runs/arm6-seed-unused/`, with its note) before attempt 2.
+
+## Amendment 3 — 2026-09-07, during attempt 2; Amendments 1–2 stand as written
+
+Attempt 2 (run directory `wt-arm6-runs/arm6`, started at code bd491d5's Arm 6 branch after
+the envelope fix merged) was **paused by the author after instance 12 of 33**: 6 drafts
+completed; 6 instances escalated in round 1 with no generator call and no spend — the
+first (instance 3) on a transport error (an SSL EOF from the provider), the next five on
+the provider's HTTP 400 "credit balance is too low" — the Anthropic generator key's credit
+was exhausted mid-run. Nothing about the product or the harness failed; the run was stopped
+so the remaining instances would not be recorded as outages.
+
+**Resumption rule, fixed now:** when credit is restored, the six outage records are moved
+out of `records.jsonl` into `records-outage.jsonl` (kept, counted in the results as
+"provider outages, re-run"), their instance directories set aside, and the runner resumes
+the same run directory, which records the 6 completed drafts as done and runs the other
+27. The results report 33 drafts with the outage count beside them; an instance that
+fails again for a product reason is recorded and counted as the preregistration says.
