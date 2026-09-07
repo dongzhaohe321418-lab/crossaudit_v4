@@ -10,10 +10,10 @@ ids and identities only — is committed beside this file as `key-arm6.jsonl`.
 Items: every BLOCK whose quotation the shipped rule locates on one line (a
 block with no located line — quote absent, across a line break, unresolved —
 has nothing to label and is N by definition, counted in the key as
-`no-location`), and a sample of 50 PASSES drawn with seed 20261107.
+`no-location`), and a sample of 50 PASSES drawn with seed 20261108.
 
-    PYTHONPATH=<worktree>/src python3 benchmarks/expertlongbench/study8/arm6_sheet.py \\
-        --runs ~/Documents/Crossaudit/study-data/wt-arm6-runs/arm5 \\
+    PYTHONPATH=<worktree>/src python3 benchmarks/expertlongbench/study15/arm6_sheet.py \\
+        --runs ~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6 \\
         --out  ~/Documents/Crossaudit/study-data/wt-arm6-runs/sheet
 """
 from __future__ import annotations

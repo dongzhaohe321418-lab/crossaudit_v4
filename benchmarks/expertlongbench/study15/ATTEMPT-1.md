@@ -2,9 +2,12 @@
 
 2026-09-07, run `arm6-20260907T061203Z` (archive `wt-arm6-runs/arm6-attempt1-escalated/`).
 Every instance failed the same way before writing a deliverable: two generator calls,
-≈7,100 input tokens and 71 output tokens each, spend $0.045 per instance ($0.365 in all),
-loop status `ESCALATED`, cause `generator_format`, reason "the generator could not produce
-auditable work in round 1: the MCP tool request envelope must be the entire reply".
+≈7,100 input tokens and 71–83 output tokens each, spend $0.045 per instance ($0.365 in all),
+loop status `ESCALATED` on all eight — cause `generator_format` on 3 (reason "the generator
+could not produce auditable work in round 1: the MCP tool request envelope must be the
+entire reply") and cause `answered` on 5, where the loop surfaced the generator's own
+sentence beside the envelope ("I need to read the … first") as a conversational answer
+after the re-ask failed the same way. One root cause, two loop labels.
 
 **What happened, read from the product's own code.** A scope file over 48,000 bytes
 (`context/outline.py: MAX_FILE_BYTES`) is not inlined in the generator prompt; its body is
@@ -23,9 +26,9 @@ exposed whenever the generator needs a tool before it can write.
 
 **Disposition.** The arm measures the product path as it ships, so the harness is not
 changed to work around this. The defect goes to a product slice with its own review (the
-re-ask names the envelope the reply attempted; a lone tool envelope with prose around it
-is accepted and the prose discarded, since the prose is the model thinking aloud and the
-envelope is the request), measured first by re-running these eight instances. Arm 6
+re-ask names the envelope the reply attempted — tool, compute or file; the parser stays
+strict, so prose beside an envelope is still a format failure and the ONE re-ask is what
+changes), measured first by re-running these eight instances. Arm 6
 proper runs on the product after that slice merges; its preregistration stands, with an
 amendment naming this attempt and the product change between the two.
 

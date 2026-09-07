@@ -141,9 +141,11 @@ T03_MATERIAL_SEG = Task(
 
 # T01LegalMDS — transcribed 2026-09-07 from arXiv:2506.01241v3, Appendix B.1.5 (the 26
 # checklist items, "Evaluation Rubric") and Table 5 ("T1LegalMDS - Model prompt"), by
-# extracting the PDF's text (pypdf 6.17) and copying it; the only edits are rejoining
-# words the PDF broke across lines ("tempo-\nrary" -> "temporary") and restoring the
-# spaces the extraction dropped after item numbers ("1.Filing Date"). Item keys match
+# extracting the PDF's text (pypdf 6.17) and copying it; the edits are rejoining words the
+# PDF broke across lines ("tempo-\nrary" -> "temporary"), restoring the spaces the
+# extraction dropped after item numbers ("1.Filing Date"), and normalising the PDF's
+# typographic apostrophes to ASCII ("case\u2019s" -> "case's"; quotation marks are kept as
+# \u201c \u201d). Item keys match
 # `human_reference_checklist` in the release, whose names differ from the paper's
 # wording for four items (the release's names are used as keys; the paper's text as
 # the description). Nothing here was written by a model.
