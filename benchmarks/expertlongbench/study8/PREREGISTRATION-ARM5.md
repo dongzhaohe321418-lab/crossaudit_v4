@@ -170,3 +170,13 @@ and T03 is the only public task whose inputs are number-dense (median 16.5 numbe
 input against 0 for T04, T06, T07, T08 and 10 for T11's traces) *and* whose quantities
 carry units (T04 26%, T06 20%, every other task ≤ 1.3%, T03's procedures throughout). T01 is
 traceable (93.3%) and unit-less, and deferred for shape and cost as Amendment 1 says.
+
+## Amendment 3 — 2026-09-07, after the fourth review; Amendments 1–2 stand as written
+
+Amendment 2 called T01 "unit-less" and said T03 is "the only public task" that is both
+number-dense and unit-bearing. The census says: T01's inputs carry a median of 5,067
+numbers — denser than T03's 16.5 — and 43 of its 6,938 reference numbers (0.6%, 22 of them
+percentages) carry a unit the extractor recognises. "Unit-less" is withdrawn for "0.6%
+with a unit", and "only T03" for "T03 is the task whose inputs are number-dense and whose
+quantities carry units throughout; no other public task combines the two at that level".
+The deferral of T01 rests on shape, cost and unit density, none of which is categorical.

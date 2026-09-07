@@ -1,6 +1,6 @@
 # Arm 5 — the shipped check, after the containment extensions, on every T03 instance
 
-*Fourth version, after three cross-vendor reviews (the third: `…-arm5-astra-round3.md` — Arm 4's uncited interval misquoted; the preregistration's census amendment still categorical, now Amendment 2). Third version, after two cross-vendor reviews (the second: `…-arm5-astra-round2.md` — the unit-shortening sentence, the missing intervals, the diff script's count, the preregistration's census rationale). Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
+*Fifth version, after four cross-vendor reviews (the fourth: `…-arm5-astra-round4.md` — "unit-less" and "only T03" were still categorical; Amendment 3). Fourth version, after three cross-vendor reviews (the third: `…-arm5-astra-round3.md` — Arm 4's uncited interval misquoted; the preregistration's census amendment still categorical, now Amendment 2). Third version, after two cross-vendor reviews (the second: `…-arm5-astra-round2.md` — the unit-shortening sentence, the missing intervals, the diff script's count, the preregistration's census rationale). Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
 
 Study 8. Preregistered at `benchmarks/expertlongbench/study8/PREREGISTRATION-ARM5.md`,
 committed at `38d3d22` **before any study model call** (20 s before the plan was written,
@@ -16,9 +16,12 @@ molecule or a protein from a structure string, with 39% and 0% of the descriptio
 numbers occurring in the input and 0.1% and 0% carrying a unit; T11's references carry a
 median of one number (the label; 47% traceable, 1% with a unit); T06's transcripts write
 most numbers in words (median input numbers 0; 16% traceable); T01's reference numbers
-are 93% traceable but its instances are 250,000 characters of legal record with unit-less
-dates and docket numbers — **deferred for shape and cost.** Only T03 has both a
-number-dense input (median 16.5 numbers) and unit-bearing quantities. Generator `anthropic:claude-sonnet-4-6`, auditor `openai:gpt-5.6-terra`, one
+are 93% traceable and its inputs are denser in numbers than any task (median 5,067 per
+input), but 0.6% of its reference numbers carry a unit the extractor recognises (43 of
+6,938, 22 of them percentages) and its instances are 250,000 characters of legal record —
+**deferred for shape, cost and unit density.** T03 is the task whose inputs are number-dense
+(median 16.5 per input) *and* whose quantities carry units throughout; no other public task
+combines the two at that level. Generator `anthropic:claude-sonnet-4-6`, auditor `openai:gpt-5.6-terra`, one
 round, `checks: ["number_source"]`, the **shipped** skill, contract and per-row verifier,
 matcher blob `620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf` (`numbers.py` at `edda6da`, the merge
 of slice 8; Arm 4 ran `8dfd07d9…`, the merge of slice 3). 49 of 50 drafts completed in the
