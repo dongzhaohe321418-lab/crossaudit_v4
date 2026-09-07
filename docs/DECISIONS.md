@@ -7546,3 +7546,10 @@ Recorded because §8g was written in 2026-09 as the one number that decides whet
 check may sit in a profile a project selects by name, and this is the first time it reads
 PASS: on a real generator, after five extensions measured on a frozen gold, with the
 classes that remain disclosed rather than argued away.
+
+*D164 ruling 1 landed as `feat/number-source-science-profile`, merged at 363282c after three
+review rounds (the first two on docstrings that claimed more detection than a mutation showed;
+the third: "execution confirms the corrected mutation claims"). `number_source` is last in
+both `dcl.PROFILES["science"]` and `scaffold.SCIENCE_CHECKS`; six guards pin its presence
+and say exactly which list each holds; a science project created by either path gets the
+check, the shipped skill and the fence; `general` and `research` are untouched.*
