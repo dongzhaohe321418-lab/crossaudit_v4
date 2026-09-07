@@ -32,6 +32,16 @@ from .errors import ConfigDenial, Denial, ProviderDenial
 from .file_identity import (AppliedFiles, FileTarget, apply_bound_files,
                             resolve_file_targets)
 
+#: The compute request as the executor reads it (`hpc.py`: host_id, name,
+#: script, inputs, outputs, resources). ONE example, shown in the system prompt
+#: and repeated verbatim by the compute re-ask: the first review of the re-ask
+#: fix found the re-ask teaching a schema (`host`, `command`) that parses and
+#: cannot execute.
+COMPUTE_ENVELOPE_EXAMPLE = (
+    '{"host_id":"approved id","name":"short name","script":"bash script",'
+    '"inputs":["work/data.csv"],"outputs":["results/summary.csv"],'
+    '"resources":{"nodes":1,"cpus":4,"gpus":0,"memory":"8G","walltime":"00:20:00"}}')
+
 GENERATOR_SYSTEM = """You produce work for a supervised project. Another model \
 from a different vendor audits everything you commit, against rules you will be \
 shown. You cannot talk to that auditor and you cannot argue with the rules; you \
@@ -83,9 +93,7 @@ the envelope.
 When a calculation is necessary, return only this envelope instead of files:
 
 <<<CROSSAUDIT-HPC-JOB>>>
-{"host_id":"approved id","name":"short name","script":"bash script",\
-"inputs":["work/data.csv"],"outputs":["results/summary.csv"],\
-"resources":{"nodes":1,"cpus":4,"gpus":0,"memory":"8G","walltime":"00:20:00"}}
+""" + COMPUTE_ENVELOPE_EXAMPLE + """
 <<<END-CROSSAUDIT-HPC-JOB>>>
 
 Files named in `inputs` are staged by base name under `inputs/`. Write requested \
@@ -125,13 +133,13 @@ class Work:
             rows = [(str(f["path"]), str(f["content"])) for f in raw["files"]]
         except (KeyError, TypeError) as exc:
             raise ProviderDenial(f"the generator returned an unusable shape: {exc}",
-                                 category="format") from exc
+                                 category="format", envelope="file") from exc
         files: dict[str, str] = {}
         for path, content in rows:
             if path in files:
                 raise ProviderDenial(
                     f"the generator returned duplicate file request {path!r}",
-                    category="format")
+                    category="format", envelope="file")
             files[path] = content
         return Work(summary=str(raw.get("summary", "work")).strip() or "work",
                     files=files, notes=str(raw.get("notes", "")).strip())
@@ -198,19 +206,19 @@ def parse_compute_request(text: str) -> ComputeRequest | None:
     if len(matches) != 1 or "<<<CROSSAUDIT-OUTPUT-FILE" in text:
         raise ProviderDenial(
             "the generator must return exactly one compute request and no files",
-            category="format")
+            category="format", envelope="compute")
     outside = (text[:matches[0].start()] + text[matches[0].end():]).strip()
     if outside:
         raise ProviderDenial("the compute request envelope must be the entire reply",
-                             category="format")
+                             category="format", envelope="compute")
     try:
         request = json.loads(matches[0].group(1))
     except (TypeError, ValueError) as exc:
         raise ProviderDenial(f"the generator returned invalid compute JSON: {exc}",
-                             category="format") from exc
+                             category="format", envelope="compute") from exc
     if not isinstance(request, dict):
         raise ProviderDenial("the generator compute request must be a JSON object",
-                             category="format")
+                             category="format", envelope="compute")
     return ComputeRequest(request=request)
 
 
@@ -227,19 +235,19 @@ def parse_tool_request(text: str) -> ToolRequest | None:
             "<<<CROSSAUDIT-HPC-JOB" in text):
         raise ProviderDenial(
             "the generator must return exactly one MCP tool request and no other envelope",
-            category="format")
+            category="format", envelope="tool")
     outside = (text[:matches[0].start()] + text[matches[0].end():]).strip()
     if outside:
         raise ProviderDenial("the MCP tool request envelope must be the entire reply",
-                             category="format")
+                             category="format", envelope="tool")
     try:
         request = json.loads(matches[0].group(1))
     except (TypeError, ValueError) as exc:
         raise ProviderDenial(f"the generator returned invalid MCP tool JSON: {exc}",
-                             category="format") from exc
+                             category="format", envelope="tool") from exc
     if not isinstance(request, dict):
         raise ProviderDenial("the generator MCP tool request must be a JSON object",
-                             category="format")
+                             category="format", envelope="tool")
     return ToolRequest(request=request)
 
 
@@ -298,7 +306,7 @@ def parse_work_reply(text: str) -> Work:
 
     Every parse failure here is a *format* error — the transport succeeded and
     the model simply replied in the wrong shape — so each denial carries
-    ``category="format"``: the one class of failure ``generate()`` may repair
+    ``category="format", envelope="file"``: the one class of failure ``generate()`` may repair
     with a single corrective re-ask before anything escalates to a human.
     """
     if "<<<CROSSAUDIT-OUTPUT-FILE" not in text:
@@ -307,7 +315,7 @@ def parse_work_reply(text: str) -> Work:
         except Denial as exc:
             raise ProviderDenial(
                 "the generator replied in prose instead of the required "
-                "file envelope", category="format", prose=True) from exc
+                "file envelope", category="format", envelope="file", prose=True) from exc
         return Work.from_json(raw)
     files: dict[str, str] = {}
     blocks = _extract_file_blocks(text)
@@ -316,12 +324,12 @@ def parse_work_reply(text: str) -> Work:
         # path — that is genuinely malformed and cannot be recovered.
         raise ProviderDenial(
             "the generator returned malformed file blocks: the opening file "
-            "marker is missing its path", category="format")
+            "marker is missing its path", category="format", envelope="file")
     for path, content, _open_start, _block_end in blocks:
         if path in files:
             raise ProviderDenial(
                 f"the generator returned duplicate file request {path!r}",
-                category="format")
+                category="format", envelope="file")
         files[path] = content
     prefix = text[:blocks[0][2]].strip()
     summary_match = re.search(r"(?:^|\n)SUMMARY:\s*(.+)", prefix)
@@ -491,7 +499,14 @@ def build_prompt(*, task: str, constitution: str, current: dict[str, str],
 
 
 #: The corrective re-ask sent once when a reply could not be parsed. It names
-#: the exact failure and restates the envelope contract — nothing else changes.
+#: the exact failure and restates the envelope contract THE REPLY ATTEMPTED —
+#: nothing else changes. Until 2026-09-07 there was one addendum and it
+#: restated the file envelope whatever had failed, so a generator that had
+#: narrated a tool call in prose beside a tool envelope was told to "resend
+#: every file in its own block" before it had read the file it needed; on
+#: inputs over `MAX_FILE_BYTES` (outlined, fetched by `file_read`) that was
+#: every round (study 15, Arm 6 attempt 1: 8 of 8 instances escalated), and it
+#: is the "malformed-envelope re-ask" D159 recorded as not yet understood.
 REPAIR_ADDENDUM = """
 
 YOUR PREVIOUS REPLY COULD NOT BE PARSED: {error}.
@@ -503,6 +518,68 @@ the entire file, verbatim
 Do not put Markdown fences around the markers, and put nothing outside the
 SUMMARY line, the file blocks, and the NOTES line."""
 
+REPAIR_ADDENDUM_TOOL = """
+
+YOUR PREVIOUS REPLY COULD NOT BE PARSED: {error}.
+If you need the tool, resend ONLY the tool envelope — nothing before it and
+nothing after it, no explanation, no Markdown fences:
+<<<CROSSAUDIT-MCP-TOOL>>>
+{{"server_id":"approved id","tool":"approved tool name","arguments":{{"key":"value"}}}}
+<<<END-CROSSAUDIT-MCP-TOOL>>>
+If instead you are answering rather than requesting a tool, reply in prose with
+no envelope at all."""
+
+REPAIR_ADDENDUM_COMPUTE = """
+
+YOUR PREVIOUS REPLY COULD NOT BE PARSED: {error}.
+If you need the compute run, resend ONLY the compute envelope — nothing before
+it and nothing after it, no explanation, no Markdown fences:
+<<<CROSSAUDIT-HPC-JOB>>>
+{example}
+<<<END-CROSSAUDIT-HPC-JOB>>>
+If instead you are answering rather than requesting a run, reply in prose with
+no envelope at all."""
+
+
+def repair_addendum(exc: ProviderDenial) -> str:
+    """The re-ask for the envelope the failed reply attempted, read from the
+    `envelope` attribute every format denial carries from its raise site
+    ("tool", "compute", "file") — never from the message text, which can carry
+    a model-written path (the first review: a duplicate file path named
+    `compute.md` routed a file failure to the compute addendum)."""
+    kind = str(exc.detail.get("envelope", "file"))
+    if kind == "tool":
+        return REPAIR_ADDENDUM_TOOL.format(error=exc.reason)
+    if kind == "compute":
+        return REPAIR_ADDENDUM_COMPUTE.format(error=exc.reason,
+                                              example=COMPUTE_ENVELOPE_EXAMPLE)
+    return REPAIR_ADDENDUM.format(error=exc.reason)
+
+
+def _unterminated_envelope(text: str) -> str | None:
+    """The kind of a tool or compute envelope the reply OPENED and never
+    closed — the second review of the re-ask fix: both parsers return None
+    without the closing marker, so an unterminated tool envelope fell through
+    to the file parser and got the file re-ask. Such a reply is a format
+    failure of the envelope it attempted.
+
+    Consulted only for a reply the file parser has refused (`_parse_reply`),
+    and read OUTSIDE the reply's file blocks: a marker that sits inside an
+    output file's body is that file's content, not a protocol envelope (the
+    fourth review: a valid file that mentioned an opener was being denied; the
+    fifth: a valid file beside a stray opener), so every complete
+    `<<<CROSSAUDIT-OUTPUT-FILE …>>> … <<<END-CROSSAUDIT-OUTPUT-FILE>>>` span is
+    blanked before the scan."""
+    text = FILE_BLOCK.sub(" ", text)
+    for kind, opener, closer in (("tool", "<<<CROSSAUDIT-MCP-TOOL>>>", "<<<END-CROSSAUDIT-MCP-TOOL>>>"),
+                                 ("compute", "<<<CROSSAUDIT-HPC-JOB>>>", "<<<END-CROSSAUDIT-HPC-JOB>>>")):
+        at = text.find(opener)
+        if at != -1 and text.find(closer, at + len(opener)) == -1:
+            # opened, and no closer AFTER the opener — a closer that precedes
+            # it (the third review's reordered form) does not close it
+            return kind
+    return None
+
 
 def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     compute = parse_compute_request(text)
@@ -511,7 +588,25 @@ def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     tool = parse_tool_request(text)
     if tool is not None:
         return tool
-    return parse_work_reply(text)
+    # The file parser decides first, exactly as before this slice: every reply
+    # it accepts is accepted unchanged (the fourth and fifth reviews: a valid
+    # file beside a stray marker, or holding one, must parse as at the base).
+    # Only a reply it REFUSES is then re-read for an opened-and-never-closed
+    # tool or compute envelope, so that the re-ask names the envelope the
+    # generator attempted instead of the file envelope.
+    try:
+        return parse_work_reply(text)
+    except ProviderDenial as file_denial:
+        if str(file_denial.detail.get("category", "")) != "format":
+            raise
+        unterminated = _unterminated_envelope(text)
+        if unterminated == "tool":
+            raise ProviderDenial("the MCP tool request envelope was opened and never closed",
+                                 category="format", envelope="tool") from file_denial
+        if unterminated == "compute":
+            raise ProviderDenial("the compute request envelope was opened and never closed",
+                                 category="format", envelope="compute") from file_denial
+        raise
 
 
 def generate(*, task: str, constitution: str, current: dict[str, str],
@@ -557,7 +652,7 @@ def generate(*, task: str, constitution: str, current: dict[str, str],
         if on_repair is not None:
             on_repair(exc.reason)
         reply = complete(system=GENERATOR_SYSTEM,
-                         prompt=prompt + REPAIR_ADDENDUM.format(error=exc.reason))
+                         prompt=prompt + repair_addendum(exc))
         try:
             outcome = _parse_reply(reply.text)
         except ProviderDenial as second:
