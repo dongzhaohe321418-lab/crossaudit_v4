@@ -90,14 +90,15 @@ def findings(files: dict[str, bytes]):
 
 
 def science_with_numbers() -> list[str]:
-    """The science pack composed with `number_source` by name.
+    """The science pack, which carries `number_source` since D164 ruling 1.
 
-    Since D158 ruling 1 the profile does not carry this check, so a project that
-    wants it writes it into `checks:` beside the pack — and that composition is
-    what the tests below exercise, because the defects they guard were found
-    where `provenance` and `number_source` read the same `results.json` in the
-    same run. Composed here rather than hard-coded so that a change to the
-    science pack still reaches them."""
+    Between D158 ruling 1 and D164 the profile did not carry the check, and this
+    helper composed the pack with it by name; the tests below exercise that
+    composition because the defects they guard were found where `provenance`
+    and `number_source` read the same `results.json` in the same run. It now
+    returns the resolved profile itself and asserts the check is in it, so a
+    ruling that took the check out again would redden every caller here rather
+    than silently list it twice."""
     from crossaudit.dcl.profiles import resolve
 
     checks = resolve("science")
@@ -315,34 +316,32 @@ def test_an_uncited_row_never_blocks_on_a_value_it_could_not_transcribe():
 
 # ------------------------------------------------------------- the seven (6/7)
 def test_the_check_is_registered_and_selectable_and_in_the_science_profile_only():
-    """MUTATION (D158 ruling 1, inverting §4 row 7): put `number_source` back
-    into either profile — or, in the other direction, unregister it so an
-    explicit `checks: [..., number_source]` denies.
+    """MUTATION (D164 ruling 1): take `number_source` out of
+    `dcl.PROFILES["science"]` — this node and `test_check_profiles.py`'s science
+    test redden. Or, in the other direction, unregister it so an explicit
+    `checks: [..., number_source]` denies — the last three assertions redden.
 
-    §4 row 7 shipped it in both profiles on 2026-09-06 and this test asserted
-    that. Arm 2 (`benchmarks/expertlongbench/RESULTS-ARM2.md`) then ran the
-    shipped check against generator-written annotations: **0 of 215 rows
-    passed, 24 of 24 drafts BLOCKED**, because the generator is never shown
-    line numbers (`generator.py:449-450`) and so cannot name the lines §2.1
-    asks it for. The verifier was wrong about a span zero times in 189 blocks —
-    the addressing contract failed, not the check — so the check is kept whole
-    and taken out of the lists a project selects by NAME. Both profiles return
-    to their pre-D157 state; nothing that existed before that day is removed.
+    **What this node does NOT detect, stated so the docstring does not
+    overclaim (AGENTS.md §3.5):** it reads `dcl.profiles` only. Taking the check
+    out of `scaffold.SCIENCE_CHECKS` alone leaves it green; that list is held
+    by `test_a_fresh_science_project_is_told_about_numbers` (which asserts the
+    two lists equal and scaffolds a project), by
+    `test_projects_ui.py::test_browser_creation_can_explicitly_choose_the_science_contract`
+    and by `test_constitution_moment.py::test_an_explicit_profile_is_honoured`.
+    The two lists are separate objects and each needs a test that names it.
 
-    Selectable by explicit name is the half that must not rot: a project that
-    wants this contract today writes it into `checks:` and gets the check, the
-    skill and the blocker, exactly as measured.
-
-    D164 ruling 1 (2026-09-07) put it back into the science list — both
-    `dcl.PROFILES["science"]` and `scaffold.SCIENCE_CHECKS`, which move
-    together so a science project gets the check, the skill and the blocker at
-    once — after Arm 5 measured the shipped check, after content addressing
-    and five containment extensions, at 4 of 398 wrong blocks (§8g PASS).
-    `general` and `research` are untouched. The mutation is now the reverse:
-    remove it from either list, and this node, `test_check_profiles.py`'s
-    science test and the fresh-project test below redden; the two lists are
-    separate objects and each needs a test that names it, which is why both
-    exist."""
+    History, because the list has moved twice: §4 row 7 shipped the check in
+    both profiles on 2026-09-06; Arm 2 (`RESULTS-ARM2.md`) then found **0 of
+    215 rows passed, 24 of 24 drafts BLOCKED** — the generator is never shown
+    line numbers and could not address them — and D158 ruling 1 took it out the
+    same day, keeping it selectable by name. D159 replaced line numbers with
+    content addressing; D160 licensed five containment extensions, each
+    measured on a frozen gold at W = 0 (slices 4–8); Arm 5 (`RESULTS-ARM5.md`)
+    then measured the shipped check on every T03 instance at **4 of 398 correct
+    annotations blocked, Wilson 0.39–2.56%**, the preregistered §8g PASS band,
+    and D164 ruling 1 put it back into the science list — both lists together,
+    so a science project gets the check, the skill and the blocker at once.
+    `general` and `research` are untouched."""
     from crossaudit.dcl.framework import available
     from crossaudit.dcl.profiles import PROFILES, resolve
 
