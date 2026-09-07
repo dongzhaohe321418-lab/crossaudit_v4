@@ -16,7 +16,7 @@ molecule or a protein from a structure string, with 39% and 0% of the descriptio
 numbers occurring in the input and 0.1% and 0% carrying a unit; T11's references carry a
 median of one number (the label; 47% traceable, 1% with a unit); T06's transcripts write
 most numbers in words (median input numbers 0; 16% traceable); T01's reference numbers
-are 93% traceable and its inputs are denser in numbers than any task (median 5,067 per
+are 93% traceable and its inputs are denser in numbers than any task (median 5,067.5 per
 input), but 0.6% of its reference numbers carry a unit the extractor recognises (43 of
 6,938, 22 of them percentages) and its instances are 250,000 characters of legal record —
 **deferred for shape, cost and unit density.** T03 is the task whose inputs are number-dense
