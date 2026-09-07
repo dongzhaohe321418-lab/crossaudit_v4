@@ -496,8 +496,17 @@ def test_a_marker_inside_a_valid_file_body_is_content_not_an_envelope():
     """The fourth review: the unterminated-envelope scan read the whole reply,
     so a VALID file whose body mentioned an opener was denied as a tool or
     compute failure — a backward-compatibility regression against the base.
-    The scan reads outside file blocks. MUTATION: drop the `FILE_BLOCK.sub`
-    blanking and the three replies below deny instead of parsing."""
+
+    Two guards, each with the mutation that reddens it (the fifth review found
+    the first form naming the wrong one):
+    * the file parser decides FIRST — MUTATION: run the unterminated scan
+      before `parse_work_reply` in `_parse_reply`, and the five accepted replies
+      below deny instead of parsing;
+    * the scan reads OUTSIDE file blocks — reached only for a reply the file
+      parser refused, so its guard is such a reply: duplicate file blocks whose
+      body holds a tool opener must keep the FILE denial (`envelope="file"`) —
+      MUTATION: drop the `FILE_BLOCK.sub` blanking, and that reply is denied as
+      an unclosed tool envelope instead."""
     bodies = ("the generator writes <<<CROSSAUDIT-MCP-TOOL>>> when it needs a tool",
               "<<<END-CROSSAUDIT-MCP-TOOL>>> then <<<CROSSAUDIT-MCP-TOOL>>> reordered",
               "a compute job opens with <<<CROSSAUDIT-HPC-JOB>>> and ends later")
@@ -518,3 +527,12 @@ def test_a_marker_inside_a_valid_file_body_is_content_not_an_envelope():
                   '<<<END-CROSSAUDIT-OUTPUT-FILE>>>\n<<<CROSSAUDIT-MCP-TOOL>>>\n{}'):
         work = gen._parse_reply(reply)
         assert isinstance(work, gen.Work) and "work/a.md" in work.files
+    # The blanking's own guard: a reply the file parser REFUSES (a duplicate path)
+    # whose file body holds a tool opener stays a file failure.
+    dup = ('<<<CROSSAUDIT-OUTPUT-FILE path="work/a.md">>>\nsee <<<CROSSAUDIT-MCP-TOOL>>> here\n'
+           "<<<END-CROSSAUDIT-OUTPUT-FILE>>>\n"
+           '<<<CROSSAUDIT-OUTPUT-FILE path="work/a.md">>>\nagain\n<<<END-CROSSAUDIT-OUTPUT-FILE>>>')
+    with pytest.raises(ProviderDenial) as exc:
+        gen._parse_reply(dup)
+    assert exc.value.detail.get("envelope") == "file"
+    assert "duplicate" in exc.value.reason
