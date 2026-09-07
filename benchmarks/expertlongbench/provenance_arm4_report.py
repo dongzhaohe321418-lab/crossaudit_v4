@@ -27,7 +27,8 @@ BLOCKER, ADVISORY, PASS = "BLOCKER", "ADVISORY", "PASS"
 RESAMPLES = 10_000
 #: The registered bootstrap seed of each arm (PREREGISTRATION-ARM4 §6, -ARM5 §6). The
 #: first Arm 5 review found Arm 4's seed used for Arm 5; the seed follows `--arm` now.
-SEED_BY_ARM = {"4": 20261106, "5": 20261107}
+SEED_BY_ARM = {"4": 20261106, "5": 20261107, "6": 20261108}
+STUDY_DIR_BY_ARM = {"4": "study8", "5": "study8", "6": "study15"}
 SEED = SEED_BY_ARM["4"]
 ARM3_UNCITED = {"A": 10.68, "B": 6.80}
 
@@ -45,12 +46,12 @@ ARM_SUFFIX = "arm4"
 def load_labels() -> dict[tuple[str, int], tuple[str, str, str]]:
     """(instance, row) -> (kind, label, rule). Items with no located line are
     `block-no-location` and carry the label N by definition (§3)."""
-    key_path = HERE / "study8" / f"key-{ARM_SUFFIX}.jsonl"
+    key_path = HERE / STUDY_DIR_BY_ARM[ARM_SUFFIX[-1]] / f"key-{ARM_SUFFIX}.jsonl"
     if not key_path.exists():
         return {}
     key = {r["id"]: r for r in (json.loads(l) for l in
            key_path.read_text(encoding="utf-8").splitlines() if l.strip())}
-    gold_path = HERE / "study8" / f"GOLD-{ARM_SUFFIX}.csv"
+    gold_path = HERE / STUDY_DIR_BY_ARM[ARM_SUFFIX[-1]] / f"GOLD-{ARM_SUFFIX}.csv"
     labels: dict[str, tuple[str, str]] = {}
     if gold_path.exists():
         for line in gold_path.read_text(encoding="utf-8").splitlines():
@@ -116,7 +117,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir", type=Path)
     ap.add_argument("--json", type=Path, default=None)
-    ap.add_argument("--arm", default="4", choices=["4", "5"],
+    ap.add_argument("--arm", default="4", choices=["4", "5", "6"],
                     help="whose key and gold to read (default: Arm 4's)")
     args = ap.parse_args(argv)
     global ARM_SUFFIX, SEED
