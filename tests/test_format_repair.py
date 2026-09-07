@@ -508,3 +508,13 @@ def test_a_marker_inside_a_valid_file_body_is_content_not_an_envelope():
         work = gen._parse_reply(reply)
         assert isinstance(work, gen.Work), body
         assert work.files["work/notes.md"] == body          # byte-preserved
+    # And a valid file beside a STRAY unclosed opener outside any block, or holding
+    # one and followed by one: the base parsed both as work (the file parser
+    # decides first), and so does HEAD — the unterminated scan runs only on a reply
+    # the file parser refused. MUTATION: scan before the file parser, and both deny.
+    for reply in ('SUMMARY: s\n<<<CROSSAUDIT-OUTPUT-FILE path="work/a.md">>>\nbody\n'
+                  '<<<END-CROSSAUDIT-OUTPUT-FILE>>>\nNOTES:\n<<<CROSSAUDIT-MCP-TOOL>>>\n{}',
+                  'SUMMARY: s\n<<<CROSSAUDIT-OUTPUT-FILE path="work/a.md">>>\nsee <<<CROSSAUDIT-MCP-TOOL>>> here\n'
+                  '<<<END-CROSSAUDIT-OUTPUT-FILE>>>\n<<<CROSSAUDIT-MCP-TOOL>>>\n{}'):
+        work = gen._parse_reply(reply)
+        assert isinstance(work, gen.Work) and "work/a.md" in work.files

@@ -563,11 +563,13 @@ def _unterminated_envelope(text: str) -> str | None:
     to the file parser and got the file re-ask. Such a reply is a format
     failure of the envelope it attempted.
 
-    Read OUTSIDE the reply's file blocks: a marker that sits inside an output
-    file's body is that file's content, not a protocol envelope (the fourth
-    review: a valid file that mentioned an opener was being denied), so every
-    complete `<<<CROSSAUDIT-OUTPUT-FILE …>>> … <<<END-CROSSAUDIT-OUTPUT-FILE>>>`
-    span is blanked before the scan."""
+    Consulted only for a reply the file parser has refused (`_parse_reply`),
+    and read OUTSIDE the reply's file blocks: a marker that sits inside an
+    output file's body is that file's content, not a protocol envelope (the
+    fourth review: a valid file that mentioned an opener was being denied; the
+    fifth: a valid file beside a stray opener), so every complete
+    `<<<CROSSAUDIT-OUTPUT-FILE …>>> … <<<END-CROSSAUDIT-OUTPUT-FILE>>>` span is
+    blanked before the scan."""
     text = FILE_BLOCK.sub(" ", text)
     for kind, opener, closer in (("tool", "<<<CROSSAUDIT-MCP-TOOL>>>", "<<<END-CROSSAUDIT-MCP-TOOL>>>"),
                                  ("compute", "<<<CROSSAUDIT-HPC-JOB>>>", "<<<END-CROSSAUDIT-HPC-JOB>>>")):
@@ -586,14 +588,25 @@ def _parse_reply(text: str) -> Work | ComputeRequest | ToolRequest:
     tool = parse_tool_request(text)
     if tool is not None:
         return tool
-    unterminated = _unterminated_envelope(text)
-    if unterminated == "tool":
-        raise ProviderDenial("the MCP tool request envelope was opened and never closed",
-                             category="format", envelope="tool")
-    if unterminated == "compute":
-        raise ProviderDenial("the compute request envelope was opened and never closed",
-                             category="format", envelope="compute")
-    return parse_work_reply(text)
+    # The file parser decides first, exactly as before this slice: every reply
+    # it accepts is accepted unchanged (the fourth and fifth reviews: a valid
+    # file beside a stray marker, or holding one, must parse as at the base).
+    # Only a reply it REFUSES is then re-read for an opened-and-never-closed
+    # tool or compute envelope, so that the re-ask names the envelope the
+    # generator attempted instead of the file envelope.
+    try:
+        return parse_work_reply(text)
+    except ProviderDenial as file_denial:
+        if str(file_denial.detail.get("category", "")) != "format":
+            raise
+        unterminated = _unterminated_envelope(text)
+        if unterminated == "tool":
+            raise ProviderDenial("the MCP tool request envelope was opened and never closed",
+                                 category="format", envelope="tool") from file_denial
+        if unterminated == "compute":
+            raise ProviderDenial("the compute request envelope was opened and never closed",
+                                 category="format", envelope="compute") from file_denial
+        raise
 
 
 def generate(*, task: str, constitution: str, current: dict[str, str],
