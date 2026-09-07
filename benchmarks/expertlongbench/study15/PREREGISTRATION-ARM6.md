@@ -155,3 +155,14 @@ summaries is not measured (the arm measures the check, not the summary).
    by more than the intervals allow, said in the first paragraph. `file_read` returns up to
    512 KiB (`gitio.MAX_BLOB_BYTES`), so every source in the population was returned whole;
    a low annotation rate is the generator's, not a truncated read's.
+
+## Amendment 2 — 2026-09-07, before attempt 2; Amendment 1 stands as written
+
+Amendment 1 §3 said the eight probe instances would count in attempt 2 unless the review
+changed the fix. **The review changed the fix** (rounds 1–3 of `fix/envelope-re-ask`: the
+compute re-ask's schema, routing by an envelope attribute rather than message text, an
+opened-and-never-closed envelope treated as that envelope's failure, the reordered-marker
+form), so the probe archive measured a parser that is not the one that merges. Per §3's own
+rule, **attempt 2 runs all 33 instances under the merged product**; the probe stays in the
+archive as the fix's evidence and enters no rate. The run directory seeded from the probe
+was set aside unused (`wt-arm6-runs/arm6-seed-unused/`, with its note) before attempt 2.
