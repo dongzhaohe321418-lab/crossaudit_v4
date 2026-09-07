@@ -1,6 +1,6 @@
 # Arm 5 — the shipped check, after the containment extensions, on every T03 instance
 
-*Third version, after two cross-vendor reviews (the second: `…-arm5-astra-round2.md` — the unit-shortening sentence, the missing intervals, the diff script's count, the preregistration's census rationale). Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
+*Fourth version, after three cross-vendor reviews (the third: `…-arm5-astra-round3.md` — Arm 4's uncited interval misquoted; the preregistration's census amendment still categorical, now Amendment 2). Third version, after two cross-vendor reviews (the second: `…-arm5-astra-round2.md` — the unit-shortening sentence, the missing intervals, the diff script's count, the preregistration's census rationale). Second version, after the first cross-vendor review (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-round1.md`): the first version's mechanism table quoted short source phrases — the same defect that rejected Arm 4's first review — and is replaced by shapes; the bootstrap now uses the registered seed; the matcher diff reads the quotation; the new class is M12; the start state is stated as recorded.*
 
 Study 8. Preregistered at `benchmarks/expertlongbench/study8/PREREGISTRATION-ARM5.md`,
 committed at `38d3d22` **before any study model call** (20 s before the plan was written,
@@ -9,13 +9,16 @@ every corpus row, in corpus order, no seed: the **26 instances of Arm 4** as a r
 that arm under the changed matcher and skill, and the **24 instances of Arms 2–3**, on which
 the shipped skill had never been run. **Neither stratum is fresh** (D161 ruling 3's second
 option). The other six public ExpertLongBench tasks were censused first
-(`study8/arm5_census.txt`): four carry numbers a provenance check cannot trace (T04 none;
-T07 and T08 describe a molecule or a protein from a structure string, 0–39% of the
-description's numbers occurring in the input and none with a unit; T11's references carry
-one number, the label), T06's transcripts write most numbers in words, and T01 — whose
-reference numbers are 93% traceable — is 250,000 characters of legal record per instance
-with unit-less dates and docket numbers: **deferred for its shape and cost, not for lack
-of numbers.** Generator `anthropic:claude-sonnet-4-6`, auditor `openai:gpt-5.6-terra`, one
+(`study8/arm5_census.txt`), and the choice was made on **number density per instance and
+unit-bearing numbers**, not on absence: T04's median input carries no number and its
+references 19 numbers in all (12 traceable, 26% with a unit); T07 and T08 describe a
+molecule or a protein from a structure string, with 39% and 0% of the description's
+numbers occurring in the input and 0.1% and 0% carrying a unit; T11's references carry a
+median of one number (the label; 47% traceable, 1% with a unit); T06's transcripts write
+most numbers in words (median input numbers 0; 16% traceable); T01's reference numbers
+are 93% traceable but its instances are 250,000 characters of legal record with unit-less
+dates and docket numbers — **deferred for shape and cost.** Only T03 has both a
+number-dense input (median 16.5 numbers) and unit-bearing quantities. Generator `anthropic:claude-sonnet-4-6`, auditor `openai:gpt-5.6-terra`, one
 round, `checks: ["number_source"]`, the **shipped** skill, contract and per-row verifier,
 matcher blob `620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf` (`numbers.py` at `edda6da`, the merge
 of slice 8; Arm 4 ran `8dfd07d9…`, the merge of slice 3). 49 of 50 drafts completed in the
@@ -99,7 +102,8 @@ new stratum higher, and neither alone would read differently from PASS at its ow
 
 1. **`uncited`**: 40 of 446 = **8.97%** (Wilson 6.66–11.98%; bootstrap 5.46–13.16%). Arm 3
    read A 25 of 234 = 10.68% (Wilson 7.34–15.30%) and B 14 of 206 = 6.80% (4.09–11.08%);
-   Arm 4 read 16 of 206 = 7.77% (Wilson 4.77–12.42%). No materiality
+   Arm 4 read 16 of 206 = 7.77% (Wilson 4.84–12.24%, as RESULTS-ARM4 states it; the
+   second and third versions here misquoted it). No materiality
    threshold was registered, so none is claimed; the number is reported first because the
    design asks for it.
 2. **Resolved**: 394 of 401 blockable = 98.25% (Wilson 96.44–99.15%; bootstrap 97.06–99.34%);

@@ -155,3 +155,18 @@ T01 was not chosen is its shape and cost — 250,000 characters of legal record 
 and numbers that are dates and docket numbers with no unit — and RESULTS-ARM5 says so; §9's
 "inconclusive" branch already names T01 as the next corpus. The four tasks the sentence is
 true of are T04, T07, T08 and T11; T06 writes most of its numbers in words.
+
+## Amendment 2 — 2026-09-07, after the third review; Amendment 1 stands as written
+
+**Amendment 1 overclaimed in the same direction as §0.** It said §0's sentence is "true of
+T04, T07, T08 and T11". The census table says otherwise: T04's references hold 19 numbers
+in all, 12 of them (63.2%) occurring in the input, one with a unit — a median of zero
+numbers per input is not absence; T07's description numbers occur in the input 39.0% of
+the time (§0 also says "0–39%", and the 0% is T08's, not T07's); T11's 155 reference
+numbers are 47.1% traceable. The categorical rationale — "no numbers a provenance check
+can trace" — is withdrawn for every task. **The rationale that the census supports** is
+density and units: the shipped check reads `(value, unit)` pairs against a source line,
+and T03 is the only public task whose inputs are number-dense (median 16.5 numbers per
+input against 0 for T04, T06, T07, T08 and 10 for T11's traces) *and* whose quantities
+carry units (T04 26%, T06 20%, every other task ≤ 1.3%, T03's procedures throughout). T01 is
+traceable (93.3%) and unit-less, and deferred for shape and cost as Amendment 1 says.
