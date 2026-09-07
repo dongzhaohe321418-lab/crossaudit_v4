@@ -561,7 +561,14 @@ def _unterminated_envelope(text: str) -> str | None:
     closed — the second review of the re-ask fix: both parsers return None
     without the closing marker, so an unterminated tool envelope fell through
     to the file parser and got the file re-ask. Such a reply is a format
-    failure of the envelope it attempted."""
+    failure of the envelope it attempted.
+
+    Read OUTSIDE the reply's file blocks: a marker that sits inside an output
+    file's body is that file's content, not a protocol envelope (the fourth
+    review: a valid file that mentioned an opener was being denied), so every
+    complete `<<<CROSSAUDIT-OUTPUT-FILE …>>> … <<<END-CROSSAUDIT-OUTPUT-FILE>>>`
+    span is blanked before the scan."""
+    text = FILE_BLOCK.sub(" ", text)
     for kind, opener, closer in (("tool", "<<<CROSSAUDIT-MCP-TOOL>>>", "<<<END-CROSSAUDIT-MCP-TOOL>>>"),
                                  ("compute", "<<<CROSSAUDIT-HPC-JOB>>>", "<<<END-CROSSAUDIT-HPC-JOB>>>")):
         at = text.find(opener)

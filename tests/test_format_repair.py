@@ -410,13 +410,15 @@ def test_a_narrated_tool_call_is_re_asked_for_the_tool_envelope_and_the_clean_re
 
 def _function_source(module_source: str, header: str) -> str:
     """The body of one function in a module's source: from its `def` line to the
-    next `def` at the same or lower indentation."""
+    next `def`, `class` or decorator at the same or LOWER indentation (the fourth
+    review: the first form matched the exact indentation only and ran into the
+    following class)."""
     import re
     m = re.search(r"^([ \t]*)def " + re.escape(header) + r"\(", module_source, re.M)
     assert m, header
-    indent = m.group(1)
+    width = len(m.group(1))
     rest = module_source[m.end():]
-    nxt = re.search(r"^" + re.escape(indent) + r"(?:def |class |@)", rest, re.M)
+    nxt = re.search(r"^[ \t]{0,%d}(?:def |class |@)" % width, rest, re.M)
     return module_source[m.start():m.end() + (nxt.start() if nxt else len(rest))]
 
 
@@ -427,10 +429,13 @@ def test_the_compute_re_ask_teaches_the_schema_the_executor_reads():
     path reads — read from the source of the THREE functions that path is made
     of: `Manager.submit_agent` (the generator-facing entry, reads `request`),
     `Manager.submit` (reads `payload`) and `Manager._resources` (reads the
-    resources block). A key any of the three starts reading reddens this test;
-    a reader added elsewhere does not, and the test does not claim it does (the
-    third review: a module-wide claim was disproved by a key added to a fourth
-    place). Nothing here submits a job."""
+    resources block) — **by literal name**: `request.get("k")`, `payload.get("k")`,
+    `request["k"]`, `payload["k"]`. A key any of the three starts reading by
+    literal name reddens this test. NOT covered, and said so: keys read through
+    a variable — `_resources` loops `payload.get(key)` over the optional
+    `partition`, `account`, `qos`, which the example does not offer and the
+    executor treats as optional — and readers added elsewhere (the third and
+    fourth reviews each disproved a wider claim). Nothing here submits a job."""
     import inspect, json, re
     from crossaudit import hpc
     shown = re.search(r"<<<CROSSAUDIT-HPC-JOB>>>\n(.*?)\n<<<END-CROSSAUDIT-HPC-JOB>>>",
@@ -485,3 +490,21 @@ def test_an_unterminated_tool_or_compute_envelope_is_re_asked_for_that_envelope(
     with pytest.raises(ProviderDenial) as exc:
         gen._parse_reply("<<<CROSSAUDIT-MCP-TOOL>>>\n{}")
     assert "<<<CROSSAUDIT-MCP-TOOL>>>" in gen.repair_addendum(exc.value)
+
+
+def test_a_marker_inside_a_valid_file_body_is_content_not_an_envelope():
+    """The fourth review: the unterminated-envelope scan read the whole reply,
+    so a VALID file whose body mentioned an opener was denied as a tool or
+    compute failure — a backward-compatibility regression against the base.
+    The scan reads outside file blocks. MUTATION: drop the `FILE_BLOCK.sub`
+    blanking and the three replies below deny instead of parsing."""
+    bodies = ("the generator writes <<<CROSSAUDIT-MCP-TOOL>>> when it needs a tool",
+              "<<<END-CROSSAUDIT-MCP-TOOL>>> then <<<CROSSAUDIT-MCP-TOOL>>> reordered",
+              "a compute job opens with <<<CROSSAUDIT-HPC-JOB>>> and ends later")
+    for body in bodies:
+        reply = ("SUMMARY: doc\n"
+                 '<<<CROSSAUDIT-OUTPUT-FILE path="work/notes.md">>>\n' + body + "\n"
+                 "<<<END-CROSSAUDIT-OUTPUT-FILE>>>\nNOTES:")
+        work = gen._parse_reply(reply)
+        assert isinstance(work, gen.Work), body
+        assert work.files["work/notes.md"] == body          # byte-preserved
