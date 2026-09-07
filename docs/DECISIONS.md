@@ -7490,3 +7490,59 @@ RULINGS:
 
 Recorded because delegated decisions still need a place a reader can find them, and a
 reason that can be argued with.
+
+## D164 — Arm 5 passes §8g: `number_source` may enter the `science` profile; M12 goes back to the containment design
+
+**Date:** 2026-09-07. **Branch:** `study/provenance-arm5`, merged at d1d5baf after
+five cross-vendor review rounds (`benchmarks/reviews/2026-09-07-provenance-arm5-astra-*.md`).
+**Record:** `benchmarks/expertlongbench/RESULTS-ARM5.md`; preregistration
+`study8/PREREGISTRATION-ARM5.md` (38d3d22, before any model call; Amendment 1).
+
+**What was measured.** The check that ships after slices 4–8 — the shipped skill, contract
+and per-row verifier, matcher blob `620fb3bc…` — on every T03 instance (50 drafts, 446
+annotation rows; the 26 of Arm 4 as a replicate under the changed matcher, the 24 of Arms
+2–3 as instances the shipped skill had not seen; neither fresh, and said so). Two labellers
+blinded to each other and to the verdict, κ = 1.000 on 57 items. **Wrong blocks 4 of 398 =
+1.01%, Wilson 0.39–2.56%, draft-clustered bootstrap 0.24–1.97%: §8g reads PASS** (Arm 4, on
+the slice-3 matcher: 9 of 189, 2.53–8.80%, KILL). The extensions moved 33 of 401 located
+rows on this generator's output and none the other way. Of the four wrong blocks, three
+are right by the shipped contract and disclosed (M4 ×2; a quotation that excludes the pair
+its line states, M9b) and one is a new matcher class, M12 (a percent sign followed by a
+capitalised two-letter abbreviation naming the quantity's basis, read as prose).
+
+RULINGS:
+
+1. **`number_source` may enter the `science` profile** — both lists, `dcl.PROFILES["science"]`
+   and `scaffold.SCIENCE_CHECKS`, so that a science project created by the product gets the
+   check, the skill that asks for the annotation and the blocker together (the design's
+   §6.4 failure — a check enabled without the skill passes every document while appearing
+   to guard it — is the reason the two lists move together). **In its own slice, with its
+   own cross-vendor review**, as D159 ruling 2 and the Arm 5 preregistration's §9 say; the
+   five guard tests that pin the check's absence are rewritten to pin its presence with
+   this ruling as their reason, and the fixture that composes the science pack with the
+   check by name stops doing so. `general` and `research` are untouched. The check stays
+   selectable by name everywhere, as before.
+2. **M12 goes to the containment design** as Arm 4's classes did: a design note with the
+   shape, the boundary rule that produces it (a bare capital after a unit is the substance
+   the quantity is of — `5 wt % Ni` — which is right, and `36 % RH`-shaped basis
+   abbreviations are its collision), the gold rows that would license a reading, and the
+   W = 0 measurement it would need. Not shipped on one row.
+3. **The adjudicator question is preregistered for Arm 6, not settled here.** The primary
+   is adjudicated on the located line while the contract reads the quotation; Arm 5 found
+   one row where they disagree (M9b). Arm 6's preregistration states which one the primary
+   uses and reports the other; this record does not choose.
+4. **Arm 6's corpus is T01LegalMDS** — the only other public task whose reference numbers
+   trace to the input (93.3%) — with its own preregistration, its own budget matched to
+   250,000-character inputs, and a skill sentence for unit-less numbers (dates, docket
+   numbers) if the census of its drafts shows the empty-unit contract carrying the load.
+5. **Two review lessons are binding from here.** Results prose describes shapes and never
+   quotes source text, and a corpus fragment scan runs before the commit (both Arm 4's and
+   Arm 5's first reviews were rejected for the same defect); every rate quoted in a results
+   file carries the registered intervals, including the secondaries a reader might think
+   descriptive, and an instrument's flag is described by executing the instrument, not by
+   reading its name.
+
+Recorded because §8g was written in 2026-09 as the one number that decides whether this
+check may sit in a profile a project selects by name, and this is the first time it reads
+PASS: on a real generator, after five extensions measured on a frozen gold, with the
+classes that remain disclosed rather than argued away.
