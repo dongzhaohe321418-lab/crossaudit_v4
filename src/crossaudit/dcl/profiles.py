@@ -32,21 +32,25 @@ PROFILES: dict[str, list[str]] = {
     # legitimate metadata (`sources: [doi:10.1234/x]`); the profile stays as it
     # was and the check got stronger, which is the direction that is allowed.
     #
-    # `number_source` is NOT here, and its absence is D158's first ruling.
-    # D157 put it in both profiles; Arm 2
-    # (`benchmarks/expertlongbench/RESULTS-ARM2.md`) then ran it against what a
-    # real generator writes under the shipped skill and **no annotation row of
-    # 215 passed, 24 of 24 drafts BLOCKED** — not because the verifier was
-    # wrong about a span (it was wrong zero times in 189 blocks) but because
-    # the generator is never shown line numbers (`generator.py:449-450`) and so
-    # cannot address the lines the contract asks it to name. A check that
-    # blocks every project that enables it does not belong in a profile a
-    # project selects by name. It stays REGISTERED and selectable by explicit
-    # name (`checks: [..., number_source]`) — nothing is unregistered, and the
-    # addressing contract goes back to design (D158 ruling 2) before it may
-    # re-enter any profile (ruling 3). This returns both lists to their
-    # pre-D157 state; it removes nothing that existed before that day.
-    "science": ["schema", "units", "convergence", "provenance"],
+    # `number_source` is here since D164 ruling 1 (2026-09-07). Its history is
+    # the reason the list is guarded by name: D157 put it in both profiles;
+    # Arm 2 (`benchmarks/expertlongbench/RESULTS-ARM2.md`) ran it against what
+    # a real generator writes and **no annotation row of 215 passed, 24 of 24
+    # drafts BLOCKED**, because the generator is never shown line numbers and
+    # could not address the lines the contract asked for; D158 took it out the
+    # same day. Content addressing replaced line numbers (D159), a frozen gold
+    # licensed five containment extensions measured at W = 0 each (D160,
+    # slices 4–8), and Arm 5 (`RESULTS-ARM5.md`) then measured the shipped
+    # check on every T03 instance at **4 of 398 correct annotations blocked**
+    # (Wilson 0.39–2.56%) — the preregistered §8g PASS band. It sits LAST so
+    # that a project's `checks:` reads as the pack plus the annotation check
+    # it depends on; `scaffold.SCIENCE_CHECKS` carries the same list, so a
+    # science project gets the check, the skill that asks the generator for
+    # the annotation, and the blocker together (the design's §6.4 failure — a
+    # check on without the skill — is what the two lists moving together
+    # prevents). `general` and `research` are untouched; the check remains
+    # selectable by name everywhere, as it was between D158 and D164.
+    "science": ["schema", "units", "convergence", "provenance", "number_source"],
     # The general pack plus the opt-in, deterministic citation-provenance check:
     # a report may only cite sources it fetched through a governed research tool.
     "research": ["parseable", "declared", "internal", "complete", "source_provenance"],
