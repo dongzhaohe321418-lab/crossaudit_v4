@@ -7653,8 +7653,8 @@ RULINGS:
    Wilson 3.0–56.4%, bootstrap 0–100% with 413 resamples discarded; Wilson 13.8–50.0% for the share): a fold of quotation characters alone recovers one row
    on this run; the other five need the wrap join of ruling 1 as well. A note in the
    containment design, and a slice only with a gold.
-4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
-   annotation fence although the skill was rendered on every call and the whole source
+4. **The generator's silence is a finding, not a fix.** 22 of 33 summaries = 66.7% (Wilson 49.61–80.25%; bootstrap 51.52–81.82%)
+   carried no annotation fence although the skill was rendered on every call and the whole source
    was returned. The arm measures the check and does not tune the generator; the number
    is said in the results' first paragraph, as Amendment 1 asked (an earlier version of
    the results stated it only in §3 while claiming "reported first"), and the next arm on

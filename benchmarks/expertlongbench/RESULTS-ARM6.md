@@ -120,7 +120,8 @@ no row on this domain**, because nothing here is a range, list or subscript.
   bootstrap 34.47–41.94%). **Only 11 of 33 summaries carry the fence at
   all** (33.3%, Wilson 19.8–50.4%; bootstrap 18.2–48.5%); those 11 parsed to 0 to 22 rows
   (median 9; one fenced draft yielded no row, so 10 drafts carry the 91). The skill was rendered on every generator call, the tool result returned the
-  whole source (512 KiB bound), and the generator still wrote no fence two times in three.
+  whole source (512 KiB bound), and the generator still wrote no fence in 22 of 33 drafts
+  = 66.7% (Wilson 49.61–80.25%; bootstrap 51.52–81.82%).
   Said in the first paragraph, as Amendment 1 asks when it is below Arm 5's by more than
   the intervals allow (an earlier version of this file said "reported first" while stating
   it only here; review round 6).

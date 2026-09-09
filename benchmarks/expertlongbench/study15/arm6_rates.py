@@ -135,6 +135,8 @@ def main() -> int:
             for _ in range(d["numbers_present"] - len([r for r in rows if r["instance"] == d["instance"]]))])
     rate("drafts with a fence / drafts",
          [(d["instance"], True, d["fence_blocks"] > 0) for d in drafts])
+    rate("drafts without a fence / drafts",
+         [(d["instance"], True, d["fence_blocks"] == 0) for d in drafts])
     fenced = [d for d in drafts if d["fence_blocks"] > 0]
     per = Counter(r["instance"] for r in rows)
     counts = sorted(per.get(d["instance"], 0) for d in fenced)
