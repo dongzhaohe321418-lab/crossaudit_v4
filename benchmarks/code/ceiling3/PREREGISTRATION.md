@@ -92,3 +92,27 @@ priced from the ledger exactly.
 Unchanged from ceiling 1: the hidden suite reaches no prompt, check or model
 (`tests/test_architectures.py`); the audit path is the product's; the same-vendor bypass is
 the harness's and `src/` is not touched.
+
+## Amendment 1 — 2026-09-09, after `self-strong` draw 1 and before draw 2 ran
+
+**What was seen.** Draw 1 of `self-strong` completed (260 of 260, $2.26; one SSL
+transport failure re-run) with **0 of 110 P flagged and 3 of 150 C flagged**; median
+reply 49 output tokens in about 4 s. Because that is far below every family in ceiling 1,
+the author stopped the run at the start of draw 2 (no draw-2 reading had landed) to rule
+out a harness fault before spending further. A probe outside the caches (`ceiling3-probe`,
+three P instances the shipped auditor flags, the identical prompt bytes via
+`ceiling.astra_prompt`, both Anthropic models) showed the readings are genuine: Sonnet 4.6
+mostly returns a terse, well-formed `{"verdict": "PASS", "findings": []}`; on one of the
+three it wrote a long prose analysis before any JSON; Haiku 4.5 on the same bytes wrote
+BLOCKER findings. Both vendors run at the product's default reasoning setting for the
+auditor role (`reasoning_effort` unset in the benchmark's `crossaudit.yml` template).
+
+**What changes: nothing in the design.** The ladder is set by budget alone (§5) and the
+run resumes at draw 2 as planned; a near-zero single-draw family is exactly the kind of
+result the union curve must be measured for, not assumed. **What is added:** (1) the
+three probe replies are archived with the run (`probe/`), outside the caches, and are not
+readings; (2) a secondary outcome — the share of `self-strong` and `self-frontier` replies
+that were prose rather than the JSON the validator expects, from the harness's
+`invalid_reason` and re-ask counts in the ledger — so that "the model sees nothing" and
+"the model does not answer in the product's format" can be told apart in the report;
+(3) the report states the reasoning setting per vendor beside every family.
