@@ -149,3 +149,29 @@ that were prose rather than the JSON the validator expects, from the harness's
    constitution that states the blocking criterion) is preregistered separately.
 6. **Re-ask counts** are the ledger's excess of calls over readings per draw, not the
    multiplicity of `run_id`s, which `explore.run_detector` restarts per pass.
+
+## Amendment 3 — 2026-09-10, after the second review; corrections of record
+
+1. **Amendment 2 item 2 misnamed the diagnostic.** The τ > K_max note is a post-hoc
+   diagnostic and is not ceiling 1's registered flattening test. That test is: the
+   K_max−1 → K_max gain is at most 1.0 point. Under it Sonnet's curve (gain 0.34 points)
+   **is** flattened; the first results said the opposite. The report now prints the
+   registered bar and the diagnostic as two separate columns.
+2. **Amendment 2 item 4 misdescribed the probe re-run.** All three archived Sonnet replies
+   are PASS with no BLOCKER finding; the one BLOCKED reply is Haiku's. The word "BLOCKER"
+   the author saw was in a Sonnet reply's prose, not in a finding. The sentence "on an
+   instance it passed before" is withdrawn: the originals were not archived, so no such
+   comparison exists.
+3. **The residual secondary (§3) is now performed as §1.5 requires**: the residual across
+   all families, classified with ceiling 1's per-instance categories, in the report and
+   Table 6. It shrank from 57 to 56 (one `timeout` instance newly blocked); no instance is
+   new to it, so no new label was needed.
+4. **Every rate in the tables carries its intervals**: the curve points at every K now
+   carry problem-cluster intervals (Table 2), and the mixed rates theirs (Table 5); the
+   tables are rendered from `numbers.json` by the report and embedded in RESULTS verbatim,
+   and the binding test compares the embedded block to the rendered file byte for byte.
+5. **Reasoning setting**: the two new families and `cross`/`self` ran with
+   `reasoning_effort` unset; `astra` ran at high reasoning through the Codex CLI (ceiling 1
+   Amendment 1). "As the existing families did" was wrong for `astra`.
+6. **Ceiling 3b is drafted, not preregistered**; its preregistration is committed when its
+   branch opens, after this study is quotable.

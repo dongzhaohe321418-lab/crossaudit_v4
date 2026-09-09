@@ -56,8 +56,10 @@ def load_any_finding(scope: set[str]) -> dict[str, dict[int, dict[str, bool]]]:
     The preregistered flag is "at least one BLOCKER" (studies 1, 2, 7, 8). Study 18's
     Anthropic families returned findings graded ADVISORY on many instances and BLOCKER on
     few, so a second, looser rule — "at least one finding of any severity" — is computed
-    beside it to separate "does not see" from "sees and does not block". Reads the same
-    record files ``explore.load_detector`` reads, taking ``model_findings`` from each row.
+    beside it. It is a FLAG RATE: an instance on which the model returned some finding.
+    Advisory texts were not archived or adjudicated, so it does not show that a finding
+    names the instance's defect. Reads the same record files ``explore.load_detector``
+    reads, taking ``model_findings`` from each row.
     """
     out: dict[str, dict[int, dict[str, bool]]] = {f: {} for f in FAMILIES}
     for family in FAMILIES:
@@ -86,6 +88,22 @@ def load_any_finding(scope: set[str]) -> dict[str, dict[int, dict[str, bool]]]:
     return out
 
 
+def curve_cluster_cis(ks_by_problem: dict[str, list[int]], k_max: int, reps: int, seed: int) -> list[list[float]]:
+    """Problem-cluster percentile bootstrap of the union curve at EVERY K (one resampling
+    stream, all K read off each resample), so each curve point carries its interval."""
+    problems = sorted(ks_by_problem)
+    rng = random.Random(seed)
+    per_k: list[list[float]] = [[] for _ in range(k_max)]
+    for _ in range(reps):
+        drawn: list[int] = []
+        for _ in range(len(problems)):
+            drawn.extend(ks_by_problem[problems[rng.randrange(len(problems))]])
+        curve = rc.union_curve(drawn, k_max)
+        for i, v in enumerate(curve):
+            per_k[i].append(v)
+    return [[rc.percentile(v, 0.025), rc.percentile(v, 0.975)] for v in per_k]
+
+
 def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> dict:
     complete = [d for d in sorted(k for k in draws if isinstance(k, int))][:k_max]
     sub = {d: draws[d] for d in complete}
@@ -97,21 +115,27 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
         by_problem.setdefault(instances[i]["problem_id"], []).append(k)
     boot_A, boot_raw = rc.bootstrap_asymptote(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
     union_flags = {i: any(sub[d].get(i) for d in complete) for i in ids}
+    curve_cis = curve_cluster_cis(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
     # The preregistered fit (ceiling 1 §1.2) is always reported. A POST-HOC diagnostic is
     # printed beside it — added after Sonnet's first draws were seen (review round 1 of
     # study 18 called the earlier form, which suppressed the fit, outcome-dependent): when
     # tau exceeds K_max the asymptote is an extrapolation past the readings taken, which is
     # ceiling 1's own flattening caveat, and the reader is told so; nothing is suppressed.
     extrapolated = bool(fit.get("tau")) and fit["tau"] > k_max
+    # ceiling 1's REGISTERED flattening bar: the K_max-1 -> K_max gain is at most 1.0 point
+    last_gain = (curve[-1] - curve[-2]) if len(curve) >= 2 else None
+    flattened = (last_gain is not None) and (100 * last_gain <= 1.0)
     return {"k_max": k_max, "draws_used": complete,
             "curve": curve,
+            "curve_cluster_ci95": curve_cis,
             "fit_diagnostic_post_hoc": ("tau > K_max: the asymptote extrapolates past the readings taken"
                                         if extrapolated else "tau <= K_max"),
             "union_at_kmax": rc.clustered_rate(union_flags, ids, instances, BOOTSTRAP, BOOT_SEED),
             "single_draw_mean": curve[0] if curve else None,
             "fit": {"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
                     "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]},
-            "flattening_gain_last_step": (curve[-1] - curve[-2]) if len(curve) >= 2 else None}
+            "flattening_gain_last_step": last_gain,
+            "flattened_by_ceiling1_bar": flattened}
 
 
 def paired_union_difference(draws_a: dict, draws_b: dict, k: int, ids: list[str], instances: dict) -> dict:
@@ -247,15 +271,42 @@ def main() -> int:
     # mixed at matched total draws: cross + self-strong, K/2 each
     if kmax.get("self-strong", 0) >= 1:
         out["mixed_cross_self_strong"] = {}
+        by_prob_ids: dict[str, list[str]] = {}
+        for i in P:
+            by_prob_ids.setdefault(instances[i]["problem_id"], []).append(i)
+        probs = sorted(by_prob_ids)
         for total in (2, 4, 6, 8):
             per = total // 2
             if kmax["cross"] >= per and kmax["self-strong"] >= per:
                 m = rc.mixed_curve(draws, ["cross", "self-strong"], P, per)
-                out["mixed_cross_self_strong"][f"K={total}"] = m
+                rng = random.Random(BOOT_SEED)
+                stats = []
+                for _ in range(2000):        # the mixed curve is exact per call; 2,000 resamples of problems
+                    ids = [i for _ in range(len(probs)) for i in by_prob_ids[probs[rng.randrange(len(probs))]]]
+                    stats.append(rc.mixed_curve(draws, ["cross", "self-strong"], ids, per))
+                # the comparator is the subset-averaged cross curve at the same total (Table 2's value)
+                cross_alone = out["families"]["cross"]["P"]["curve"][total - 1] if kmax["cross"] >= total else None
+                out["mixed_cross_self_strong"][f"K={total}"] = {
+                    "mixed_union_P": m, "cluster_ci95": [rc.percentile(stats, 0.025), rc.percentile(stats, 0.975)],
+                    "cluster_reps": 2000, "cross_alone_at_same_total": cross_alone}
+    # §1.5: the residual across ALL families under the BLOCKER rule, classified with ceiling
+    # 1's per-instance categories (records/ceiling/residual_classification.json). The residual
+    # can only shrink as families are added; an instance newly in it would need a new label.
+    rcls = json.loads((RECORDS / "ceiling" / "residual_classification.json").read_text(encoding="utf-8"))["classification"]
+    labels = {i: rcls[i]["category"] if i in rcls else "UNCLASSIFIED (new to the residual)" for i in never}
+    counts: dict[str, int] = {}
+    for v in labels.values():
+        counts[v] = counts.get(v, 0) + 1
+    c1_residual = json.loads((RECORDS / "ceiling" / "numbers.json").read_text(encoding="utf-8"))["ceiling1"]["residual"]["all_families"]["instance_ids"]
+    out["residual_classification"] = {"n": len(never), "by_category": dict(sorted(counts.items())),
+                                      "ceiling1_residual_n": len(c1_residual),
+                                      "left_the_residual_since_ceiling1": sorted(i for i in c1_residual if i not in never),
+                                      "new_to_the_residual": sorted(i for i in never if i not in c1_residual),
+                                      "note": "labels are ceiling 1's §1.5 classification of the same instances"}
     # EXPLORATORY: the same curves under "any finding" instead of "at least one BLOCKER"
     any_draws = load_any_finding(set(scope))
     out["EXPLORATORY_any_finding_rule"] = {
-        "note": "not preregistered; flag = model_findings > 0 (any severity); separates 'does not see' from 'sees and does not block'",
+        "note": "not preregistered; flag = model_findings > 0 (any severity): a flag rate, not evidence that a finding names the defect",
         "families": {}}
     for f in FAMILIES:
         complete = sorted(k for k in any_draws[f] if isinstance(k, int))
@@ -287,6 +338,7 @@ def main() -> int:
     out["reply_format_secondary"] = reply_format_secondary(Path(args.run)) if args.run else {"note": "pass --run <archive dir>"}
     CEILING3.mkdir(parents=True, exist_ok=True)
     (CEILING3 / "numbers.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (CEILING3 / "tables.md").write_text(render_tables(out), encoding="utf-8")
     for f in FAMILIES:
         e = out["families"][f]
         if e.get("k_max"):
@@ -333,6 +385,77 @@ def _by_problem(flags: dict, instances: dict) -> dict:
     for i, v in flags.items():
         by.setdefault(instances[i]["problem_id"], []).append(1.0 if v else 0.0)
     return by
+
+
+LABELS = {"cross": "`cross` (gpt-5.6-terra)", "self": "`self` (Haiku 4.5)", "astra": "`astra` (gpt-6-astra, high reasoning)",
+          "self-strong": "**`self-strong` (Sonnet 4.6)**", "self-frontier": "**`self-frontier` (Opus 4.8)**"}
+
+
+def _pc(x) -> str:
+    return f"{100 * x:.1f}"
+
+
+def _iv(pair) -> str:
+    return f"{_pc(pair[0])}–{_pc(pair[1])}"
+
+
+def render_tables(out: dict) -> str:
+    """The tables RESULTS-CEILING3.md embeds verbatim; every cell from numbers.json."""
+    lines = ["<!-- generated by report_ceiling3.py; do not edit -->", "",
+             "### Table 1 — union of K readings, BLOCKER rule (Wilson; problem-cluster bootstrap)", "",
+             "| family | K | P union recall | Wilson | cluster | C union FP | Wilson | cluster |",
+             "|---|---|---|---|---|---|---|---|"]
+    for f in FAMILIES:
+        e = out["families"][f]
+        if not e.get("k_max"):
+            continue
+        p, c = e["P"]["union_at_kmax"], e["C"]["union_at_kmax"]
+        lines.append(f"| {LABELS[f]} | {e['k_max']} | {p['k']}/{p['n']} = {_pc(p['rate'])}% | {_iv(p['wilson95'])} | {_iv(p['cluster_ci95'])} "
+                     f"| {c['k']}/{c['n']} = {_pc(c['rate'])}% | {_iv(c['wilson95'])} | {_iv(c['cluster_ci95'])} |")
+    lines += ["", "### Table 2 — the curves: union rate at each K with its problem-cluster interval (P; then C)", "",
+              "| family | stratum | " + " | ".join(f"K={k}" for k in range(1, 9)) + " |", "|---|---|" + "---|" * 8]
+    for f in FAMILIES:
+        e = out["families"][f]
+        if not e.get("k_max"):
+            continue
+        for st in ("P", "C"):
+            cells = [f"{_pc(v)} [{_iv(ci)}]" for v, ci in zip(e[st]["curve"], e[st]["curve_cluster_ci95"])]
+            cells += [""] * (8 - len(cells))
+            lines.append(f"| {LABELS[f]} | {st} | " + " | ".join(cells) + " |")
+    lines += ["", "### Table 3 — fitted asymptote (§1.2, always reported), the registered flattening bar, and the exchange rate", "",
+              "| family | A (P) | A cluster 95% | τ | R² | K_max-1→K_max gain (points) | flattened by ceiling 1's bar (gain ≤ 1.0) | τ > K_max (post-hoc diagnostic) | Δrecall/ΔFP K=1→K_max |",
+              "|---|---|---|---|---|---|---|---|---|"]
+    for f in FAMILIES:
+        e = out["families"][f]
+        if not e.get("k_max"):
+            continue
+        fit = e["P"]["fit"]
+        lines.append(f"| {LABELS[f]} | {_pc(fit['A'])}% | {_iv(fit['A_ci95_cluster'])} | {fit['tau']:.2f} | {fit['r2']:.4f} | "
+                     f"{100 * e['P']['flattening_gain_last_step']:.2f} | {'yes' if e['P']['flattened_by_ceiling1_bar'] else 'no'} | "
+                     f"{'yes' if e['P']['fit_diagnostic_post_hoc'].startswith('tau > K_max') else 'no'} | "
+                     f"{e['exchange_rate_recall_per_fp']:.2f} |")
+    lines += ["", "### Table 4 — EXPLORATORY any-finding rule (not preregistered): a flag rate, not a defect-naming rate", "",
+              "| family | K | P union | Wilson | cluster | single-draw P | C union | Wilson | cluster |",
+              "|---|---|---|---|---|---|---|---|---|"]
+    ex = out["EXPLORATORY_any_finding_rule"]["families"]
+    for f in FAMILIES:
+        if f not in ex:
+            continue
+        e = ex[f]; p, c = e["P"]["union_at_kmax"], e["C"]["union_at_kmax"]
+        lines.append(f"| {LABELS[f]} | {e['k_max']} | {_pc(p['rate'])}% | {_iv(p['wilson95'])} | {_iv(p['cluster_ci95'])} | {_pc(e['P']['single_draw_mean'])}% "
+                     f"| {_pc(c['rate'])}% | {_iv(c['wilson95'])} | {_iv(c['cluster_ci95'])} |")
+    m = out.get("mixed_cross_self_strong") or {}
+    if m:
+        lines += ["", "### Table 5 — `mixed` (K/2 `cross` + K/2 `self-strong`) against `cross` alone at the same total, P union", "",
+                  "| total K | mixed | cluster 95% (2,000 resamples) | `cross` alone |", "|---|---|---|---|"]
+        for k in (2, 4, 6, 8):
+            v = m.get(f"K={k}")
+            if v:
+                lines.append(f"| {k} | {_pc(v['mixed_union_P'])}% | {_iv(v['cluster_ci95'])} | {_pc(v['cross_alone_at_same_total']) if v['cross_alone_at_same_total'] is not None else 'n/a'}% |")
+    r = out["residual_classification"]
+    lines += ["", f"### Table 6 — the residual (§1.5): {r['n']} P instances blocked by no family, by ceiling 1's category", "",
+              "| category | n |", "|---|---|"] + [f"| {k} | {v} |" for k, v in r["by_category"].items()]
+    return "\n".join(lines) + "\n"
 
 
 if __name__ == "__main__":
