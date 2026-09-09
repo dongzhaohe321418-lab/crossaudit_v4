@@ -67,12 +67,12 @@ Explore half, reported once and carrying no claim (§4): `hc` 5/55 P, 0/76 C; `t
 * **Wrong tests.** 45 of the 1,188 unique tests whose canonical run completed (3.8%;
   Wilson 2.8–5.0%; problem-cluster bootstrap 2.5–5.2%) fail on the canonical solution;
   the 11 tests of the one suite whose canonical run timed out are unclassifiable. 32 of
-  222 problems have at least one wrong test. Per instance-row (a suite is applied to every
+  the 221 classifiable problems have at least one wrong test (one problem unknown). Per instance-row (a suite is applied to every
   candidate of its problem) 70 of 1,545 test applications are dropped by validation.
 * **Timeouts and errors.** 2 candidate runs timed out (flagged, as Amendment 1 says);
   1 canonical run timed out (the validated arm does not flag that row); 2 other candidate
-  runs died before the collector (an import the candidate lacked), counted as every test
-  failed.
+  runs died before the collector — an assertion the candidate itself embeds at module
+  level failed on import — counted as every test failed.
 * **Cost.** $1.77 for 222 calls, $0.0061 per instance amortised, against `hc`'s $0.0069
   on the explore leaderboard — 88% of the reading auditor's cost, about 12% less, not the
   order of magnitude a per-problem call might suggest (the suite is amortised over only
@@ -104,9 +104,12 @@ first, and nothing in the record prevents writing it.
   as it was measured then.
 * The ceiling study's residual classes cover 68 instances; 3 of the 8 `testgen`-only
   flags are unclassified there.
-* `tests/test_testgen_report.py` binds the figures of §1's table, the decision line, the
-  paired analysis, the explore-half line, the overlap counts, the exploratory union, the
-  F stratum and §2's secondaries to `records/testgen/numbers.json` and
-  `testgen/exploratory.py`'s output; the prose around them is not machine-checked.
+* `tests/test_testgen_report.py` binds to `records/testgen/numbers.json`, `rows.jsonl` and
+  `suites.json`: §1's table (all six cells per arm), the decision line, the paired
+  analysis, the residual-class counts (8 and 7 flags; 29 of 44), the explore-half line,
+  the overlap counts, the exploratory union, the F stratum, the suite totals (1,199 from
+  `suites.json`), the wrong-test figures, the timeout and pre-collector counts, and the
+  cost figures including "12% less"; and it runs `testgen/exploratory.py` and checks its
+  printed lines against the prose. Words between the figures are not machine-checked.
 * `testgen-validated` uses the canonical solution and is an upper bound everywhere it
   appears; no product number derives from it.
