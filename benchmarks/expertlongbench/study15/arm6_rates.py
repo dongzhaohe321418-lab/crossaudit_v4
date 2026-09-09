@@ -202,7 +202,8 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
       claim that the generator "quoted sentences".
     * Q2 rows by shape: RENDERING (the quotation is in the named file once typographic
       apostrophes and quotation marks are folded to ASCII and whitespace is joined),
-      ELISION (not so, but its first 40 characters, whitespace-joined, are), NOT FOUND.
+      PREFIX MATCH (not so, but its first 40 characters, whitespace-joined, are — the
+      test does not show what follows was omitted, replaced or paraphrased), NOT FOUND.
     Requires PYTHONPATH to include src (the drafts are read as the shipped check reads them).
     """
     import sys as _sys
@@ -275,7 +276,7 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
                 elif _fold(quote) in folded:
                     shape = "present"      # would not be Q2; reported if it ever happens
                 elif _fold(quote)[:40] and _fold(quote)[:40] in folded:
-                    shape = "elision"
+                    shape = "prefix match"
                 else:
                     shape = "not found"
                 q2.append((instance, shape))
@@ -284,7 +285,7 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
     rate("Q1 runs ending at sentence punctuation / Q1 rows", q1)
     counts = Counter(sh for _, sh in q2)
     print("Q2 shapes: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
-    for shape in ("rendering", "elision", "not found"):
+    for shape in ("rendering", "prefix match", "not found"):
         rate(f"  Q2 {shape} / Q2 rows", [(i, True, sh == shape) for i, sh in q2])
     rate("  Q2 rendering rows on ONE line after the typography fold alone", q2_within_line)
     print("empty-unit rows by what the quotation shows: " + ", ".join(f"{k} {v}" for k, v in sorted(empty_unit.items())))

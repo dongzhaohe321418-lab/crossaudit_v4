@@ -7649,7 +7649,8 @@ RULINGS:
 3. **Q2's rendering cases** (quotations in the named file once typographic apostrophes
    and quotation marks are folded AND line breaks are joined: 6 of the 21 absent
    quotations, 28.6%; bootstrap 0–100%, 128 resamples discarded, 21 rows lying in few
-   drafts; only 1 of the 6 is on one line after the typography fold alone; Wilson 13.8–50.0% for the share): a fold of quotation characters alone recovers one row
+   drafts; only 1 of the 6 is on one line after the typography fold alone — 16.7%,
+   Wilson 3.0–56.4%, bootstrap 0–100% with 413 resamples discarded; Wilson 13.8–50.0% for the share): a fold of quotation characters alone recovers one row
    on this run; the other five need the wrap join of ruling 1 as well. A note in the
    containment design, and a slice only with a gold.
 4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no

@@ -98,7 +98,7 @@ for the primary (§3) and are the subject of §2.
 | class | n | what it is | by contract |
 |---|---|---|---|
 | **Q1** — the quotation crosses a line break | **40** | the quoted run crosses a hard wrap of the source (58 characters per line); 12 of the 40 end at sentence punctuation, 28 do not | right by contract (the one-line rule); H6b measures how often the rule is unmet on this shape of document, not why |
-| **Q2** — the quotation is not in the file as quoted | **21** | three predicates, in order (`archive_rates` in `arm6_rates.py`): **6** are in the named file once typographic apostrophes and quotation marks are folded to ASCII AND whitespace, line breaks included, is joined (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); of those 6, only **1** lies on one line after the typography fold alone, the other 5 also cross a hard wrap; **6** are not so contained but their first 40 characters, whitespace-joined, are (a prefix match; 28.6%; 13.8–50.0%; 0–66.7%) — the test does not show what follows was omitted rather than replaced or paraphrased; **9** have no such prefix in the named file (42.9%; 24.5–63.5%; 0–55.6%) — a paraphrase, another file, a divergence before the 40th character or some other transformation; the test does not distinguish them | right by contract; a quotation-mark fold alone would recover 1 of the 21, and 5 more only together with the wrap join D166 sends to a slice |
+| **Q2** — the quotation is not in the file as quoted | **21** | three predicates, in order (`archive_rates` in `arm6_rates.py`): **6** are in the named file once typographic apostrophes and quotation marks are folded to ASCII AND whitespace, line breaks included, is joined (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); of those 6, only **1** lies on one line after the typography fold alone (16.7%; Wilson 3.0–56.4%; bootstrap 0–100%, 413 discarded), the other 5 also cross a hard wrap; **6** are not so contained but their first 40 characters, whitespace-joined, are (a prefix match; 28.6%; 13.8–50.0%; 0–66.7%) — the test does not show what follows was omitted rather than replaced or paraphrased; **9** have no such prefix in the named file (42.9%; 24.5–63.5%; 0–55.6%) — a paraphrase, another file, a divergence before the 40th character or some other transformation; the test does not distinguish them | right by contract; a quotation-mark fold alone would recover 1 of the 21, and 5 more only together with the wrap join D166 sends to a slice |
 
 The pair is somewhere in the named file for 26 of 40 Q1 rows (65.00%; Wilson 49.51–77.87%;
 bootstrap 32.26–100%, 5 discarded) and 12 of 21 Q2 rows (57.14%; Wilson 36.55–75.53%;
@@ -179,8 +179,10 @@ no row on this domain**, because nothing here is a range, list or subscript.
 
 `study15/rows-arm6.jsonl` (91 rows), `manifest-arm6.json` (both plans), `key-arm6.jsonl` (19
 sheet items + 61 no-location blocks), `L1-arm6.csv`, `L2-arm6.csv`, `GOLD-arm6.csv`,
-`report-arm6.json`, `arm6_rates.py`, `arm6_population.txt`; **no corpus text, no draft, no quotation** — this file was scanned
-for 2–5-word runs against the corpus before commit. Drafts, projects, the sheet, the logs
+`report-arm6.json`, `arm6_rates.py`, `arm6_population.txt`; **no corpus text, no draft, no quotation** — the author scanned
+this file for 2–5-word runs against the corpus (no timestamped artefact of that scan is
+kept, so the ordering is the author's word); each review round's own scan found zero
+ten-word and zero 80-character overlaps. Drafts, projects, the sheet, the logs
 and the outage records are at `~/Documents/Crossaudit/study-data/wt-arm6-runs/` with
 `MANIFEST.sha256` and an entry in the archive's `MANIFEST.json`.
 
