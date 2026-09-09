@@ -71,8 +71,9 @@ the contract's requirement that a quotation lie within one line is the largest s
 reason the check blocks. **What the run does not separate is whose failure that is.** The
 skill asks for the shortest run from ONE line that contains the pair; the generator
 returned a run crossing a line break on 40 of 87 rows, and only 12 of those 40 end at
-sentence punctuation (30.0%; Wilson 18.1–45.4%), so "it quoted sentences" is not the
-account. Whether a one-line rule is the wrong shape for wrapped text or the generator
+sentence punctuation (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5 discarded —
+`arm6_rates.py --run`, which reads the quotations from the archive), so "it quoted
+sentences" is not the account. Whether a one-line rule is the wrong shape for wrapped text or the generator
 simply did not comply is the author's inference to make, and it is made in D166 as an
 inference the redesign slice will test, not as a finding of this run. Per §8
 of the preregistration, **the check does not enter any profile for prose-wrapped documents
@@ -92,7 +93,7 @@ for the primary (§3) and are the subject of §2.
 | class | n | what it is | by contract |
 |---|---|---|---|
 | **Q1** — the quotation crosses a line break | **40** | the quoted run crosses a hard wrap of the source (58 characters per line); 12 of the 40 end at sentence punctuation, 28 do not | right by contract (the one-line rule); H6b measures how often the rule is unmet on this shape of document, not why |
-| **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII; 6 share their first 40 characters with the source and diverge after (an elision); 9 are not found by prefix (a paraphrase, or a different file) | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
+| **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); 6 share their first 40 characters with the source and diverge after (an elision; 28.6%; 13.8–50.0%; 0–66.7%); 9 are not found by prefix (a paraphrase, or a different file; 42.9%; 24.5–63.5%; 0–55.6%) — the rule is `archive_rates` in `arm6_rates.py` | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
 
 The pair is somewhere in the named file for 26 of 40 Q1 rows (65.00%; Wilson 49.51–77.87%;
 bootstrap 32.26–100%, 5 discarded) and 12 of 21 Q2 rows (57.14%; Wilson 36.55–75.53%;
@@ -142,12 +143,15 @@ no row on this domain**, because nothing here is a range, list or subscript.
 
 ## 4. What this run licenses
 
-* The check's science-profile standing stands on Arm 5; **for hard-wrapped prose the
-  contract's line rule is the wrong shape**, and the decision is to redesign it (a quotation
+* The check's science-profile standing stands on Arm 5; **on hard-wrapped prose the
+  contract's one-line rule went unmet on 40 of 87 rows, and the run cannot say whether the
+  rule or the generator is at fault**. The decision (D166) is to test the author's
+  inference that the rule is the wrong shape for such text by redesigning it (a quotation
   may span a soft wrap: the file's line breaks inside a sentence are joined before the
-  match, with the interval mapped back) as a preregistered slice with its own gold rows —
-  the 40 Q1 rows of this run are that gold's first candidates, labelled here as N only by
-  definition.
+  match, with the interval mapped back) as a slice to be preregistered with its own gold
+  rows — the 40 Q1 rows of this run are that gold's first candidates, labelled here as N
+  only by definition; if the joined-text rule still fails on them, the fault was the
+  generator's.
 * M13 (a currency sign before the value) is a real matcher class on this domain: three
   rows, all C, and the KILL rests on them. It goes to the containment design's §6 beside
   M12, with the same rule: a note first, a measured slice if ever.

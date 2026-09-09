@@ -47,6 +47,8 @@ def draft_bootstrap(by_draft: dict[str, tuple[int, int]]) -> tuple[float, float,
             discarded += 1
             continue
         stats.append(k / n)
+    if not stats:
+        return 0.0, 0.0, discarded
     stats.sort()
     # the same percentile index as provenance_arm4_report.cluster_bootstrap
     return stats[int(0.025 * (len(stats) - 1))], stats[int(0.975 * (len(stats) - 1))], discarded
@@ -81,6 +83,7 @@ def rate(name: str, rows) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--sheet", default="")
+    ap.add_argument("--run", default="", help="the archive's arm6 directory: two rates need the quotations")
     args = ap.parse_args()
     rows = [json.loads(l) for l in (HERE / "rows-arm6.jsonl").read_text().splitlines() if l.strip()]
     manifest = json.loads((HERE / "manifest-arm6.json").read_text())
@@ -178,7 +181,76 @@ def main() -> int:
         for name in ("year", "duration in days", "dollar amount", "count", "percentage"):
             rate(f"  {name} / sheet items",
                  [(key[sid]["instance"], True, shape(x) == name) for sid, x in sheet.items()])
+    if args.run:
+        archive_rates(Path(args.run), rows)
     return 0
+
+
+def _fold(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _typo(text: str) -> str:
+    return _fold(text).replace("\u2019", "'").replace("\u2018", "'").replace("\u201c", '"').replace("\u201d", '"')
+
+
+def archive_rates(run_dir: Path, rows: list[dict]) -> None:
+    """Two rates that need the quotations, which live in the archive's drafts, not the repo.
+
+    * Q1 rows whose quoted run ends at sentence punctuation (`.`, `?`, `!` after trailing
+      whitespace and closing quotation marks or brackets are stripped) — the check on the
+      claim that the generator "quoted sentences".
+    * Q2 rows by shape: RENDERING (the quotation is in the named file once typographic
+      apostrophes and quotation marks are folded to ASCII and whitespace is joined),
+      ELISION (not so, but its first 40 characters, whitespace-joined, are), NOT FOUND.
+    Requires PYTHONPATH to include src (the drafts are read as the shipped check reads them).
+    """
+    import sys as _sys
+    _sys.path.insert(0, str(HERE.parent))
+    import provenance_arm3 as arm3
+    from provenance_arm6 import OUTPUT_PATH
+    from crossaudit.config import load as load_cfg
+    by_key = {(r["instance"], r["row"]): r for r in rows}
+    q1, q2 = [], []
+    for proj_dir in sorted((run_dir / "instances").iterdir()):
+        project = proj_dir / "project"
+        if not (project / "crossaudit.yml").exists():
+            continue
+        instance = proj_dir.name.rsplit("__", 1)[0]
+        cfg = load_cfg(project / "crossaudit.yml")
+        sha = arm3.science_commit(project)
+        if not sha:
+            continue
+        files = arm3.audited_increment(project, sha, cfg)
+        draft = files.get(OUTPUT_PATH, b"").decode("utf-8", "replace")
+        for row_no, ann in enumerate(arm3.fence_rows(draft)):
+            rec = by_key.get((instance, row_no))
+            if not rec or rec["mechanism"] not in ("Q1", "Q2"):
+                continue
+            quote = ann["src"]["quote"] if isinstance(ann.get("src"), dict) else ""
+            if rec["mechanism"] == "Q1":
+                tail = quote.rstrip().rstrip("\"'\u2019\u201d)]")
+                q1.append((instance, True, tail.endswith((".", "?", "!"))))
+            else:
+                path = ann["src"].get("file", "") if isinstance(ann.get("src"), dict) else ""
+                text = files.get(path, b"").decode("utf-8", "replace")
+                folded, typo = _fold(text), _typo(text)
+                if _typo(quote) and _typo(quote) in typo and _fold(quote) not in folded:
+                    shape = "rendering"
+                elif _fold(quote) in folded:
+                    shape = "present"      # would not be Q2; reported if it ever happens
+                elif _fold(quote)[:40] and _fold(quote)[:40] in folded:
+                    shape = "elision"
+                else:
+                    shape = "not found"
+                q2.append((instance, shape))
+    print()
+    print(f"from the archive: {len(q1)} Q1 and {len(q2)} Q2 quotations read")
+    rate("Q1 runs ending at sentence punctuation / Q1 rows", q1)
+    counts = Counter(sh for _, sh in q2)
+    print("Q2 shapes: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
+    for shape in ("rendering", "elision", "not found"):
+        rate(f"  Q2 {shape} / Q2 rows", [(i, True, sh == shape) for i, sh in q2])
 
 
 if __name__ == "__main__":

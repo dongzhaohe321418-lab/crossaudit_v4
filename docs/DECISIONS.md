@@ -7596,7 +7596,7 @@ RULINGS:
 Recorded because a study that could not run is a product finding, and the product finding
 was one the record had already flagged as not understood.
 
-## D166 — Arm 6: on hard-wrapped prose the one-line quotation rule is the wrong shape; the check stays out of every profile for such documents until the rule is redesigned
+## D166 — Arm 6: on hard-wrapped prose the one-line quotation rule went unmet on 40 of 87 rows, and the run cannot say whose fault; the check stays out of every profile for such documents until a redesigned rule has been tested on them
 
 **Date:** 2026-09-09. **Branch:** `study/provenance-arm6` (the merge commit and the review
 round count are appended at the merge). **Record:** `benchmarks/expertlongbench/RESULTS-ARM6.md`;
@@ -7606,8 +7606,9 @@ Amendments 1–4).
 **What was measured.** The shipped check (after D164 and D165) on 33 T01LegalMDS instances
 — multi-document legal records wrapped at ~58 characters per line, numbers that are dates,
 amounts and counts — with the primary adjudicated on the quotation (ruling 3 of D164).
-Two blinded labellers, κ = 1.000 on 19 items. Every rate here carries its Wilson interval
-and the draft-clustered bootstrap (seed 20261108). **§8g: 3 of 17 = 17.65% correct
+Two blinded labellers, κ = 1.000 on 19 items. Every rate measured in this arm carries its
+Wilson interval and the draft-clustered bootstrap (seed 20261108); the two counts quoted
+from study 13's gold in ruling 1 carry Wilson only, as counts from another record. **§8g: 3 of 17 = 17.65% correct
 annotations blocked (Wilson 6.19–41.03%; bootstrap 0–60%, 7 resamples discarded), KILL for
 this domain** (all three one new class, M13: a currency sign before the value). **H6b: 40 of
 87 = 45.98% addressed rows quote across a line break (Wilson 35.90–56.40%; bootstrap
@@ -7627,14 +7628,16 @@ RULINGS:
    the rule went unmet on 40 of 87 addressed rows (the H6b figure above), and that the
    skill's instruction — the shortest run from ONE line — was in front of the generator on
    every call. **What it does not establish** is why: only 12 of the 40 crossing runs end
-   at sentence punctuation (30.0%; Wilson 18.1–45.4%), so the generator was not
+   at sentence punctuation (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5 discarded), so the generator was not
    simply quoting sentences, and the run cannot separate "a one-line rule is the wrong
    shape for wrapped text" from "the generator did not comply". **The author's inference,
    recorded as an inference:** a rule that asks for a run cut at a hard wrap is asking for
    something the source's own sentences do not respect, and joining a file's hard wraps
    inside a paragraph before matching (mapping the interval back, keeping the line-scoped
-   coincidence rate as the thing measured) is the redesign to test. It is preregistered as
-   its own slice, and the slice is the test of this inference, not its proof: its first
+   coincidence rate as the thing measured) is the redesign to test. It is to be
+   preregistered as its own slice (this arm's preregistration §8 requires that; the slice's
+   own preregistration does not exist yet), and the slice is the test of this inference,
+   not its proof: its first
    candidate gold rows are the 40 Q1 quotations of this run, which are N by definition
    here and have not been labelled on joined text. Until then the science profile's
    standing (D164) is unaffected: T03 is not wrapped, and Arm 5's PASS there was 4 of 398 =
@@ -7643,8 +7646,8 @@ RULINGS:
    reads a unit after the number; a sign before it is not read), and the measurement it
    would need; not scheduled on three rows.
 3. **Q2's rendering cases** (typographic apostrophes and quotation marks the generator
-   normalised: 6 of the 21 absent quotations, a classification of rows quoted as a count;
-   Wilson 13.8–50.0% for the share) are a fold the quotation matcher could make
+   normalised: 6 of the 21 absent quotations, 28.6%; bootstrap 0–100%, 128 resamples
+   discarded, 21 rows lying in few drafts; Wilson 13.8–50.0% for the share) are a fold the quotation matcher could make
    without a semantic claim; a note, and a slice only with a gold.
 4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
    annotation fence although the skill was rendered on every call and the whole source
