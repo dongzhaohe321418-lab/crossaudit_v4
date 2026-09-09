@@ -190,6 +190,7 @@ def test_the_residual_counts_the_error_counts_and_the_cost_reading_are_bound():
     assert f"{WORDS[len(testgen_only_fp)]} of the {WORDS[union_c]} are `testgen`'s wrong tests" in t
     assert f"({WORDS[s['canonical_unusable_rows']]} problem unknown)" in t
     assert f"classified {s['confirm_P_residual_classes_available']} instances)" in t
+    w = s["wrong_tests"]
     assert f"{w['dropped_by_validation_instance_rows']} of {w['of_test_applications']:,} test applications" in t
     w = s["wrong_tests"]
     problems_classifiable = s["problems_with_suite"] - s["canonical_unusable_rows"]
