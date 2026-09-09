@@ -110,7 +110,9 @@ def test_the_secondaries_match():
     assert (f"of the {s['confirm_P_validated_only']} `validated`-only flags, "
             f"{vo.get('unexercised-edge', 0)} / {vo.get('spec-misreading', 0)} / {vo.get('unclassified', 0)}") in t
     assert f"${s['cost_usd_per_instance_amortised']:.4f} per instance amortised" in t
-    assert f"`hc`'s ${s['hc_cost_usd_per_instance_explore_leaderboard']:.4f}" in t
+    # bound in its substantive sentence, not merely anywhere in the file (round 5)
+    assert (f"${s['cost_usd_per_instance_amortised']:.4f} per instance amortised, against `hc`'s "
+            f"${s['hc_cost_usd_per_instance_explore_leaderboard']:.4f}\n  on the explore leaderboard") in t
     assert f"{100 * s['cost_ratio_testgen_over_hc']:.0f}% of the reading auditor's cost" in t
     assert f"${s['cost_usd_generation_total']:.2f} for {s['problems_with_suite']} calls" in t
 
