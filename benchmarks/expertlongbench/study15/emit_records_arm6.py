@@ -24,6 +24,11 @@ HERE = pathlib.Path(__file__).resolve().parent
 #: after the run; the assertion below refuses to emit records while a block has none.
 #: No source text in the comments (corpus licence): the shapes only.
 MECHANISM: dict[tuple[str, int], str] = {
+    ("T01LegalMDS-15516", 7): "M1b",   # the value written in words (gold N)
+    ("T01LegalMDS-16123", 6): "M13",   # NEW: a currency sign BEFORE the value, transcribed as the unit; the scanner reads units after the number (gold C)
+    ("T01LegalMDS-13885", 4): "M13",   # the same, a decimal amount (gold C)
+    ("T01LegalMDS-16123", 9): "M13",   # the same, a whole amount (gold C)
+    ("T01LegalMDS-15207", 9): "M1b",   # the value lies outside the quoted run, which ends before it (gold N under the quotation adjudicator)
 }
 
 
@@ -54,7 +59,13 @@ def main(argv=None) -> int:
             out["gold_label"] = lab
             out["gold_rule"] = rule
             out["gold_kind"] = k["kind"] if k else ""
-            out["mechanism"] = MECHANISM.get((r["instance"], r["row"]), "")
+            # A block with no located quotation is the CONTRACT's, not the matcher's:
+            # Q1 — the quotation crosses a hard line break (the one-line rule, H6b);
+            # Q2 — the quotation is not in the file as quoted (rendering, elision or
+            # paraphrase; the shapes are counted in RESULTS-ARM6 §2 without quoting).
+            out["mechanism"] = MECHANISM.get((r["instance"], r["row"]), "") or (
+                {"quote-crosses-line": "Q1", "quote-absent": "Q2"}.get(r["reason"], "")
+                if r["severity"] == "BLOCKER" else "")
             rows.append(out)
     for r in rows:
         assert r["severity"] != "BLOCKER" or r["mechanism"], (r["instance"], r["row"])

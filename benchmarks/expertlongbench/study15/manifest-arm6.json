@@ -1,0 +1,1598 @@
+{
+  "study": "study15 / Arm 6",
+  "preregistration": "benchmarks/expertlongbench/study15/PREREGISTRATION-ARM6.md",
+  "plan": {
+    "run_id": "arm6-20260907T105733Z",
+    "task": "T01LegalMDS",
+    "corpus_sha256": "0d13750e8f757702ec7767a6256042c7ccf2f9a052715a116cf3fd8f8a19803f",
+    "instance_ids": [
+      "T01LegalMDS-16608",
+      "T01LegalMDS-12522",
+      "T01LegalMDS-16701",
+      "T01LegalMDS-16722",
+      "T01LegalMDS-8589",
+      "T01LegalMDS-43414",
+      "T01LegalMDS-43441",
+      "T01LegalMDS-12835",
+      "T01LegalMDS-15008",
+      "T01LegalMDS-15064",
+      "T01LegalMDS-17116",
+      "T01LegalMDS-13057",
+      "T01LegalMDS-15207",
+      "T01LegalMDS-13172",
+      "T01LegalMDS-11349",
+      "T01LegalMDS-15516",
+      "T01LegalMDS-17610",
+      "T01LegalMDS-17625",
+      "T01LegalMDS-15643",
+      "T01LegalMDS-15664",
+      "T01LegalMDS-11571",
+      "T01LegalMDS-17746",
+      "T01LegalMDS-13663",
+      "T01LegalMDS-9748",
+      "T01LegalMDS-11816",
+      "T01LegalMDS-13885",
+      "T01LegalMDS-11881",
+      "T01LegalMDS-16021",
+      "T01LegalMDS-16123",
+      "T01LegalMDS-18173",
+      "T01LegalMDS-18198",
+      "T01LegalMDS-14127",
+      "T01LegalMDS-12125"
+    ],
+    "input_cap_chars": 200000,
+    "population_of": 100,
+    "input_chars": {
+      "T01LegalMDS-16608": 163829,
+      "T01LegalMDS-12522": 137353,
+      "T01LegalMDS-16701": 122201,
+      "T01LegalMDS-16722": 125512,
+      "T01LegalMDS-8589": 176919,
+      "T01LegalMDS-43414": 143349,
+      "T01LegalMDS-43441": 108827,
+      "T01LegalMDS-12835": 178731,
+      "T01LegalMDS-15008": 176579,
+      "T01LegalMDS-15064": 147451,
+      "T01LegalMDS-17116": 107889,
+      "T01LegalMDS-13057": 190765,
+      "T01LegalMDS-15207": 150319,
+      "T01LegalMDS-13172": 129278,
+      "T01LegalMDS-11349": 163017,
+      "T01LegalMDS-15516": 174235,
+      "T01LegalMDS-17610": 190492,
+      "T01LegalMDS-17625": 133325,
+      "T01LegalMDS-15643": 159985,
+      "T01LegalMDS-15664": 146649,
+      "T01LegalMDS-11571": 127614,
+      "T01LegalMDS-17746": 156036,
+      "T01LegalMDS-13663": 159917,
+      "T01LegalMDS-9748": 199668,
+      "T01LegalMDS-11816": 154270,
+      "T01LegalMDS-13885": 168797,
+      "T01LegalMDS-11881": 181230,
+      "T01LegalMDS-16021": 196595,
+      "T01LegalMDS-16123": 160254,
+      "T01LegalMDS-18173": 157399,
+      "T01LegalMDS-18198": 154029,
+      "T01LegalMDS-14127": 169677,
+      "T01LegalMDS-12125": 181762
+    },
+    "arm": "S",
+    "models": {
+      "generator": "anthropic:claude-sonnet-4-6",
+      "auditor": "openai:gpt-5.6-terra"
+    },
+    "settings": {
+      "max_rounds": 1,
+      "checks": [
+        "number_source"
+      ],
+      "audit_rules": "general",
+      "scope": "work",
+      "increment_dir": "work/synthesis",
+      "output": "work/synthesis/explanation.md",
+      "recipe": "work/synthesis/RECIPE.md",
+      "budget_usd": 30.0,
+      "bootstrap_seed": 20261108
+    },
+    "skill_sha256": "7b0b8ebaa909fb25fcaf7a6a8b236fbb70a71eff322be056785724837fb0b7fb",
+    "contract_sha256": "48d38f0c1132a9febd179800ecd2184ff588ea427d048ede8e1c0a48d763a6ca",
+    "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf",
+    "code_sha": "f4a8d6ba8451bda577e9daeb37183e84cde47811",
+    "python": "3.13.5",
+    "platform": "darwin",
+    "started_utc": "2026-09-07T10:57:33.262076+00:00"
+  },
+  "git_status_at_start": "",
+  "drafts": [
+    {
+      "instance": "T01LegalMDS-16608",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 75.96,
+      "prompt_sha256": "31d537448ba063cf38addfff75aeac083ca8867ce34824aacc10574c93622a42",
+      "started_utc": "2026-09-07T10:44:36.929805+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 122787,
+          "output": 3344,
+          "cost_usd": 0.394791
+        },
+        "generator": {
+          "calls": 3,
+          "input": 75327,
+          "output": 2085,
+          "cost_usd": 0.25725600000000004
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 47460,
+          "output": 1259,
+          "cost_usd": 0.137535
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "34aac32e0595a4fa2234f5004399c3219c5d7f9f",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "590b50c0e13126c3e4b895d0b9dde3c3f5c3a6699952e614f304fe494f42a1fc",
+      "draft_chars": 7489,
+      "draft_lines": 70,
+      "numbers_present": 52,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-12522",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 115.53,
+      "prompt_sha256": "2b6086055840b3c7db33344cd262bcfe182d5606abec8b42d363ba8045f014c7",
+      "started_utc": "2026-09-07T10:45:53.214328+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 107524,
+          "output": 3364,
+          "cost_usd": 0.351943
+        },
+        "generator": {
+          "calls": 3,
+          "input": 65346,
+          "output": 2571,
+          "cost_usd": 0.234603
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 42178,
+          "output": 793,
+          "cost_usd": 0.11734
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "4679d46be6b345cb8f7cce657ef98aeef04c4852",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "4288f536fc231daf976899f46bf86857820765a24c3a115fb29d599aa110842f",
+      "draft_chars": 9269,
+      "draft_lines": 90,
+      "numbers_present": 79,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-16722",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 73.87,
+      "prompt_sha256": "e585666f2ce6fab74efb85a0f4b397ab97ff695a8e32d700be204c3a5b6bf844",
+      "started_utc": "2026-09-07T10:48:07.502600+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 101257,
+          "output": 2854,
+          "cost_usd": 0.3267035
+        },
+        "generator": {
+          "calls": 3,
+          "input": 61502,
+          "output": 2403,
+          "cost_usd": 0.220551
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 39755,
+          "output": 451,
+          "cost_usd": 0.1061525
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "2396ed43fb57ee57f84a6c0f25db54154c4a2355",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "186e286be7fd7043c0753b22acbd2449622cee2ba68ffa2aea90f7e17b8624f2",
+      "draft_chars": 8667,
+      "draft_lines": 81,
+      "numbers_present": 58,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 3,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-8589",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 159.13,
+      "prompt_sha256": "f4c90c8d92fcca1ac3cce439aa8ff7b869f2bf52d84d4518e75059896358774c",
+      "started_utc": "2026-09-07T10:49:21.700065+00:00",
+      "usage": {
+        "all": {
+          "calls": 5,
+          "input": 197597,
+          "output": 7844,
+          "cost_usd": 0.684019
+        },
+        "generator": {
+          "calls": 4,
+          "input": 144733,
+          "output": 7026,
+          "cost_usd": 0.539589
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 52864,
+          "output": 818,
+          "cost_usd": 0.14443
+        },
+        "generator_role_calls": 4
+      },
+      "science_sha": "7ff9bf74fc571eab0cb12755f340b19afeb6733a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bb64930d975958ed903dfd0f143ac67e7ec5779525c017a3e77067f3416de41b",
+      "draft_chars": 10746,
+      "draft_lines": 108,
+      "numbers_present": 102,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-43414",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 79.96,
+      "prompt_sha256": "dceed97267e55afe5de02ec0bae21a941963160344025f7f852cfa782e2ba6d0",
+      "started_utc": "2026-09-07T10:52:01.118887+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 112628,
+          "output": 3229,
+          "cost_usd": 0.364021
+        },
+        "generator": {
+          "calls": 3,
+          "input": 68032,
+          "output": 2813,
+          "cost_usd": 0.246291
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 44596,
+          "output": 416,
+          "cost_usd": 0.11773
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "53a176b0d77dc50eabde567df34f1e3a56fbb8ef",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "4d9b44c67c3bf385d9674d663718925f6511a4f10a94d5734043af21f7a688f7",
+      "draft_chars": 11712,
+      "draft_lines": 93,
+      "numbers_present": 46,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-43441",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 73.75,
+      "prompt_sha256": "e9847774f4ec0226f7b80243a25fd27837cc6228570a55db533ae7494ed8ddd8",
+      "started_utc": "2026-09-07T10:53:21.371853+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 88074,
+          "output": 3251,
+          "cost_usd": 0.296305
+        },
+        "generator": {
+          "calls": 3,
+          "input": 54710,
+          "output": 2424,
+          "cost_usd": 0.20049
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 33364,
+          "output": 827,
+          "cost_usd": 0.095815
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "7a5f0562aefe6398d9e246e123e7aae3975aee0e",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "db0baa164a32e260b3546cc9299090116a8f4ede11fe233091833866a0d809b0",
+      "draft_chars": 9685,
+      "draft_lines": 91,
+      "numbers_present": 41,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-16701",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 73.11,
+      "prompt_sha256": "372193af4c48f4482a8478947fb698400dfa6c91f3ff8cf9297d115e5527d09e",
+      "started_utc": "2026-09-07T10:57:33.263618+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 103999,
+          "output": 3341,
+          "cost_usd": 0.3419755
+        },
+        "generator": {
+          "calls": 3,
+          "input": 63726,
+          "output": 2787,
+          "cost_usd": 0.232983
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 40273,
+          "output": 554,
+          "cost_usd": 0.1089925
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "9aa661acba81d438137c3758b17cd2300381ecd0",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "72c6ec5f2fa5a094f697078a79a9c79163d7127a24f224de7f974d4b46d9b9af",
+      "draft_chars": 10362,
+      "draft_lines": 95,
+      "numbers_present": 97,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-12835",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 73.45,
+      "prompt_sha256": "5e0c2ea257adc93ec994c75eadf7a4a9510900a57b669b4fddc879bb6101c1c2",
+      "started_utc": "2026-09-07T10:58:46.698524+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 125506,
+          "output": 2983,
+          "cost_usd": 0.396272
+        },
+        "generator": {
+          "calls": 3,
+          "input": 75524,
+          "output": 2437,
+          "cost_usd": 0.263127
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 49982,
+          "output": 546,
+          "cost_usd": 0.133145
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "273aed9f52303ff36ff57ba927bdbde9f32f2dd7",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "8e487b11f306649a1cc6c7cdf4264e6faf0d3da27b2e62882426db10ceef4801",
+      "draft_chars": 9016,
+      "draft_lines": 88,
+      "numbers_present": 54,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15008",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 147.36,
+      "prompt_sha256": "246faccbc2a77cc2fc21201dacc9b4936fd7f03c0078bf86e8794fbdf7d9b96a",
+      "started_utc": "2026-09-07T11:00:00.402287+00:00",
+      "usage": {
+        "all": {
+          "calls": 5,
+          "input": 196962,
+          "output": 7119,
+          "cost_usd": 0.6706675000000001
+        },
+        "generator": {
+          "calls": 4,
+          "input": 142955,
+          "output": 6899,
+          "cost_usd": 0.53235
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54007,
+          "output": 220,
+          "cost_usd": 0.1383175
+        },
+        "generator_role_calls": 4
+      },
+      "science_sha": "df65d5d20926f561172685fd024549e8202a3e8a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "df6d4c1750aa74c6cac0c6542610c0d2e03fdaafe6df9d72044c29fceb4aeb74",
+      "draft_chars": 10269,
+      "draft_lines": 88,
+      "numbers_present": 65,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 3,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-17116",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 81.63,
+      "prompt_sha256": "0ce54b64f748cd87c5d073f71aed463b2fb181b775251e761618a40c6641563b",
+      "started_utc": "2026-09-07T11:04:34.537449+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 93241,
+          "output": 2891,
+          "cost_usd": 0.305747
+        },
+        "generator": {
+          "calls": 3,
+          "input": 58559,
+          "output": 2460,
+          "cost_usd": 0.21257700000000002
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 34682,
+          "output": 431,
+          "cost_usd": 0.09317
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "94998098f2fae3c3f06b832ad094ead9a3384cf7",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "63fb34e69bf36d5927469c8101bfb8085d0b7c98fd930adc410021db46624a8c",
+      "draft_chars": 9341,
+      "draft_lines": 82,
+      "numbers_present": 58,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-13057",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 106.25,
+      "prompt_sha256": "fdc7b252a795f72063a0155469e19dc3985aa52659c4a95826ee06b6de339e06",
+      "started_utc": "2026-09-07T11:05:56.473049+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 132884,
+          "output": 4593,
+          "cost_usd": 0.4409305
+        },
+        "generator": {
+          "calls": 3,
+          "input": 79651,
+          "output": 4233,
+          "cost_usd": 0.302448
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 53233,
+          "output": 360,
+          "cost_usd": 0.1384825
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "ef1c026a7bc506121707b5698f55f7303256e699",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "01b1671da7f637ec25e7c9642ce27fb0c4be0202df84f493d8660d98265ea802",
+      "draft_chars": 16437,
+      "draft_lines": 128,
+      "numbers_present": 167,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15207",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 83.72,
+      "prompt_sha256": "a5ed4a0560ed2e5755da0974f08b07bf76e06e410e0fbfccb0644d82a55e8c77",
+      "started_utc": "2026-09-07T11:07:43.009536+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 114360,
+          "output": 3437,
+          "cost_usd": 0.3717715
+        },
+        "generator": {
+          "calls": 3,
+          "input": 68633,
+          "output": 3030,
+          "cost_usd": 0.251349
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 45727,
+          "output": 407,
+          "cost_usd": 0.1204225
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "34ba9099cef1a6b8d27a00a8ad287c1c6656fca7",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "dabfb4cfe576dcd7c72ceef9a7661f290116b03159e36f8d6b399e8462132cb4",
+      "draft_chars": 10592,
+      "draft_lines": 85,
+      "numbers_present": 61,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 8,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-13172",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 78.84,
+      "prompt_sha256": "892c9837e8a8d43e6a4a792a277ee040787425a9fdce1d4c227f3c187563f160",
+      "started_utc": "2026-09-07T11:09:07.047244+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 101116,
+          "output": 3010,
+          "cost_usd": 0.3287885
+        },
+        "generator": {
+          "calls": 3,
+          "input": 61697,
+          "output": 2365,
+          "cost_usd": 0.220566
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 39419,
+          "output": 645,
+          "cost_usd": 0.1082225
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "5ea9bfe0db7595f19d703b287ad58ff2a7b0a564",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "ffcdcd70b64884df1de055bf13d66a925a668508df53594b13ae6089e442cc31",
+      "draft_chars": 8619,
+      "draft_lines": 91,
+      "numbers_present": 50,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 1,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-11349",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 74.18,
+      "prompt_sha256": "7c60a760ae662261167d939c92b396206b7efe7a0ceb8ba3169841c38d00d69f",
+      "started_utc": "2026-09-07T11:10:26.202068+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 126027,
+          "output": 3542,
+          "cost_usd": 0.40553249999999996
+        },
+        "generator": {
+          "calls": 3,
+          "input": 74670,
+          "output": 3041,
+          "cost_usd": 0.269625
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 51357,
+          "output": 501,
+          "cost_usd": 0.1359075
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "9f787e77674a96820c5b0410661edf05e33a9fde",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "26f7789fa9a39c61b938e5a9370cda49b237781ca57ab29068b281ab53199807",
+      "draft_chars": 10644,
+      "draft_lines": 105,
+      "numbers_present": 70,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 9,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15516",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 99.68,
+      "prompt_sha256": "834301c6430930f146291d22b54e5933b87efe331e2b09dbb2933937bc1db2cd",
+      "started_utc": "2026-09-07T11:11:40.757806+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 134251,
+          "output": 4471,
+          "cost_usd": 0.44259250000000006
+        },
+        "generator": {
+          "calls": 3,
+          "input": 79800,
+          "output": 4009,
+          "cost_usd": 0.299535
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54451,
+          "output": 462,
+          "cost_usd": 0.1430575
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "e6d43a4863050066757d281d1e543f7e8345f13c",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "c720070ae9237acaff6053173b3308fd067058c650621891fb95381e992b9bc4",
+      "draft_chars": 15054,
+      "draft_lines": 137,
+      "numbers_present": 87,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 3,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-17610",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 102.6,
+      "prompt_sha256": "33a8296706bf4f62b8b91da0b766f0f490766b22e9fa452e4d53c99301e0447f",
+      "started_utc": "2026-09-07T11:13:20.809338+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 143778,
+          "output": 3484,
+          "cost_usd": 0.454701
+        },
+        "generator": {
+          "calls": 3,
+          "input": 85992,
+          "output": 2761,
+          "cost_usd": 0.299391
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 57786,
+          "output": 723,
+          "cost_usd": 0.15531
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "e98baf8a8496b97404df7344640eb50ccf9708a3",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bb35f433a630837fb0c284e40de3b91aee7debf6485303ff1d369804ca65b941",
+      "draft_chars": 10846,
+      "draft_lines": 97,
+      "numbers_present": 78,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15643",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 84.5,
+      "prompt_sha256": "623196ea1a90299a5788442b4a7ee6964c41f133fa1b3471c6df65b7bb86e9ba",
+      "started_utc": "2026-09-07T11:15:22.005562+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 137477,
+          "output": 3162,
+          "cost_usd": 0.4337075
+        },
+        "generator": {
+          "calls": 3,
+          "input": 85170,
+          "output": 2606,
+          "cost_usd": 0.29460000000000003
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 52307,
+          "output": 556,
+          "cost_usd": 0.1391075
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "e51fbefc7bb2722213ce2b2481e10aaf761401dc",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "2eb1d13891e69ee7b70048136ce2c921ee5aa00f71e51682dc18201e3407d086",
+      "draft_chars": 9473,
+      "draft_lines": 55,
+      "numbers_present": 106,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15664",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 95.79,
+      "prompt_sha256": "c7cda354a6c99baaa3f0d4745912669c47926d5b4fd83a29c4427dc52359300f",
+      "started_utc": "2026-09-07T11:16:46.780044+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 109700,
+          "output": 3050,
+          "cost_usd": 0.3532045
+        },
+        "generator": {
+          "calls": 3,
+          "input": 66409,
+          "output": 2630,
+          "cost_usd": 0.238677
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 43291,
+          "output": 420,
+          "cost_usd": 0.1145275
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "416c8a7791b7888cd4e9114afe1fe54bd76b8775",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "b1f038544642754e51e8708f3c38477982854a9e7ca4ae37fdd23e7658c99b59",
+      "draft_chars": 9949,
+      "draft_lines": 64,
+      "numbers_present": 67,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-11571",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 79.55,
+      "prompt_sha256": "104bf0fe61b3fac63cc33f1f829efe944e4daec2226233299a104f15199810f8",
+      "started_utc": "2026-09-07T11:18:22.853796+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 107273,
+          "output": 3154,
+          "cost_usd": 0.34831100000000004
+        },
+        "generator": {
+          "calls": 3,
+          "input": 65637,
+          "output": 2598,
+          "cost_usd": 0.235881
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 41636,
+          "output": 556,
+          "cost_usd": 0.11243
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "38f5f5ae410697aa6bdfc2da95d3a8a29d0a5757",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "deaecf21c7b719be7854cd6f20abdfba1294f4d8724e5a78d10e727c21001170",
+      "draft_chars": 9734,
+      "draft_lines": 108,
+      "numbers_present": 91,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-17746",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 94.12,
+      "prompt_sha256": "dc3bfae753bca79b05d7ae58c441868803755f7188e4a17f170e74a3d7f33feb",
+      "started_utc": "2026-09-07T11:19:42.678555+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 117832,
+          "output": 3892,
+          "cost_usd": 0.388723
+        },
+        "generator": {
+          "calls": 3,
+          "input": 71526,
+          "output": 2878,
+          "cost_usd": 0.257748
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 46306,
+          "output": 1014,
+          "cost_usd": 0.130975
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "3e2e08564909fea3c50e65be6ed19633cf01c30d",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "4b89d457a5fd898fd77dd0a9a4cd8deec620ae5bc4f9c144c846c4cef1a82637",
+      "draft_chars": 10253,
+      "draft_lines": 108,
+      "numbers_present": 99,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-13663",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 74.53,
+      "prompt_sha256": "e034fba4ccc0dc4c8c4d6ba2b08d27c5ff1669ef7e7f91232d99312950c61244",
+      "started_utc": "2026-09-07T11:21:17.065607+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 129803,
+          "output": 2920,
+          "cost_usd": 0.4057995
+        },
+        "generator": {
+          "calls": 3,
+          "input": 74984,
+          "output": 2458,
+          "cost_usd": 0.261822
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54819,
+          "output": 462,
+          "cost_usd": 0.1439775
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "6e5995ea92a6bf0b680395583a1fd76d56b249b1",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "7402ed8c4e3f0693be9faa1e3a265014887e8db20b910cdf9c2d4e0663988dd8",
+      "draft_chars": 9628,
+      "draft_lines": 70,
+      "numbers_present": 44,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-11816",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 89.68,
+      "prompt_sha256": "cd43f8978eb521cc12674d0d1c3eeb0236a7069cfac42555956a9f289671c85e",
+      "started_utc": "2026-09-07T11:22:55.818225+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 124195,
+          "output": 2991,
+          "cost_usd": 0.3926275
+        },
+        "generator": {
+          "calls": 3,
+          "input": 74550,
+          "output": 2435,
+          "cost_usd": 0.260175
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 49645,
+          "output": 556,
+          "cost_usd": 0.1324525
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "354c6f0af66a4abd2b6e7e857551ccc8b038815a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "be6125d93051c50065d8abcedebed4bd30d8abbd674e6cd2ec6069c7c6d64ddd",
+      "draft_chars": 8981,
+      "draft_lines": 78,
+      "numbers_present": 82,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-13885",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 99.1,
+      "prompt_sha256": "85da1bac88f61a3ab469371b602b8d94b2ba6e631c6b60c1652103e5de790e84",
+      "started_utc": "2026-09-07T11:24:25.777728+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 135893,
+          "output": 4677,
+          "cost_usd": 0.44934549999999995
+        },
+        "generator": {
+          "calls": 3,
+          "input": 78916,
+          "output": 4174,
+          "cost_usd": 0.29935799999999996
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 56977,
+          "output": 503,
+          "cost_usd": 0.1499875
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "55df583654b6e0febad467f954816a32916cd2ce",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "bfd45f0d74bb05e6a67a375b0a3f724f033f3f2ccade617b4ceacc4249a83814",
+      "draft_chars": 12931,
+      "draft_lines": 125,
+      "numbers_present": 129,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 20,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-11881",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 79.23,
+      "prompt_sha256": "72e247e40d01bb6f2e650c012eadd4045f7a7dbb9d2f811f793c689d2fd871c3",
+      "started_utc": "2026-09-07T11:26:05.512115+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 136406,
+          "output": 2945,
+          "cost_usd": 0.4259775
+        },
+        "generator": {
+          "calls": 3,
+          "input": 81575,
+          "output": 2350,
+          "cost_usd": 0.279975
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54831,
+          "output": 595,
+          "cost_usd": 0.1460025
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "296bb1311783f69535edb4d2f19464fe4e0d5dfc",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "2cd925c71d579149b1c725651bb78f08812c10e0b02f4e74018c08d09a0cf466",
+      "draft_chars": 8600,
+      "draft_lines": 70,
+      "numbers_present": 88,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-16021",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 90.14,
+      "prompt_sha256": "71e7b26938f98609ace23422a19fc3e3c001197ed4eaf91f201c09ef1a139a43",
+      "started_utc": "2026-09-07T11:27:25.025660+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 136092,
+          "output": 3617,
+          "cost_usd": 0.435238
+        },
+        "generator": {
+          "calls": 3,
+          "input": 81506,
+          "output": 3168,
+          "cost_usd": 0.292038
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54586,
+          "output": 449,
+          "cost_usd": 0.1432
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "ec965b114ffc263a01f76181a53622ef57fe9a9a",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "7b207b39c90380cbf9a6365d39f18375b3629f099d637b0545abdeadce4a84ad",
+      "draft_chars": 12023,
+      "draft_lines": 100,
+      "numbers_present": 66,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-16123",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 87.44,
+      "prompt_sha256": "fd495d6bd03aa16913e11a720530446e50acd7fcb99affd30a22a9637047ff22",
+      "started_utc": "2026-09-07T11:28:55.456954+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 123951,
+          "output": 4102,
+          "cost_usd": 0.4080515
+        },
+        "generator": {
+          "calls": 3,
+          "input": 73288,
+          "output": 3407,
+          "cost_usd": 0.270969
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 50663,
+          "output": 695,
+          "cost_usd": 0.1370825
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "b682f639a211d80c79aa5aee29f3540e98921438",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "7abd586bc5d7afadb1e81d04f52907f45d4eed41148d1dee12b6c9be15c8f23e",
+      "draft_chars": 11626,
+      "draft_lines": 90,
+      "numbers_present": 64,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 10,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-18173",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 90.5,
+      "prompt_sha256": "f37ac08364d300030dc3268469f4a3ab6e9b38544031f96ee732d60f4d45ea5a",
+      "started_utc": "2026-09-07T11:30:24.013327+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 133588,
+          "output": 4052,
+          "cost_usd": 0.435108
+        },
+        "generator": {
+          "calls": 3,
+          "input": 80716,
+          "output": 3642,
+          "cost_usd": 0.296778
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 52872,
+          "output": 410,
+          "cost_usd": 0.13833
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "9e738057726d9e542fada3a336f9ea9da4ce8d09",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "1f8aea3486ee5204e98767a492a2690c604e504543771e22d4553d85bcd5099e",
+      "draft_chars": 12636,
+      "draft_lines": 79,
+      "numbers_present": 101,
+      "fence_blocks": 1,
+      "shipped_check_blocks": 9,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-18198",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 101.51,
+      "prompt_sha256": "2260ffb142c4c0fd2e992843414296d4ca83f4e1cc2f5c6a298fed982d79b319",
+      "started_utc": "2026-09-07T11:31:54.893845+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 118409,
+          "output": 3727,
+          "cost_usd": 0.3874635
+        },
+        "generator": {
+          "calls": 3,
+          "input": 71072,
+          "output": 2942,
+          "cost_usd": 0.257346
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 47337,
+          "output": 785,
+          "cost_usd": 0.1301175
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "40cf97325d941c1e72aca07591728a50940c4e80",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "8f6af3089d1f85e408a028dff6b12674e84f13a277a694f364a3941e99e6078a",
+      "draft_chars": 11087,
+      "draft_lines": 88,
+      "numbers_present": 61,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-14127",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 86.26,
+      "prompt_sha256": "37076fc2b57a1ba7c5d17b594512dede0f7acd0a075600f4936670113e4ccb4b",
+      "started_utc": "2026-09-07T11:33:36.683506+00:00",
+      "usage": {
+        "all": {
+          "calls": 3,
+          "input": 79159,
+          "output": 2350,
+          "cost_usd": 0.272727
+        },
+        "generator": {
+          "calls": 3,
+          "input": 79159,
+          "output": 2350,
+          "cost_usd": 0.272727
+        },
+        "auditor": {
+          "calls": 0,
+          "input": 0,
+          "output": 0,
+          "cost_usd": 0
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "f6df569b8147daf829579d8d32143f8f81ca9721",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": null,
+      "output_sha256": "9d79d37e7beb7e3ebc9f67964cf8e86f50357cfb0258747e15ad7d8e941d5779",
+      "draft_chars": 8721,
+      "draft_lines": 77,
+      "numbers_present": 73,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-12125",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 89.15,
+      "prompt_sha256": "a4f7c779110930d876fa6ce1b790fd994d67e1b1d5b517f8e21b83023207bfd6",
+      "started_utc": "2026-09-07T11:35:03.248808+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 138516,
+          "output": 3420,
+          "cost_usd": 0.4391395
+        },
+        "generator": {
+          "calls": 3,
+          "input": 83099,
+          "output": 2899,
+          "cost_usd": 0.292782
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 55417,
+          "output": 521,
+          "cost_usd": 0.1463575
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "ab6c618e5bf2f82c6790392270f585487a7f4cfe",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "9c61d4cdb3ab3199783e1c307b5963ceee6b4a576fbd627e4cdcf6c6ef623c99",
+      "draft_chars": 11047,
+      "draft_lines": 89,
+      "numbers_present": 115,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-15064",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 0,
+      "rounds": 1,
+      "wall_s": 103.14,
+      "prompt_sha256": "c2761ad4b0d881424669c6bf13d1f583092442bbe0e4604e37455b9d5782b4c2",
+      "started_utc": "2026-09-07T15:08:29.983177+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 142251,
+          "output": 3385,
+          "cost_usd": 0.449385
+        },
+        "generator": {
+          "calls": 3,
+          "input": 85965,
+          "output": 2605,
+          "cost_usd": 0.29697
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 56286,
+          "output": 780,
+          "cost_usd": 0.152415
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "732b5938ec3ba3b38efd698a51e4c1df90dfff31",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "cfbb888d617755d96e103afd5c8ae50a0ffa822084222ce512a9dfb7413c98fd",
+      "draft_chars": 9694,
+      "draft_lines": 79,
+      "numbers_present": 70,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-17625",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 116.31,
+      "prompt_sha256": "9f1954785fa40186a86bac4612785cef24425afa148df5042dcaf4acb52cbc88",
+      "started_utc": "2026-09-07T15:10:13.455494+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 107939,
+          "output": 4026,
+          "cost_usd": 0.363251
+        },
+        "generator": {
+          "calls": 3,
+          "input": 66027,
+          "output": 2894,
+          "cost_usd": 0.241491
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 41912,
+          "output": 1132,
+          "cost_usd": 0.12176
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "312f17714121e870b970d527c6100ac2046ce201",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "ec83f8f61fc86fb01ca6daca56a10f470ba139f12749a035b1217dbdef30a72f",
+      "draft_chars": 10261,
+      "draft_lines": 93,
+      "numbers_present": 102,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    },
+    {
+      "instance": "T01LegalMDS-9748",
+      "arm": "S",
+      "ok": true,
+      "error": "",
+      "exit_code": 11,
+      "rounds": 1,
+      "wall_s": 101.09,
+      "prompt_sha256": "8c8d053d6778aca2b637c23e5271becf9d642abb735ac983a1fe26812e365f9a",
+      "started_utc": "2026-09-07T15:12:10.035747+00:00",
+      "usage": {
+        "all": {
+          "calls": 4,
+          "input": 138534,
+          "output": 3769,
+          "cost_usd": 0.444661
+        },
+        "generator": {
+          "calls": 3,
+          "input": 83582,
+          "output": 3211,
+          "cost_usd": 0.29891100000000004
+        },
+        "auditor": {
+          "calls": 1,
+          "input": 54952,
+          "output": 558,
+          "cost_usd": 0.14575
+        },
+        "generator_role_calls": 3
+      },
+      "science_sha": "87cca99bbfb688291f84237e3ec552be3fae413f",
+      "increment_files": [
+        "work/synthesis/RECIPE.md",
+        "work/synthesis/explanation.md"
+      ],
+      "manifest_agrees": true,
+      "output_sha256": "f14d331d8ffc5a5acbf9be423471c09b6fde265366bc39ded3358bc42943bd28",
+      "draft_chars": 12128,
+      "draft_lines": 110,
+      "numbers_present": 107,
+      "fence_blocks": 0,
+      "shipped_check_blocks": 0,
+      "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf"
+    }
+  ],
+  "rows_recorded": 91,
+  "drafts_recorded": 33,
+  "rows_sha256": "84694891b5b65a945fd83839a023ec05a9e9fbdcfa4b2cd080aa84b64413d3f2",
+  "gold_sha256": "1bec0f53a0dd1432a6c465689f21183d2775460f5131aa254830ae790996de39"
+}
