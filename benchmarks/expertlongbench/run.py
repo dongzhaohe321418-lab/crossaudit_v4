@@ -285,7 +285,8 @@ def arm_b_task(task: Task) -> str:
     """
     return (
         f"{task.model_prompt}\n\n"
-        f"The synthesis recipe is in `{RECIPE_PATH}`. Write your explanation to "
+        f"The {task.source_noun} {'are' if task.source_noun.endswith('s') else 'is'} in "
+        f"`{RECIPE_PATH}`. Write your {task.deliverable_noun} to "
         f"`{OUTPUT_PATH}` as the single deliverable. Do not modify `{RECIPE_PATH}`."
     )
 

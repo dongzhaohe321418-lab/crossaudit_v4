@@ -7595,3 +7595,81 @@ RULINGS:
 
 Recorded because a study that could not run is a product finding, and the product finding
 was one the record had already flagged as not understood.
+
+## D166 — Arm 6: on hard-wrapped prose the one-line quotation rule went unmet on 40 of 87 rows, and the run cannot say whose fault; the check stays out of every profile for such documents until a redesigned rule has been tested on them
+
+**Date:** 2026-09-09. **Branch:** `study/provenance-arm6` (the merge commit and the review
+round count are appended at the merge). **Record:** `benchmarks/expertlongbench/RESULTS-ARM6.md`;
+preregistration `study15/PREREGISTRATION-ARM6.md` (081f4f0, before any model call;
+Amendments 1–4).
+
+**What was measured.** The shipped check (after D164 and D165) on 33 T01LegalMDS instances
+— multi-document legal records wrapped at ~58 characters per line, numbers that are dates,
+amounts and counts — with the primary adjudicated on the quotation (ruling 3 of D164).
+Two blinded labellers, κ = 1.000 on 19 items. Every rate measured in this arm carries its
+Wilson interval and the draft-clustered bootstrap (seed 20261108); the two counts quoted
+from study 13's gold in ruling 1 carry Wilson only, as counts from another record. **§8g: 3 of 17 = 17.65% correct
+annotations blocked (Wilson 6.19–41.03%; bootstrap 0–60%, 7 resamples discarded), KILL for
+this domain** (all three one new class, M13: a currency sign before the value). **H6b: 40 of
+87 = 45.98% addressed rows quote across a line break (Wilson 35.90–56.40%; bootstrap
+26.15–60.98%), against a preregistered bar of 20%.** The generator fenced only 11 of 33
+summaries (33.3%; Wilson 19.75–50.39%; bootstrap 18.18–48.48%) and annotated 91 of 2,630 =
+3.5% of the numbers it wrote (Wilson 2.83–4.23%; bootstrap 1.48–5.82%); on T03 Arm 5 read
+446 of 1,170 = 38.1% (Wilson 35.38–40.94%; bootstrap 34.47–41.94%).
+
+RULINGS:
+
+1. **The check does not enter any profile for hard-wrapped documents until the one-line
+   quotation rule has been re-examined on them.** The rule exists because a file-scoped
+   citation coincides with the pair in 596 of 2,150 gold pairs = 27.7% (Wilson
+   25.9–29.7%) and a line-scoped one in 5 of 930 = 0.54% (Wilson
+   0.23–1.25%) (CORRECTIONS #32, counts from study 13's gold, quoted here with
+   Wilson only). **What Arm 6 establishes** is that on documents wrapped at 58 characters
+   the rule went unmet on 40 of 87 addressed rows (the H6b figure above), and that the
+   skill's instruction — the shortest run from ONE line — was in front of the generator on
+   every call. **What it does not establish** is why: only 12 of the 40 crossing runs end
+   with a terminal punctuation mark (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5
+   discarded) — a count of marks, not a finding of sentence boundaries — and the run
+   cannot separate "a one-line rule is the wrong shape for wrapped text" from "the
+   generator did not comply". **The author's inference,
+   recorded as an inference:** a rule that asks for a run cut at a hard wrap is asking for
+   something the source's own sentences do not respect, and joining a file's hard wraps
+   inside a paragraph before matching (mapping the interval back, keeping the line-scoped
+   coincidence rate as the thing measured) is the redesign to test. It is to be
+   preregistered as its own slice (this arm's preregistration §8 requires that; the slice's
+   own preregistration does not exist yet), and the slice is the test of this inference,
+   not its proof: its first
+   candidate gold rows are the 40 Q1 quotations of this run, which are N by definition
+   here and have not been labelled on joined text. Until then the science profile's
+   standing (D164) is unaffected: T03 is not wrapped, and Arm 5's PASS there was 4 of 398 =
+   1.01% (Wilson 0.39–2.56%; bootstrap 0.24–1.97%).
+2. **M13 goes to the containment design's §6** beside M12 — the shape, the rule (`_scan`
+   reads a unit after the number; a sign before it is not read), and the measurement it
+   would need; not scheduled on three rows.
+3. **Q2's rendering cases** (quotations in the named file once typographic apostrophes
+   and quotation marks are folded AND line breaks are joined: 6 of the 21 absent
+   quotations, 28.6%; bootstrap 0–100%, 128 resamples discarded, 21 rows lying in few
+   drafts; only 1 of the 6 is on one line after the typography fold alone — 16.7%,
+   Wilson 3.0–56.4%, bootstrap 0–100% with 413 resamples discarded; Wilson 13.8–50.0% for the share): a fold of quotation characters alone recovers one row
+   on this run; the other five need the wrap join of ruling 1 as well. A note in the
+   containment design, and a slice only with a gold.
+4. **The generator's silence is a finding, not a fix.** 22 of 33 summaries = 66.7% (Wilson 49.61–80.25%; bootstrap 51.52–81.82%)
+   carried no annotation fence although the skill was rendered on every call and the whole source
+   was returned. The arm measures the check and does not tune the generator; the number
+   is said in the results' first paragraph, as Amendment 1 asked (an earlier version of
+   the results stated it only in §3 while claiming "reported first"), and the next arm on
+   prose states its
+   annotation rate as a primary outcome rather than a secondary.
+5. **The adjudicator.** D164 ruling 3 anticipated rows where the quotation reading and
+   the line reading part; this run held none — the 19 located rows are 5 blocks and 14
+   passes under both readings, and the one block whose value lies outside the quoted run
+   has it outside the quotation's line too (seven lines away). The quotation reading
+   stays the contract's for prose arms; the line reading is reported beside it whenever
+   the two differ, which here they did not.
+
+Recorded because a second domain was the question D164 left open, and the answer is not
+"the check fails" but "on this document shape the contract's line rule is unmet half the
+time, and the run cannot say whose failure that is": the measurement found the rule
+unmet on this document shape at a rate it bounded with intervals — an association on one
+domain, not a cause — and left the cause to a slice designed to test it, which is what a
+second domain was for.

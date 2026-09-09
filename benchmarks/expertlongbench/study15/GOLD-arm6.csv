@@ -1,0 +1,20 @@
+# GOLD — L1 and L2 agreed on every LABEL (kappa 1.000, 19/19); no label adjudication was needed. Rule codes differ on 12 items, all empty-unit rows where L1 cited R1 (the value as a numeral) and L2 cited R3 (an empty unit is a claim about the value only, decided under R1); R3 is the more specific code and both are correct; L1's are carried for consistency with Arms 4–5. id,label,rule.
+A60001,C,R1
+A60002,C,R1
+A60003,N,R1
+A60004,C,R1
+A60005,C,R1
+A60006,C,R2
+A60007,C,R1
+A60008,C,R1
+A60009,C,R1
+A60010,C,R2
+A60011,C,R1
+A60012,C,R1
+A60013,C,R2
+A60014,N,R1
+A60015,C,R2
+A60016,C,R2
+A60017,C,R1
+A60018,C,R1
+A60019,C,R1
