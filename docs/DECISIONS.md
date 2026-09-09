@@ -7598,8 +7598,8 @@ was one the record had already flagged as not understood.
 
 ## D166 — Arm 6: on hard-wrapped prose the one-line quotation rule went unmet on 40 of 87 rows, and the run cannot say whose fault; the check stays out of every profile for such documents until a redesigned rule has been tested on them
 
-**Date:** 2026-09-09. **Branch:** `study/provenance-arm6` (the merge commit and the review
-round count are appended at the merge). **Record:** `benchmarks/expertlongbench/RESULTS-ARM6.md`;
+**Date:** 2026-09-09. **Branch:** `study/provenance-arm6`, merged at 7ececeb after ten cross-vendor
+review rounds (all gpt-5.6-sol; quotable at round 10). **Record:** `benchmarks/expertlongbench/RESULTS-ARM6.md`;
 preregistration `study15/PREREGISTRATION-ARM6.md` (081f4f0, before any model call;
 Amendments 1–4).
 
