@@ -72,11 +72,25 @@ def main(argv=None) -> int:
     (HERE / "rows-arm6.jsonl").write_text(
         "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     plan = json.loads((run_dir / "plan.json").read_text(encoding="utf-8"))
+    # Attempt 2 was resumed in the same directory after the credit outage, and the runner
+    # then rewrote plan.json (review round 1). The plan printed at the run's START was
+    # recovered from the log into plan-start.json; both are recorded, with what differs.
+    start_path = run_dir / "plan-start.json"
+    plan_start = json.loads(start_path.read_text(encoding="utf-8")) if start_path.exists() else None
     manifest = {
         "study": "study15 / Arm 6",
         "preregistration": "benchmarks/expertlongbench/study15/PREREGISTRATION-ARM6.md",
         "plan": {k: v for k, v in plan.items() if k != "git_status"},
         "git_status_at_start": plan.get("git_status", ""),
+        "plan_at_start": ({k: v for k, v in plan_start.items() if k != "git_status"}
+                          if plan_start else None),
+        "git_status_at_true_start": plan_start.get("git_status", "") if plan_start else None,
+        "plan_fields_differing_start_vs_resume": (
+            sorted(k for k in set(plan) | set(plan_start) if plan.get(k) != plan_start.get(k))
+            if plan_start else None),
+        "plan_note": ("plan.json is the RESUME's plan (the runner rewrote it; fixed in "
+                      "provenance_arm6.py afterwards); plan_at_start is the run's start, "
+                      "recovered from arm6.log where the runner printed it"),
         "drafts": drafts,
         "rows_recorded": len(rows),
         "drafts_recorded": len(drafts),

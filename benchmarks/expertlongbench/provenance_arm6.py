@@ -114,10 +114,15 @@ def main(argv: list[str] | None = None) -> int:
         "python": sys.version.split()[0], "platform": sys.platform,
         "started_utc": datetime.now(timezone.utc).isoformat(),
     }
-    if args.only and (out_dir / "plan.json").exists():
-        # A retry never rewrites the run's plan: the first retry of Arm 5 did, and the
-        # plan had to be restored from the log where it was printed.
-        print(f"retry of {args.only}: the run's plan.json is kept")
+    if (out_dir / "plan.json").exists():
+        # Neither a retry nor a same-directory resume rewrites the run's plan: Arm 5's
+        # first retry did, and Arm 6's resume after the credit outage did (the plan at
+        # the start had to be restored from the log where it was printed — review round
+        # 1). The resume's own plan is written beside it, so both starts are on record.
+        stamp = plan["started_utc"].replace(":", "").replace("-", "")[:15]
+        (out_dir / f"plan-resume-{stamp}.json").write_text(json.dumps(plan, indent=2) + "\n",
+                                                          encoding="utf-8")
+        print(f"plan.json exists: kept; this start recorded as plan-resume-{stamp}.json")
     else:
         (out_dir / "plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
         (out_dir / "contract-S.txt").write_text(contract + "\n", encoding="utf-8")
