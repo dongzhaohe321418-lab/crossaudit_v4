@@ -11,7 +11,10 @@ carries its Wilson interval and the draft-clustered bootstrap (seed 20261108, 10
 resamples of the 33 drafts; resamples with no denominator discarded and counted), computed
 by `study15/arm6_rates.py`, which reproduces `report-arm6.json`'s figures and adds the ones
 the report does not print; the two Arm 5 figures quoted for comparison carry Arm 5's
-intervals. Population: every T01LegalMDS instance
+intervals. **Said here first, as Amendment 1 asks:** the generator annotated 91 of 2,630
+numbers = 3.5% (Wilson 2.83–4.23%; bootstrap 1.48–5.82%), against Arm 5's 38.1% on T03
+(Wilson 35.38–40.94%; bootstrap 34.47–41.94%), and only 11 of 33 summaries carry a fence
+at all; §3 has the detail. Population: every T01LegalMDS instance
 whose input is at most 200,000 characters — **33 of 100** (`study15/arm6_population.txt`;
 median 159,917 characters, 2,825 lines, 58 characters per line). One arm, the shipped
 configuration after D165: generator `anthropic:claude-sonnet-4-6`, auditor
@@ -93,7 +96,7 @@ for the primary (§3) and are the subject of §2.
 | class | n | what it is | by contract |
 |---|---|---|---|
 | **Q1** — the quotation crosses a line break | **40** | the quoted run crosses a hard wrap of the source (58 characters per line); 12 of the 40 end at sentence punctuation, 28 do not | right by contract (the one-line rule); H6b measures how often the rule is unmet on this shape of document, not why |
-| **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); 6 share their first 40 characters with the source and diverge after (an elision; 28.6%; 13.8–50.0%; 0–66.7%); 9 are not found by prefix (a paraphrase, or a different file; 42.9%; 24.5–63.5%; 0–55.6%) — the rule is `archive_rates` in `arm6_rates.py` | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
+| **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); 6 share their first 40 characters with the source and diverge after (an elision; 28.6%; 13.8–50.0%; 0–66.7%); 9 have no 40-character prefix in the named file (42.9%; 24.5–63.5%; 0–55.6%) — a paraphrase, another file, a divergence before the 40th character or some other transformation; the test does not distinguish them — the rule is `archive_rates` in `arm6_rates.py` | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
 
 The pair is somewhere in the named file for 26 of 40 Q1 rows (65.00%; Wilson 49.51–77.87%;
 bootstrap 32.26–100%, 5 discarded) and 12 of 21 Q2 rows (57.14%; Wilson 36.55–75.53%;
@@ -116,8 +119,9 @@ no row on this domain**, because nothing here is a range, list or subscript.
   all** (33.3%, Wilson 19.8–50.4%; bootstrap 18.2–48.5%); those 11 parsed to 0 to 22 rows
   (median 9; one fenced draft yielded no row, so 10 drafts carry the 91). The skill was rendered on every generator call, the tool result returned the
   whole source (512 KiB bound), and the generator still wrote no fence two times in three.
-  Reported first, as the preregistration asks when it is below Arm 5's by more than the
-  intervals allow.
+  Said in the first paragraph, as Amendment 1 asks when it is below Arm 5's by more than
+  the intervals allow (an earlier version of this file said "reported first" while stating
+  it only here; review round 6).
 * **Unit-bearing rows**: 42 of 91 = 46.2% (Wilson 36.3–56.3%; bootstrap 15.7–70.7%) — 27
   carry a currency sign, 8 a count of days, 7 a percent sign; the rest are empty-unit
   dates, counts and identifiers. The
@@ -133,10 +137,14 @@ no row on this domain**, because nothing here is a range, list or subscript.
   (9.83–25.22%; 4.00–33.33%). Located on one line (passes and located blocks) 19 of 87 =
   21.84% (14.45–31.61%; 8.93–39.66%). Ambiguous 7 of 87 = 8.05% (3.95–15.69%;
   2.53–16.67%). Unit shortening 0 of 19 (Wilson 0.00–16.82%; bootstrap 0–0%, 7 discarded).
-* **The generator path**: every one of the 33 drafts took the narrated-tool → corrected
-  re-ask → tool → continuation shape (3 calls; 2 drafts took 4), so the report's
-  "malformed-envelope re-ask on 33 of 33" is the mechanism D165 fixed, working. 3 of 101
-  generator calls returned exactly 4,096 output tokens, the ceiling.
+* **The generator path, from call counts only**: the archive keeps the usage ledger (31
+  drafts made 3 generator calls, 2 made 4; one successful `file_read` each; 101 calls in
+  all) and not the reply text or the retry events, so the exact sequence is not observed.
+  The report's "re-ask on 33 of 33" is a predicate on those counts (more than one
+  generator call) and cannot tell a malformed-envelope re-ask from an ordinary
+  tool-then-continuation cycle. The count shape is consistent with the D165 path
+  (narrated tool → corrected re-ask → tool → continuation) and does not establish it. 3
+  of 101 generator calls returned exactly 4,096 output tokens, the ceiling.
 * `adjudicator_b` (exact substring) on the 19 labelled rows: C rows 10 true / 7 false, N rows
   0 true / 2 false — the disqualified instrument misses 7 of 17 correct rows here, because
   thousands commas and a currency sign sit between the value and its digits.
@@ -150,8 +158,8 @@ no row on this domain**, because nothing here is a range, list or subscript.
   may span a soft wrap: the file's line breaks inside a sentence are joined before the
   match, with the interval mapped back) as a slice to be preregistered with its own gold
   rows — the 40 Q1 rows of this run are that gold's first candidates, labelled here as N
-  only by definition; if the joined-text rule still fails on them, the fault was the
-  generator's.
+  only by definition. That slice is the instrument designed to separate the two accounts;
+  what it will show is its own result, not this run's.
 * M13 (a currency sign before the value) is a real matcher class on this domain: three
   rows, all C, and the KILL rests on them. It goes to the containment design's §6 beside
   M12, with the same rule: a note first, a measured slice if ever.

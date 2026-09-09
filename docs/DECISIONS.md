@@ -7652,7 +7652,9 @@ RULINGS:
 4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
    annotation fence although the skill was rendered on every call and the whole source
    was returned. The arm measures the check and does not tune the generator; the number
-   is reported first, as the preregistration asked, and the next arm on prose states its
+   is said in the results' first paragraph, as Amendment 1 asked (an earlier version of
+   the results stated it only in §3 while claiming "reported first"), and the next arm on
+   prose states its
    annotation rate as a primary outcome rather than a secondary.
 5. **The adjudicator.** D164 ruling 3 anticipated rows where the quotation reading and
    the line reading part; this run held none — the 19 located rows are 5 blocks and 14
@@ -7663,6 +7665,7 @@ RULINGS:
 
 Recorded because a second domain was the question D164 left open, and the answer is not
 "the check fails" but "on this document shape the contract's line rule is unmet half the
-time, and the run cannot say whose failure that is": the measurement found the rule's
-sensitivity to document shape, bounded it with intervals, and left the cause to a slice
-designed to test it — which is what a second domain was for.
+time, and the run cannot say whose failure that is": the measurement found the rule
+unmet on this document shape at a rate it bounded with intervals — an association on one
+domain, not a cause — and left the cause to a slice designed to test it, which is what a
+second domain was for.
