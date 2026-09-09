@@ -104,12 +104,18 @@ first, and nothing in the record prevents writing it.
   as it was measured then.
 * The ceiling study's residual classes cover 68 instances; 3 of the 8 `testgen`-only
   flags are unclassified there.
-* `tests/test_testgen_report.py` binds to `records/testgen/numbers.json`, `rows.jsonl` and
-  `suites.json`: §1's table (all six cells per arm), the decision line, the paired
-  analysis, the residual-class counts (8 and 7 flags; 29 of 44), the explore-half line,
-  the overlap counts, the exploratory union, the F stratum, the suite totals (1,199 from
-  `suites.json`), the wrong-test figures, the timeout and pre-collector counts, and the
-  cost figures including "12% less"; and it runs `testgen/exploratory.py` and checks its
-  printed lines against the prose. Words between the figures are not machine-checked.
+* `tests/test_testgen_report.py` binds figures in this file to `records/testgen/numbers.json`,
+  `rows.jsonl`, `suites.json` and `testgen/exploratory.py`'s printed lines. **What it binds
+  is exactly the list in that test module's docstring, and nothing else**; a figure not on
+  that list is checked by the reviewer, not by the test. The list, at this commit: §1's
+  table (six cells per arm); the decision line (HOLDS, 8/6, McNemar, Δ, its bootstrap, the
+  sign-flip p, the 4-then-5 bar); "the same problem in both batches"; "All three C
+  instances"; the residual counts (8 → 4/1/3, 7 → 3/1/3, 29 of 44, 68 classified); the
+  overlap 7/7/4; the exploratory union with its Wilson and `hc`'s 5/74; "two of the seven";
+  the explore-half line; the suite totals (222, 290, $1.77, 1,199 from `suites.json`, mean,
+  min, max, one empty); the wrong-test figures (45 of 1,188, its intervals, 11 unknown, 32
+  of 221, one problem unknown, 70 of 1,545); the timeout and pre-collector counts; the cost
+  figures ($0.0061, `hc`'s $0.0069, "12% less", 1.3 instances per problem); the F stratum
+  line.
 * `testgen-validated` uses the canonical solution and is an upper bound everywhere it
   appears; no product number derives from it.
