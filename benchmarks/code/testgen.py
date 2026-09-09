@@ -48,7 +48,7 @@ import architectures as arch  # noqa: E402
 import execute  # noqa: E402
 import explore  # noqa: E402
 from corpus import Problem, load_problems  # noqa: E402
-from report_ceiling import cluster_bootstrap_ci  # noqa: E402
+from report_ceiling import cluster_bootstrap_ci, signflip_p  # noqa: E402
 
 RECORDS = HERE / "records" / "testgen"
 SUITES = RECORDS / "suites.json"          # per-problem shapes: counts, hashes, cost — no text
@@ -380,13 +380,25 @@ def report(args) -> int:
     # Paired: P instances flagged by testgen and not hc, and the reverse (exact McNemar).
     b = sum(1 for r in conf if r["stratum"] == "P" and r["flagged_testgen"] and r["hc_flagged"] is False)
     c = sum(1 for r in conf if r["stratum"] == "P" and not r["flagged_testgen"] and r["hc_flagged"])
+    # Cluster-aware sensitivity beside the instance-level McNemar (EXPERIMENT_RECORD §9): the
+    # per-instance signed change testgen − hc on P, bootstrapped and sign-flipped by problem.
+    signed: dict[str, list[float]] = {}
+    for r in conf:
+        if r["stratum"] == "P" and r["hc_flagged"] is not None:
+            signed.setdefault(r["problem_id"], []).append(
+                float(bool(r["flagged_testgen"])) - float(bool(r["hc_flagged"])))
+    d_lo, d_hi = cluster_bootstrap_ci(signed, BOOTSTRAP_REPS, BOOTSTRAP_SEED)
     out["decision"] = {
+        "fp_objective_max_instances": int(FP_CONSTRAINT * c_n) if c_n else 0,
         "fp_bar_instances": fp_bar_k, "testgen_within_fp_bar": within,
         "testgen_recall_above_hc": above,
         "H16": ("HOLDS" if (within and above) else
                 "KILL: false positives" if not within else "KILL: recall"),
         "paired_P_testgen_only": b, "paired_P_hc_only": c,
-        "mcnemar_exact_p": explore.mcnemar_exact(b, c)}
+        "mcnemar_exact_p": explore.mcnemar_exact(b, c),
+        "delta_recall_points": (100 * (tg["P"]["k"] - hc_["P"]["k"]) / tg["P"]["n"]) if tg["P"]["n"] else None,
+        "delta_recall_problem_cluster_bootstrap_points": [100 * d_lo, 100 * d_hi],
+        "delta_recall_signflip": signflip_p(signed)}
 
     # Secondaries.
     suites = json.loads(SUITES.read_text(encoding="utf-8")) if SUITES.exists() else {}
@@ -395,27 +407,60 @@ def report(args) -> int:
     n_unc = [s["n_uncompilable"] for s in per_problem.values()]
     dropped = [r["n_dropped_by_validation"] for r in rows if not r["canonical_unusable"]]
     total_tests = sum(r["n_tests"] for r in rows if not r["canonical_unusable"])
+    # unique tests: one suite per problem; a test is wrong once, however many candidates
+    wrong_by_problem: dict[str, set] = {}
+    unusable_problems = {r["problem_id"] for r in rows if r["canonical_unusable"]}
+    for r in rows:
+        if not r["canonical_unusable"]:
+            wrong_by_problem.setdefault(r["problem_id"], set()).update(r["failed_canonical"])
+    classifiable = {pid: s["n_tests"] for pid, s in per_problem.items() if pid not in unusable_problems}
+    n_unique_classifiable = sum(classifiable.values())
+    n_unique_wrong = sum(len(v) for v in wrong_by_problem.values())
+    n_unique_unknown = sum(s["n_tests"] for pid, s in per_problem.items() if pid in unusable_problems)
+    w_lo, w_hi = explore.wilson(n_unique_wrong, n_unique_classifiable) if n_unique_classifiable else (None, None)
+    wb_lo, wb_hi = cluster_bootstrap_ci(
+        {pid: [1.0 if i in wrong_by_problem.get(pid, set()) else 0.0 for i in range(n)]
+         for pid, n in classifiable.items() if n}, BOOTSTRAP_REPS, BOOTSTRAP_SEED)
     classes = residual_classes()
     flagged_p = [r for r in conf if r["stratum"] == "P" and r["flagged_testgen"]]
+    testgen_only = [r for r in flagged_p if r["hc_flagged"] is False]
+    validated_only = [r for r in conf if r["stratum"] == "P" and r["flagged_validated"] and r["hc_flagged"] is False]
     out["secondaries"] = {
         "problems_with_suite": len(per_problem),
         "tests_per_problem": {"mean": (sum(n_tests) / len(n_tests) if n_tests else None),
                               "min": min(n_tests, default=None), "max": max(n_tests, default=None),
                               "zero": sum(1 for x in n_tests if x == 0)},
         "uncompilable_total": sum(n_unc),
-        "wrong_tests": {"dropped_by_validation": sum(dropped), "of_tests": total_tests,
-                        "rate": (sum(dropped) / total_tests if total_tests else None),
+        "wrong_tests": {"dropped_by_validation_instance_rows": sum(dropped),
+                        "of_test_applications": total_tests,
+                        "unique_wrong": n_unique_wrong, "unique_classifiable": n_unique_classifiable,
+                        "unique_unknown_canonical_timed_out": n_unique_unknown,
+                        "unique_rate": (n_unique_wrong / n_unique_classifiable if n_unique_classifiable else None),
+                        "unique_wilson": [w_lo, w_hi],
+                        "unique_bootstrap_problem_cluster": [wb_lo, wb_hi],
+                        "problems_with_a_wrong_test": sum(1 for v in wrong_by_problem.values() if v),
                         "note": "tests that fail on the canonical solution; the false-positive mechanism named in §1"},
         "canonical_unusable_rows": sum(1 for r in rows if r["canonical_unusable"]),
         "candidate_timeouts": sum(1 for r in rows if r["candidate_timed_out"]),
+        "candidate_died_before_collector": sum(1 for r in rows if r["candidate_error"] and not r["candidate_timed_out"]),
         "confirm_P_flagged_by_testgen_and_hc": sum(1 for r in flagged_p if r["hc_flagged"]),
         "confirm_P_flagged_by_testgen_only": b,
-        "confirm_P_flagged_by_testgen_by_residual_class": _count_by(
-            [classes.get(r["instance_id"], "unclassified") for r in flagged_p]),
+        "confirm_P_testgen_only_by_residual_class": _count_by(
+            [classes.get(r["instance_id"], "unclassified") for r in testgen_only]),
+        "confirm_P_validated_only": len(validated_only),
+        "confirm_P_validated_only_by_residual_class": _count_by(
+            [classes.get(r["instance_id"], "unclassified") for r in validated_only]),
+        "confirm_P_not_flagged_by_hc_by_residual_class": _count_by(
+            [classes.get(r["instance_id"], "unclassified") for r in conf if r["stratum"] == "P" and r["hc_flagged"] is False]),
         "confirm_P_residual_classes_available": len(classes),
         "cost_usd_generation_total": round(sum(float(s.get("cost_usd", 0.0)) for s in per_problem.values()), 6),
         "cost_usd_per_instance_amortised": (round(sum(float(s.get("cost_usd", 0.0)) for s in per_problem.values()) / len(rows), 6) if rows else None),
+        "hc_cost_usd_per_instance_explore_leaderboard": _hc_cost(),
     }
+    if out["secondaries"]["hc_cost_usd_per_instance_explore_leaderboard"]:
+        out["secondaries"]["cost_ratio_testgen_over_hc"] = round(
+            out["secondaries"]["cost_usd_per_instance_amortised"]
+            / out["secondaries"]["hc_cost_usd_per_instance_explore_leaderboard"], 4)
     NUMBERS.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     for arm in ARMS:
         e = out["arms"][arm]["confirm"]
@@ -424,10 +469,24 @@ def report(args) -> int:
     print(f"\nH16: {out['decision']['H16']}   (FP bar {fp_bar_k} instances; "
           f"testgen-only P {b}, hc-only P {c}, McNemar p={out['decision']['mcnemar_exact_p']:.3f})")
     w = out["secondaries"]["wrong_tests"]
-    print(f"wrong tests: {w['dropped_by_validation']}/{w['of_tests']}; "
+    print(f"wrong tests (unique): {w['unique_wrong']}/{w['unique_classifiable']} "
+          f"(+{w['unique_unknown_canonical_timed_out']} unknown); "
           f"uncompilable {out['secondaries']['uncompilable_total']}; "
           f"generation ${out['secondaries']['cost_usd_generation_total']:.3f}")
     return 0
+
+
+def _hc_cost() -> float | None:
+    """The shipped auditor's per-instance cost as the explore leaderboard recorded it."""
+    path = explore.EXPLORE / "leaderboard.jsonl"
+    if not path.exists():
+        return None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            row = json.loads(line)
+            if row.get("spec_id") == "hc":
+                return float(row["cost_usd_per_instance"])
+    return None
 
 
 def _count_by(values: list[str]) -> dict[str, int]:

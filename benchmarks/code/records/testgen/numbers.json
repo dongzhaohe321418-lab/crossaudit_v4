@@ -508,7 +508,19 @@
   },
   "decision": {
     "H16": "HOLDS",
+    "delta_recall_points": 3.6363636363636362,
+    "delta_recall_problem_cluster_bootstrap_points": [
+      -10.00423728813559,
+      18.181818181818183
+    ],
+    "delta_recall_signflip": {
+      "method": "exact enumeration",
+      "n_clusters": 44,
+      "n_nonzero_clusters": 13,
+      "p": 0.806640625
+    },
     "fp_bar_instances": 5,
+    "fp_objective_max_instances": 4,
     "mcnemar_exact_p": 0.79052734375,
     "paired_P_hc_only": 6,
     "paired_P_testgen_only": 8,
@@ -521,18 +533,33 @@
     "from": "explore/PREREGISTRATION.md \u00a75 \u2014 highest confirm P-recall with confirm C-false-positive rate <= 6.7%"
   },
   "secondaries": {
+    "candidate_died_before_collector": 2,
     "candidate_timeouts": 2,
     "canonical_unusable_rows": 1,
     "confirm_P_flagged_by_testgen_and_hc": 5,
-    "confirm_P_flagged_by_testgen_by_residual_class": {
+    "confirm_P_flagged_by_testgen_only": 8,
+    "confirm_P_not_flagged_by_hc_by_residual_class": {
+      "spec-misreading": 4,
+      "timeout": 2,
+      "unclassified": 9,
+      "unexercised-edge": 29
+    },
+    "confirm_P_residual_classes_available": 68,
+    "confirm_P_testgen_only_by_residual_class": {
       "spec-misreading": 1,
-      "unclassified": 8,
+      "unclassified": 3,
       "unexercised-edge": 4
     },
-    "confirm_P_flagged_by_testgen_only": 8,
-    "confirm_P_residual_classes_available": 68,
+    "confirm_P_validated_only": 7,
+    "confirm_P_validated_only_by_residual_class": {
+      "spec-misreading": 1,
+      "unclassified": 3,
+      "unexercised-edge": 3
+    },
+    "cost_ratio_testgen_over_hc": 0.8836,
     "cost_usd_generation_total": 1.769705,
     "cost_usd_per_instance_amortised": 0.006102,
+    "hc_cost_usd_per_instance_explore_leaderboard": 0.006906,
     "problems_with_suite": 222,
     "tests_per_problem": {
       "max": 11,
@@ -542,10 +569,22 @@
     },
     "uncompilable_total": 0,
     "wrong_tests": {
-      "dropped_by_validation": 70,
+      "dropped_by_validation_instance_rows": 70,
       "note": "tests that fail on the canonical solution; the false-positive mechanism named in \u00a71",
-      "of_tests": 1545,
-      "rate": 0.045307443365695796
+      "of_test_applications": 1545,
+      "problems_with_a_wrong_test": 32,
+      "unique_bootstrap_problem_cluster": [
+        0.02502155232898281,
+        0.05201342281879195
+      ],
+      "unique_classifiable": 1188,
+      "unique_rate": 0.03787878787878788,
+      "unique_unknown_canonical_timed_out": 11,
+      "unique_wilson": [
+        0.02842832783823431,
+        0.05030820051978117
+      ],
+      "unique_wrong": 45
     }
   }
 }
