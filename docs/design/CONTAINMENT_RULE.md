@@ -283,3 +283,33 @@ R = 0 on the gold (it has no such row) — which means the only positive evidenc
 one Arm 5 row and the panel's own rows, and the note says so: one row is not a licence,
 and a list that admits one abbreviation is a rule about that abbreviation. Not scheduled;
 recorded so that the next arm's block classification has the name.
+
+**M13 — a currency sign written before the value** (Arm 6, three rows, all gold C; the
+legal sources write amounts as a sign followed by the digits, and the draft transcribed
+the sign as the unit). *The rule that produces it:* `unit_token` reads ONE whole token
+FOLLOWING the number — its docstring enumerates the boundaries, and every reading in
+`_unit_candidates` starts after the digits — so a sign that precedes the value is never
+read as a unit, and a transcribed unit of that sign matches nothing; the source pair is
+`(amount, '')` and the draft's is `(amount, sign)`. *What a reading would need:* a prefix
+unit position — a named, finite set of signs read directly before the digits (no space, or
+one space), carried into the pair as the unit, with the same boundary discipline as the
+suffix reading (`$5 m` is five metres of something priced, not a unit `$m`). *Rows:* the
+frozen gold (materials science) holds no currency; Arm 6's three rows are the positives;
+a designed panel must hold a sign before a digit that is not a unit of that number (a
+footnote marker, a section sign before a number — `§ 5` is a section, not five of
+anything, and it is the one prefix sign the legal domain writes most), and the suffix
+forms (`5 USD`, `5 dollars`), each labelled by the frozen rule. *Measurement:* as M12's,
+with the preregistered expectation R = 0 on the gold; three rows from one domain are the
+same non-licence as one row from another. Not scheduled; and D166 rules that this domain's
+documents do not meet the contract's line rule in any case, so a prefix reading is second
+in line behind the wrap redesign.
+
+**Q2 rendering — a quotation in the named file once typographic apostrophes and
+quotation marks are folded to ASCII and line breaks are joined** (Arm 6: 6 of 21 absent
+quotations, 28.6%; only 1 of the 6 lies on one line after the typography fold alone, the
+other 5 also cross a hard wrap; RESULTS-ARM6 §2, `arm6_rates.py --run`). A fold of `'’`
+and `"“”` before the containment test makes no claim about meaning and would, on that
+run, recover one row by itself; the other five belong to D166's wrap-join slice. Recorded
+as a candidate note, not a slice: one row is not a gold, and the fold's panel (a quotation
+whose only difference is a *different* character the fold does not cover) waits for the
+wrap-join slice that would give it a population.
