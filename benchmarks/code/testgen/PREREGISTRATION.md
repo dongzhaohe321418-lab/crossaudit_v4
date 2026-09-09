@@ -82,3 +82,28 @@ The confirm half's problems (≤ 129 instances across ~60 problems): one call pe
   the next question is validation without an oracle (majority over draws; tests that agree
   with the visible suite) — preregistered separately.
 * H16 fails on recall → execution does not reach the residual either; the ceiling stands.
+
+## Amendment 1 — before any model call: counts, the executor path and two harness rules
+
+Written after the code was read and before the first call.
+
+* **n.** The confirm half is 144 instances (55 P, 74 C, 15 F) over **128 problems**, not
+  "~60"; the explore half 146 over 130. One generation call per problem, both halves,
+  stays within the $5 budget (the decomposer's calls cost ≈ $0.01 each). §6's "~60" was a
+  guess and is corrected here, not after the run.
+* **The executor path.** A generated suite is assembled with `execute.mbpp_visible`
+  (solution + the benchmark's import lines + each test executed separately, per-test
+  failure vector), for HumanEval and MBPP alike, and run with `execute.run_suite`
+  (subprocess, 30 s wall clock, fresh cwd). `execute.py` is unchanged. A candidate whose
+  run times out is FLAGGED (recorded as `candidate_timed_out`); a canonical solution that
+  times out cannot validate and `testgen-validated` then does not flag (recorded).
+* **Uncompilable tests are dropped before execution, and counted.** `compile()` in the
+  harness process — nothing executes. A test that does not compile would fail on every
+  candidate and every canonical solution alike; it is a generation failure, not a finding.
+  `n_uncompilable` is a secondary outcome beside `n_dropped_by_validation`.
+* **Bootstrap seed 20260909**, 10,000 replicates over problem clusters, for the primary
+  rates; `report_ceiling.cluster_bootstrap_ci` unchanged.
+* **The generated test text is not committed.** It is model output written against
+  corpus specifications; the records carry counts, hashes and per-test failure indices,
+  the text stays in the run archive (`~/Documents/Crossaudit/study-data/`), as the
+  property lists did.

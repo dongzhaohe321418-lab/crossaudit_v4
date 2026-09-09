@@ -273,3 +273,104 @@ def parse_filter(text: str, count: int) -> list[bool]:
         if 0 <= index < count:
             kept[index] = bool(item.get("keep", False))
     return kept
+
+
+# ---------------------------------------------------------------------------------
+# testgen — study 16: the auditor writes tests from the specification and runs them
+# ---------------------------------------------------------------------------------
+
+#: Cap on generated tests per problem. Preregistered (study 16 §2) before any call.
+MAX_TESTS = 12
+
+TESTGEN_SYSTEM = (
+    "You are a meticulous software tester writing an independent test suite.\n\n"
+    "You will be given the specification of a Python function — its signature, its "
+    "docstring, and any examples the specification itself states — and the small test "
+    "suite the developer already runs. You will NOT be given any implementation, and you "
+    "must not assume one.\n\n"
+    "Write additional tests that ANY correct implementation of this specification must "
+    "pass and that a plausible WRONG implementation would fail. Prefer the inputs the "
+    "developer's suite does not exercise: empty input, a single element, duplicates, "
+    "zero, negatives, equal elements, inclusive-versus-exclusive bounds, the first and "
+    "last element, exact ties, and any special value the specification names.\n\n"
+    "Rules:\n"
+    f"- Emit at most {MAX_TESTS} tests. Fewer is correct for a simple specification; "
+    "do not pad.\n"
+    "- Each test is a self-contained Python statement or short block that raises "
+    "AssertionError when the behaviour is wrong, calling the function by the exact name "
+    "in the specification. It may import only the standard library. It must be "
+    "deterministic, must not print, must not read files or the network, and must finish "
+    "instantly.\n"
+    "- Write the expected value only when the specification determines it. If you are "
+    "not certain what a correct implementation must return on an input, do NOT write "
+    "that test; a wrong expected value is worse than no test.\n"
+    "- Do not repeat the developer's tests; do not test style, speed or naming.\n\n"
+    "Output format: a single JSON array of strings and nothing else. Each string is one "
+    "test's Python source."
+)
+
+TESTGEN_USER = (
+    "Specification:\n\n```python\n{spec}\n```\n\n"
+    "The developer's test suite (it passes; do not repeat it):\n\n```python\n{visible_tests}\n```"
+)
+
+
+def testgen_prompt(spec: str, visible_tests: str) -> tuple[str, str]:
+    """Build the test-generation prompt. Strings only; see the module docstring.
+
+    The generator is shown the specification and the visible suite — what the developer
+    can see — and never the candidate: a suite written from the candidate could be shaped
+    by the candidate's own mistakes, and the suite must be a function of the problem so
+    every candidate to the same problem meets the identical tests (study 16 §2).
+    """
+    for name, value in (("spec", spec), ("visible_tests", visible_tests)):
+        if not isinstance(value, str):
+            raise TypeError(f"testgen_prompt takes {name} as a string, so that the hidden "
+                            f"suite is unreachable from this code path")
+    return TESTGEN_SYSTEM, TESTGEN_USER.format(spec=spec, visible_tests=visible_tests)
+
+
+def parse_tests(text: str) -> list[str]:
+    """Parse the generated suite: a JSON array of source strings, deduplicated and capped.
+
+    A malformed reply yields no tests, which cannot flag anything — the conservative
+    direction for the arm's recall, as with :func:`parse_properties`. A string that does
+    not compile is dropped here, in the harness process, by ``compile`` alone: nothing is
+    executed. The count of dropped strings is the caller's to record.
+    """
+    match = _JSON_ARRAY.search(text or "")
+    if not match:
+        return []
+    try:
+        raw = json.loads(match.group(0))
+    except (ValueError, TypeError):
+        return []
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        if not isinstance(item, str):
+            continue
+        src = item.strip()
+        if not src or src in seen:
+            continue
+        seen.add(src)
+        out.append(src)
+        if len(out) >= MAX_TESTS:
+            break
+    return out
+
+
+def compilable(tests: list[str]) -> tuple[list[str], int]:
+    """Keep the tests that compile; return them and the number dropped. Compiles only."""
+    kept: list[str] = []
+    dropped = 0
+    for src in tests:
+        try:
+            compile(src, "<generated-test>", "exec")
+        except (SyntaxError, ValueError):
+            dropped += 1
+            continue
+        kept.append(src)
+    return kept, dropped

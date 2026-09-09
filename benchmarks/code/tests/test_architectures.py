@@ -13,6 +13,7 @@ decomposer or the per-property checker, directly or indirectly. Two tests prove 
 
 from __future__ import annotations
 
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -77,6 +78,8 @@ def _all_prompts_for(problem: Problem) -> list[str]:
     prompts.extend(arch.filter_prompt(
         problem.spec, SOLUTION, problem.visible_tests_text(),
         ["the function ignores negative operands"]))
+    # study 16: the test generator sees the specification and the visible suite only
+    prompts.extend(arch.testgen_prompt(problem.spec, problem.visible_tests_text()))
     return prompts
 
 
@@ -102,7 +105,7 @@ def test_hidden_suite_is_unreachable_from_the_decompose_path():
         raise AssertionError("the fixture's hidden suite did not raise; the guard is inert")
 
     prompts = _all_prompts_for(problem)
-    assert len(prompts) == 6
+    assert len(prompts) == 8
     assert all(isinstance(p, str) and p for p in prompts)
 
 
@@ -113,6 +116,7 @@ def test_prompt_builders_refuse_a_problem_object():
         lambda: arch.decompose_prompt(problem),                       # type: ignore[arg-type]
         lambda: arch.check_prompt(problem, SOLUTION, "", "c", "p"),   # type: ignore[arg-type]
         lambda: arch.filter_prompt(problem, SOLUTION, "", ["x"]),     # type: ignore[arg-type]
+        lambda: arch.testgen_prompt(problem, ""),                     # type: ignore[arg-type]
     ):
         try:
             call()
@@ -177,3 +181,41 @@ def test_parse_filter_keeps_only_what_the_model_kept():
 def test_an_unparseable_filter_reply_keeps_nothing():
     assert arch.parse_filter("garbage", 3) == [False, False, False]
     assert arch.parse_filter("", 2) == [False, False]
+
+
+# ---------------------------------------------------------------------------------
+# study 16 — the test generator's contracts
+# ---------------------------------------------------------------------------------
+
+def test_the_test_generator_is_not_shown_the_candidate_solution():
+    """The suite must be a function of the problem, so every candidate meets the same tests."""
+    _system, user = arch.testgen_prompt(SPEC, "assert add(1, 2) == 3\n")
+    assert SOLUTION not in user
+    assert "a + b" not in user
+
+
+def test_parse_tests_reads_a_json_array_of_strings_and_caps():
+    text = "Here you go:\n" + json.dumps(
+        [f"assert add({i}, 1) == {i + 1}" for i in range(20)] + [7, "", "assert add(0, 1) == 1"])
+    tests = arch.parse_tests(text)
+    assert len(tests) == arch.MAX_TESTS
+    assert all(isinstance(t, str) and t for t in tests)
+
+
+def test_parse_tests_deduplicates_and_tolerates_garbage():
+    assert arch.parse_tests("no array here") == []
+    assert arch.parse_tests("[1, 2") == []
+    assert arch.parse_tests('{"not": "a list"}') == []
+    assert arch.parse_tests(json.dumps(["assert add(1, 1) == 2", " assert add(1, 1) == 2 "])) == \
+        ["assert add(1, 1) == 2"]
+
+
+def test_compilable_drops_only_what_does_not_compile_and_counts_it():
+    kept, dropped = arch.compilable([
+        "assert add(1, 1) == 2",
+        "assert add(1, 1) ==",                    # syntax error
+        "x = add(2, 3)\nassert x == 5",           # a short block
+        "assert add(\x00, 1) == 1",               # null byte: ValueError, not SyntaxError
+    ])
+    assert kept == ["assert add(1, 1) == 2", "x = add(2, 3)\nassert x == 5"]
+    assert dropped == 2
