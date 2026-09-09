@@ -47,6 +47,11 @@ class Problem:
             return execute.humaneval_hidden(solution, self._hidden_test, self.entry_point)
         return execute.mbpp_hidden(solution, self._hidden_test, self.entry_point)
 
+    def test_imports(self) -> list[str]:
+        """The benchmark's own import lines for this problem (MBPP; empty for HumanEval).
+        Needed to assemble any suite around a solution; they name no hidden test."""
+        return list(self._test_imports)
+
     def visible_tests_text(self) -> str:
         """The visible suite as the developer sees it. Safe to show a model."""
         if self.benchmark == "humaneval":
