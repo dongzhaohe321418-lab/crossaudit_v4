@@ -65,6 +65,10 @@ def write_plan(out_dir: Path, plan: dict, contract: str, skill: str) -> str:
     if (out_dir / "plan.json").exists():
         stamp = plan["started_utc"].replace(":", "").replace("-", "")[:15]
         name = f"plan-resume-{stamp}.json"
+        n = 2
+        while (out_dir / name).exists():          # two starts in one second: both kept
+            name = f"plan-resume-{stamp}-{n}.json"
+            n += 1
         (out_dir / name).write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
         print(f"plan.json exists: kept; this start recorded as {name}")
         return name

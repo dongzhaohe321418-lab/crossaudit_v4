@@ -7606,11 +7606,15 @@ Amendments 1–4).
 **What was measured.** The shipped check (after D164 and D165) on 33 T01LegalMDS instances
 — multi-document legal records wrapped at ~58 characters per line, numbers that are dates,
 amounts and counts — with the primary adjudicated on the quotation (ruling 3 of D164).
-Two blinded labellers, κ = 1.000 on 19 items. **§8g: 3 of 17 correct annotations blocked,
-Wilson 6.19–41.03%, KILL for this domain** (all three one new class, M13: a currency sign
-before the value). **H6b: 40 of 87 addressed rows quote across a line break, Wilson
-35.90–56.40%, against a preregistered bar of 20%.** The generator fenced only 11 of 33
-summaries and annotated 3.5% of the numbers it wrote (T03: 38.1%).
+Two blinded labellers, κ = 1.000 on 19 items. Every rate here carries its Wilson interval
+and the draft-clustered bootstrap (seed 20261108). **§8g: 3 of 17 = 17.65% correct
+annotations blocked (Wilson 6.19–41.03%; bootstrap 0–60%, 7 resamples discarded), KILL for
+this domain** (all three one new class, M13: a currency sign before the value). **H6b: 40 of
+87 = 45.98% addressed rows quote across a line break (Wilson 35.90–56.40%; bootstrap
+26.15–60.98%), against a preregistered bar of 20%.** The generator fenced only 11 of 33
+summaries (33.3%; Wilson 19.75–50.39%; bootstrap 18.18–48.48%) and annotated 91 of 2,630 =
+3.5% of the numbers it wrote (Wilson 2.83–4.23%; bootstrap 1.45–5.80%); on T03 Arm 5 read
+446 of 1,170 = 38.1% (Wilson 35.38–40.94%; bootstrap 34.47–41.94%).
 
 RULINGS:
 
@@ -7624,7 +7628,8 @@ RULINGS:
    before matching, map the interval back, and keep the line-scoped coincidence rate as the
    thing measured; its gold rows are the 40 Q1 quotations of this run, re-labelled on the
    joined text. Until then the science profile's standing (D164) is unaffected: T03 is not
-   wrapped.
+   wrapped, and Arm 5's PASS there was 4 of 398 = 1.01% (Wilson 0.39–2.56%; bootstrap
+   0.24–1.97%).
 2. **M13 goes to the containment design's §6** beside M12 — the shape, the rule (`_scan`
    reads a unit after the number; a sign before it is not read), and the measurement it
    would need; not scheduled on three rows.
@@ -7636,9 +7641,12 @@ RULINGS:
    was returned. The arm measures the check and does not tune the generator; the number
    is reported first, as the preregistration asked, and the next arm on prose states its
    annotation rate as a primary outcome rather than a secondary.
-5. **The adjudicator.** One row disagreed between quotation and line (the quotation ended
-   one token before the value); the quotation reading is kept for prose arms, because it
-   is the contract's, and the line reading is reported beside it.
+5. **The adjudicator.** D164 ruling 3 anticipated rows where the quotation reading and
+   the line reading part; this run held none — the 19 located rows are 5 blocks and 14
+   passes under both readings, and the one block whose value lies outside the quoted run
+   has it outside the quotation's line too (seven lines away). The quotation reading
+   stays the contract's for prose arms; the line reading is reported beside it whenever
+   the two differ, which here they did not.
 
 Recorded because a second domain was the question D164 left open, and the answer is not
 "the check fails" but "the contract's line rule assumes a document shape": the measurement

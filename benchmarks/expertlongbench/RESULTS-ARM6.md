@@ -104,7 +104,8 @@ no row on this domain**, because nothing here is a range, list or subscript.
 ## 3. The generator on this domain (secondaries 8, 15, 16)
 
 * **Annotation rate**: 91 rows over 2,630 numbers present = **3.5%** (Wilson 2.8–4.2%;
-  bootstrap 1.5–5.8%); Arm 5 on T03 read 446 of 1,170 = 38.1% (Wilson 35.38–40.94%). **Only 11 of 33 summaries carry the fence at
+  bootstrap 1.5–5.8%); Arm 5 on T03 read 446 of 1,170 = 38.1% (Wilson 35.38–40.94%;
+  bootstrap 34.47–41.94%). **Only 11 of 33 summaries carry the fence at
   all** (33.3%, Wilson 19.8–50.4%; bootstrap 18.2–48.5%); those 11 parsed to 0 to 22 rows
   (median 9; one fenced draft yielded no row, so 10 drafts carry the 91). The skill was rendered on every generator call, the tool result returned the
   whole source (512 KiB bound), and the generator still wrote no fence two times in three.

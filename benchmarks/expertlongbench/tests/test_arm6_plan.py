@@ -29,3 +29,13 @@ def test_the_first_start_writes_the_plan_and_a_resume_never_overwrites_it(tmp_pa
     assert json.loads((tmp_path / "plan.json").read_text())["started_utc"] == first["started_utc"], \
         "the resume overwrote the run's plan"
     assert json.loads((tmp_path / name).read_text())["started_utc"] == resume["started_utc"]
+
+
+def test_two_resumes_in_the_same_second_are_both_kept(tmp_path):
+    runner.write_plan(tmp_path, _plan("2026-09-07T10:44:36+00:00"), "c", "s")
+    a = runner.write_plan(tmp_path, _plan("2026-09-07T10:57:33.100000+00:00"), "c", "s")
+    b = runner.write_plan(tmp_path, _plan("2026-09-07T10:57:33.900000+00:00"), "c", "s")
+    assert a != b and (tmp_path / a).exists() and (tmp_path / b).exists()
+    assert json.loads((tmp_path / a).read_text())["started_utc"].endswith(".100000+00:00")
+    assert json.loads((tmp_path / b).read_text())["started_utc"].endswith(".900000+00:00")
+    assert len(list(tmp_path.glob("plan*.json"))) == 3
