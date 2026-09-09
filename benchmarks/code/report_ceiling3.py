@@ -97,20 +97,20 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
         by_problem.setdefault(instances[i]["problem_id"], []).append(k)
     boot_A, boot_raw = rc.bootstrap_asymptote(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
     union_flags = {i: any(sub[d].get(i) for d in complete) for i in ids}
-    # The saturation fit is meaningless on a curve that is near zero at every K: the
-    # least-squares A runs to its bound with a huge tau (a line through the origin), and
-    # the number says nothing about the family. Preregistration §2 makes the raw union the
-    # primary; the fit is reported only when the K_max union is at least 5%.
-    estimable = bool(curve) and curve[-1] >= 0.05
+    # The preregistered fit (ceiling 1 §1.2) is always reported. A POST-HOC diagnostic is
+    # printed beside it — added after Sonnet's first draws were seen (review round 1 of
+    # study 18 called the earlier form, which suppressed the fit, outcome-dependent): when
+    # tau exceeds K_max the asymptote is an extrapolation past the readings taken, which is
+    # ceiling 1's own flattening caveat, and the reader is told so; nothing is suppressed.
+    extrapolated = bool(fit.get("tau")) and fit["tau"] > k_max
     return {"k_max": k_max, "draws_used": complete,
             "curve": curve,
-            "fit_estimable": estimable,
-            "fit_note": None if estimable else "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
+            "fit_diagnostic_post_hoc": ("tau > K_max: the asymptote extrapolates past the readings taken"
+                                        if extrapolated else "tau <= K_max"),
             "union_at_kmax": rc.clustered_rate(union_flags, ids, instances, BOOTSTRAP, BOOT_SEED),
             "single_draw_mean": curve[0] if curve else None,
-            "fit": ({"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
-                     "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]}
-                    if estimable else {"A": None, "tau": None, "r2": None, "A_ci95_cluster": [None, None]}),
+            "fit": {"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
+                    "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]},
             "flattening_gain_last_step": (curve[-1] - curve[-2]) if len(curve) >= 2 else None}
 
 
@@ -153,13 +153,36 @@ def reply_format_secondary(run_dir: Path) -> dict:
                 per: dict[str, int] = {}
                 for e in ev:
                     per[e["run_id"]] = per.get(e["run_id"], 0) + 1
-                reask = sum(1 for v in per.values() if v > 1)
+                # run_ids restart per pass in explore.run_detector, so multiplicity per id
+                # is NOT a re-ask count; the ledger's excess of calls over readings is.
+                reask = len(ev) - len(rows)
                 long = sum(1 for e in ev if int(e.get("output", 0) or 0) > 300)
             out[f"{fam}-d{d}"] = {"rows": len(rows), "invalid_reason_nonempty": invalid,
-                                  "instances_with_a_reask": reask, "replies_over_300_output_tokens": long,
+                                  "ledger_calls_minus_readings": reask, "ledger_calls": len(ev) if ledger.exists() else None,
+                                  "ledger_usd": (round(sum(float(e.get("api_value_usd") or 0) for e in ev), 4) if ledger.exists() else None),
+                                  "replies_over_300_output_tokens": long,
                                   "model_findings_any": sum(1 for r in rows if int(r.get("model_findings", 0) or 0) > 0),
                                   "model_blockers_any": sum(1 for r in rows if int(r.get("model_blockers", 0) or 0) > 0)}
     return out
+
+
+def mean_single_draw_difference(draws_a: dict, draws_b: dict, k: int, ids: list[str], instances: dict) -> dict:
+    """The preregistered K = 1 contrast of §2 H18c: each family's MEAN single-draw rate over
+    its draws (here the first ``k`` of each), paired per instance, with the problem-cluster
+    bootstrap and the cluster sign-flip. Non-binary per instance, so no McNemar."""
+    da = [d for d in sorted(x for x in draws_a if isinstance(x, int))][:k]
+    db = [d for d in sorted(x for x in draws_b if isinstance(x, int))][:k]
+    by_problem: dict[str, list[float]] = {}
+    ma = mb = 0.0
+    for i in ids:
+        fa = sum(1.0 for d in da if draws_a[d].get(i)) / len(da)
+        fb = sum(1.0 for d in db if draws_b[d].get(i)) / len(db)
+        ma += fa; mb += fb
+        by_problem.setdefault(instances[i]["problem_id"], []).append(fa - fb)
+    lo, hi = rc.cluster_bootstrap_ci(by_problem, BOOTSTRAP, BOOT_SEED)
+    return {"k_draws_each": k, "n": len(ids), "a_mean_single": ma / len(ids), "b_mean_single": mb / len(ids),
+            "difference_points": 100 * (ma - mb) / len(ids), "cluster_ci95_points": [100 * lo, 100 * hi],
+            "signflip": rc.signflip_p(by_problem)}
 
 
 def main() -> int:
@@ -201,7 +224,10 @@ def main() -> int:
     out["H18a_self_strong_minus_self_P"] = contrast("self-strong", "self", min(kmax.get("self-strong", 0), kmax.get("self", 0)) or 1, P)
     out["H18b_C_false_positives"] = contrast("self-strong", "cross", kc, C) if kc else None
     kf = min(kmax.get("self-frontier", 0), kmax.get("astra", 0))
-    out["H18c_frontier_minus_astra_P_k1"] = contrast("self-frontier", "astra", 1, P) if kf >= 1 else {"note": "no self-frontier draw yet"}
+    out["H18c_frontier_minus_astra_P_k1_mean_over_draws"] = (
+        mean_single_draw_difference(draws["self-frontier"], draws["astra"], kf, P, instances) if kf >= 1
+        else {"note": "no self-frontier draw yet"})
+    out["H18c_frontier_minus_astra_P_draw1_only_EXPLORATORY"] = contrast("self-frontier", "astra", 1, P) if kf >= 1 else None
     out["H18c_frontier_minus_astra_P_kmax"] = contrast("self-frontier", "astra", kf, P) if kf >= 1 else None
     out["H18c_frontier_minus_astra_C_kmax"] = contrast("self-frontier", "astra", kf, C) if kf >= 1 else None
 
@@ -216,6 +242,8 @@ def main() -> int:
         "cluster_ci95": list(rc.cluster_bootstrap_ci(
             {instances[i]["problem_id"]: [] for i in P} | _by_problem({i: (i in never) for i in P}, instances), BOOTSTRAP, BOOT_SEED)),
         "instance_ids": never}
+    out["never_flagged_by_any_family"]["cluster_ci95"] = list(rc.cluster_bootstrap_ci(
+        _by_problem({i: (i in never) for i in P}, instances), BOOTSTRAP, BOOT_SEED))
     # mixed at matched total draws: cross + self-strong, K/2 each
     if kmax.get("self-strong", 0) >= 1:
         out["mixed_cross_self_strong"] = {}
@@ -244,7 +272,8 @@ def main() -> int:
         out["EXPLORATORY_any_finding_rule"]["families"][f] = entry
     never_any = [i for i in P if not any(any_draws[f][d].get(i) for f in FAMILIES for d in any_draws[f] if isinstance(d, int))]
     out["EXPLORATORY_any_finding_rule"]["never_any_finding_by_any_family_P"] = {
-        "k": len(never_any), "n": len(P), "rate": len(never_any) / len(P), "wilson95": list(rc.wilson(len(never_any), len(P)))}
+        "k": len(never_any), "n": len(P), "rate": len(never_any) / len(P), "wilson95": list(rc.wilson(len(never_any), len(P))),
+        "cluster_ci95": list(rc.cluster_bootstrap_ci(_by_problem({i: (i in never_any) for i in P}, instances), BOOTSTRAP, BOOT_SEED))}
     # cost per reading from this study's caches
     costs = {}
     for f in ("self-strong", "self-frontier"):
@@ -264,7 +293,7 @@ def main() -> int:
             p, c = e["P"], e["C"]
             print(f"{f:14s} K={e['k_max']}  P union {100*p['union_at_kmax']['rate']:.1f}% "
                   f"[{100*p['union_at_kmax']['cluster_ci95'][0]:.1f}, {100*p['union_at_kmax']['cluster_ci95'][1]:.1f}]  "
-                  f"A={('%.1f%%' % (100*p['fit']['A'])) if p['fit_estimable'] else 'n/e'}  C union {100*c['union_at_kmax']['rate']:.1f}%  "
+                  f"A={100*p['fit']['A']:.1f}% (tau {p['fit']['tau']:.1f})  C union {100*c['union_at_kmax']['rate']:.1f}%  "
                   f"single {100*(p['single_draw_mean'] or 0):.1f}%")
         else:
             print(f"{f:14s} not run")
@@ -274,19 +303,27 @@ def main() -> int:
               f"[{pr['cluster_ci95_points'][0]:+.1f}, {pr['cluster_ci95_points'][1]:+.1f}]  "
               f"a-only {pr['a_only']} b-only {pr['b_only']} McNemar p={pr['mcnemar_exact_p']:.3f} "
               f"sign-flip p={pr['signflip']['p']:.3f}")
+    ha = out["H18a_self_strong_minus_self_P"]
+    if "difference_points" in ha:
+        print(f"H18a (K={ha['k']}): self-strong − self on P = {ha['difference_points']:+.1f} [{ha['cluster_ci95_points'][0]:+.1f}, {ha['cluster_ci95_points'][1]:+.1f}] "
+              f"McNemar p={ha['mcnemar_exact_p']:.4f} sign-flip p={ha['signflip']['p']:.4f}")
+    hc1 = out["H18c_frontier_minus_astra_P_k1_mean_over_draws"]
+    if "difference_points" in hc1:
+        print(f"H18c K=1 mean over {hc1['k_draws_each']} draws each: {hc1['difference_points']:+.1f} [{hc1['cluster_ci95_points'][0]:+.1f}, {hc1['cluster_ci95_points'][1]:+.1f}] sign-flip p={hc1['signflip']['p']:.5f}")
     nv = out["never_flagged_by_any_family"]
-    print(f"never flagged by any family: {nv['k']}/{nv['n']} = {100*nv['rate']:.1f}% over {nv['total_draws']} draws")
+    print(f"never flagged by any family: {nv['k']}/{nv['n']} = {100*nv['rate']:.1f}% over {nv['total_draws']} draws  "
+          f"Wilson [{100*nv['wilson95'][0]:.1f}, {100*nv['wilson95'][1]:.1f}] cluster [{100*nv['cluster_ci95'][0]:.1f}, {100*nv['cluster_ci95'][1]:.1f}]")
     ex = out["EXPLORATORY_any_finding_rule"]
     print("\nEXPLORATORY any-finding rule (not preregistered):")
     for f, e in ex["families"].items():
         print(f"  {f:14s} K={e['k_max']}  P union {100*e['P']['union_at_kmax']['rate']:.1f}%  single {100*e['P']['single_draw_mean']:.1f}%  "
               f"C union {100*e['C']['union_at_kmax']['rate']:.1f}%  single {100*e['C']['single_draw_mean']:.1f}%")
     na = ex["never_any_finding_by_any_family_P"]
-    print(f"  never any finding by any family: {na['k']}/{na['n']} = {100*na['rate']:.1f}%")
+    print(f"  never any finding by any family: {na['k']}/{na['n']} = {100*na['rate']:.1f}%  Wilson [{100*na['wilson95'][0]:.1f}, {100*na['wilson95'][1]:.1f}] cluster [{100*na['cluster_ci95'][0]:.1f}, {100*na['cluster_ci95'][1]:.1f}]")
     if args.run:
         print("\nreply format (Amendment 1 secondary):")
         for k, v in out["reply_format_secondary"].items():
-            print(f"  {k:18s} rows {v['rows']}  invalid {v['invalid_reason_nonempty']}  re-asks {v['instances_with_a_reask']}  "
+            print(f"  {k:18s} rows {v['rows']}  invalid {v['invalid_reason_nonempty']}  extra calls {v['ledger_calls_minus_readings']}  ${v['ledger_usd']}  "
                   f"long(>300 tok) {v['replies_over_300_output_tokens']}  any-finding {v['model_findings_any']}  blocker {v['model_blockers_any']}")
     return 0
 

@@ -282,6 +282,10 @@
       }
     },
     "never_any_finding_by_any_family_P": {
+      "cluster_ci95": [
+        0.13513513513513514,
+        0.32727272727272727
+      ],
       "k": 25,
       "n": 110,
       "rate": 0.22727272727272727,
@@ -352,7 +356,7 @@
       "p": 0.010894775390625
     }
   },
-  "H18c_frontier_minus_astra_P_k1": {
+  "H18c_frontier_minus_astra_P_draw1_only_EXPLORATORY": {
     "a_only": 0,
     "a_union": 0.00909090909090909,
     "b_only": 30,
@@ -370,6 +374,23 @@
       "n_clusters": 56,
       "n_nonzero_clusters": 16,
       "p": 3.0517578125e-05
+    }
+  },
+  "H18c_frontier_minus_astra_P_k1_mean_over_draws": {
+    "a_mean_single": 0.004545454545454545,
+    "b_mean_single": 0.30227272727272725,
+    "cluster_ci95_points": [
+      -41.36363636363637,
+      -18.636363636363637
+    ],
+    "difference_points": -29.772727272727273,
+    "k_draws_each": 4,
+    "n": 110,
+    "signflip": {
+      "method": "exact enumeration",
+      "n_clusters": 56,
+      "n_nonzero_clusters": 19,
+      "p": 3.814697265625e-06
     }
   },
   "H18c_frontier_minus_astra_P_kmax": {
@@ -471,8 +492,7 @@
           "r2": 0.8757395115114234,
           "tau": 0.40084926120567665
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0016666666666666774,
         "k_max": 4,
         "single_draw_mean": 0.09666666666666666,
@@ -514,8 +534,7 @@
           "r2": 0.9517332026816013,
           "tau": 0.3772240317668224
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0022727272727272596,
         "k_max": 4,
         "single_draw_mean": 0.30227272727272725,
@@ -569,8 +588,7 @@
           "r2": 0.9926185170115088,
           "tau": 4.339612336037277
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.010833333333333334,
         "k_max": 8,
         "single_draw_mean": 0.045,
@@ -620,8 +638,7 @@
           "r2": 0.9678071689121078,
           "tau": 3.2658403285217634
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.01931818181818179,
         "k_max": 8,
         "single_draw_mean": 0.10681818181818181,
@@ -675,8 +692,7 @@
           "r2": 0.5961182225266113,
           "tau": 0.3718744199081986
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0016666666666666496,
         "k_max": 8,
         "single_draw_mean": 0.21916666666666668,
@@ -726,8 +742,7 @@
           "r2": 0.4763120322512945,
           "tau": 0.38867730328325045
         },
-        "fit_estimable": true,
-        "fit_note": null,
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0022727272727272874,
         "k_max": 8,
         "single_draw_mean": 0.15454545454545454,
@@ -765,16 +780,15 @@
           4
         ],
         "fit": {
-          "A": null,
+          "A": 0.05524957805394603,
           "A_ci95_cluster": [
-            null,
-            null
+            0.0074668571656435175,
+            1.0
           ],
-          "r2": null,
-          "tau": null
+          "r2": 0.9999221578148627,
+          "tau": 6.054426645501708
         },
-        "fit_estimable": false,
-        "fit_note": "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
+        "fit_diagnostic_post_hoc": "tau > K_max: the asymptote extrapolates past the readings taken",
         "flattening_gain_last_step": 0.005000000000000001,
         "k_max": 4,
         "single_draw_mean": 0.008333333333333333,
@@ -808,16 +822,15 @@
           4
         ],
         "fit": {
-          "A": null,
+          "A": 0.010182077968657987,
           "A_ci95_cluster": [
-            null,
-            null
+            0.0,
+            0.030826474659410758
           ],
-          "r2": null,
-          "tau": null
+          "r2": 0.9730728043937815,
+          "tau": 1.5446476223222363
         },
-        "fit_estimable": false,
-        "fit_note": "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0,
         "k_max": 4,
         "single_draw_mean": 0.004545454545454545,
@@ -863,16 +876,15 @@
           8
         ],
         "fit": {
-          "A": null,
+          "A": 0.0316778237914713,
           "A_ci95_cluster": [
-            null,
-            null
+            0.007914718742517913,
+            1.0
           ],
-          "r2": null,
-          "tau": null
+          "r2": 0.85693110432183,
+          "tau": 2.0219265303157146
         },
-        "fit_estimable": false,
-        "fit_note": "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
+        "fit_diagnostic_post_hoc": "tau <= K_max",
         "flattening_gain_last_step": 0.0016666666666666635,
         "k_max": 8,
         "single_draw_mean": 0.016666666666666666,
@@ -914,16 +926,15 @@
           8
         ],
         "fit": {
-          "A": null,
+          "A": 0.08484674204248226,
           "A_ci95_cluster": [
-            null,
-            null
+            0.010720846303384657,
+            1.0
           ],
-          "r2": null,
-          "tau": null
+          "r2": 0.9999679578122593,
+          "tau": 14.25243229234373
         },
-        "fit_estimable": false,
-        "fit_note": "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
+        "fit_diagnostic_post_hoc": "tau > K_max: the asymptote extrapolates past the readings taken",
         "flattening_gain_last_step": 0.0034090909090909102,
         "k_max": 8,
         "single_draw_mean": 0.005681818181818182,
@@ -1057,96 +1068,120 @@
   "primary_at_k": 8,
   "reply_format_secondary": {
     "self-frontier-d1": {
-      "instances_with_a_reask": 15,
       "invalid_reason_nonempty": 2,
+      "ledger_calls": 265,
+      "ledger_calls_minus_readings": 5,
+      "ledger_usd": 4.5562,
       "model_blockers_any": 3,
       "model_findings_any": 27,
       "replies_over_300_output_tokens": 56,
       "rows": 260
     },
     "self-frontier-d2": {
-      "instances_with_a_reask": 53,
       "invalid_reason_nonempty": 1,
+      "ledger_calls": 265,
+      "ledger_calls_minus_readings": 5,
+      "ledger_usd": 4.5747,
       "model_blockers_any": 1,
       "model_findings_any": 23,
       "replies_over_300_output_tokens": 58,
       "rows": 260
     },
     "self-frontier-d3": {
-      "instances_with_a_reask": 44,
       "invalid_reason_nonempty": 1,
+      "ledger_calls": 263,
+      "ledger_calls_minus_readings": 3,
+      "ledger_usd": 4.4939,
       "model_blockers_any": 2,
       "model_findings_any": 30,
       "replies_over_300_output_tokens": 51,
       "rows": 260
     },
     "self-frontier-d4": {
-      "instances_with_a_reask": 67,
       "invalid_reason_nonempty": 1,
+      "ledger_calls": 264,
+      "ledger_calls_minus_readings": 4,
+      "ledger_usd": 4.5463,
       "model_blockers_any": 1,
       "model_findings_any": 26,
       "replies_over_300_output_tokens": 59,
       "rows": 260
     },
     "self-strong-d1": {
-      "instances_with_a_reask": 3,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 263,
+      "ledger_calls_minus_readings": 3,
+      "ledger_usd": 2.2629,
       "model_blockers_any": 3,
       "model_findings_any": 71,
       "replies_over_300_output_tokens": 74,
       "rows": 260
     },
     "self-strong-d2": {
-      "instances_with_a_reask": 78,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 265,
+      "ledger_calls_minus_readings": 5,
+      "ledger_usd": 2.2719,
       "model_blockers_any": 3,
       "model_findings_any": 61,
       "replies_over_300_output_tokens": 76,
       "rows": 260
     },
     "self-strong-d3": {
-      "instances_with_a_reask": 4,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 264,
+      "ledger_calls_minus_readings": 4,
+      "ledger_usd": 2.2416,
       "model_blockers_any": 5,
       "model_findings_any": 60,
       "replies_over_300_output_tokens": 71,
       "rows": 260
     },
     "self-strong-d4": {
-      "instances_with_a_reask": 54,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 262,
+      "ledger_calls_minus_readings": 2,
+      "ledger_usd": 2.1809,
       "model_blockers_any": 2,
       "model_findings_any": 60,
       "replies_over_300_output_tokens": 70,
       "rows": 260
     },
     "self-strong-d5": {
-      "instances_with_a_reask": 80,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 264,
+      "ledger_calls_minus_readings": 4,
+      "ledger_usd": 2.2393,
       "model_blockers_any": 3,
       "model_findings_any": 67,
       "replies_over_300_output_tokens": 74,
       "rows": 260
     },
     "self-strong-d6": {
-      "instances_with_a_reask": 62,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 265,
+      "ledger_calls_minus_readings": 5,
+      "ledger_usd": 2.2818,
       "model_blockers_any": 4,
       "model_findings_any": 73,
       "replies_over_300_output_tokens": 77,
       "rows": 260
     },
     "self-strong-d7": {
-      "instances_with_a_reask": 39,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 264,
+      "ledger_calls_minus_readings": 4,
+      "ledger_usd": 2.2291,
       "model_blockers_any": 2,
       "model_findings_any": 54,
       "replies_over_300_output_tokens": 73,
       "rows": 260
     },
     "self-strong-d8": {
-      "instances_with_a_reask": 97,
       "invalid_reason_nonempty": 0,
+      "ledger_calls": 262,
+      "ledger_calls_minus_readings": 2,
+      "ledger_usd": 2.1693,
       "model_blockers_any": 3,
       "model_findings_any": 59,
       "replies_over_300_output_tokens": 66,

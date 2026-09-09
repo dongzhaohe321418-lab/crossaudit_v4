@@ -116,3 +116,36 @@ that were prose rather than the JSON the validator expects, from the harness's
 `invalid_reason` and re-ask counts in the ledger — so that "the model sees nothing" and
 "the model does not answer in the product's format" can be told apart in the report;
 (3) the report states the reasoning setting per vendor beside every family.
+
+## Amendment 2 — 2026-09-10, after the first review; corrections of record, no design change
+
+1. **Amendment 1's chronology was wrong.** It said the run was stopped "before draw 2 ran"
+   and that "no draw-2 reading had landed". The archive shows draw 2 had begun: 31 calls
+   between 11:10:07 and 11:11:37 UTC produced 30 cached readings before the process was
+   killed, and Amendment 1 was committed at 11:14:31 UTC, after them. Those 30 readings
+   were kept (the loop is resumable and a cached reading is never discarded or re-bought);
+   the resumed draw 2 ran the other 230. Nothing else in Amendment 1 changes.
+2. **The fit guard was outcome-dependent and is withdrawn.** After Sonnet's draws 1–4 the
+   author added a rule that suppressed the preregistered saturation fit when the K_max
+   union was below 5%, and described it as an estimability rule; the fitter in fact
+   returns a finite fit on that curve (Sonnet P: A = 8.5%, τ = 14.3). The fit is now
+   reported for every family as §1.2 requires; a post-hoc diagnostic (τ > K_max: the
+   asymptote extrapolates past the readings taken, ceiling 1's own flattening caveat) is
+   printed beside it and labelled post hoc.
+3. **H18c's K = 1 contrast is computed as preregistered** — each family's mean single-draw
+   rate over its draws, paired per instance, cluster-bootstrapped — and the draw-1-only
+   contrast the first results reported is kept beside it, labelled exploratory.
+4. **The probe replies were not archived**; they were printed to the author's terminal.
+   The probe was re-run on 2026-09-10 with the same instances, prompt bytes and models,
+   and the six new replies are archived with their digests (`probe/replies-rerun.jsonl`,
+   `probe/README.md`). They are new samples, not the originals: one Sonnet reply this time
+   carries a BLOCKER on an instance it passed before, so the probe's own lesson is the
+   draw-to-draw variability the union curve exists to measure.
+5. **The any-finding rule stays exploratory** and is reported as a flag rate — an
+   instance on which the model returned at least one finding of any severity — not as
+   evidence that the finding names the instance's defect; advisory texts were not archived
+   or adjudicated. The reading "a severity policy, not a limit of seeing" is the author's
+   inference, and the study designed to test it (ceiling 3b: the same families under a
+   constitution that states the blocking criterion) is preregistered separately.
+6. **Re-ask counts** are the ledger's excess of calls over readings per draw, not the
+   multiplicity of `run_id`s, which `explore.run_detector` restarts per pass.
