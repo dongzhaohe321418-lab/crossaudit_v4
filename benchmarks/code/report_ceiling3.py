@@ -61,12 +61,20 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
         by_problem.setdefault(instances[i]["problem_id"], []).append(k)
     boot_A, boot_raw = rc.bootstrap_asymptote(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
     union_flags = {i: any(sub[d].get(i) for d in complete) for i in ids}
+    # The saturation fit is meaningless on a curve that is near zero at every K: the
+    # least-squares A runs to its bound with a huge tau (a line through the origin), and
+    # the number says nothing about the family. Preregistration §2 makes the raw union the
+    # primary; the fit is reported only when the K_max union is at least 5%.
+    estimable = bool(curve) and curve[-1] >= 0.05
     return {"k_max": k_max, "draws_used": complete,
             "curve": curve,
+            "fit_estimable": estimable,
+            "fit_note": None if estimable else "curve below 5% at K_max: asymptote not estimable (A runs to a bound)",
             "union_at_kmax": rc.clustered_rate(union_flags, ids, instances, BOOTSTRAP, BOOT_SEED),
             "single_draw_mean": curve[0] if curve else None,
-            "fit": {"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
-                    "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]},
+            "fit": ({"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
+                     "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]}
+                    if estimable else {"A": None, "tau": None, "r2": None, "A_ci95_cluster": [None, None]}),
             "flattening_gain_last_step": (curve[-1] - curve[-2]) if len(curve) >= 2 else None}
 
 
@@ -166,7 +174,7 @@ def main() -> int:
             p, c = e["P"], e["C"]
             print(f"{f:14s} K={e['k_max']}  P union {100*p['union_at_kmax']['rate']:.1f}% "
                   f"[{100*p['union_at_kmax']['cluster_ci95'][0]:.1f}, {100*p['union_at_kmax']['cluster_ci95'][1]:.1f}]  "
-                  f"A={100*(p['fit']['A'] or 0):.1f}%  C union {100*c['union_at_kmax']['rate']:.1f}%  "
+                  f"A={('%.1f%%' % (100*p['fit']['A'])) if p['fit_estimable'] else 'n/e'}  C union {100*c['union_at_kmax']['rate']:.1f}%  "
                   f"single {100*(p['single_draw_mean'] or 0):.1f}%")
         else:
             print(f"{f:14s} not run")
