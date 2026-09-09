@@ -13,8 +13,8 @@ by `study15/arm6_rates.py`, which reproduces `report-arm6.json`'s figures and ad
 the report does not print; the two Arm 5 figures quoted for comparison carry Arm 5's
 intervals. **Said here first, as Amendment 1 asks:** the generator annotated 91 of 2,630
 numbers = 3.5% (Wilson 2.83–4.23%; bootstrap 1.48–5.82%), against Arm 5's 38.1% on T03
-(Wilson 35.38–40.94%; bootstrap 34.47–41.94%), and only 11 of 33 summaries carry a fence
-at all; §3 has the detail. Population: every T01LegalMDS instance
+(Wilson 35.38–40.94%; bootstrap 34.47–41.94%), and only 11 of 33 summaries = 33.3% carry
+a fence at all (Wilson 19.75–50.39%; bootstrap 18.18–48.48%); §3 has the detail. Population: every T01LegalMDS instance
 whose input is at most 200,000 characters — **33 of 100** (`study15/arm6_population.txt`;
 median 159,917 characters, 2,825 lines, 58 characters per line). One arm, the shipped
 configuration after D165: generator `anthropic:claude-sonnet-4-6`, auditor
@@ -73,10 +73,12 @@ given): **40 of 87 = 45.98% cross a line break** (Wilson 35.90–56.40%; bootstr
 the contract's requirement that a quotation lie within one line is the largest single
 reason the check blocks. **What the run does not separate is whose failure that is.** The
 skill asks for the shortest run from ONE line that contains the pair; the generator
-returned a run crossing a line break on 40 of 87 rows, and only 12 of those 40 end at
-sentence punctuation (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5 discarded —
-`arm6_rates.py --run`, which reads the quotations from the archive), so "it quoted
-sentences" is not the account. Whether a one-line rule is the wrong shape for wrapped text or the generator
+returned a run crossing a line break on 40 of 87 rows; 12 of those 40 end with a terminal
+punctuation mark (`.`, `?` or `!`, after trailing whitespace, quotation marks and
+brackets are stripped: 30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5 discarded —
+`arm6_rates.py --run`, which reads the quotations from the archive). That instrument
+counts terminal marks; it does not find sentence boundaries or say whether a mark was
+omitted, so it does not say whether the generator was quoting sentences. Whether a one-line rule is the wrong shape for wrapped text or the generator
 simply did not comply is the author's inference to make, and it is made in D166 as an
 inference the redesign slice will test, not as a finding of this run. Per §8
 of the preregistration, **the check does not enter any profile for prose-wrapped documents
@@ -96,7 +98,7 @@ for the primary (§3) and are the subject of §2.
 | class | n | what it is | by contract |
 |---|---|---|---|
 | **Q1** — the quotation crosses a line break | **40** | the quoted run crosses a hard wrap of the source (58 characters per line); 12 of the 40 end at sentence punctuation, 28 do not | right by contract (the one-line rule); H6b measures how often the rule is unmet on this shape of document, not why |
-| **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); 6 share their first 40 characters with the source and diverge after (an elision; 28.6%; 13.8–50.0%; 0–66.7%); 9 have no 40-character prefix in the named file (42.9%; 24.5–63.5%; 0–55.6%) — a paraphrase, another file, a divergence before the 40th character or some other transformation; the test does not distinguish them — the rule is `archive_rates` in `arm6_rates.py` | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
+| **Q2** — the quotation is not in the file as quoted | **21** | three predicates, in order (`archive_rates` in `arm6_rates.py`): **6** are in the named file once typographic apostrophes and quotation marks are folded to ASCII AND whitespace, line breaks included, is joined (28.6%; Wilson 13.8–50.0%; bootstrap 0–100%, 128 discarded — 21 rows over few drafts); of those 6, only **1** lies on one line after the typography fold alone, the other 5 also cross a hard wrap; **6** are not so contained but their first 40 characters, whitespace-joined, are (a prefix match; 28.6%; 13.8–50.0%; 0–66.7%) — the test does not show what follows was omitted rather than replaced or paraphrased; **9** have no such prefix in the named file (42.9%; 24.5–63.5%; 0–55.6%) — a paraphrase, another file, a divergence before the 40th character or some other transformation; the test does not distinguish them | right by contract; a quotation-mark fold alone would recover 1 of the 21, and 5 more only together with the wrap join D166 sends to a slice |
 
 The pair is somewhere in the named file for 26 of 40 Q1 rows (65.00%; Wilson 49.51–77.87%;
 bootstrap 32.26–100%, 5 discarded) and 12 of 21 Q2 rows (57.14%; Wilson 36.55–75.53%;
@@ -123,8 +125,11 @@ no row on this domain**, because nothing here is a range, list or subscript.
   the intervals allow (an earlier version of this file said "reported first" while stating
   it only here; review round 6).
 * **Unit-bearing rows**: 42 of 91 = 46.2% (Wilson 36.3–56.3%; bootstrap 15.7–70.7%) — 27
-  carry a currency sign, 8 a count of days, 7 a percent sign; the rest are empty-unit
-  dates, counts and identifiers. The
+  carry a currency sign, 8 a count of days, 7 a percent sign. Of the 47 cited rows with an
+  empty unit, the quotation shows a currency sign directly before the value in 13 (a
+  dollar amount the generator transcribed without its sign — the mirror of M13), a year in
+  3, the value not as written in 4, and something else (a count, an identifier, part of a
+  date) in 27 (`arm6_rates.py --run`). The
   empty-unit contract carried half the load, as the census predicted.
 * **Shapes of the transcribed values** (secondary 16; the rule is `shape()` in
   `arm6_rates.py`, run on the archived sheet — unit, then the characters around the value):
@@ -146,8 +151,9 @@ no row on this domain**, because nothing here is a range, list or subscript.
   (narrated tool → corrected re-ask → tool → continuation) and does not establish it. 3
   of 101 generator calls returned exactly 4,096 output tokens, the ceiling.
 * `adjudicator_b` (exact substring) on the 19 labelled rows: C rows 10 true / 7 false, N rows
-  0 true / 2 false — the disqualified instrument misses 7 of 17 correct rows here, because
-  thousands commas and a currency sign sit between the value and its digits.
+  0 true / 2 false — the disqualified instrument misses 7 of 17 correct rows here; in all
+  7 the only difference between the transcribed value and the source's digits is the
+  thousands separators (removing commas makes each a substring; `arm6_rates.py --run`).
 
 ## 4. What this run licenses
 
@@ -163,8 +169,10 @@ no row on this domain**, because nothing here is a range, list or subscript.
 * M13 (a currency sign before the value) is a real matcher class on this domain: three
   rows, all C, and the KILL rests on them. It goes to the containment design's §6 beside
   M12, with the same rule: a note first, a measured slice if ever.
-* The 6 rendering cases of Q2 (typographic apostrophes and quotation marks) are a fold the
-  quotation matcher could make without a semantic claim; also a note, not a fix here.
+* A fold of typographic apostrophes and quotation marks in the quotation matcher would,
+  on this run, recover 1 of the 21 absent quotations by itself and 5 more only together
+  with the wrap join; a note in the containment design, not a fix here, and the wrap join
+  is D166's slice.
 * Nothing here changes what Arm 5 licensed; nothing here is quotable for T03.
 
 ## 5. Records

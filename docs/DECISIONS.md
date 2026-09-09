@@ -7628,9 +7628,10 @@ RULINGS:
    the rule went unmet on 40 of 87 addressed rows (the H6b figure above), and that the
    skill's instruction — the shortest run from ONE line — was in front of the generator on
    every call. **What it does not establish** is why: only 12 of the 40 crossing runs end
-   at sentence punctuation (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5 discarded), so the generator was not
-   simply quoting sentences, and the run cannot separate "a one-line rule is the wrong
-   shape for wrapped text" from "the generator did not comply". **The author's inference,
+   with a terminal punctuation mark (30.0%; Wilson 18.1–45.4%; bootstrap 0–60%, 5
+   discarded) — a count of marks, not a finding of sentence boundaries — and the run
+   cannot separate "a one-line rule is the wrong shape for wrapped text" from "the
+   generator did not comply". **The author's inference,
    recorded as an inference:** a rule that asks for a run cut at a hard wrap is asking for
    something the source's own sentences do not respect, and joining a file's hard wraps
    inside a paragraph before matching (mapping the interval back, keeping the line-scoped
@@ -7645,10 +7646,12 @@ RULINGS:
 2. **M13 goes to the containment design's §6** beside M12 — the shape, the rule (`_scan`
    reads a unit after the number; a sign before it is not read), and the measurement it
    would need; not scheduled on three rows.
-3. **Q2's rendering cases** (typographic apostrophes and quotation marks the generator
-   normalised: 6 of the 21 absent quotations, 28.6%; bootstrap 0–100%, 128 resamples
-   discarded, 21 rows lying in few drafts; Wilson 13.8–50.0% for the share) are a fold the quotation matcher could make
-   without a semantic claim; a note, and a slice only with a gold.
+3. **Q2's rendering cases** (quotations in the named file once typographic apostrophes
+   and quotation marks are folded AND line breaks are joined: 6 of the 21 absent
+   quotations, 28.6%; bootstrap 0–100%, 128 resamples discarded, 21 rows lying in few
+   drafts; only 1 of the 6 is on one line after the typography fold alone; Wilson 13.8–50.0% for the share): a fold of quotation characters alone recovers one row
+   on this run; the other five need the wrap join of ruling 1 as well. A note in the
+   containment design, and a slice only with a gold.
 4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
    annotation fence although the skill was rendered on every call and the whole source
    was returned. The arm measures the check and does not tune the generator; the number

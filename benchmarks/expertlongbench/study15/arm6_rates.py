@@ -210,8 +210,11 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
     import provenance_arm3 as arm3
     from provenance_arm6 import OUTPUT_PATH
     from crossaudit.config import load as load_cfg
+    import provenance_arm4 as arm4
     by_key = {(r["instance"], r["row"]): r for r in rows}
-    q1, q2 = [], []
+    q1, q2, q2_within_line = [], [], []
+    empty_unit = Counter()
+    adj_b_miss = Counter()
     for proj_dir in sorted((run_dir / "instances").iterdir()):
         project = proj_dir / "project"
         if not (project / "crossaudit.yml").exists():
@@ -225,9 +228,38 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
         draft = files.get(OUTPUT_PATH, b"").decode("utf-8", "replace")
         for row_no, ann in enumerate(arm3.fence_rows(draft)):
             rec = by_key.get((instance, row_no))
-            if not rec or rec["mechanism"] not in ("Q1", "Q2"):
+            if not rec:
                 continue
             quote = ann["src"]["quote"] if isinstance(ann.get("src"), dict) else ""
+            v, u = str(ann.get("v", "")), str(ann.get("u", ""))
+            if rec["src_kind"] != "uncited" and u == "":
+                # census of the empty-unit rows: what stands before the value in the quotation
+                forms = [v]
+                if re.fullmatch(r"\d+(\.\d+)?", v):
+                    whole, _, frac = v.partition(".")
+                    forms.append(f"{int(whole):,}" + (f".{frac}" if frac else ""))
+                i = next((quote.find(f) for f in forms if f in quote), -1)
+                before = quote[max(0, i - 2):i] if i >= 0 else ""
+                if "$" in before:
+                    empty_unit["currency sign before the value"] += 1
+                elif re.fullmatch(r"(19|20)\d\d", v):
+                    empty_unit["year"] += 1
+                elif i < 0:
+                    empty_unit["value not in the quotation as written"] += 1
+                else:
+                    empty_unit["other (count, identifier, date part)"] += 1
+            if rec["gold_label"] == "C" and rec["adj_b"] is False:
+                # why the exact-substring adjudicator missed a correct row
+                loc = arm4.located_line(files, ann)
+                line = loc[1] if loc else ""
+                if v in line:
+                    adj_b_miss["value present as written (unit or space)"] += 1
+                elif v.replace(",", "") in line.replace(",", ""):
+                    adj_b_miss["thousands separators only"] += 1
+                else:
+                    adj_b_miss["other"] += 1
+            if rec["mechanism"] not in ("Q1", "Q2"):
+                continue
             if rec["mechanism"] == "Q1":
                 tail = quote.rstrip().rstrip("\"'\u2019\u201d)]")
                 q1.append((instance, True, tail.endswith((".", "?", "!"))))
@@ -237,6 +269,9 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
                 folded, typo = _fold(text), _typo(text)
                 if _typo(quote) and _typo(quote) in typo and _fold(quote) not in folded:
                     shape = "rendering"
+                    # does the typography fold alone, WITHOUT joining lines, place it on one line?
+                    tq = _typo(quote)
+                    q2_within_line.append((instance, True, any(tq in _typo(l) for l in text.splitlines())))
                 elif _fold(quote) in folded:
                     shape = "present"      # would not be Q2; reported if it ever happens
                 elif _fold(quote)[:40] and _fold(quote)[:40] in folded:
@@ -251,6 +286,9 @@ def archive_rates(run_dir: Path, rows: list[dict]) -> None:
     print("Q2 shapes: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     for shape in ("rendering", "elision", "not found"):
         rate(f"  Q2 {shape} / Q2 rows", [(i, True, sh == shape) for i, sh in q2])
+    rate("  Q2 rendering rows on ONE line after the typography fold alone", q2_within_line)
+    print("empty-unit rows by what the quotation shows: " + ", ".join(f"{k} {v}" for k, v in sorted(empty_unit.items())))
+    print("adjudicator_b misses on gold-C rows, by cause: " + ", ".join(f"{k} {v}" for k, v in sorted(adj_b_miss.items())))
 
 
 if __name__ == "__main__":
