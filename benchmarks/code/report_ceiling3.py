@@ -134,7 +134,39 @@ def paired_union_difference(draws_a: dict, draws_b: dict, k: int, ids: list[str]
             "signflip": rc.signflip_p(by_problem)}
 
 
+def reply_format_secondary(run_dir: Path) -> dict:
+    """Amendment 1's secondary: how often the new families answered outside the product's
+    JSON format. From this study's caches (``invalid_reason``) and the run's usage ledgers
+    (instances with more than one auditor call = a re-ask), per family and draw."""
+    out: dict = {}
+    for fam in ("self-strong", "self-frontier"):
+        for d in range(1, 9):
+            cache = CEILING3 / "cache" / f"holistic__{fam}__d{d}.jsonl"
+            if not cache.exists():
+                continue
+            rows = [json.loads(l) for l in cache.read_text().splitlines() if l.strip()]
+            invalid = sum(1 for r in rows if r.get("invalid_reason"))
+            ledger = run_dir / "projects" / f"project-holistic__{fam}__d{d}" / ".crossaudit" / "usage.jsonl"
+            reask = long = None
+            if ledger.exists():
+                ev = [json.loads(l) for l in ledger.read_text().splitlines() if l.strip()]
+                per: dict[str, int] = {}
+                for e in ev:
+                    per[e["run_id"]] = per.get(e["run_id"], 0) + 1
+                reask = sum(1 for v in per.values() if v > 1)
+                long = sum(1 for e in ev if int(e.get("output", 0) or 0) > 300)
+            out[f"{fam}-d{d}"] = {"rows": len(rows), "invalid_reason_nonempty": invalid,
+                                  "instances_with_a_reask": reask, "replies_over_300_output_tokens": long,
+                                  "model_findings_any": sum(1 for r in rows if int(r.get("model_findings", 0) or 0) > 0),
+                                  "model_blockers_any": sum(1 for r in rows if int(r.get("model_blockers", 0) or 0) > 0)}
+    return out
+
+
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--run", default="", help="the archive's run dir, for the reply-format secondary")
+    args = ap.parse_args()
     instances = rc.load_instances()
     audit_set = rc.load_audit_set()
     scope = [i for i in audit_set if instances[i]["stratum"] in ("P", "C")]
@@ -223,6 +255,7 @@ def main() -> int:
                 if rows:
                     costs[f"{f}-d{d}"] = {"n": len(rows), "usd": round(sum(float(r.get("cost_usd") or 0) for r in rows), 4)}
     out["cost_by_draw"] = costs
+    out["reply_format_secondary"] = reply_format_secondary(Path(args.run)) if args.run else {"note": "pass --run <archive dir>"}
     CEILING3.mkdir(parents=True, exist_ok=True)
     (CEILING3 / "numbers.json").write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     for f in FAMILIES:
@@ -250,6 +283,11 @@ def main() -> int:
               f"C union {100*e['C']['union_at_kmax']['rate']:.1f}%  single {100*e['C']['single_draw_mean']:.1f}%")
     na = ex["never_any_finding_by_any_family_P"]
     print(f"  never any finding by any family: {na['k']}/{na['n']} = {100*na['rate']:.1f}%")
+    if args.run:
+        print("\nreply format (Amendment 1 secondary):")
+        for k, v in out["reply_format_secondary"].items():
+            print(f"  {k:18s} rows {v['rows']}  invalid {v['invalid_reason_nonempty']}  re-asks {v['instances_with_a_reask']}  "
+                  f"long(>300 tok) {v['replies_over_300_output_tokens']}  any-finding {v['model_findings_any']}  blocker {v['model_blockers_any']}")
     return 0
 
 
