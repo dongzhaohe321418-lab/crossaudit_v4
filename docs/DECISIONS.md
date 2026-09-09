@@ -7613,28 +7613,38 @@ this domain** (all three one new class, M13: a currency sign before the value). 
 87 = 45.98% addressed rows quote across a line break (Wilson 35.90–56.40%; bootstrap
 26.15–60.98%), against a preregistered bar of 20%.** The generator fenced only 11 of 33
 summaries (33.3%; Wilson 19.75–50.39%; bootstrap 18.18–48.48%) and annotated 91 of 2,630 =
-3.5% of the numbers it wrote (Wilson 2.83–4.23%; bootstrap 1.45–5.80%); on T03 Arm 5 read
+3.5% of the numbers it wrote (Wilson 2.83–4.23%; bootstrap 1.48–5.82%); on T03 Arm 5 read
 446 of 1,170 = 38.1% (Wilson 35.38–40.94%; bootstrap 34.47–41.94%).
 
 RULINGS:
 
-1. **The one-line quotation rule does not fit hard-wrapped prose, and the check does not
-   enter any profile for such documents until it is redesigned.** The rule exists because
-   a file-scoped citation coincides with the pair 27.7% of the time and a line-scoped one
-   0.54% (CORRECTIONS #32); it was written for files whose lines are sentences. A document
-   wrapped at 58 characters puts most sentences across two or three lines, and a quotation
-   of a sentence — the thing the skill asks for — then fails the rule by construction. The
-   redesign is preregistered as its own slice: join a file's hard wraps inside a paragraph
-   before matching, map the interval back, and keep the line-scoped coincidence rate as the
-   thing measured; its gold rows are the 40 Q1 quotations of this run, re-labelled on the
-   joined text. Until then the science profile's standing (D164) is unaffected: T03 is not
-   wrapped, and Arm 5's PASS there was 4 of 398 = 1.01% (Wilson 0.39–2.56%; bootstrap
-   0.24–1.97%).
+1. **The check does not enter any profile for hard-wrapped documents until the one-line
+   quotation rule has been re-examined on them.** The rule exists because a file-scoped
+   citation coincides with the pair in 596 of 2,150 gold pairs = 27.7% (Wilson
+   25.9–29.7%) and a line-scoped one in 5 of 930 = 0.54% (Wilson
+   0.23–1.25%) (CORRECTIONS #32, counts from study 13's gold, quoted here with
+   Wilson only). **What Arm 6 establishes** is that on documents wrapped at 58 characters
+   the rule went unmet on 40 of 87 addressed rows (the H6b figure above), and that the
+   skill's instruction — the shortest run from ONE line — was in front of the generator on
+   every call. **What it does not establish** is why: only 12 of the 40 crossing runs end
+   at sentence punctuation (30.0%; Wilson 18.1–45.4%), so the generator was not
+   simply quoting sentences, and the run cannot separate "a one-line rule is the wrong
+   shape for wrapped text" from "the generator did not comply". **The author's inference,
+   recorded as an inference:** a rule that asks for a run cut at a hard wrap is asking for
+   something the source's own sentences do not respect, and joining a file's hard wraps
+   inside a paragraph before matching (mapping the interval back, keeping the line-scoped
+   coincidence rate as the thing measured) is the redesign to test. It is preregistered as
+   its own slice, and the slice is the test of this inference, not its proof: its first
+   candidate gold rows are the 40 Q1 quotations of this run, which are N by definition
+   here and have not been labelled on joined text. Until then the science profile's
+   standing (D164) is unaffected: T03 is not wrapped, and Arm 5's PASS there was 4 of 398 =
+   1.01% (Wilson 0.39–2.56%; bootstrap 0.24–1.97%).
 2. **M13 goes to the containment design's §6** beside M12 — the shape, the rule (`_scan`
    reads a unit after the number; a sign before it is not read), and the measurement it
    would need; not scheduled on three rows.
 3. **Q2's rendering cases** (typographic apostrophes and quotation marks the generator
-   normalised, 6 of 21 absent quotations) are a fold the quotation matcher could make
+   normalised: 6 of the 21 absent quotations, a classification of rows quoted as a count;
+   Wilson 13.8–50.0% for the share) are a fold the quotation matcher could make
    without a semantic claim; a note, and a slice only with a gold.
 4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
    annotation fence although the skill was rendered on every call and the whole source
@@ -7649,6 +7659,7 @@ RULINGS:
    the two differ, which here they did not.
 
 Recorded because a second domain was the question D164 left open, and the answer is not
-"the check fails" but "the contract's line rule assumes a document shape": the measurement
-found the assumption, named it, and bounded it with intervals, which is what a second domain
-was for.
+"the check fails" but "on this document shape the contract's line rule is unmet half the
+time, and the run cannot say whose failure that is": the measurement found the rule's
+sensitivity to document shape, bounded it with intervals, and left the cause to a slice
+designed to test it — which is what a second domain was for.

@@ -68,7 +68,13 @@ given): **40 of 87 = 45.98% cross a line break** (Wilson 35.90–56.40%; bootstr
 24.14% (Wilson 16.36–34.10%; bootstrap 2.22–47.30%). The preregistered bar was a lower bound of 20%; it is exceeded by 16 points.
 **H6b comes out false, as §1 said it was likely to**: on documents wrapped at 58 characters
 the contract's requirement that a quotation lie within one line is the largest single
-reason the check blocks, and it is the contract's shape, not the generator's error. Per §8
+reason the check blocks. **What the run does not separate is whose failure that is.** The
+skill asks for the shortest run from ONE line that contains the pair; the generator
+returned a run crossing a line break on 40 of 87 rows, and only 12 of those 40 end at
+sentence punctuation (30.0%; Wilson 18.1–45.4%), so "it quoted sentences" is not the
+account. Whether a one-line rule is the wrong shape for wrapped text or the generator
+simply did not comply is the author's inference to make, and it is made in D166 as an
+inference the redesign slice will test, not as a finding of this run. Per §8
 of the preregistration, **the check does not enter any profile for prose-wrapped documents
 until the line rule is redesigned** — a decision record (D166, in `docs/DECISIONS.md` on
 this branch), not a fix here.
@@ -85,7 +91,7 @@ for the primary (§3) and are the subject of §2.
 
 | class | n | what it is | by contract |
 |---|---|---|---|
-| **Q1** — the quotation crosses a line break | **40** | the generator quoted a sentence; the source wraps sentences at ~58 characters | right by contract (the one-line rule), and the contract is what H6b indicts |
+| **Q1** — the quotation crosses a line break | **40** | the quoted run crosses a hard wrap of the source (58 characters per line); 12 of the 40 end at sentence punctuation, 28 do not | right by contract (the one-line rule); H6b measures how often the rule is unmet on this shape of document, not why |
 | **Q2** — the quotation is not in the file as quoted | **21** | 6 differ only in typographic apostrophes or quotation marks the generator normalised to ASCII; 6 share their first 40 characters with the source and diverge after (an elision); 9 are not found by prefix (a paraphrase, or a different file) | right by contract; the 6 rendering cases are a fold the product could make (a candidate slice) |
 
 The pair is somewhere in the named file for 26 of 40 Q1 rows (65.00%; Wilson 49.51–77.87%;
