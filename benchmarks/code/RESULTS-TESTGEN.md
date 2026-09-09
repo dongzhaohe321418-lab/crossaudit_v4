@@ -2,9 +2,11 @@
 
 Preregistration `testgen/PREREGISTRATION.md` (c2b55dc, 11:42 +08:00) and Amendment 1
 (d4a70d0, committed 11:52:40 +08:00); the archive's first completed call is stamped
-11:52:56 and its request began about 11:52:40 — the amendment precedes the first call by
-seconds, on the archive's timestamps rather than by a margin git's one-second clock could
-prove on its own; the preregistration itself precedes it by ten minutes. Records:
+11:52:56 and its request began about 11:52:40 — the same second as the amendment's commit.
+The ordering amendment-then-call is consistent with the timestamps and is not proven by
+them: git's clock is one second coarse. The preregistration itself precedes the first call
+by ten minutes, and the amendment changes no hypothesis, arm, outcome or kill rule (it
+corrects a count, names the executor path and two harness rules, and fixes the seed). Records:
 `records/testgen/{rows.jsonl, suites.json, numbers.json}`; the generated test text is in
 the run archive (`~/Documents/Crossaudit/study-data/wt-testgen-runs/`, `MANIFEST.sha256`),
 not committed (Amendment 1). Harness: `testgen.py`; boundary and flag-logic tests in
@@ -72,8 +74,9 @@ Explore half, reported once and carrying no claim (§4): `hc` 5/55 P, 0/76 C; `t
   runs died before the collector (an import the candidate lacked), counted as every test
   failed.
 * **Cost.** $1.77 for 222 calls, $0.0061 per instance amortised, against `hc`'s $0.0069
-  on the explore leaderboard — 88% of the reading auditor's cost, not less; the executor's
-  cost is wall-clock only.
+  on the explore leaderboard — 88% of the reading auditor's cost, about 12% less, not the
+  order of magnitude a per-problem call might suggest (the suite is amortised over only
+  1.3 instances per problem); the executor's cost is wall-clock only.
 * **F stratum** (confirm, 15): `testgen` 13/15 = 86.7% (Wilson 62.1–96.3%).
 
 ## 3. What the preregistration said would follow, and what follows
@@ -101,6 +104,9 @@ first, and nothing in the record prevents writing it.
   as it was measured then.
 * The ceiling study's residual classes cover 68 instances; 3 of the 8 `testgen`-only
   flags are unclassified there.
-* `tests/test_testgen_report.py` binds this file's figures to `records/testgen/numbers.json`.
+* `tests/test_testgen_report.py` binds the figures of §1's table, the decision line, the
+  paired analysis, the explore-half line, the overlap counts, the exploratory union, the
+  F stratum and §2's secondaries to `records/testgen/numbers.json` and
+  `testgen/exploratory.py`'s output; the prose around them is not machine-checked.
 * `testgen-validated` uses the canonical solution and is an upper bound everywhere it
   appears; no product number derives from it.

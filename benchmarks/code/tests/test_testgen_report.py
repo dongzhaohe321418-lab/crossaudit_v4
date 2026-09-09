@@ -44,6 +44,8 @@ def test_the_arm_table_matches_numbers_json():
         assert cells[2] == f"{100 * lo:.1f}–{100 * hi:.1f}%", (label, cells[2])
         blo, bhi = p["bootstrap_problem_cluster"]
         assert cells[3] == f"{100 * blo:.1f}–{100 * bhi:.1f}%", (label, cells[3])
+        clo, chi = c["wilson"]
+        assert cells[5] == f"{100 * clo:.1f}–{100 * chi:.1f}%", (label, cells[5])
 
 
 def test_the_decision_and_paired_figures_match():
@@ -86,3 +88,49 @@ def test_the_secondaries_match():
     assert f"`hc`'s ${s['hc_cost_usd_per_instance_explore_leaderboard']:.4f}" in t
     assert f"{100 * s['cost_ratio_testgen_over_hc']:.0f}% of the reading auditor's cost" in t
     assert f"${s['cost_usd_generation_total']:.2f} for {s['problems_with_suite']} calls" in t
+
+
+def test_the_explore_half_line_the_f_stratum_and_the_suite_totals_match():
+    n = _numbers()
+    t = _text()
+    e = {arm: n["arms"][arm]["explore"] for arm in n["arms"]}
+    assert (f"`hc` {e['hc']['P']['k']}/{e['hc']['P']['n']} P, {e['hc']['C']['k']}/{e['hc']['C']['n']} C; "
+            f"`testgen`\n{e['testgen']['P']['k']}/{e['testgen']['P']['n']}, {e['testgen']['C']['k']}/{e['testgen']['C']['n']}; "
+            f"`testgen-validated` {e['testgen-validated']['P']['k']}/{e['testgen-validated']['P']['n']}, "
+            f"{e['testgen-validated']['C']['k']}/{e['testgen-validated']['C']['n']}; "
+            f"`hc ∪ testgen` {e['hc_u_testgen']['P']['k']}/{e['hc_u_testgen']['P']['n']}, "
+            f"{e['hc_u_testgen']['C']['k']}/{e['hc_u_testgen']['C']['n']}.") in t
+    f = n["arms"]["testgen"]["confirm"]["F"]
+    lo, hi = f["wilson"]
+    assert f"`testgen` {f['k']}/{f['n']} = {100 * f['rate']:.1f}% (Wilson {100 * lo:.1f}–{100 * hi:.1f}%)" in t
+    s = n["secondaries"]
+    tp = s["tests_per_problem"]
+    assert (f"({s['problems_with_suite']} problems, {n['n_rows']} instances, both halves; "
+            f"${s['cost_usd_generation_total']:.2f}; 1,199\ntests, mean {tp['mean']:.1f} per problem, "
+            f"min {tp['min']}, max {tp['max']}; none uncompilable; {'one' if tp['zero'] == 1 else tp['zero']} suite empty)") in t
+    assert s["uncompilable_total"] == 0
+
+
+def test_the_overlap_counts_and_the_exploratory_union_match_the_records():
+    """The 7/7/4 overlap and the oracle-bounded union are computed here from rows.jsonl, as
+    testgen/exploratory.py computes them, and compared with the prose."""
+    rows = [json.loads(l) for l in (CODE / "records" / "testgen" / "rows.jsonl").read_text().splitlines() if l.strip()]
+    conf_p = [r for r in rows if r["half"] == "confirm" and r["stratum"] == "P"]
+    conf_c = [r for r in rows if r["half"] == "confirm" and r["stratum"] == "C"]
+    v_only = sum(1 for r in conf_p if r["flagged_validated"] and not r["hc_flagged"])
+    h_only = sum(1 for r in conf_p if r["hc_flagged"] and not r["flagged_validated"])
+    both = sum(1 for r in conf_p if r["hc_flagged"] and r["flagged_validated"])
+    t = _text()
+    assert (f"`testgen-validated` flags {v_only} P instances `hc` misses, `hc` flags {h_only} it misses, and\n"
+            f"  {both} are flagged by both.") in t
+    up = sum(1 for r in conf_p if r["hc_flagged"] or r["flagged_validated"])
+    uc = sum(1 for r in conf_c if r["hc_flagged"] or r["flagged_validated"])
+    import math
+    z = 1.959963984540054
+    def wilson(k, n):
+        p = k / n; d = 1 + z * z / n; c = (p + z * z / (2 * n)) / d
+        h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+        return max(0.0, c - h), min(1.0, c + h)
+    lo, hi = wilson(up, len(conf_p))
+    assert (f"`hc ∪ testgen-validated` is {up}/{len(conf_p)} = {100 * up / len(conf_p):.1f}% "
+            f"(Wilson {100 * lo:.1f}–{100 * hi:.1f}%) at `hc`'s own\n  {uc}/{len(conf_c)}") in t

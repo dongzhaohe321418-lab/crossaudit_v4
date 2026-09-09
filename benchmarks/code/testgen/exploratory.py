@@ -37,15 +37,20 @@ for half in ("confirm", "explore"):
           sum(1 for r in P if r["flagged_testgen"] and not r["flagged_validated"] and not r["canonical_unusable"]),
           "/", sum(1 for r in C if r["flagged_testgen"] and not r["flagged_validated"] and not r["canonical_unusable"]))
 
-# unique tests: one suite per problem; a test wrong on the canonical is wrong once
+# unique tests: one suite per problem; a test wrong on the canonical is wrong once. The
+# suite whose canonical run timed out cannot be classified: its tests are "unknown", not
+# "right", and are outside the denominator.
 wrong_by_problem = {}
+unusable = {r["problem_id"] for r in rows if r["canonical_unusable"]}
 for r in rows:
     if not r["canonical_unusable"]:
         wrong_by_problem.setdefault(r["problem_id"], set()).update(r["failed_canonical"])
 n_unique = sum(s["n_tests"] for s in suites.values())
+n_unknown = sum(s["n_tests"] for pid, s in suites.items() if pid in unusable)
+n_classifiable = n_unique - n_unknown
 n_wrong = sum(len(v) for v in wrong_by_problem.values())
-print(f"unique tests {n_unique} over {len(suites)} problems; wrong on the canonical {n_wrong} "
-      f"= {100*n_wrong/n_unique:.1f}%; problems with ≥1 wrong test "
-      f"{sum(1 for v in wrong_by_problem.values() if v)}/{len(suites)}")
+print(f"unique tests {n_unique} over {len(suites)} problems; {n_unknown} unclassifiable (canonical timed out); "
+      f"wrong on the canonical {n_wrong}/{n_classifiable} = {100*n_wrong/n_classifiable:.1f}%; "
+      f"problems with ≥1 wrong test {sum(1 for v in wrong_by_problem.values() if v)}/{len(suites) - len(unusable)}")
 print("suites with zero tests:", sum(1 for s in suites.values() if s["n_tests"] == 0),
       " tokens out mean:", round(sum(s["output_tokens"] for s in suites.values()) / len(suites)))
