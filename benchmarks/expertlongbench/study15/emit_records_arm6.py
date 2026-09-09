@@ -84,7 +84,10 @@ def main(argv=None) -> int:
         "git_status_at_start": plan.get("git_status", ""),
         "plan_at_start": ({k: v for k, v in plan_start.items() if k != "git_status"}
                           if plan_start else None),
-        "git_status_at_true_start": plan_start.get("git_status", "") if plan_start else None,
+        # The runner prints the plan WITHOUT git_status; the log therefore cannot say whether
+        # the tree was clean at the true start. Unknown is recorded as unknown, not as "".
+        "git_status_at_true_start": (plan_start["git_status"] if plan_start and "git_status" in plan_start
+                                     else "NOT RECORDED: the logged plan omits git_status"),
         "plan_fields_differing_start_vs_resume": (
             sorted(k for k in set(plan) | set(plan_start) if plan.get(k) != plan_start.get(k))
             if plan_start else None),

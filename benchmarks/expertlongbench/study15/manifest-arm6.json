@@ -206,7 +206,7 @@
     "platform": "darwin",
     "started_utc": "2026-09-07T10:44:36.929197+00:00"
   },
-  "git_status_at_true_start": "",
+  "git_status_at_true_start": "NOT RECORDED: the logged plan omits git_status",
   "plan_fields_differing_start_vs_resume": [
     "code_sha",
     "git_status",

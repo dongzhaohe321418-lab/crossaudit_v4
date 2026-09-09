@@ -1,13 +1,17 @@
 # Arm 6 — the shipped check on a second domain (T01LegalMDS): both preregistered hypotheses fail
 
 Study 15. Preregistered at `benchmarks/expertlongbench/study15/PREREGISTRATION-ARM6.md`
-(4113b9a, 2026-09-07 18:44 +08:00, before any model call; Amendments 1–4 at d688383,
-db16e85, 4297d6e, f4a8d6b — an earlier hash for the same preregistration blob, 081f4f0, was
-rewritten when the branch's history was scrubbed of corpus fragments and is not on any
-branch; the blob is byte-identical). Every rate below carries its Wilson interval and the
-draft-clustered bootstrap (seed 20261108, 10,000 resamples of the 33 drafts; resamples with
-no denominator discarded and counted), computed by `study15/arm6_rates.py`, which
-reproduces `report-arm6.json`'s figures and adds the ones the report does not print. Population: every T01LegalMDS instance
+at commit 081f4f0 (2026-09-07 14:12:02 +08:00; attempt 1's first call began 14:12:03 UTC+8
+— one second later, so "before any model call" rests on the log's sub-second stamp and the
+commit's one-second clock). That commit fell off the branch when its history was rewritten
+to remove corpus fragments; it is kept reachable by the tag `study15-prereg-arm6`, and the
+same blob is on the branch at 4113b9a (18:44:36 +08:00, which precedes attempt 2 only).
+Amendments 1–4 at d688383, db16e85, 4297d6e, f4a8d6b. Every rate measured in this arm
+carries its Wilson interval and the draft-clustered bootstrap (seed 20261108, 10,000
+resamples of the 33 drafts; resamples with no denominator discarded and counted), computed
+by `study15/arm6_rates.py`, which reproduces `report-arm6.json`'s figures and adds the ones
+the report does not print; the two Arm 5 figures quoted for comparison carry Arm 5's
+intervals. Population: every T01LegalMDS instance
 whose input is at most 200,000 characters — **33 of 100** (`study15/arm6_population.txt`;
 median 159,917 characters, 2,825 lines, 58 characters per line). One arm, the shipped
 configuration after D165: generator `anthropic:claude-sonnet-4-6`, auditor
@@ -21,7 +25,7 @@ generator narrated its `file_read` call beside the envelope and the re-ask resta
 wrong envelope — D165, `study15/ATTEMPT-1.md`) and the eight-instance probe of the fix
 (`PROBE-envelope-fix.md`) enter no rate. Attempt 2, under the merged fix, started at
 10:44:36 UTC on 2026-09-07 (code 5b8da46) and was stopped by the author when the generator
-key's credit ran out: 6 drafts completed, instances 3 and 7–14 failed as outages, instance
+key's credit ran out: 6 drafts completed, instances 3 and 8–14 failed as outages, instance
 15 had begun (Amendments 3–4). It resumed in the same directory at 10:57:33 UTC the same
 day (code f4a8d6b, the two amendments committed between). **11 records are provider
 outages** over 10 instances (one SSL transport error and seven "credit balance is too low"
@@ -32,8 +36,13 @@ Amendment 3; every one of the 33 instances then completed. **The resume rewrote
 found it): the plan printed at the true start is recovered from `arm6.log` as
 `plan-start.json`, and `manifest-arm6.json` carries both (`plan_at_start`, `plan`) with the
 fields that differ — `run_id`, `started_utc`, `code_sha`, `git_status` — population, models,
-settings, skill, contract, corpus and matcher hashes identical. The runner now never
-rewrites a plan (`provenance_arm6.py`). Spend **$13.41** on the 33 counted drafts ($0.41 per
+settings, skill, contract, corpus and matcher hashes identical. **The clean-tree proof at
+the true start is missing**: the runner prints the plan without `git_status`, so the log
+cannot say whether the tree was clean at 10:44 UTC; the manifest records that as "NOT
+RECORDED", not as clean. What the record can say is that the resume's tree at 10:57 was
+clean at f4a8d6b, and that the commits between the two starts touch study material only
+(the emitter and Amendments 3–4) — `src/` is identical at both code hashes. The runner now
+never rewrites a plan (`write_plan` in `provenance_arm6.py`, with a test). Spend **$13.41** on the 33 counted drafts ($0.41 per
 draft): generator $9.23, auditor $4.18; the outages cost $0.34 in all.
 
 ---
@@ -50,7 +59,8 @@ The lower bound exceeds 2%. The denominator is 17 rows — 14 passes and 3 corre
 because only 19 rows in the whole run have a quotation the check can locate on one line;
 the number is quoted as a count (EXPERIMENT_RECORD §9), and it decides what §8g says it
 decides: **on this domain the check does not enter any profile.** It says nothing about
-T03, where Arm 5 read PASS at 4 of 398; the science profile's standing (D164) is unaffected.
+T03, where Arm 5 read PASS at 4 of 398 = 1.01% (Wilson 0.39–2.56%; bootstrap 0.24–1.97%);
+the science profile's standing (D164) is unaffected.
 
 **H6b, the one-line rule on hard-wrapped documents.** Over addressed rows (a quotation was
 given): **40 of 87 = 45.98% cross a line break** (Wilson 35.90–56.40%; bootstrap
@@ -60,8 +70,8 @@ given): **40 of 87 = 45.98% cross a line break** (Wilson 35.90–56.40%; bootstr
 the contract's requirement that a quotation lie within one line is the largest single
 reason the check blocks, and it is the contract's shape, not the generator's error. Per §8
 of the preregistration, **the check does not enter any profile for prose-wrapped documents
-until the line rule is redesigned** — a decision record at the merge (D166, drafted), not a
-fix here.
+until the line rule is redesigned** — a decision record (D166, in `docs/DECISIONS.md` on
+this branch), not a fix here.
 
 **Adjudication.** 19 items on the blinded sheet — the 5 blocks with a located quotation and
 all 14 passes — labelled by L1 (the author's session) and L2 (`gpt-6-astra` through `codex
@@ -85,7 +95,7 @@ Wilson 49.75–73.39%; bootstrap 39.66–95.24%): the number is usually real and
 which is what a wrapped or normalised quotation looks like from the check's side.
 | **M13, new** — a currency sign before the value, transcribed as the unit | **3** | the source writes the sign first; the scanner reads a unit after the number and finds none | **wrong block** (gold C): the three rows behind the KILL |
 | M1b — the value written in words | 1 | | right (gold N) |
-| M1b — the value outside the quoted run | 1 | the quotation is a run of the source that does not contain the value; the value is on a line seven lines away in the same file (and the line the quotation sits on holds no numeral) | right under both readings (gold N): the quotation adjudicator and the line-level reading agree here, so this run holds no row where D164 ruling 3's two readings part |
+| M1b — the value outside the quoted run | 1 | the quotation is a run of the source that does not contain the value, and neither does the line it sits on; the value is on a line seven lines away in the same file | right under both readings (gold N): the quotation adjudicator and the line-level reading agree here, so this run holds no row where D164 ruling 3's two readings part |
 
 Under the Arm 4 matcher blob (`study8/arm5_matcher_diff.py`, quotation reading) the 19
 located rows are 5 block / 14 pass under both matchers: **the containment extensions moved
@@ -94,7 +104,7 @@ no row on this domain**, because nothing here is a range, list or subscript.
 ## 3. The generator on this domain (secondaries 8, 15, 16)
 
 * **Annotation rate**: 91 rows over 2,630 numbers present = **3.5%** (Wilson 2.8–4.2%;
-  bootstrap 1.5–5.8%); Arm 5 on T03 read 38.1%. **Only 11 of 33 summaries carry the fence at
+  bootstrap 1.5–5.8%); Arm 5 on T03 read 446 of 1,170 = 38.1% (Wilson 35.38–40.94%). **Only 11 of 33 summaries carry the fence at
   all** (33.3%, Wilson 19.8–50.4%; bootstrap 18.2–48.5%); those 11 parsed to 0 to 22 rows
   (median 9; one fenced draft yielded no row, so 10 drafts carry the 91). The skill was rendered on every generator call, the tool result returned the
   whole source (512 KiB bound), and the generator still wrote no fence two times in three.

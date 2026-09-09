@@ -53,6 +53,28 @@ def all_rows(task_id: str) -> list[dict]:
     return [r for r in load_task_rows(task_id) if len(r["input"]) <= INPUT_CAP]
 
 
+def write_plan(out_dir: Path, plan: dict, contract: str, skill: str) -> str:
+    """Write a run's plan once. Returns the name of the file this start was written to.
+
+    Neither a retry nor a same-directory resume rewrites the run's plan: Arm 5's first
+    retry did, and Arm 6's resume after the credit outage did (the plan at the true start
+    had to be restored from the log — review rounds 1–2). A later start is written beside
+    it as ``plan-resume-<stamp>.json``, so every start is on record and the first is
+    never lost.
+    """
+    if (out_dir / "plan.json").exists():
+        stamp = plan["started_utc"].replace(":", "").replace("-", "")[:15]
+        name = f"plan-resume-{stamp}.json"
+        (out_dir / name).write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+        print(f"plan.json exists: kept; this start recorded as {name}")
+        return name
+    (out_dir / "plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
+    (out_dir / "contract-S.txt").write_text(contract + "\n", encoding="utf-8")
+    (out_dir / "skill-S.md").write_text(skill, encoding="utf-8")
+    print(json.dumps({k: v for k, v in plan.items() if k != "git_status"}, indent=2))
+    return "plan.json"
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -114,20 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         "python": sys.version.split()[0], "platform": sys.platform,
         "started_utc": datetime.now(timezone.utc).isoformat(),
     }
-    if (out_dir / "plan.json").exists():
-        # Neither a retry nor a same-directory resume rewrites the run's plan: Arm 5's
-        # first retry did, and Arm 6's resume after the credit outage did (the plan at
-        # the start had to be restored from the log where it was printed — review round
-        # 1). The resume's own plan is written beside it, so both starts are on record.
-        stamp = plan["started_utc"].replace(":", "").replace("-", "")[:15]
-        (out_dir / f"plan-resume-{stamp}.json").write_text(json.dumps(plan, indent=2) + "\n",
-                                                          encoding="utf-8")
-        print(f"plan.json exists: kept; this start recorded as plan-resume-{stamp}.json")
-    else:
-        (out_dir / "plan.json").write_text(json.dumps(plan, indent=2) + "\n", encoding="utf-8")
-        (out_dir / "contract-S.txt").write_text(contract + "\n", encoding="utf-8")
-        (out_dir / "skill-S.md").write_text(skill, encoding="utf-8")
-        print(json.dumps({k: v for k, v in plan.items() if k != "git_status"}, indent=2))
+    write_plan(out_dir, plan, contract, skill)
     if args.dry_run:
         return 0
 

@@ -7595,3 +7595,52 @@ RULINGS:
 
 Recorded because a study that could not run is a product finding, and the product finding
 was one the record had already flagged as not understood.
+
+## D166 — Arm 6: on hard-wrapped prose the one-line quotation rule is the wrong shape; the check stays out of every profile for such documents until the rule is redesigned
+
+**Date:** 2026-09-09. **Branch:** `study/provenance-arm6` (the merge commit and the review
+round count are appended at the merge). **Record:** `benchmarks/expertlongbench/RESULTS-ARM6.md`;
+preregistration `study15/PREREGISTRATION-ARM6.md` (081f4f0, before any model call;
+Amendments 1–4).
+
+**What was measured.** The shipped check (after D164 and D165) on 33 T01LegalMDS instances
+— multi-document legal records wrapped at ~58 characters per line, numbers that are dates,
+amounts and counts — with the primary adjudicated on the quotation (ruling 3 of D164).
+Two blinded labellers, κ = 1.000 on 19 items. **§8g: 3 of 17 correct annotations blocked,
+Wilson 6.19–41.03%, KILL for this domain** (all three one new class, M13: a currency sign
+before the value). **H6b: 40 of 87 addressed rows quote across a line break, Wilson
+35.90–56.40%, against a preregistered bar of 20%.** The generator fenced only 11 of 33
+summaries and annotated 3.5% of the numbers it wrote (T03: 38.1%).
+
+RULINGS:
+
+1. **The one-line quotation rule does not fit hard-wrapped prose, and the check does not
+   enter any profile for such documents until it is redesigned.** The rule exists because
+   a file-scoped citation coincides with the pair 27.7% of the time and a line-scoped one
+   0.54% (CORRECTIONS #32); it was written for files whose lines are sentences. A document
+   wrapped at 58 characters puts most sentences across two or three lines, and a quotation
+   of a sentence — the thing the skill asks for — then fails the rule by construction. The
+   redesign is preregistered as its own slice: join a file's hard wraps inside a paragraph
+   before matching, map the interval back, and keep the line-scoped coincidence rate as the
+   thing measured; its gold rows are the 40 Q1 quotations of this run, re-labelled on the
+   joined text. Until then the science profile's standing (D164) is unaffected: T03 is not
+   wrapped.
+2. **M13 goes to the containment design's §6** beside M12 — the shape, the rule (`_scan`
+   reads a unit after the number; a sign before it is not read), and the measurement it
+   would need; not scheduled on three rows.
+3. **Q2's rendering cases** (typographic apostrophes and quotation marks the generator
+   normalised, 6 of 21 absent quotations) are a fold the quotation matcher could make
+   without a semantic claim; a note, and a slice only with a gold.
+4. **The generator's silence is a finding, not a fix.** Two summaries in three carried no
+   annotation fence although the skill was rendered on every call and the whole source
+   was returned. The arm measures the check and does not tune the generator; the number
+   is reported first, as the preregistration asked, and the next arm on prose states its
+   annotation rate as a primary outcome rather than a secondary.
+5. **The adjudicator.** One row disagreed between quotation and line (the quotation ended
+   one token before the value); the quotation reading is kept for prose arms, because it
+   is the contract's, and the line reading is reported beside it.
+
+Recorded because a second domain was the question D164 left open, and the answer is not
+"the check fails" but "the contract's line rule assumes a document shape": the measurement
+found the assumption, named it, and bounded it with intervals, which is what a second domain
+was for.
