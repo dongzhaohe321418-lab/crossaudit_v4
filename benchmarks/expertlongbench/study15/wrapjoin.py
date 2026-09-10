@@ -41,8 +41,13 @@ def is_fence_line(line: str) -> bool:
 
 def is_structural(line: str) -> bool:
     """Empty, ATX heading, table row, blockquote, code-fence line, setext underline or
-    thematic break — a line no wrap continues into or out of."""
-    s = line.strip()
+    thematic break — a line no wrap continues into or out of.
+
+    Read after the line's LEADING whitespace is removed and nothing else, as the
+    preregistration §1 says: `# ` (a trailing space) is a heading, and `--- ` is not a
+    rule line because it does not consist of the rule characters and nothing else. The
+    first commit of this slice read `strip()` here and deviated; the results say so."""
+    s = line.lstrip()
     if not s:
         return True
     return bool(_ATX.match(s) or s.startswith("|") or s.startswith(">")

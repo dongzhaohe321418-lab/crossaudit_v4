@@ -144,7 +144,8 @@ above the located rows' 3/17.*
   fence-shaped lines), leaving 31.8%, 40.9% and 56.9% of their lines unjoined; the one Q1
   row still crossing after the join lies in such a region. The rule was preregistered and
   is not changed here; a variant without the fence clause would be a post-hoc analysis
-  and was not run. Joined lines per original line: min 0.054, median 0.194, max 0.654.
+  and was not run. Joined lines per original line: min 0.052, median 0.194, max 0.654
+  (21,687 joined lines from 93,931 original lines over the 33 files).
 * **One domain, one generator, frozen rows.** Every cluster count is small — the 24
   newly located rows lie in 5 drafts, the 10 blocks in 3 — and the bootstrap intervals
   say so (0–100% on the 10-row rates, with hundreds of resamples discarded). Nothing here
@@ -165,25 +166,51 @@ shipped matcher unmodified locating a two-line quotation after the join). **No c
 no draft, no quotation**: `benchmarks/withdrawn.py`, which the brief named, does not exist
 in this tree; the scan run instead is `wrapjoin_scan.py`, which shingles every text file
 under the archive (the repo's own contract, skill and plan files excepted) into runs of
-five words, subtracts the runs that the repo's own committed text at HEAD already says
-(`src/`, `benchmarks/expertlongbench/`, `docs/` — the product, the harness and the earlier
-records hold no corpus text by the repo's rule), and reports any remaining run shared with
-a committed file. **Result on the seven files of this commit: clean, 0 shared runs**
-(667,892 archive runs, 661,026 after the subtraction). Without the subtraction the scan
-flags 5,422 shared runs, every one of them the product's own vocabulary and not the
-corpus's: the field names of `rows-arm6-wrapjoin.jsonl` against the archive's own
-`records.jsonl` and the fence keys in the drafts, the rendered skill under each project's
-`skills/`, and the harness path names in the reproduction commands and the test — the
-diagnostic that traced each hit to its archive files is what justified the baseline. The
-archive at `~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6/` was read and not
-written.
+five words **over each whole file, newlines folded** (a run that crosses a line break is
+a run), subtracts the runs that the repo's own text says at the commit BEFORE this slice
+(1f6120e, read with `git show 1f6120e:<path>` for every file under `src/`,
+`benchmarks/expertlongbench/` and `docs/` — the product, the harness and the earlier
+records hold no corpus text by the repo's rule, and a baseline that predates the
+candidates cannot launder a candidate's own shingles), and reports any remaining run shared
+with a candidate file, the scanner itself among the candidates. **Result on the seven
+files of this slice: clean, 0 shared runs** (667,892 archive runs; 739,813 baseline runs
+at 1f6120e; 661,026 archive-only runs). Without the subtraction the scan flags thousands
+of shared runs, every one of them the product's own vocabulary and not the corpus's: the
+field names of `rows-arm6-wrapjoin.jsonl` against the archive's own `records.jsonl` and
+the fence keys in the drafts, the rendered skill under each project's `skills/`, and the
+harness path names in the reproduction commands and the test — the diagnostic that traced
+each hit to its archive files is what justified the baseline. The archive at
+`~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6/` was read and not written.
 
-## 5. Reproduction
+## 5. Deviations
+
+Two, both found by the independent review of the first commit (0e711ce) and fixed in the
+next; neither changes a row record or any of the four outcomes.
+
+1. **The join rule as first implemented read `strip()` where the preregistration §1 says
+   the line is read after its LEADING whitespace is removed.** Under `strip()` a heading
+   marker followed only by a trailing space lost its heading status and a rule-shaped
+   line with a trailing space wrongly became structural. The literal rule (`lstrip()`) is
+   now implemented, with tests for exactly those cases. Effect on the archive: the joins
+   changed in 17 of the 33 source files; the joined-line total went from 21,773 to
+   21,687 and the minimum joined/original ratio from 0.0542 to 0.0524; the 91 row records
+   are byte-identical between the two rules, so every rate in §1–§2 is unchanged.
+   `rows-arm6-wrapjoin.jsonl` and `report-wrapjoin.json` were regenerated under the
+   literal rule.
+2. **The fragment scan as first committed took its baseline from HEAD** — which contained
+   the candidate files themselves, so a candidate's matching corpus shingles would have
+   been subtracted along with the product's vocabulary — **and scanned the candidates line
+   by line**, so a five-word run crossing a line break was not a run. The scan now reads
+   its baseline from the pre-slice commit 1f6120e with `git show`, shingles archive and
+   candidates as whole files with newlines folded, and lists itself among the candidates.
+   The reviewer's own whole-file scan found no corpus match, and the corrected procedure
+   agrees: 0 shared runs (§4).
+
+## 6. Reproduction
 
 ```sh
 export PYTHONPATH=<worktree>/src
 python3 benchmarks/expertlongbench/study15/wrapjoin.py --run ~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6
 python3 -m pytest benchmarks/expertlongbench/tests/test_wrapjoin.py -q
-git archive HEAD src benchmarks/expertlongbench docs | tar -x -C <baseline-dir>
-python3 benchmarks/expertlongbench/study15/wrapjoin_scan.py --run ~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6 --baseline <baseline-dir> benchmarks/expertlongbench/RESULTS-ARM6-WRAPJOIN.md benchmarks/expertlongbench/study15/PREREGISTRATION-WRAPJOIN.md benchmarks/expertlongbench/study15/wrapjoin.py benchmarks/expertlongbench/study15/rows-arm6-wrapjoin.jsonl benchmarks/expertlongbench/study15/report-wrapjoin.json benchmarks/expertlongbench/tests/test_wrapjoin.py
+python3 benchmarks/expertlongbench/study15/wrapjoin_scan.py --run ~/Documents/Crossaudit/study-data/wt-arm6-runs/arm6 --baseline-rev 1f6120e benchmarks/expertlongbench/RESULTS-ARM6-WRAPJOIN.md benchmarks/expertlongbench/study15/PREREGISTRATION-WRAPJOIN.md benchmarks/expertlongbench/study15/wrapjoin.py benchmarks/expertlongbench/study15/wrapjoin_scan.py benchmarks/expertlongbench/study15/rows-arm6-wrapjoin.jsonl benchmarks/expertlongbench/study15/report-wrapjoin.json benchmarks/expertlongbench/tests/test_wrapjoin.py
 ```

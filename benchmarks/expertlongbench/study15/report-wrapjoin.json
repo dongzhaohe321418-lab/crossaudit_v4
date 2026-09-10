@@ -392,12 +392,12 @@
   "file_shapes": {
     "files": 33,
     "joined_over_original_lines": {
-      "min": 0.05417276720351391,
+      "min": 0.05241581259150805,
       "median": 0.19444444444444445,
       "max": 0.6540807435376126
     },
     "original_lines_total": 93931,
-    "joined_lines_total": 21773,
+    "joined_lines_total": 21687,
     "files_with_fence_shaped_lines": 3,
     "files_with_an_odd_fence_count": 3,
     "share_inside_fence": {

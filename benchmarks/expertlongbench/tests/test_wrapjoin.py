@@ -81,6 +81,29 @@ def test_a_wrapped_list_item_is_joined_but_the_next_item_is_not():
     assert mapping == [(0, 1), (2, 2)]
 
 
+# leading whitespace only is removed before a line is read (preregistration §1); the
+# first commit of the slice read strip() here and the review caught it
+
+def test_a_heading_marker_with_only_a_trailing_space_is_still_a_heading():
+    joined, mapping = join_wraps("para\n# \npara")
+    assert joined == "para\n# \npara" and mapping == [(0, 0), (1, 1), (2, 2)]
+
+
+def test_a_rule_line_with_a_trailing_space_is_not_structural_and_is_joined():
+    joined, mapping = join_wraps("para\n--- \npara")
+    assert joined == "para --- para" and mapping == [(0, 2)]
+
+
+def test_a_whitespace_only_line_is_empty_and_kept():
+    joined, mapping = join_wraps("para\n   \npara")
+    assert joined == "para\n   \npara" and mapping == [(0, 0), (1, 1), (2, 2)]
+
+
+def test_trailing_whitespace_does_not_change_a_table_row_or_fence():
+    assert join_wraps("para\n| a | \npara")[0] == "para\n| a | \npara"
+    assert join_wraps("para\n``` \ncode\n```")[0] == "para\n``` \ncode\n```"
+
+
 def test_a_hash_without_a_space_is_not_a_heading():
     joined, _ = join_wraps("docket\n#12345 continues")
     assert joined == "docket #12345 continues"
