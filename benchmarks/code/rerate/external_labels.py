@@ -1,11 +1,17 @@
-"""Study 21 Amendment 3 — the external, third-party specification labels this study is
-checked against, transcribed with their provenance so anyone can re-derive the join.
+"""Study 21 Amendment 3 — the third-party material this study's labels are checked against,
+transcribed with its provenance so anyone can re-derive the join.
 
-Neither source was consulted before this study's own labels were committed; the git history
-fixes that order (`records/rerate/L1.csv` at d98f0c1, `L1-flagged.csv` at 3aa97aa, both before
-the first external file was fetched). Neither source was produced for this study, and neither
-labels an instance: both label the TASK's specification, which is why the join is by task id
-and why the outcome is a concordance, not a rate.
+**One of these is an external label set and the other is not.** `RICHTER` is a published list
+of task specifications its authors judged defective, and it alone is the external check.
+`EVALPLUS_SPECIAL_ORACLE` is a list of engineering decisions in a benchmark's test harness;
+reading it as evidence about specifications is THIS STUDY'S interpretation, and it is reported
+separately and labelled as such wherever it appears. Neither labels an instance — both are
+per task — which is why the join is by task id and why the outcome is a concordance, not a rate.
+
+On chronology: this study's labels were committed at d98f0c1, 3aa97aa and e654452, and the
+earliest external file on this machine was created after all three. Those are commit times and
+untracked-file creation times. They establish that order and nothing else; they cannot show
+what a rater knew, and neither source is private.
 """
 
 from __future__ import annotations
@@ -47,9 +53,11 @@ EVALPLUS_SPECIAL_ORACLE = {
     "Mbpp/558": "hand-written oracle: the two numbers zero-padded to equal length",
 }
 
-#: Both sources assert "the specification does not settle this", which is what this study's
-#: `ambiguous-oracle` label asserts. Neither asserts the converse, so a task ABSENT from them
-#: is not evidence of anything: Richter lists examples, not an exhaustive audit, and EvalPlus
-#: wrote an oracle only where it had to. The join is therefore one-sided by construction and
-#: can bound concordance, never the rate.
+#: `RICHTER` asserts "this specification is defective", which is what this study's
+#: `ambiguous-oracle` label asserts; that is the concordance. `EVALPLUS_SPECIAL_ORACLE` asserts
+#: nothing about specifications at all, and is joined only so the reader can see what this
+#: study's own reading of it would give. Neither asserts the converse, so a task ABSENT from
+#: either is not evidence of anything: Richter gives examples, not an exhaustive audit, and
+#: EvalPlus wrote an oracle only where its harness needed one. The join is one-sided by
+#: construction and can bound concordance, never the rate.
 CONCORDANT_WITH = "ambiguous-oracle"

@@ -108,16 +108,21 @@ does not add a rater. It asks whether anyone outside this project, working for t
 reasons and before we looked, had already recorded that these specifications do not settle
 their expected values.
 
-Two sources qualify, and only two. Both label the **task's specification**, not an instance,
-so the join is by task id and the outcome is a **concordance, not a rate**:
+**One source qualifies as an external label set**, and the join is by task id, not by
+instance, so the outcome is a **concordance, not a rate**:
 
 1. **Richter & Papadakis, arXiv:2607.01953**, §1 footnotes 1–3, which name twelve MBPP tasks
    they manually identified as *ambiguous* (294, 102, 410, 576), *incomplete* (7, 137, 244,
-   261, 278) or *contradictory* (459, 638, 639).
-2. **EvalPlus's `evalplus/_special_oracle.py`** (Apache-2.0), the tasks for which the
-   benchmark's own authors could not test a candidate against the reference and wrote a
-   bespoke oracle instead — eight where the prose leaves the output *order* open, and three
-   whose hand-written oracle docstring states the interpretation the authors chose.
+   261, 278) or *contradictory* (459, 638, 639). This is the external check, and the only one.
+
+Reported beside it, **not as a label and not counted in the concordance**:
+`evalplus/eval/_special_oracle.py` (Apache-2.0), the tasks whose candidates the benchmark's
+harness does not compare to the reference by equality — eight compared as sets, two given a
+hand-written oracle stating the reading chosen. That file records engineering decisions and
+nowhere says a specification is defective; treating it as evidence about specifications is
+this study's own reading, and a shared task id does not even mean the two are discussing the
+same defect. `HumanEval/32`, whose helper implements a convention the task's prompt already
+supplies, is excluded outright.
 
 **Order of events, as observed.** This study's labels were committed at `d98f0c1`
 (residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass); the earliest
