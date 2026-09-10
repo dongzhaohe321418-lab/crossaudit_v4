@@ -92,7 +92,7 @@ def banner(title: str, subtitle: str = "") -> None:
     if subtitle:
         for line in wrap(subtitle, WIDTH - 4):
             print(dim(glyph("│", "|") + " ") + dim(line) + " " * max(0, WIDTH - 4 - _visible(line))
-                  + dim(" │"))
+                  + dim(" " + glyph("│", "|")))
     print(dim(glyph("╰", "+") + glyph("─", "-") * (WIDTH - 2) + glyph("╯", "+")))
 
 
@@ -229,7 +229,7 @@ def option_row(index: int, option: Option, *, current: bool) -> str:
     types to choose it. The marker and the weight are emphasis on top of that,
     not the identity of the row (Ledger D17).
     """
-    marker = green("❯") if current else " "
+    marker = green(glyph("❯", ">")) if current else " "
     label = bold(option.label) if current else option.label
     tail = dim(f"  {option.hint}") if option.hint else ""
     return f"{marker} {index + 1}) {label}{tail}"
@@ -333,7 +333,7 @@ def fingerprint(value: str) -> str:
     """
     if not value:
         return "empty"
-    tail = value[-4:] if len(value) > 8 else "…"
+    tail = value[-4:] if len(value) > 8 else glyph("…", "...")
     return f"{len(value)} chars, ending {tail}"
 
 

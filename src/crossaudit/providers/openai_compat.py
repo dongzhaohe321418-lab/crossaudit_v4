@@ -41,10 +41,12 @@ def _denial_text(exc: ProviderDenial) -> str:
     return f"{exc.reason}\n{detail.get('detail', '')}".lower()
 
 
-#: "… temperature: only 1 is allowed" — the value, bound to the temperature clause
-#: (no clause separator between the word and the mandate).
+#: "… temperature: only 1 is allowed" — the value, bound to the temperature itself:
+#: nothing but punctuation and space may stand between the word and the mandate, so
+#: "temperature must be between 0 and 2, n: only 1 is allowed" names a mandate about
+#: `n` and changes nothing (review rounds 1–2 of fix/external-trial-defects).
 _ONLY_N_TEMPERATURE = re.compile(
-    r"temperature[^;.\n]{0,40}?only\s+([0-9]+(?:\.[0-9]+)?)\s+is\s+allowed")
+    r"\btemperature\b\W*only\s+([0-9]+(?:\.[0-9]+)?)\s+is\s+allowed")
 
 
 def _repaired_payload(payload: dict, exc: ProviderDenial) -> dict | None:

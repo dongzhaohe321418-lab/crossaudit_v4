@@ -53,6 +53,19 @@ def test_an_only_N_mandate_about_another_field_does_not_touch_the_temperature():
     assert openai_compat._repaired_payload({"model": "m", "temperature": 0, "n": 2}, exc) is None
 
 
+@pytest.mark.parametrize("body", [
+    "temperature must be between 0 and 2, n: only 1 is allowed",
+    "temperature must be between 0 and 2 (n: only 1 is allowed)",
+    "temperature must be between 0 and 2;            n: only 1 is allowed",
+    "n: only 1 is allowed; temperature must be between 0 and 2",
+])
+def test_a_mandate_about_another_field_in_any_punctuation_leaves_the_temperature(body):
+    """Review round 2: proximity is not ownership. Only punctuation and space may stand
+    between the word temperature and its mandate."""
+    exc = ProviderDenial("provider returned HTTP 400", detail={"detail": body})
+    assert openai_compat._repaired_payload({"model": "m", "temperature": 0, "n": 2}, exc) is None
+
+
 def test_the_repair_path_still_drops_a_deprecated_temperature():
     exc = ProviderDenial("provider returned HTTP 400",
                          detail={"detail": "temperature is deprecated for this model"})
@@ -97,6 +110,18 @@ def test_the_whole_setup_flow_survives_a_gbk_console(monkeypatch):
     # GBK has the box-drawing characters, so the banner stays Unicode; ❯ is not in GBK
     # and became ">". What matters is that nothing raised and every prompt was printed.
     assert "> " in text and "the auditor" in text and "Base URL" in text
+
+
+def test_the_menu_row_and_the_banner_subtitle_survive_a_gbk_console(monkeypatch):
+    """Review round 2: the interactive menu's ❯ and the banner's subtitle rule were still
+    unguarded. The row renderer is called as select() calls it; the banner with a subtitle."""
+    out = _gbk_console()
+    monkeypatch.setattr(sys, "stdout", out)
+    row = tui.option_row(0, tui.Option("a", "Alpha", "the first"), current=True)
+    print(row)
+    tui.banner("CrossAudit", "a subtitle that draws the side rule")
+    text = _written(out)
+    assert "> 1) " in text and "Alpha" in text and "a subtitle" in text
 
 
 def test_the_ok_mark_stays_unicode_where_stdout_can_encode_it(monkeypatch):
