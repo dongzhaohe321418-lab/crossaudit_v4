@@ -1159,6 +1159,7 @@ ENTRIES: tuple[tuple[str, str], ...] = (
     ("arXiv returned malformed XML", "arXiv 返回了格式错误的 XML"),
     ("paper_search needs a non-empty 'query'", "paper_search 需要非空的 'query'"),
     ("unknown source {}; choose one of {}", "未知的来源 {}；请从 {} 中选择"),
+    ("{} has no endpoint {}; choose one of {}", "{} 没有名为 {} 的接入区域；请从 {} 中选择"),
     ("the PDF could not be parsed", "无法解析该 PDF"),
     ("file_write needs a 'path' argument", "file_write 需要 'path' 参数"),
     ("file_write 'content' must be a string", "file_write 的 'content' 必须是字符串"),
