@@ -76,3 +76,27 @@ count in the residual and a_f the same among the flagged, the oracle-clean union
 denominator (counted as not ambiguous). No kill; the number is reported beside the registered
 48.2% whatever it is. Both consensus-ambiguous shares (residual, flagged) are reported with both
 intervals.
+
+## Amendment 2 — 2026-09-10, after the first review; the sheets were not blind to identity
+
+The first review found that both sheets carried the instance id inside the hidden-outcome
+record (only the header line had been stripped), and that L2's second prompt named the file
+"flagged". So neither rater was blind to instance identity, and L2 was not blind to the second
+sheet's status; both were blind to the prior category and to per-item flag status on the first
+sheet (57 residual and 11 flagged instances mixed without a marker). The results are corrected to
+say exactly that. L1 cannot be re-blinded. L2 can:
+
+**Re-blinded L2 pass.** One combined sheet of the 110 P instances (57 residual + 53 flagged),
+each item carrying only the witness (first failing inputs with expected and actual values, or
+the timeout flag), the specification, the visible suite, the candidate and the canonical
+solution — no instance id, no benchmark name, no counts of hidden tests, no membership marker;
+shuffled with seed 20260915, ids R001–R110, neutral file name; L2 = `gpt-6-astra` in a fresh
+Codex session with §2's rule verbatim and no mention of residual, flagged, or sheets. Outcomes,
+both reported: (i) per-instance agreement of the re-blinded L2 labels with L2's first labels
+(the effect of identity and status on L2); (ii) the consensus of L1 with the re-blinded L2,
+with §3's kill and Amendment 1's secondary restated on it beside the original. No rule change,
+no new bars, no L1 re-rating.
+
+Also corrected by this amendment: Amendment 1's "before any flagged label" holds for 42 of the
+53 flagged instances — 11 had been rated on the first sheet (2 ambiguous, 7 edge, 2 timeout by
+consensus).
