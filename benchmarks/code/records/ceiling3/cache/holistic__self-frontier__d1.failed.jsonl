@@ -1,0 +1,10 @@
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes failed. anthropic:claude-opus-4-8 \u2014 provider unreachable: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)>", "instance_id": "b2:Mbpp/743", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/744", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/75", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/772", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/775", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/8", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/82", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/88", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/9", "pass": 1}
+{"detector": "holistic__self-frontier__d1", "error": "ProviderDenial: all configured auditor provider routes are cooling down; retry in 60s", "instance_id": "b2:Mbpp/93", "pass": 1}
