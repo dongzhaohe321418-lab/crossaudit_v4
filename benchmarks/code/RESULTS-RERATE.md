@@ -151,6 +151,37 @@ does determine the value and the visible suite never built the input (a negative
 nesting than any visible example; floor division where the prose says division; an unhashable
 element; a duplicate the count must pair).
 
+## An external check of the labels (Amendment 3, post hoc)
+
+Every review named the same limitation: both raters were ours. This does not add a rater. It
+asks whether anyone outside this project had already recorded, for their own reasons and before
+we looked, that these specifications do not settle their expected values. Two sources qualify.
+Richter and Papadakis (arXiv:2607.01953) name twelve MBPP tasks they manually identified as
+ambiguous, incomplete or contradictory. EvalPlus ships `_special_oracle.py`, the tasks its own
+authors could not test against the reference implementation and gave a bespoke oracle instead —
+eight whose output order the prose leaves open, three whose hand-written oracle states the
+interpretation chosen.
+
+**12 of their 22 tasks are in this study's stratum P.
+This study's raters call 10 of those 10 `ambiguous-oracle`
+and 2 `unexercised-edge`.** By source: 9 of 11
+joined tasks concordant for Richter and Papadakis, 2 of 2 for
+EvalPlus. The labels were committed at `d98f0c1`, `3aa97aa` and `e654452` before any external
+file was fetched; git fixes that order.
+
+Both disagreements — `Mbpp/244` and `Mbpp/261`, which we call `unexercised-edge` on both
+batches — are in Richter and Papadakis's *incomplete* class, and that is the boundary between
+this study's two categories rather than a failure of either: a specification can be incomplete
+about an input class and still, on a reasonable reading, determine what the value there must be.
+`Mbpp/244` is the case: the prose asks for the next perfect square greater than a number, says
+nothing about negative inputs, and a reader who works from the words still gets 0 for −5, which
+is what the hidden suite expects and what the candidate does not return.
+
+**The join is one-sided and can bound nothing about the rate.** Neither source is exhaustive:
+one gives examples, the other wrote an oracle only where it had to. A task they do not name is
+not evidence that its specification is sound. What this supports is narrow — where an outside
+party recorded a defective specification, this study's raters agreed — and it is post hoc.
+
 ## What this does and does not say
 
 1. **The category depends on the rubric — and that is the result.** Ceiling 1's rule put

@@ -86,3 +86,19 @@ def test_no_percentage_in_prose_is_quoted_without_the_tables():
     prose = re.sub(r"<!-- tables:begin -->.*<!-- tables:end -->", "", RESULTS, flags=re.S)
     rates = re.findall(r"\d+\.\d%", prose)
     assert set(rates) <= {"69.0%", "48.2%"}, rates
+
+
+def test_the_external_concordance_is_quoted_from_its_record():
+    """Amendment 3's counts come from records/rerate/external.json, and the join is re-derived."""
+    import subprocess
+    e = json.loads((HERE / "records" / "rerate" / "external.json").read_text(encoding="utf-8"))
+    assert f"{e['n_joined_to_our_P']} of their {e['n_external_tasks']} tasks are in this study's stratum P" in FLAT
+    assert f"call {e['n_concordant']} of those {len(e['concordant_tasks'])} `ambiguous-oracle`" in FLAT
+    assert f"and {e['n_discordant']} `unexercised-edge`" in FLAT
+    for task in e["discordant_tasks"]:
+        assert f"`{task}`" in FLAT, task
+    # the record is what the script produces, not a hand-edited file
+    before = (HERE / "records" / "rerate" / "external.json").read_text(encoding="utf-8")
+    subprocess.run([sys.executable, str(HERE / "rerate" / "external_join.py")], check=True,
+                   capture_output=True)
+    assert (HERE / "records" / "rerate" / "external.json").read_text(encoding="utf-8") == before
