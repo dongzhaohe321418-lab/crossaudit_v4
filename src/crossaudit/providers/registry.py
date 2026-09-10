@@ -9,6 +9,9 @@ from ..errors import ConfigDenial
 from . import anthropic, codex_subscription, openai_compat, replay
 from .specs import SPECS, endpoints
 
+#: Vendors whose chat endpoint accepts temperature 1 and nothing else.
+_TEMPERATURE_ONE = frozenset({"minimax", "moonshot"})
+
 _PROVIDERS: dict[str, Callable[..., object]] = {
     "anthropic": anthropic.complete,
     "openai_codex": codex_subscription.complete,
@@ -20,7 +23,10 @@ for _vendor, _spec in SPECS.items():
         _PROVIDERS[_spec.provider] = partial(
             openai_compat.complete, _builtin_base=_spec.api_base,
             _official_bases=tuple(row[2] for row in endpoints(_vendor)),
-            _temperature=(1.0 if _vendor == "minimax" else 0),
+            # MiniMax and Moonshot reject any temperature but 1 ("invalid
+            # temperature: only 1 is allowed"); every other compatible origin
+            # takes the deterministic 0 the audit wants.
+            _temperature=(1.0 if _vendor in _TEMPERATURE_ONE else 0),
             _vendor=_vendor,
             _extra_headers=({"x-goog-api-client": f"crossaudit/{__version__}"}
                             if _vendor == "google" else None))

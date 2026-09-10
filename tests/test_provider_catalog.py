@@ -101,7 +101,7 @@ def test_compatible_provider_is_bound_to_its_own_first_party_origin(
     assert seen["url"] == spec.api_base + "/chat/completions"
     assert seen["headers"]["authorization"] == "Bearer provider-test-key"
     assert ("x-goog-api-client" in seen["headers"]) == (vendor == "google")
-    assert seen["payload"].get("temperature") == (1.0 if vendor == "minimax" else 0)
+    assert seen["payload"].get("temperature") == (1.0 if vendor in ("minimax", "moonshot") else 0)
 
 
 def test_compatible_provider_accepts_only_a_declared_regional_origin(

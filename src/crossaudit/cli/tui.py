@@ -140,8 +140,23 @@ def note(text: str) -> None:
         print(dim(f"        {line}"))
 
 
+def glyph(preferred: str, fallback: str) -> str:
+    """``preferred`` where stdout can encode it, else ``fallback``.
+
+    A Windows console on a non-UTF-8 code page (GBK, for one) raises
+    UnicodeEncodeError on the first ✓ and the wizard dies before its first
+    step; an external trial found exactly that. The fallback is plain ASCII.
+    """
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        preferred.encode(encoding)
+    except (UnicodeEncodeError, LookupError):
+        return fallback
+    return preferred
+
+
 def ok(text: str) -> None:
-    print(f"  {green('✓')} {text}")
+    print(f"  {green(glyph('✓', '+'))} {text}")
 
 
 def warn(text: str) -> None:

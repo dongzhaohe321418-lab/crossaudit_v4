@@ -1547,7 +1547,8 @@ def cmd_init(args: argparse.Namespace) -> int:
                          auditor_model=getattr(args, "auditor_model", None),
                          generator_vendor=getattr(args, "generator_vendor", None),
                          generator_model=getattr(args, "generator_model", None),
-                         profile=getattr(args, "profile", "") or "")
+                         profile=getattr(args, "profile", "") or "",
+                         auditor_region=getattr(args, "auditor_region", None))
 
     # Finish by opening the console, because the setup ends exactly where the
     # work begins and asking someone to find the next command themselves is a
@@ -2026,6 +2027,9 @@ def build_parser() -> argparse.ArgumentParser:
                    help="auditor vendor; useful when stdin is not a terminal")
     i.add_argument("--auditor-model",
                    help="exact auditor model id; accepts models newer than this release")
+    i.add_argument("--auditor-region",
+                   help="the vendor's regional endpoint id (e.g. china for a China-platform "
+                        "Moonshot key); asked interactively when the vendor has several")
     # Same catalogue the wizard offers, plus "human": a shorter list here would
     # make a vendor scriptable interactively but not from CI.
     i.add_argument("--generator-vendor", choices=(*wizard.VENDORS, "human"),

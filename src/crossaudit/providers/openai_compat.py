@@ -8,6 +8,8 @@ says nothing about who is on the other end.
 """
 from __future__ import annotations
 
+import re
+
 import codecs
 import json
 from urllib.parse import urlparse
@@ -47,6 +49,11 @@ def _repaired_payload(payload: dict, exc: ProviderDenial) -> dict | None:
                     ("deprecated", "unsupported", "not support",
                      "only the default"))):
         retry.pop("temperature", None)
+    elif ("temperature" in retry and "temperature" in said
+          and (m := re.search(r"only\s+([0-9]+(?:\.[0-9]+)?)\s+is\s+allowed", said))):
+        # Moonshot: "invalid temperature: only 1 is allowed" — send the one
+        # value the origin names rather than dropping the field.
+        retry["temperature"] = float(m.group(1))
     elif ("max_tokens" in retry and "max_tokens" in said
           and "max_completion_tokens" in said):
         retry["max_completion_tokens"] = retry.pop("max_tokens")

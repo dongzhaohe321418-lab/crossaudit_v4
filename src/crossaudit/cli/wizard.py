@@ -52,6 +52,33 @@ VENDOR_MODELS["other"] = []
 TYPE_IT = "__type__"
 
 
+def choose_region(vendor: str, requested: str | None = None) -> str:
+    """The base URL of the vendor's chosen regional endpoint, or "" for its default.
+
+    Some vendors issue keys bound to a region: a China-platform Moonshot key is refused
+    (401) at the international origin. The regions were in the provider catalogue and
+    unreachable from setup; an external trial had to edit ``base_url`` by hand. The
+    first declared endpoint is the default and writes no ``base_url`` line, so a
+    project set up before this change reads the same.
+    """
+    from ..providers.specs import endpoints
+    rows = endpoints(vendor)
+    if requested:
+        for row in rows:
+            if row[0] == requested:
+                return "" if row is rows[0] else row[2]
+        raise ConfigDenial(f"{vendor} has no endpoint {requested!r}; "
+                           f"choose one of {', '.join(r[0] for r in rows)}")
+    if len(rows) < 2:
+        return ""
+    chosen = tui.select(t("prompt.region"),
+                        [tui.Option(r[0], r[1], r[2]) for r in rows], default=0)
+    for row in rows:
+        if row[0] == chosen:
+            return "" if row is rows[0] else row[2]
+    return ""
+
+
 def choose_model(vendor: str, default: str, *, role: str = "Auditor") -> str:
     """Pick a model from a list, or type one.
 
@@ -719,8 +746,13 @@ def run(target: Path, *, mode: str, force: bool = False,
         auditor_vendor: str | None = None, auditor_model: str | None = None,
         generator_vendor: str | None = None,
         generator_model: str | None = None,
-        profile: str = "") -> dict:
-    """Guided setup. Returns a summary of what was written."""
+        profile: str = "", auditor_region: str | None = None) -> dict:
+    """Guided setup. Returns a summary of what was written.
+
+    ``auditor_region`` names one of the vendor's declared endpoints (``specs.endpoints``)
+    for vendors that issue region-bound keys — Moonshot's ``china`` origin, say. Without
+    it the wizard asks when the vendor has more than one, and takes the first otherwise.
+    """
     requested_generator_model = generator_model
     target = target.resolve()
     cfg_path = target / CONFIG_NAME
@@ -760,6 +792,8 @@ def run(target: Path, *, mode: str, force: bool = False,
         base_url = tui.text(t("prompt.base_url"),
                             placeholder="https://host/v1")
         provider = "openai_compat"
+    else:
+        base_url = choose_region(auditor_vendor, auditor_region)
 
     # ---- 2. the generator --------------------------------------------------
     tui.step(2, 4, t("init.step2.title"))
