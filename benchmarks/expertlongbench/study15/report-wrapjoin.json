@@ -1,0 +1,436 @@
+{
+  "seed": 20261109,
+  "reps": 10000,
+  "matcher_version": "620fb3bcc1f57b1888e1cd4b74acd30aa93a10bf",
+  "drafts": 33,
+  "rows": 91,
+  "rates": {
+    "(a) Q1 rows located after join / Q1 rows": {
+      "k": 24,
+      "n": 40,
+      "wilson": [
+        0.44595893660346186,
+        0.7365167431570808
+      ],
+      "bootstrap": [
+        0.17647058823529413,
+        0.9090909090909091
+      ],
+      "discarded": 5
+    },
+    "    Q1 rows ambiguous after join (more than one joined line) / Q1 rows": {
+      "k": 15,
+      "n": 40,
+      "wilson": [
+        0.24222979167233266,
+        0.5296756086269889
+      ],
+      "bootstrap": [
+        0.05555555555555555,
+        0.7777777777777778
+      ],
+      "discarded": 5
+    },
+    "    Q1 rows still crossing after join / Q1 rows": {
+      "k": 1,
+      "n": 40,
+      "wilson": [
+        0.0044268315026814095,
+        0.1288136896347409
+      ],
+      "bootstrap": [
+        0.0,
+        0.12
+      ],
+      "discarded": 5
+    },
+    "    Q1 rows absent after join / Q1 rows": {
+      "k": 0,
+      "n": 40,
+      "wilson": [
+        0.0,
+        0.08762160119728664
+      ],
+      "bootstrap": [
+        0.0,
+        0.0
+      ],
+      "discarded": 5
+    },
+    "(b) newly located rows PASSED / newly located rows": {
+      "k": 14,
+      "n": 24,
+      "wilson": [
+        0.3883466586522876,
+        0.7553239739018824
+      ],
+      "bootstrap": [
+        0.2857142857142857,
+        1.0
+      ],
+      "discarded": 36
+    },
+    "(b) newly located rows BLOCKED (pair not in the quoted interval) / newly located rows": {
+      "k": 10,
+      "n": 24,
+      "wilson": [
+        0.24467602609811764,
+        0.6116533413477124
+      ],
+      "bootstrap": [
+        0.0,
+        0.7142857142857143
+      ],
+      "discarded": 36
+    },
+    "    newly located rows from Q1 / newly located rows": {
+      "k": 24,
+      "n": 24,
+      "wilson": [
+        0.8620237953250198,
+        1.0
+      ],
+      "bootstrap": [
+        1.0,
+        1.0
+      ],
+      "discarded": 36
+    },
+    "    newly located rows from Q2 / newly located rows": {
+      "k": 0,
+      "n": 24,
+      "wilson": [
+        1.3877787807814457e-17,
+        0.13797620467498017
+      ],
+      "bootstrap": [
+        0.0,
+        0.0
+      ],
+      "discarded": 36
+    },
+    "    newly located BLOCKED rows with adj_a true (pair elsewhere on the joined line)": {
+      "k": 1,
+      "n": 10,
+      "wilson": [
+        0.017876213095072896,
+        0.4041500267952385
+      ],
+      "bootstrap": [
+        0.0,
+        1.0
+      ],
+      "discarded": 395
+    },
+    "    newly located BLOCKED rows with adj_b true (value an exact substring of the line)": {
+      "k": 4,
+      "n": 10,
+      "wilson": [
+        0.16818032970623614,
+        0.6873262302663417
+      ],
+      "bootstrap": [
+        0.14285714285714285,
+        1.0
+      ],
+      "discarded": 395
+    },
+    "    newly located PASSED rows with adj_b true": {
+      "k": 7,
+      "n": 14,
+      "wilson": [
+        0.26799202452413634,
+        0.7320079754758637
+      ],
+      "bootstrap": [
+        0.0,
+        1.0
+      ],
+      "discarded": 135
+    },
+    "(c) \u00a78g after join: gold-C rows BLOCKED / gold-C rows located after join": {
+      "k": 3,
+      "n": 15,
+      "wilson": [
+        0.07047549346981563,
+        0.45185448715169363
+      ],
+      "bootstrap": [
+        0.0,
+        0.75
+      ],
+      "discarded": 15
+    },
+    "    gold-C rows still located after join / gold-C rows": {
+      "k": 15,
+      "n": 17,
+      "wilson": [
+        0.6566364940511412,
+        0.9671202262362074
+      ],
+      "bootstrap": [
+        0.5384615384615384,
+        1.0
+      ],
+      "discarded": 3
+    },
+    "    labelled rows whose verdict changed / labelled rows": {
+      "k": 2,
+      "n": 19,
+      "wilson": [
+        0.02935856029887013,
+        0.31394082711109006
+      ],
+      "bootstrap": [
+        0.0,
+        0.4444444444444444
+      ],
+      "discarded": 3
+    },
+    "    labelled passes still passing / labelled passes": {
+      "k": 12,
+      "n": 14,
+      "wilson": [
+        0.6005862050302965,
+        0.9599060787285351
+      ],
+      "bootstrap": [
+        0.3333333333333333,
+        1.0
+      ],
+      "discarded": 36
+    },
+    "(d) quote-crosses-line after join / addressed rows": {
+      "k": 1,
+      "n": 87,
+      "wilson": [
+        0.0020319077375923027,
+        0.06227197835723791
+      ],
+      "bootstrap": [
+        0.0,
+        0.04
+      ],
+      "discarded": 0
+    },
+    "located after join / addressed rows": {
+      "k": 41,
+      "n": 87,
+      "wilson": [
+        0.36982264609147514,
+        0.5751364060317501
+      ],
+      "bootstrap": [
+        0.2692307692307692,
+        0.639344262295082
+      ],
+      "discarded": 0
+    },
+    "ambiguous after join / addressed rows": {
+      "k": 24,
+      "n": 87,
+      "wilson": [
+        0.19294289080315385,
+        0.3777377157580035
+      ],
+      "bootstrap": [
+        0.10112359550561797,
+        0.4897959183673469
+      ],
+      "discarded": 0
+    },
+    "Q2 rows located after join / Q2 rows": {
+      "k": 0,
+      "n": 21,
+      "wilson": [
+        0.0,
+        0.154639018924847
+      ],
+      "bootstrap": [
+        0.0,
+        0.0
+      ],
+      "discarded": 139
+    },
+    "PASS after join / blockable rows": {
+      "k": 26,
+      "n": 80,
+      "wilson": [
+        0.2324416184435817,
+        0.4335947268938527
+      ],
+      "bootstrap": [
+        0.14,
+        0.5614035087719298
+      ],
+      "discarded": 0
+    },
+    "verdict changed / all rows": {
+      "k": 41,
+      "n": 91,
+      "wilson": [
+        0.3523976853313362,
+        0.5527071062660257
+      ],
+      "bootstrap": [
+        0.23076923076923078,
+        0.6144578313253012
+      ],
+      "discarded": 0
+    },
+    "    newly located BLOCKS shaped currency-sign-before-value / newly located blocks": {
+      "k": 9,
+      "n": 10,
+      "wilson": [
+        0.5958499732047615,
+        0.9821237869049271
+      ],
+      "bootstrap": [
+        0.0,
+        1.0
+      ],
+      "discarded": 395
+    },
+    "    newly located BLOCKS shaped value-not-in-quotation-as-written / newly located blocks": {
+      "k": 1,
+      "n": 10,
+      "wilson": [
+        0.017876213095072896,
+        0.4041500267952385
+      ],
+      "bootstrap": [
+        0.0,
+        1.0
+      ],
+      "discarded": 395
+    },
+    "    newly located BLOCKS shaped other / newly located blocks": {
+      "k": 0,
+      "n": 10,
+      "wilson": [
+        0.0,
+        0.2775327998628892
+      ],
+      "bootstrap": [
+        0.0,
+        0.0
+      ],
+      "discarded": 395
+    }
+  },
+  "newly_located_joined_line_span_lines": {
+    "2": 2,
+    "3": 2,
+    "4": 2,
+    "10": 1,
+    "16": 6,
+    "19": 3,
+    "21": 1,
+    "22": 4,
+    "23": 1,
+    "27": 1,
+    "55": 1
+  },
+  "newly_located_quote_span_lines": {
+    "2": 19,
+    "3": 5
+  },
+  "newly_located_block_shapes": {
+    "currency-sign-before-value": 9,
+    "value-not-in-quotation-as-written": 1
+  },
+  "labelled_located_block_shapes_after_join": {
+    "currency-sign-before-value": 3,
+    "value-not-in-quotation-as-written": 2
+  },
+  "verdict_transitions": [
+    {
+      "before": [
+        "BLOCKER",
+        "quote-crosses-line"
+      ],
+      "after": [
+        "ADVISORY",
+        "ambiguous"
+      ],
+      "n": 15
+    },
+    {
+      "before": [
+        "BLOCKER",
+        "quote-crosses-line"
+      ],
+      "after": [
+        "BLOCKER",
+        "pair-not-in-location"
+      ],
+      "n": 10
+    },
+    {
+      "before": [
+        "BLOCKER",
+        "quote-crosses-line"
+      ],
+      "after": [
+        "PASS",
+        ""
+      ],
+      "n": 14
+    },
+    {
+      "before": [
+        "PASS",
+        ""
+      ],
+      "after": [
+        "ADVISORY",
+        "ambiguous"
+      ],
+      "n": 2
+    }
+  ],
+  "file_shapes": {
+    "files": 33,
+    "joined_over_original_lines": {
+      "min": 0.05417276720351391,
+      "median": 0.19444444444444445,
+      "max": 0.6540807435376126
+    },
+    "original_lines_total": 93931,
+    "joined_lines_total": 21773,
+    "files_with_fence_shaped_lines": 3,
+    "files_with_an_odd_fence_count": 3,
+    "share_inside_fence": {
+      "T01LegalMDS-15064": 0.40865006553079947,
+      "T01LegalMDS-15516": 0.5692709846064479,
+      "T01LegalMDS-9748": 0.31816838995568686
+    }
+  },
+  "ambiguous_after_join_occurrences": {
+    "2": 19,
+    "3": 4,
+    "4": 1
+  },
+  "newly_located_per_draft": [
+    1,
+    2,
+    3,
+    7,
+    11
+  ],
+  "kill": {
+    "clause_1_at_least_half_of_Q1_located": true,
+    "q1_located": [
+      24,
+      40
+    ],
+    "clause_2_blocked_share_bound_at_or_below_3_of_17": false,
+    "newly_located_blocked": [
+      10,
+      24
+    ],
+    "bound": 0.4166666666666667,
+    "labellable_by_an_existing_rule": 0,
+    "verdict": "undetermined"
+  }
+}
