@@ -1,20 +1,26 @@
 # Study 21 — the residual re-rated with the oracle question asked first
 
 Preregistration: `rerate/PREREGISTRATION.md` (committed before any label; seed 20260914;
-Amendment 1 committed after the residual result and before any flagged label). Raters: L1 the
-author; L2 `gpt-6-astra` through the Codex CLI, read-only, from the blind sheets alone. Material:
-ceiling 1's archived residual dump (68 instances: the 57-instance all-family residual and the 11
-instances only the third family flagged) and, under Amendment 1, the 53 stratum-P instances some
-draw did flag, built with the same dumper. Both sheets show an opaque id, the specification, the
-visible suite, the candidate, the canonical solution and the witness (the first failing hidden
-inputs with expected and actual values) — not the instance id, the prior category, or whether
-any draw flagged the instance. No API spend; L2 ran on the Codex subscription.
+Amendment 1 committed after the residual result and before the first rating of 42 of the 53
+flagged instances — 11 had been rated on the first sheet; Amendment 2 after the first review).
+Raters: L1 the author; L2 `gpt-6-astra` through the Codex CLI, read-only, from the sheets alone.
+Material: ceiling 1's archived residual dump (68 instances: the 57-instance all-family residual
+and the 11 instances only the third family flagged) and, under Amendment 1, the 53 stratum-P
+instances some draw did flag, built with the same dumper. Each sheet item shows the specification,
+the visible suite, the candidate, the canonical solution and the witness (the first failing
+hidden inputs with expected and actual values) — and, as the first review found, **the instance
+id inside the hidden-outcome record**: the sheets were blind to the prior category and (on the
+first sheet) to per-item flag status, not to identity, and L2's second prompt named the sheet
+"flagged". Amendment 2 re-runs L2 on one identity-stripped sheet of all 110 P instances (Table
+5). No API spend; L2 ran on the Codex subscription.
 
 ## The finding
 
-**Under a rule that asks "does the specification determine the expected value?" before "did the
-visible suite exercise this input?", the residual is not mostly unexercised edge. It is mostly
-oracle-defined — and so is a large part of what the auditors flagged.**
+**Under a rubric that asks "does the specification determine the expected value?" before "did
+the visible suite exercise this input?", and defines both categories by specification
+entailment, the residual is not mostly unexercised edge: 44 of 57 are consensus
+`ambiguous-oracle` — and so are 24 of the 53 instances the auditors flagged.** "Oracle-defined"
+below means that operational label, nothing more.
 
 <!-- tables:begin -->
 ### Table 1 — consensus category of the residual, oracle question first
@@ -67,8 +73,10 @@ Rule: Amendment 1: (53 − a_f) / (110 − a_r − a_f); disputed count as not a
 
 | denominator | P | flagged by any draw | union recall at K_max [95% cluster CI] (Wilson) | residual share |
 |---|---:|---:|---|---:|
-| registered (ceiling 1) | 110 | 53 | 48.2% | 51.8% |
+| registered (ceiling 1) | 110 | 53 | 48.2% [36.7, 60.0] (Wilson [39.1, 57.4]) | 51.8% |
 | oracle-clean (minus 44 residual + 24 flagged consensus-ambiguous) | 42 | 29 | **69.0%** [50.0, 86.4] (Wilson [54.0, 80.9]) | 31.0% |
+
+The registered interval is the complement of ceiling 1's residual-share interval. The oracle-clean interval is a bootstrap of a conditional estimand: the bootstrap for this conditional estimand has no committed coverage simulation; uncalibrated.
 
 ### Table 4 — POST HOC: ceiling 1's union recall by the defect's consensus category
 
@@ -80,6 +88,27 @@ Asked after Table 1's flagged counts were seen; not preregistered. Recall = flag
 | `ambiguous-oracle` | 68 (34) | 24 | **24 of 68** (35.3% [22.1, 50.0]; Wilson [25.0, 47.2]) |
 | `unexercised-edge` | 25 (13) | 23 | **23 of 25** (92.0% [75.0, 100.0]; Wilson [75.0, 97.8]) |
 | `disputed` | 10 (5) | 2 | **2 of 10** (20.0% [0.0, 40.0]; Wilson [5.7, 51.0]) |
+
+### Table 5 — Amendment 2: L2 re-run on one identity-stripped sheet of all 110 P instances
+
+The first sheets carried the instance id and L2's second prompt named the sheet (found by the first review); this pass strips both. L1's labels are unchanged (L1 cannot be re-blinded).
+
+| quantity | value |
+|---|---|
+| L2 first labels vs re-blinded, same | 108 of 110 (κ 0.963) |
+| L1 vs re-blinded L2, agree | 102 of 110 (κ 0.854) |
+| residual consensus (L1 × L2 re-blinded) | `timeout` 3, `ambiguous-oracle` 44, `unexercised-edge` 2, `other` 2, `disputed` 6 |
+| flagged consensus (L1 × L2 re-blinded) | `timeout` 4, `ambiguous-oracle` 24, `unexercised-edge` 23, `disputed` 2 |
+| §3 kill restated | ambiguous 44 of 57, edge 2 of 57 — fires |
+| oracle-clean recall restated | 29 of 42 = **69.0%** [50.0, 86.4] (Wilson [54.0, 80.9]) |
+
+| post-hoc split restated | n | flagged | recall [95% cluster CI] (Wilson) |
+|---|---:|---:|---|
+| `timeout` | 7 | 4 | **4 of 7** (57.1% [14.3, 100.0]; Wilson [25.0, 84.2]) |
+| `ambiguous-oracle` | 68 | 24 | **24 of 68** (35.3% [22.1, 50.0]; Wilson [25.0, 47.2]) |
+| `unexercised-edge` | 25 | 23 | **23 of 25** (92.0% [75.0, 100.0]; Wilson [75.0, 97.8]) |
+| `other` | 2 | 0 | **0 of 2** (0.0% [0.0, 0.0]; Wilson [0.0, 65.8]) |
+| `disputed` | 8 | 2 | **2 of 8** (25.0% [0.0, 50.0]; Wilson [7.1, 59.1]) |
 <!-- tables:end -->
 
 The preregistered kill for the sentence "the residual is mostly unexercised edge" fires on both
@@ -89,14 +118,23 @@ called 39 `unexercised-edge` and 5 `spec-misreading`.
 
 Amendment 1's secondary: among the 53 flagged P instances the consensus is 24 `ambiguous-oracle`
 and 23 `unexercised-edge`, so the oracle-clean denominator is 42 instances, of which 29 were
-flagged — union recall 69.0% [50.0, 86.4] against the registered 48.2%. The registered number
-stays the quotable recall; this one says what it would be if the 68 consensus-ambiguous instances
-were struck from P.
+flagged — union recall 69.0% [50.0, 86.4] against the registered 48.2% [36.7, 60.0]. The
+registered number stays the quotable recall; this one says what it would be if the 68
+consensus-ambiguous instances were struck from P. Two qualifications: the interval is a bootstrap
+of a conditional estimand with no committed coverage simulation (uncalibrated); and
+"oracle-clean" means "first witness not consensus-ambiguous", which does not certify the other
+hidden failures of the same candidate.
 
 The post-hoc split (Table 4) is the sentence the two preregistered numbers point at: of the 25
 P instances both raters call spec-determined-and-unexercised, the twenty draws flagged 23; of the
 68 both call oracle-defined, 24. It is post hoc — asked after the flagged counts were seen — and
 it is a description of one substrate under one rule, not a preregistered estimate.
+
+Amendment 2's re-blinded L2 pass (Table 5) moves two labels of 110 (both readings of one
+problem, from `ambiguous-oracle` to `other`; κ 0.963 against L2's first labels), leaves the kill
+firing at 44 of 57 and 2 of 57, and leaves the oracle-clean recall and the post-hoc split at the
+same counts. It shows that identity and sheet status did not move L2's labels; it says nothing
+about L1's.
 
 What the two raters were agreeing on, in shape: hidden inputs outside the class the
 specification names (unsorted arrays for a function specified over sorted ones; dates not in the
@@ -106,38 +144,47 @@ prose (a truncating zip where the prose says "per digit"; a sentinel returned wh
 says "check"; a count that includes or excludes the unrotated string; a name filter stricter
 than the prose's); and inputs on which the prose entails the candidate's value and the hidden
 suite asserts another. The consensus `unexercised-edge` instances are the ones where the prose
-does determine the value and the visible suite never built the input (a negative bound; a nested
-list where a flat one was shown; floor division where the prose says division; an unhashable
+does determine the value and the visible suite never built the input (a negative bound; deeper
+nesting than any visible example; floor division where the prose says division; an unhashable
 element; a duplicate the count must pair).
 
 ## What this does and does not say
 
-1. **The category depends on the rule's ordering — and that is the result.** Ceiling 1's rule
-   put `unexercised-edge` second and `ambiguous-oracle` fifth; this study's rule puts the oracle
-   question second. The same 57 instances go 46/57 one way and 44/57 the other. A classification
-   that flips with the order of its questions is not a fact about the auditor; the paper's claim
-   (2) — "the ceiling is set by unexercised edges" — cannot be quoted in that form. What survives
-   both orderings is narrower: the residual consists of hidden failures the specification's prose
-   does not let a reader anticipate, either because the prose does not determine the value (this
-   study's reading) or because no visible test pointed at the input (ceiling 1's).
+1. **The category depends on the rubric — and that is the result.** Ceiling 1's rule put
+   `unexercised-edge` second and `ambiguous-oracle` fifth and defined neither by entailment; this
+   study's rule puts the oracle question second, defines `unexercised-edge` as requiring
+   specification entailment, gives `ambiguous-oracle` the one-sentence test, and uses two raters
+   with a consensus rule. The same 57 instances go 46/57 one way and 44/57 the other. The study
+   does not isolate which of those changes did it — ordering, definitions, or raters. What it
+   does show is that the classification is not robust to the rubric, so the paper's claim (2) —
+   "the ceiling is set by unexercised edges" — cannot be quoted in that form. What survives both
+   rubrics is only the count of the residual and the fact that, under the second, most of it
+   fails the entailment test.
 2. **Raters and blinding.** L1 is the author of both rules and of the paper; L2 is a model of the
-   same vendor family as one auditor under study. Both were blind to ids, prior categories and
-   flag status *within* a sheet; L1 was not blind to *which* sheet was which (the residual sheet
-   was built and read first, the flagged sheet second, under Amendment 1), L2 was. The 11
-   instances both sheets carry were rated twice by both raters with identical labels (Table 2's
-   retest line), which bounds but does not remove the concern. Agreement 60 of 68 with κ 0.722 on
-   the residual sheet and 51 of 53 with κ 0.933 on the flagged sheet. The preregistration asked
-   for a human rater who is not the author; none was available. This is the study's largest
-   limitation and it is not one more labelling pass can remove.
-3. **Duplicates.** Each sheet carries two candidates per problem for most problems (the two
-   generators), with the same specification and often the same witness; the raters effectively
-   read 40 and 33 problems. The problem-cluster interval is the one to quote.
+   same vendor family as one auditor under study (and as the first reviewer). Neither was blind
+   to instance identity: the hidden-outcome record in every sheet item carried the instance id
+   (the first review found this; the author had stripped only the header line). Both were blind
+   to the prior category; on the first sheet both were blind to per-item flag status (57
+   residual and 11 flagged mixed without a marker); on the second, L1 knew it was the flagged
+   sheet and L2's prompt named it. The 11 instances both sheets carry were rated twice by both
+   raters with identical labels (Table 2's retest line) — consistency, not a bound on bias.
+   Amendment 2 re-ran L2 on one identity-stripped sheet of all 110 (Table 5). Agreement 60 of 68
+   with κ 0.722 on the residual sheet and 51 of 53 with κ 0.933 on the flagged sheet. The
+   preregistration asked for a human rater who is not the author; none was available. These are
+   the study's largest limitations and they are not ones another labelling pass by these raters
+   can remove.
+3. **Duplicates.** Each sheet carries two candidates per problem for most problems (study 2's
+   two batches from the same generator), with the same specification and often the same witness;
+   the raters effectively read 40 and 33 problems. The problem-cluster interval is the one to
+   quote.
 4. **What "ambiguous-oracle" means here.** The rule's test is whether one sentence from the
    specification's own words entails the expected value and excludes the candidate's. It is
    deliberately generous to the candidate: an oracle that is stricter than the prose, silent on
    the input class, or contradicted by the prose all land here. A reader who thinks the dataset's
    reference implementation is the specification will call most of these unexercised edges, as
-   ceiling 1 did.
+   ceiling 1 did. "Decidable" in the preregistration overstates the rule: "reasonable reading",
+   "input class" and "neighbouring" are judgment terms, and a rater's failure to write the
+   entailment sentence is evidence, not proof, that the prose lacks one.
 5. **Nothing here re-runs an auditor.** Ceiling 1's union recalls, asymptotes and the arm
    differences are untouched; this study changes what the residual is called, not its size.
 

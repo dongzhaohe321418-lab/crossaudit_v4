@@ -3,7 +3,7 @@
 Bound, and only these: the spliced table block (byte for byte against records/rerate/tables.md);
 the consensus ambiguous-oracle and unexercised-edge counts on the residual and the kill's
 firing; the agreement count and κ; the prior-category split of the consensus-ambiguous
-instances; Amendment 1's secondary and the post-hoc category split, the flagged-sheet agreement and the retest; the label files'
+instances; Amendment 1's secondary with the registered recall's interval, the post-hoc category split, the flagged-sheet agreement and the retest, Amendment 2's re-blinded pass; the label files'
 row counts and label vocabulary; and that the report script reproduces numbers.json.
 """
 
@@ -62,8 +62,19 @@ def test_the_secondary_and_the_post_hoc_split_are_quoted_from_numbers():
     assert rt["n"] == 11 and rt["L1_same"] == rt["L2_same"] == 11
 
 
+def test_the_reblinded_pass_is_quoted_from_numbers():
+    r = NUMBERS["reblinded_L2_AMENDMENT_2"]
+    rt, kr, sr = r["L2_retest"], r["kill_restated"], r["oracle_clean_secondary_restated"]
+    assert f"moves {['zero', 'one', 'two', 'three', 'four'][rt['n'] - rt['same']]} labels of {rt['n']}" in FLAT
+    assert f"κ {rt['kappa_first_vs_reblinded']:.3f} against L2's first labels" in FLAT
+    assert f"leaves the kill firing at {kr['ambiguous']} of 57 and {kr['edge']} of 57" in FLAT and kr["fires"]
+    e = NUMBERS["oracle_clean_secondary"]
+    assert (sr["flagged_clean"], sr["P_clean"]) == (e["flagged_clean"], e["P_clean"]), "the prose says the counts are the same"
+    assert f"against the registered {e['union_recall_registered']:.1f}% [{e['union_recall_registered_cluster_ci'][0]:.1f}, {e['union_recall_registered_cluster_ci'][1]:.1f}]" in FLAT
+
+
 def test_label_files_are_complete_and_in_vocabulary():
-    for name, n in (("L1.csv", 68), ("L2.csv", 68), ("L1-flagged.csv", 53), ("L2-flagged.csv", 53)):
+    for name, n in (("L1.csv", 68), ("L2.csv", 68), ("L1-flagged.csv", 53), ("L2-flagged.csv", 53), ("L2-R.csv", 110)):
         with open(HERE / "records" / "rerate" / name, encoding="utf-8") as fh:
             rows = list(csv.DictReader(fh))
         assert len(rows) == n

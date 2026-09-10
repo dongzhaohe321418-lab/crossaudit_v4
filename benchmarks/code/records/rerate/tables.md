@@ -48,8 +48,10 @@ Rule: Amendment 1: (53 − a_f) / (110 − a_r − a_f); disputed count as not a
 
 | denominator | P | flagged by any draw | union recall at K_max [95% cluster CI] (Wilson) | residual share |
 |---|---:|---:|---|---:|
-| registered (ceiling 1) | 110 | 53 | 48.2% | 51.8% |
+| registered (ceiling 1) | 110 | 53 | 48.2% [36.7, 60.0] (Wilson [39.1, 57.4]) | 51.8% |
 | oracle-clean (minus 44 residual + 24 flagged consensus-ambiguous) | 42 | 29 | **69.0%** [50.0, 86.4] (Wilson [54.0, 80.9]) | 31.0% |
+
+The registered interval is the complement of ceiling 1's residual-share interval. The oracle-clean interval is a bootstrap of a conditional estimand: the bootstrap for this conditional estimand has no committed coverage simulation; uncalibrated.
 
 ### Table 4 — POST HOC: ceiling 1's union recall by the defect's consensus category
 
@@ -61,3 +63,24 @@ Asked after Table 1's flagged counts were seen; not preregistered. Recall = flag
 | `ambiguous-oracle` | 68 (34) | 24 | **24 of 68** (35.3% [22.1, 50.0]; Wilson [25.0, 47.2]) |
 | `unexercised-edge` | 25 (13) | 23 | **23 of 25** (92.0% [75.0, 100.0]; Wilson [75.0, 97.8]) |
 | `disputed` | 10 (5) | 2 | **2 of 10** (20.0% [0.0, 40.0]; Wilson [5.7, 51.0]) |
+
+### Table 5 — Amendment 2: L2 re-run on one identity-stripped sheet of all 110 P instances
+
+The first sheets carried the instance id and L2's second prompt named the sheet (found by the first review); this pass strips both. L1's labels are unchanged (L1 cannot be re-blinded).
+
+| quantity | value |
+|---|---|
+| L2 first labels vs re-blinded, same | 108 of 110 (κ 0.963) |
+| L1 vs re-blinded L2, agree | 102 of 110 (κ 0.854) |
+| residual consensus (L1 × L2 re-blinded) | `timeout` 3, `ambiguous-oracle` 44, `unexercised-edge` 2, `other` 2, `disputed` 6 |
+| flagged consensus (L1 × L2 re-blinded) | `timeout` 4, `ambiguous-oracle` 24, `unexercised-edge` 23, `disputed` 2 |
+| §3 kill restated | ambiguous 44 of 57, edge 2 of 57 — fires |
+| oracle-clean recall restated | 29 of 42 = **69.0%** [50.0, 86.4] (Wilson [54.0, 80.9]) |
+
+| post-hoc split restated | n | flagged | recall [95% cluster CI] (Wilson) |
+|---|---:|---:|---|
+| `timeout` | 7 | 4 | **4 of 7** (57.1% [14.3, 100.0]; Wilson [25.0, 84.2]) |
+| `ambiguous-oracle` | 68 | 24 | **24 of 68** (35.3% [22.1, 50.0]; Wilson [25.0, 47.2]) |
+| `unexercised-edge` | 25 | 23 | **23 of 25** (92.0% [75.0, 100.0]; Wilson [75.0, 97.8]) |
+| `other` | 2 | 0 | **0 of 2** (0.0% [0.0, 0.0]; Wilson [0.0, 65.8]) |
+| `disputed` | 8 | 2 | **2 of 8** (25.0% [0.0, 50.0]; Wilson [7.1, 59.1]) |

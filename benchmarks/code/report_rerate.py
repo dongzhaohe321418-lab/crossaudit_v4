@@ -158,9 +158,14 @@ def build() -> dict:
     amb_f = out["populations"]["flagged_P"]["consensus"]["ambiguous-oracle"]["count"]
     ambiguous = {i for i in l1 if consensus[i] == "ambiguous-oracle" and (i in residual or i in flagged)}
     sec = oracle_clean_recall(flagged, ambiguous, sorted(residual | flagged), BOOT_SEED + 10)
+    reg = json.load(open(CEILING / "numbers.json"))["ceiling1"]["residual"]["all_families"]["share_block"]
+    assert reg["k"] == RESIDUAL_ALL and reg["n"] == P_INSTANCES
     sec.update({"rule": "Amendment 1: (53 − a_f) / (110 − a_r − a_f); disputed count as not ambiguous",
                 "a_r": amb, "a_f": amb_f, "flagged": len(flagged), "P": P_INSTANCES,
                 "union_recall_registered": 100 * len(flagged) / P_INSTANCES,
+                "union_recall_registered_cluster_ci": [100 * (1 - reg["cluster_ci95"][1]), 100 * (1 - reg["cluster_ci95"][0])],
+                "union_recall_registered_wilson": [100 * (1 - reg["wilson95"][1]), 100 * (1 - reg["wilson95"][0])],
+                "calibration": "the bootstrap for this conditional estimand has no committed coverage simulation; uncalibrated",
                 "residual_share_oracle_clean": 100 * (RESIDUAL_ALL - amb) / (P_INSTANCES - amb - amb_f)})
     out["oracle_clean_secondary"] = sec
     # POST HOC (not in the preregistration or Amendment 1): ceiling 1's union recall split by the
@@ -172,6 +177,39 @@ def build() -> dict:
             continue
         by_cat[cat] = rate_block({i: int(i in flagged) for i in members}, BOOT_SEED + 20 + j)
     out["recall_by_consensus_category_POST_HOC"] = by_cat
+    # Amendment 2: L2 re-run on one combined, identity-stripped sheet of the 110 P instances.
+    key_r = {r["id"]: r["instance"] for r in map(json.loads, (RECORDS / "key-R.jsonl").read_text().splitlines())}
+    l2r_raw = read_labels(RECORDS / "L2-R.csv")
+    assert set(l2r_raw) == set(key_r), "L2-R.csv and key-R.jsonl disagree on ids"
+    l2r = {key_r[i]: l2r_raw[i] for i in key_r}
+    assert set(l2r) == residual | flagged
+    first_l2 = {**inst_l2, **f_l2}           # L2's first labels, the flagged sheet's for the 11 overlaps
+    cons_r = {i: l1[i] if l1[i] == l2r[i] else "disputed" for i in l2r}
+    amb_r_res = sum(1 for i in residual if cons_r[i] == "ambiguous-oracle")
+    edge_r_res = sum(1 for i in residual if cons_r[i] == "unexercised-edge")
+    amb_r_fl = sum(1 for i in flagged if cons_r[i] == "ambiguous-oracle")
+    ambiguous_r = {i for i in l2r if cons_r[i] == "ambiguous-oracle"}
+    sec_r = oracle_clean_recall(flagged, ambiguous_r, sorted(residual | flagged), BOOT_SEED + 30)
+    by_cat_r = {}
+    for j, cat in enumerate(CATEGORIES + ["disputed"]):
+        members = [i for i in sorted(residual | flagged) if cons_r[i] == cat]
+        if members:
+            by_cat_r[cat] = rate_block({i: int(i in flagged) for i in members}, BOOT_SEED + 40 + j)
+    out["reblinded_L2_AMENDMENT_2"] = {
+        "n": len(l2r),
+        "L2_retest": {"same": sum(first_l2[i] == l2r[i] for i in l2r), "n": len(l2r),
+                      "kappa_first_vs_reblinded": cohen_kappa({i: first_l2[i] for i in l2r}, l2r),
+                      "changes": {i: [first_l2[i], l2r[i]] for i in sorted(l2r) if first_l2[i] != l2r[i]}},
+        "L1_vs_L2R": {"agree": sum(l1[i] == l2r[i] for i in l2r), "n": len(l2r),
+                      "kappa": cohen_kappa({i: l1[i] for i in l2r}, l2r)},
+        "marginals_L2R": dict(Counter(l2r.values())),
+        "residual_consensus": dict(Counter(cons_r[i] for i in residual)),
+        "flagged_consensus": dict(Counter(cons_r[i] for i in flagged)),
+        "kill_restated": {"ambiguous": amb_r_res, "edge": edge_r_res,
+                          "fires": amb_r_res >= KILL_AMBIGUOUS_AT_LEAST or edge_r_res < KILL_EDGE_BELOW},
+        "oracle_clean_secondary_restated": {**sec_r, "a_r": amb_r_res, "a_f": amb_r_fl},
+        "recall_by_consensus_category_POST_HOC_restated": by_cat_r,
+    }
     return out
 
 
@@ -212,11 +250,15 @@ def render_tables(n: dict) -> str:
               f"pairs, seed {e['seed']}; Wilson beside it.", "",
               "| denominator | P | flagged by any draw | union recall at K_max [95% cluster CI] (Wilson) | residual share |",
               "|---|---:|---:|---|---:|",
-              f"| registered (ceiling 1) | {e['P']} | {e['flagged']} | {e['union_recall_registered']:.1f}% | "
+              f"| registered (ceiling 1) | {e['P']} | {e['flagged']} | {e['union_recall_registered']:.1f}% "
+              f"[{e['union_recall_registered_cluster_ci'][0]:.1f}, {e['union_recall_registered_cluster_ci'][1]:.1f}] "
+              f"(Wilson [{e['union_recall_registered_wilson'][0]:.1f}, {e['union_recall_registered_wilson'][1]:.1f}]) | "
               f"{100 * n['n_residual'] / e['P']:.1f}% |",
               f"| oracle-clean (minus {e['a_r']} residual + {e['a_f']} flagged consensus-ambiguous) | "
               f"{e['P_clean']} | {e['flagged_clean']} | **{e['recall']:.1f}%** [{e['cluster_ci'][0]:.1f}, {e['cluster_ci'][1]:.1f}] "
-              f"(Wilson [{e['wilson'][0]:.1f}, {e['wilson'][1]:.1f}]) | {e['residual_share_oracle_clean']:.1f}% |"]
+              f"(Wilson [{e['wilson'][0]:.1f}, {e['wilson'][1]:.1f}]) | {e['residual_share_oracle_clean']:.1f}% |",
+              "", f"The registered interval is the complement of ceiling 1's residual-share interval. The oracle-clean "
+              f"interval is a bootstrap of a conditional estimand: {e['calibration']}."]
     bc = n["recall_by_consensus_category_POST_HOC"]
     lines += ["", "### Table 4 — POST HOC: ceiling 1's union recall by the defect's consensus category", "",
               "Asked after Table 1's flagged counts were seen; not preregistered. Recall = flagged by any of the 20 draws.", "",
@@ -226,6 +268,23 @@ def render_tables(n: dict) -> str:
             continue
         b = bc[cat]
         lines.append(f"| `{cat}` | {b['n']} ({b['problems']}) | {b['count']} | {fmt(b)} |")
+    r = n["reblinded_L2_AMENDMENT_2"]; rt = r["L2_retest"]; lv = r["L1_vs_L2R"]; kr = r["kill_restated"]; sr = r["oracle_clean_secondary_restated"]
+    lines += ["", "### Table 5 — Amendment 2: L2 re-run on one identity-stripped sheet of all 110 P instances", "",
+              "The first sheets carried the instance id and L2's second prompt named the sheet (found by the first review); "
+              "this pass strips both. L1's labels are unchanged (L1 cannot be re-blinded).", "",
+              "| quantity | value |", "|---|---|",
+              f"| L2 first labels vs re-blinded, same | {rt['same']} of {rt['n']} (κ {rt['kappa_first_vs_reblinded']:.3f}) |",
+              f"| L1 vs re-blinded L2, agree | {lv['agree']} of {lv['n']} (κ {lv['kappa']:.3f}) |",
+              f"| residual consensus (L1 × L2 re-blinded) | " + ", ".join(f"`{c}` {r['residual_consensus'].get(c, 0)}" for c in CATEGORIES + ["disputed"] if r['residual_consensus'].get(c)) + " |",
+              f"| flagged consensus (L1 × L2 re-blinded) | " + ", ".join(f"`{c}` {r['flagged_consensus'].get(c, 0)}" for c in CATEGORIES + ["disputed"] if r['flagged_consensus'].get(c)) + " |",
+              f"| §3 kill restated | ambiguous {kr['ambiguous']} of 57, edge {kr['edge']} of 57 — {'fires' if kr['fires'] else 'does not fire'} |",
+              f"| oracle-clean recall restated | {sr['flagged_clean']} of {sr['P_clean']} = **{sr['recall']:.1f}%** [{sr['cluster_ci'][0]:.1f}, {sr['cluster_ci'][1]:.1f}] (Wilson [{sr['wilson'][0]:.1f}, {sr['wilson'][1]:.1f}]) |"]
+    bcr = r["recall_by_consensus_category_POST_HOC_restated"]
+    lines += ["", "| post-hoc split restated | n | flagged | recall [95% cluster CI] (Wilson) |", "|---|---:|---:|---|"]
+    for cat in CATEGORIES + ["disputed"]:
+        if cat in bcr:
+            b = bcr[cat]
+            lines.append(f"| `{cat}` | {b['n']} | {b['count']} | {fmt(b)} |")
     return "\n".join(lines) + "\n"
 
 
