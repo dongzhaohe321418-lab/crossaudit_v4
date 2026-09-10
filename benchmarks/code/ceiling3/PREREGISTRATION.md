@@ -202,3 +202,12 @@ asymptotes, and the paired difference between "blocked by none" and "mentioned b
 `cross`'s asymptote labelled an extrapolation beside its estimate, since it fails the
 flattening bar. The title no longer carries a rate. The long-reply counts are described as
 what they are (ledger calls per draw, repair calls included). Nothing measured changed.
+
+## Amendment 6 — 2026-09-10, after the fifth review
+
+The intervals the report had called "exact unconditional" are the grid-unconditional
+intervals of ceiling 1 Amendment 5 (an exact test maximised over a 41-point nuisance grid,
+no bound on the missed supremum) and are now named so wherever quoted. The one-signed rule
+is applied to the exploratory draw-1 contrast as well (0 vs 30). The ZIBB mixing weight
+carries a problem-cluster interval from 1,000 resamples (each is an MLE search). H18c's C
+contrast states its discordant counts; the K = 1 sign-flip value is printed as computed.

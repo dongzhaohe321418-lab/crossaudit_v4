@@ -26,6 +26,7 @@ CEILING3 = RECORDS / "ceiling3"
 FAMILIES = ("cross", "self", "astra", "self-strong", "self-frontier")
 BOOT_SEED = 20260910          # preregistration §2
 BOOTSTRAP = 10_000
+ZIBB_REPS = 1_000            # Amendment 6: the ZIBB weight's cluster interval
 CACHES = (RECORDS / "explore", RECORDS / "ceiling", CEILING3)
 
 explore.ROUTES.update({"self-strong": "anthropic:claude-sonnet-4-6",
@@ -127,7 +128,7 @@ def exchange_ratio_ci(ks_p: dict[str, list[int]], ks_c: dict[str, list[int]], k_
     return [rc.percentile(stats, 0.025), rc.percentile(stats, 0.975), discarded]
 
 
-def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> dict:
+def family_block(draws: dict, ids: list[str], instances: dict, k_max: int, stratum: str = "P") -> dict:
     complete = [d for d in sorted(k for k in draws if isinstance(k, int))][:k_max]
     sub = {d: draws[d] for d in complete}
     ks = rc.counts_per_instance(sub, ids)
@@ -142,6 +143,17 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
     curve_cis = curve_cluster_cis(by_problem, k_max, BOOTSTRAP, BOOT_SEED, gains)
     gain_ci = [rc.percentile(gains, 0.025), rc.percentile(gains, 0.975)] if gains else [None, None]
     zibb = rc.fit_zibb(ks, k_max)
+    # the ZIBB mixing weight's own cluster interval: 1,000 resamples (each is an MLE
+    # search, ~0.1 s), the same seed stream as the other intervals; disclosed as 1,000
+    problems = sorted(by_problem)
+    rng = random.Random(BOOT_SEED)
+    pis = []
+    for _ in range(ZIBB_REPS if stratum == "P" else 0):   # the ZIBB weight is reported for P only
+        drawn = [k for _ in range(len(problems)) for k in by_problem[problems[rng.randrange(len(problems))]]]
+        z = rc.fit_zibb(drawn, k_max)
+        if z.get("pi") is not None:
+            pis.append(z["pi"])
+    zibb_ci = [rc.percentile(pis, 0.025), rc.percentile(pis, 0.975)] if pis else [None, None]
     # The preregistered fit (ceiling 1 §1.2) is always reported. A POST-HOC diagnostic is
     # printed beside it — added after Sonnet's first draws were seen (review round 1 of
     # study 18 called the earlier form, which suppressed the fit, outcome-dependent): when
@@ -165,7 +177,8 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
             "flattened_by_ceiling1_bar": flattened,
             "asymptote_is_extrapolation": (not flattened) or extrapolated,
             "fit_max_resid": fit.get("max_resid"),
-            "zibb": {"pi": zibb.get("pi"), "a": zibb.get("a"), "b": zibb.get("b")},
+            "zibb": {"pi": zibb.get("pi"), "a": zibb.get("a"), "b": zibb.get("b"),
+                     "pi_cluster_ci95": zibb_ci, "reps": ZIBB_REPS},
             "ks_by_problem": by_problem}
 
 
@@ -289,8 +302,8 @@ def main() -> int:
             out["families"][f] = {"k_max": 0, "note": "not run",
                                   "partial": sorted(str(k) for k in draws[f] if not isinstance(k, int))}
             continue
-        out["families"][f] = {"P": family_block(draws[f], P, instances, len(complete)),
-                              "C": family_block(draws[f], C, instances, len(complete)),
+        out["families"][f] = {"P": family_block(draws[f], P, instances, len(complete), "P"),
+                              "C": family_block(draws[f], C, instances, len(complete), "C"),
                               "k_max": len(complete)}
         fp = out["families"][f]["C"]["curve"]; rec = out["families"][f]["P"]["curve"]
         out["families"][f]["exchange_rate_recall_per_fp"] = (
@@ -480,7 +493,9 @@ def render_tables(out: dict) -> str:
              "Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster percentile bootstrap "
              "(10,000 resamples, seed 20260910); a subset-averaged curve point, a single-draw mean and a mixed rate are "
              "means, not k/n, and carry the cluster interval only (2,000 resamples for mixed). The cluster interval "
-             "is the primary one throughout.", "",
+             "is the primary one throughout. Beside each paired contrast the text quotes Tango's score interval and a "
+             "grid-unconditional interval (an exact test maximised over a 41-point nuisance grid with no bound on the "
+             "missed supremum — ceiling 1 Amendment 5's qualification); both ignore clustering.", "",
              "### Table 1 — union of K readings, BLOCKER rule (Wilson; problem-cluster bootstrap)", "",
              "| family | K | P union recall | Wilson | cluster | C union FP | Wilson | cluster |",
              "|---|---|---|---|---|---|---|---|"]
@@ -508,16 +523,16 @@ def render_tables(out: dict) -> str:
             cells += [""] * (8 - len(cells))
             lines.append(f"| {LABELS[f]} | {st} | " + " | ".join(cells) + " |")
     lines += ["", "### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate", "",
-              "| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |",
+              "| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) [cluster, 1,000] | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |",
               "|---|---|---|---|---|---|---|---|---|---|---|"]
     for f in FAMILIES:
         e = out["families"][f]
         if not e.get("k_max"):
             continue
         fit = e["P"]["fit"]; g = e["P"]["flattening_gain_last_step_cluster_ci95"]; x = e["exchange_rate_cluster_ci95"]
-        pi = e["P"]["zibb"]["pi"]
+        pi = e["P"]["zibb"]["pi"]; pci = e["P"]["zibb"]["pi_cluster_ci95"]
         lines.append(f"| {LABELS[f]} | {_pc(fit['A'])}% | {_iv(fit['A_ci95_cluster'])} | {fit['tau']:.2f} | {fit['r2']:.4f} | "
-                     f"{100 * e['P']['fit_max_resid']:.2f} | {(_pc(pi) + '%') if pi is not None else 'n/a'} | "
+                     f"{100 * e['P']['fit_max_resid']:.2f} | {(_pc(pi) + '% [' + _iv(pci) + ']') if pi is not None and pci[0] is not None else 'n/a'} | "
                      f"{100 * e['P']['flattening_gain_last_step']:.2f} [{100 * g[0]:.2f}–{100 * g[1]:.2f}] | "
                      f"{'yes' if e['P']['flattened_by_ceiling1_bar'] else 'no'} | "
                      f"{'yes' if e['P']['asymptote_is_extrapolation'] else 'no'} | "
