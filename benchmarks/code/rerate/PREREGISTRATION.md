@@ -100,3 +100,38 @@ no new bars, no L1 re-rating.
 Also corrected by this amendment: Amendment 1's "before any flagged label" holds for 42 of the
 53 flagged instances — 11 had been rated on the first sheet (2 ambiguous, 7 edge, 2 timeout by
 consensus).
+
+## Amendment 3 — 2026-09-11, an external check of the labels, added after they were frozen
+
+Every review of this study named the same limitation: both raters were ours. This amendment
+does not add a rater. It asks whether anyone outside this project, working for their own
+reasons and before we looked, had already recorded that these specifications do not settle
+their expected values.
+
+Two sources qualify, and only two. Both label the **task's specification**, not an instance,
+so the join is by task id and the outcome is a **concordance, not a rate**:
+
+1. **Richter & Papadakis, arXiv:2607.01953**, §1 footnotes 1–3, which name twelve MBPP tasks
+   they manually identified as *ambiguous* (294, 102, 410, 576), *incomplete* (7, 137, 244,
+   261, 278) or *contradictory* (459, 638, 639).
+2. **EvalPlus's `evalplus/_special_oracle.py`** (Apache-2.0), the tasks for which the
+   benchmark's own authors could not test a candidate against the reference and wrote a
+   bespoke oracle instead — eight where the prose leaves the output *order* open, and three
+   whose hand-written oracle docstring states the interpretation the authors chose.
+
+**Order of events, checkable in git.** This study's labels were committed at `d98f0c1`
+(residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass) before any external
+file was fetched. Nothing about the external sources could have reached the raters.
+
+**What is computed.** `rerate/external_labels.py` transcribes both sources with their
+provenance; `rerate/external_join.py` joins them to this study's frozen per-instance labels,
+reduced to one label per task, and writes `records/rerate/external.json`: how many of their
+tasks are in our stratum P, how many of those we call `ambiguous-oracle`, and every
+disagreement with its detail.
+
+**The join is one-sided and that is stated wherever it is used.** Neither source claims to be
+exhaustive — Richter gives examples, EvalPlus wrote an oracle only where it had to — so a task
+they do not name is not evidence that its specification is sound. The concordance can support
+"where an outside party recorded a defective specification, this study's raters agreed", and
+nothing about the *rate* of `ambiguous-oracle` in the residual. No number in §3 or Amendment 1
+changes, no kill is re-evaluated, and this analysis is **post hoc** wherever it appears.
