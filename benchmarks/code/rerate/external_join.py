@@ -44,7 +44,7 @@ def main() -> int:
     ours = consensus_by_task()
     rows = []
     for source, table in (("richter2607.01953", RICHTER),
-                          ("evalplus/_special_oracle.py", EVALPLUS_SPECIAL_ORACLE)):
+                          ("evalplus/eval/_special_oracle.py", EVALPLUS_SPECIAL_ORACLE)):
         for task, what in sorted(table.items()):
             mine = ours.get(task)
             rows.append({"source": source, "task": task, "their_class": what,
@@ -52,26 +52,34 @@ def main() -> int:
                          "our_task_label": (mine or {}).get("task_label"),
                          "our_instance_labels": (mine or {}).get("labels")})
     joined = [r for r in rows if r["in_our_P"]]
+    # The PRIMARY check is Richter and Papadakis alone: an explicit, published label set.
+    # EvalPlus is reported beside it as this study's own reading of engineering decisions.
+    primary = sorted({r["task"] for r in joined if r["source"].startswith("richter")})
     tasks_joined = sorted({r["task"] for r in joined})
-    concordant = [t for t in tasks_joined
-                  if ours[t]["task_label"] == rr.CATEGORIES[1]]          # ambiguous-oracle
-    discordant = [t for t in tasks_joined if t not in concordant]
+    concordant = [t for t in primary if ours[t]["task_label"] == rr.CATEGORIES[1]]
+    discordant = [t for t in primary if t not in concordant]
     out = {
         "study": "rerate / Amendment 3",
         "note": "one-sided by construction: neither source claims to be exhaustive, so a task "
                 "they do not list is not evidence that its specification is sound",
         "labels_frozen_before_the_external_search": {
             "L1.csv": "d98f0c1", "L1-flagged.csv": "3aa97aa", "L2-R.csv": "e654452"},
+        "primary_source": "richter2607.01953 (an explicit published label set); EvalPlus is "
+                          "reported beside it as this study's own reading of engineering "
+                          "decisions, not as an external label",
         "n_external_tasks": len({r["task"] for r in rows}),
         "n_joined_to_our_P": len(tasks_joined),
+        "n_primary_listed": len(RICHTER), "n_primary_joined": len(primary),
         "n_concordant": len(concordant), "n_discordant": len(discordant),
         "concordant_tasks": concordant, "discordant_tasks": discordant,
         "discordant_detail": [r for r in joined if r["task"] in discordant],
+        # per source, computed against that source's own joined tasks
         "by_source": {s: {"listed": sum(1 for r in rows if r["source"] == s),
                           "joined": sum(1 for r in joined if r["source"] == s),
-                          "concordant": sum(1 for r in joined if r["source"] == s
-                                            and r["task"] in concordant)}
-                      for s in {r["source"] for r in rows}},
+                          "we_call_ambiguous_oracle": sum(
+                              1 for r in joined if r["source"] == s
+                              and ours[r["task"]]["task_label"] == rr.CATEGORIES[1])}
+                      for s in sorted({r["source"] for r in rows})},
         "our_label_distribution_on_joined": dict(Counter(ours[t]["task_label"] for t in tasks_joined)),
         "rows": rows,
     }

@@ -119,7 +119,7 @@ so the join is by task id and the outcome is a **concordance, not a rate**:
    bespoke oracle instead — eight where the prose leaves the output *order* open, and three
    whose hand-written oracle docstring states the interpretation the authors chose.
 
-**Order of events, checkable in git.** This study's labels were committed at `d98f0c1`
+**Order of events, as observed.** This study's labels were committed at `d98f0c1`
 (residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass) before any external
 file was fetched. Nothing about the external sources could have reached the raters.
 

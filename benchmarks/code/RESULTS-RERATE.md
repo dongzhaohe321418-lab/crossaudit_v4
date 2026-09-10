@@ -154,33 +154,47 @@ element; a duplicate the count must pair).
 ## An external check of the labels (Amendment 3, post hoc)
 
 Every review named the same limitation: both raters were ours. This does not add a rater. It
-asks whether anyone outside this project had already recorded, for their own reasons and before
-we looked, that these specifications do not settle their expected values. Two sources qualify.
-Richter and Papadakis (arXiv:2607.01953) name twelve MBPP tasks they manually identified as
-ambiguous, incomplete or contradictory. EvalPlus ships `_special_oracle.py`, the tasks its own
-authors could not test against the reference implementation and gave a bespoke oracle instead —
-eight whose output order the prose leaves open, three whose hand-written oracle states the
-interpretation chosen.
+asks whether anyone outside this project had already recorded, for their own reasons, that
+these specifications do not settle their expected values.
 
-**12 of their 22 tasks are in this study's stratum P.
-This study's raters call 10 of those 10 `ambiguous-oracle`
-and 2 `unexercised-edge`.** By source: 9 of 11
-joined tasks concordant for Richter and Papadakis, 2 of 2 for
-EvalPlus. The labels were committed at `d98f0c1`, `3aa97aa` and `e654452` before any external
-file was fetched; git fixes that order.
+**The check.** Richter and Papadakis (arXiv:2607.01953, §1 footnotes) name twelve MBPP tasks
+they manually identified as ambiguous, incomplete or contradictory. That is an explicit,
+published label set about specifications, and it is the whole of the external check.
+**11 of their 12 tasks are in this study's stratum P, and this
+study's frozen labels call 9 of those 11
+`ambiguous-oracle`** — the other 2 `unexercised-edge`.
 
 Both disagreements — `Mbpp/244` and `Mbpp/261`, which we call `unexercised-edge` on both
-batches — are in Richter and Papadakis's *incomplete* class, and that is the boundary between
-this study's two categories rather than a failure of either: a specification can be incomplete
-about an input class and still, on a reasonable reading, determine what the value there must be.
-`Mbpp/244` is the case: the prose asks for the next perfect square greater than a number, says
-nothing about negative inputs, and a reader who works from the words still gets 0 for −5, which
-is what the hidden suite expects and what the candidate does not return.
+batches — are in their *incomplete* class, which is the boundary between this study's two
+categories rather than a failure of either: a specification can be incomplete about an input
+class and still, on a reasonable reading, determine what the value there must be. `Mbpp/244` is
+the case: the prose asks for the next perfect square greater than a number, says nothing about
+negative inputs, and a reader working from the words still gets 0 for −5, which is what the
+hidden suite expects and what the candidate does not return.
 
-**The join is one-sided and can bound nothing about the rate.** Neither source is exhaustive:
-one gives examples, the other wrote an oracle only where it had to. A task they do not name is
-not evidence that its specification is sound. What this supports is narrow — where an outside
-party recorded a defective specification, this study's raters agreed — and it is post hoc.
+**Beside it, and not as a label: EvalPlus's engineering.** `evalplus/eval/_special_oracle.py`
+(Apache-2.0) lists the tasks whose candidates its authors did not compare to the reference by
+equality — eight compared as sets, two given a hand-written oracle whose docstring states the
+reading chosen. 2 of those 10 tasks are in our stratum P and we call
+2 of them `ambiguous-oracle`. **Reading that file as evidence
+about specifications is our interpretation, not its claim**: it nowhere says a specification is
+defective, and a shared task id does not mean the two are discussing the same defect — its
+entry for `Mbpp/7` concerns output order while this study's instance fails on punctuation in
+tokenisation. `HumanEval/32` is excluded outright, because its helper implements a convention
+the task's own prompt already supplies. Nothing in this paragraph is counted in the concordance
+above.
+
+**Chronology, as observed.** The label commits are `d98f0c1` (22:43:12), `3aa97aa` (22:56:15)
+and `e654452` (23:10:19) on 10 September; the earliest external file on this machine was created
+at 00:07:20 on 11 September. Those are commit times and file creation times, and they establish
+that order. They are not proof of what any rater knew: the fetches are untracked, and no record
+here can exclude prior awareness of a public paper. The claim is the observed order, nothing
+more.
+
+**The check is one-sided and can bound nothing about the rate.** Richter and Papadakis give
+examples, not an audit; a task they do not name is not evidence that its specification is sound.
+What this supports is narrow — where an outside party recorded a defective specification, this
+study's raters agreed on 9 of 11 — and it is post hoc.
 
 ## What this does and does not say
 

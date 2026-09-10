@@ -24,17 +24,27 @@ RICHTER = {
     "Mbpp/459": "contradiction", "Mbpp/638": "contradiction", "Mbpp/639": "contradiction",
 }
 
-#: EvalPlus, `evalplus/_special_oracle.py` (Apache-2.0), the tasks for which the benchmark's
-#: own authors could not test the candidate against the reference implementation and wrote a
-#: bespoke oracle instead. Each entry is an engineering record that the prose did not settle
-#: the expected value. `set_eq` are the tasks whose output ORDER the prose leaves open; the
-#: rest carry a hand-written oracle whose docstring states the interpretation chosen.
+#: EvalPlus, `evalplus/eval/_special_oracle.py` (Apache-2.0): the tasks where the benchmark's
+#: authors did not compare a candidate to the reference by equality and supplied a comparison
+#: rule or a hand-written oracle instead.
+#:
+#: THIS IS NOT AN EXTERNAL LABEL SET AND IS NOT USED AS ONE. The file documents engineering
+#: decisions; it nowhere says "this specification is defective". Reading a bespoke oracle as
+#: evidence that the prose did not settle the value is OUR interpretation, and the results
+#: report it separately from `RICHTER` and say so. Two further limits, both from the first
+#: review of this amendment: a matching task id does not mean the source and this study are
+#: talking about the same defect — EvalPlus's entry for `Mbpp/7` concerns set comparison while
+#: this study's instance fails on punctuation in tokenisation — and `HumanEval/32`, whose
+#: helper merely implements the coefficient convention the task's own prompt already states,
+#: is excluded for that reason.
 EVALPLUS_SPECIAL_ORACLE = {
-    "Mbpp/2": "set_eq", "Mbpp/7": "set_eq", "Mbpp/111": "set_eq", "Mbpp/140": "set_eq",
-    "Mbpp/232": "set_eq", "Mbpp/249": "set_eq", "Mbpp/579": "set_eq", "Mbpp/769": "set_eq",
-    "Mbpp/581": "interpretation chosen: height is the perpendicular distance to the apex",
-    "Mbpp/558": "interpretation chosen: the two numbers are zero-padded to equal length",
-    "HumanEval/32": "interpretation chosen: the polynomial's coefficient convention",
+    "Mbpp/2": "compared as a set: the prose does not fix the output order",
+    "Mbpp/7": "compared as a set: the prose does not fix the output order",
+    "Mbpp/111": "compared as a set", "Mbpp/140": "compared as a set",
+    "Mbpp/232": "compared as a set", "Mbpp/249": "compared as a set",
+    "Mbpp/579": "compared as a set", "Mbpp/769": "compared as a set",
+    "Mbpp/581": "hand-written oracle: height read as the perpendicular distance to the apex",
+    "Mbpp/558": "hand-written oracle: the two numbers zero-padded to equal length",
 }
 
 #: Both sources assert "the specification does not settle this", which is what this study's

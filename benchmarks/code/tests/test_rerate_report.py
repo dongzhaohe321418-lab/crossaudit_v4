@@ -89,15 +89,28 @@ def test_no_percentage_in_prose_is_quoted_without_the_tables():
 
 
 def test_the_external_concordance_is_quoted_from_its_record():
-    """Amendment 3's counts come from records/rerate/external.json, and the join is re-derived."""
+    """Amendment 3's counts come from records/rerate/external.json, and the join is re-derived.
+
+    Round 4 of the review found the prose saying "10 of those 10" where the denominator was
+    12, and the first version of this test enforced the error by taking the denominator from
+    the concordant list. Every denominator here is the JOINED count of its own source.
+    """
     import subprocess
     e = json.loads((HERE / "records" / "rerate" / "external.json").read_text(encoding="utf-8"))
-    assert f"{e['n_joined_to_our_P']} of their {e['n_external_tasks']} tasks are in this study's stratum P" in FLAT
-    assert f"call {e['n_concordant']} of those {len(e['concordant_tasks'])} `ambiguous-oracle`" in FLAT
-    assert f"and {e['n_discordant']} `unexercised-edge`" in FLAT
+    rich = e["by_source"]["richter2607.01953"]
+    ep = e["by_source"]["evalplus/eval/_special_oracle.py"]
+    assert rich["joined"] != rich["we_call_ambiguous_oracle"], "the test must not be vacuous here"
+    assert (f"{rich['joined']} of their {rich['listed']} tasks are in this study's stratum P"
+            in FLAT)
+    assert (f"call {rich['we_call_ambiguous_oracle']} of those {rich['joined']}\n`ambiguous-oracle`"
+            in RESULTS)
+    assert f"the other {e['n_discordant']} `unexercised-edge`" in FLAT
+    assert (f"{ep['joined']} of those {ep['listed']} tasks are in our stratum P and we call\n"
+            f"{ep['we_call_ambiguous_oracle']} of them `ambiguous-oracle`" in RESULTS)
+    assert f"agreed on {rich['we_call_ambiguous_oracle']} of {rich['joined']}" in FLAT
     for task in e["discordant_tasks"]:
         assert f"`{task}`" in FLAT, task
-    # the record is what the script produces, not a hand-edited file
+    assert "our interpretation, not its claim" in FLAT
     before = (HERE / "records" / "rerate" / "external.json").read_text(encoding="utf-8")
     subprocess.run([sys.executable, str(HERE / "rerate" / "external_join.py")], check=True,
                    capture_output=True)
