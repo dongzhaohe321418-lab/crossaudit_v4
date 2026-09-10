@@ -211,3 +211,11 @@ no bound on the missed supremum) and are now named so wherever quoted. The one-s
 is applied to the exploratory draw-1 contrast as well (0 vs 30). The ZIBB mixing weight
 carries a problem-cluster interval from 1,000 resamples (each is an MLE search). H18c's C
 contrast states its discordant counts; the K = 1 sign-flip value is printed as computed.
+
+## Amendment 7 — 2026-09-10, after the sixth review
+
+The ZIBB weight's bootstrap handles the all-zero boundary explicitly: a resample in which
+no instance was ever flagged has π = 0 by its likelihood, and the frozen fitter's plateau
+value is not used for it; the count of such resamples is printed beside the interval. The
+frozen ceiling-1 fitter is unchanged. The `reps` field for the C stratum, where no ZIBB
+resampling is run, now reads 0.

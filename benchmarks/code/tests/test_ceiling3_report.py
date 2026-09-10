@@ -121,3 +121,22 @@ def test_prompt_digests_cost_and_format_counts_are_bound():
     assert f"{inv_s} of {rows_s:,} Sonnet readings and {inv_f} of {rows_f:,} Opus readings" in t
     extra = calls - rows_s - rows_f
     assert f"at\nmost {extra} readings needed the product's repair re-ask" in t
+
+
+def test_the_zibb_boundary_is_handled_explicitly():
+    """Review round 6: an all-zero resample's ZIBB weight is 0 by the likelihood, not the
+    frozen fitter's plateau value; a sample with a flagged instance is fitted as before."""
+    import sys
+    sys.path.insert(0, str(CODE))
+    import report_ceiling3 as r3
+    import report_ceiling as rc
+    assert r3.zibb_pi([0] * 110, 4) == 0.0
+    plateau = rc.fit_zibb([0] * 110, 4)["pi"]
+    assert plateau is None or plateau > 0.0          # the frozen fitter's value, untouched
+    ks = [0] * 100 + [1, 2, 3, 4, 4, 4, 2, 1, 3, 4]
+    assert abs(r3.zibb_pi(ks, 4) - rc.fit_zibb(ks, 4)["pi"]) < 1e-12
+    n = _n()
+    for fam in ("self-strong", "self-frontier"):
+        z = n["families"][fam]["P"]["zibb"]
+        assert z["reps"] == 1000 and z["all_zero_resamples"] >= 0
+    assert n["families"]["self-frontier"]["C"]["zibb"]["reps"] == 0

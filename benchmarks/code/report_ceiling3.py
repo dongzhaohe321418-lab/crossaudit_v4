@@ -128,6 +128,22 @@ def exchange_ratio_ci(ks_p: dict[str, list[int]], ks_c: dict[str, list[int]], k_
     return [rc.percentile(stats, 0.025), rc.percentile(stats, 0.975), discarded]
 
 
+def zibb_pi(ks: list[int], k_max: int) -> float:
+    """The ZIBB mixing weight for one (re)sample, with the boundary handled explicitly.
+
+    When no instance in the sample was ever flagged, the likelihood
+    [1 − π + π·P_BB(0)]^n is maximised at π = 0 for any finite beta parameters, and the
+    frozen fitter (ceiling 1's ``fit_zibb``) instead returns a numerical plateau value
+    (≈ 0.043 at n ≈ 110) from its search — review round 6 of study 18 found 351 such
+    resamples inside Opus's interval. The boundary value is returned here; the frozen
+    fitter is not touched. A sample with any flagged instance is fitted as before.
+    """
+    if not any(ks):
+        return 0.0
+    z = rc.fit_zibb(ks, k_max)
+    return float(z["pi"]) if z.get("pi") is not None else 0.0
+
+
 def family_block(draws: dict, ids: list[str], instances: dict, k_max: int, stratum: str = "P") -> dict:
     complete = [d for d in sorted(k for k in draws if isinstance(k, int))][:k_max]
     sub = {d: draws[d] for d in complete}
@@ -147,12 +163,12 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int, strat
     # search, ~0.1 s), the same seed stream as the other intervals; disclosed as 1,000
     problems = sorted(by_problem)
     rng = random.Random(BOOT_SEED)
-    pis = []
-    for _ in range(ZIBB_REPS if stratum == "P" else 0):   # the ZIBB weight is reported for P only
+    pis, all_zero = [], 0
+    reps = ZIBB_REPS if stratum == "P" else 0            # the ZIBB weight is reported for P only
+    for _ in range(reps):
         drawn = [k for _ in range(len(problems)) for k in by_problem[problems[rng.randrange(len(problems))]]]
-        z = rc.fit_zibb(drawn, k_max)
-        if z.get("pi") is not None:
-            pis.append(z["pi"])
+        pis.append(zibb_pi(drawn, k_max))
+        all_zero += int(not any(drawn))
     zibb_ci = [rc.percentile(pis, 0.025), rc.percentile(pis, 0.975)] if pis else [None, None]
     # The preregistered fit (ceiling 1 §1.2) is always reported. A POST-HOC diagnostic is
     # printed beside it — added after Sonnet's first draws were seen (review round 1 of
@@ -178,7 +194,7 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int, strat
             "asymptote_is_extrapolation": (not flattened) or extrapolated,
             "fit_max_resid": fit.get("max_resid"),
             "zibb": {"pi": zibb.get("pi"), "a": zibb.get("a"), "b": zibb.get("b"),
-                     "pi_cluster_ci95": zibb_ci, "reps": ZIBB_REPS},
+                     "pi_cluster_ci95": zibb_ci, "reps": reps, "all_zero_resamples": all_zero},
             "ks_by_problem": by_problem}
 
 
@@ -523,7 +539,7 @@ def render_tables(out: dict) -> str:
             cells += [""] * (8 - len(cells))
             lines.append(f"| {LABELS[f]} | {st} | " + " | ".join(cells) + " |")
     lines += ["", "### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate", "",
-              "| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) [cluster, 1,000] | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |",
+              "| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) [cluster, 1,000; all-zero resamples → π = 0, count] | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |",
               "|---|---|---|---|---|---|---|---|---|---|---|"]
     for f in FAMILIES:
         e = out["families"][f]
@@ -532,7 +548,7 @@ def render_tables(out: dict) -> str:
         fit = e["P"]["fit"]; g = e["P"]["flattening_gain_last_step_cluster_ci95"]; x = e["exchange_rate_cluster_ci95"]
         pi = e["P"]["zibb"]["pi"]; pci = e["P"]["zibb"]["pi_cluster_ci95"]
         lines.append(f"| {LABELS[f]} | {_pc(fit['A'])}% | {_iv(fit['A_ci95_cluster'])} | {fit['tau']:.2f} | {fit['r2']:.4f} | "
-                     f"{100 * e['P']['fit_max_resid']:.2f} | {(_pc(pi) + '% [' + _iv(pci) + ']') if pi is not None and pci[0] is not None else 'n/a'} | "
+                     f"{100 * e['P']['fit_max_resid']:.2f} | {(_pc(pi) + '% [' + _iv(pci) + '; ' + str(e['P']['zibb']['all_zero_resamples']) + ']') if pi is not None and pci[0] is not None else 'n/a'} | "
                      f"{100 * e['P']['flattening_gain_last_step']:.2f} [{100 * g[0]:.2f}–{100 * g[1]:.2f}] | "
                      f"{'yes' if e['P']['flattened_by_ceiling1_bar'] else 'no'} | "
                      f"{'yes' if e['P']['asymptote_is_extrapolation'] else 'no'} | "

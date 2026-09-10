@@ -31,13 +31,13 @@ Blocked by no family over all 32 draws: 56/110 = 50.9% (Wilson 41.7–60.1; clus
 
 ### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate
 
-| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) [cluster, 1,000] | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |
+| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) [cluster, 1,000; all-zero resamples → π = 0, count] | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |
 |---|---|---|---|---|---|---|---|---|---|---|
-| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 2.37 | 100.0% [100.0–100.0] | 1.93 [1.13–2.82] | no | yes | 1.68 [0.97–3.02] |
-| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.66 | 100.0% [12.5–100.0] | 0.23 [0.00–0.57] | yes | no | 0.87 [0.00–5.11] (6 discarded) |
-| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.34 | 33.2% [21.7–100.0] | 0.23 [0.00–0.69] | yes | no | 2.50 [0.34–8.71] (250 discarded) |
-| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.01 | 8.8% [1.1–100.0] | 0.34 [0.00–0.79] | yes | yes | 1.84 [0.28–8.09] (94 discarded) |
-| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.04 | 1.0% [1.0–4.3] | 0.00 [0.00–0.00] | yes | no | 0.25 [0.00–1.45] (26 discarded) |
+| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 2.37 | 100.0% [100.0–100.0; 0] | 1.93 [1.13–2.82] | no | yes | 1.68 [0.97–3.02] |
+| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.66 | 100.0% [12.5–100.0; 0] | 0.23 [0.00–0.57] | yes | no | 0.87 [0.00–5.11] (6 discarded) |
+| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.34 | 33.2% [21.7–100.0; 0] | 0.23 [0.00–0.69] | yes | no | 2.50 [0.34–8.71] (250 discarded) |
+| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.01 | 8.8% [1.1–100.0; 15] | 0.34 [0.00–0.79] | yes | yes | 1.84 [0.28–8.09] (94 discarded) |
+| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.04 | 1.0% [0.0–3.0; 351] | 0.00 [0.00–0.00] | yes | no | 0.25 [0.00–1.45] (26 discarded) |
 
 ### Table 4 — EXPLORATORY any-finding rule (not preregistered): a flag rate, not a defect-naming rate
 
