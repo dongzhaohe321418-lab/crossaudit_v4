@@ -1,0 +1,288 @@
+{
+  "by_source": {
+    "evalplus/eval/_special_oracle.py": {
+      "joined": 2,
+      "listed": 10,
+      "we_call_ambiguous_oracle": 2
+    },
+    "richter2607.01953": {
+      "joined": 11,
+      "listed": 12,
+      "we_call_ambiguous_oracle": 9
+    }
+  },
+  "concordant_tasks": [
+    "Mbpp/102",
+    "Mbpp/137",
+    "Mbpp/278",
+    "Mbpp/294",
+    "Mbpp/410",
+    "Mbpp/459",
+    "Mbpp/576",
+    "Mbpp/639",
+    "Mbpp/7"
+  ],
+  "discordant_detail": [
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "unexercised-edge",
+        "unexercised-edge"
+      ],
+      "our_task_label": "unexercised-edge",
+      "source": "richter2607.01953",
+      "task": "Mbpp/244",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "unexercised-edge",
+        "unexercised-edge"
+      ],
+      "our_task_label": "unexercised-edge",
+      "source": "richter2607.01953",
+      "task": "Mbpp/261",
+      "their_class": "incompleteness"
+    }
+  ],
+  "discordant_tasks": [
+    "Mbpp/244",
+    "Mbpp/261"
+  ],
+  "labels_frozen_before_the_external_search": {
+    "L1-flagged.csv": "3aa97aa",
+    "L1.csv": "d98f0c1",
+    "L2-R.csv": "e654452"
+  },
+  "n_concordant": 9,
+  "n_discordant": 2,
+  "n_external_tasks": 21,
+  "n_joined_to_our_P": 12,
+  "n_primary_joined": 11,
+  "n_primary_listed": 12,
+  "note": "one-sided by construction: neither source claims to be exhaustive, so a task they do not list is not evidence that its specification is sound",
+  "our_label_distribution_on_joined": {
+    "ambiguous-oracle": 10,
+    "unexercised-edge": 2
+  },
+  "primary_source": "richter2607.01953 (an explicit published label set); EvalPlus is reported beside it as this study's own reading of engineering decisions, not as an external label",
+  "rows": [
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/102",
+      "their_class": "ambiguity"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/137",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "unexercised-edge",
+        "unexercised-edge"
+      ],
+      "our_task_label": "unexercised-edge",
+      "source": "richter2607.01953",
+      "task": "Mbpp/244",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "unexercised-edge",
+        "unexercised-edge"
+      ],
+      "our_task_label": "unexercised-edge",
+      "source": "richter2607.01953",
+      "task": "Mbpp/261",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/278",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/294",
+      "their_class": "ambiguity"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/410",
+      "their_class": "ambiguity"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/459",
+      "their_class": "contradiction"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/576",
+      "their_class": "ambiguity"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "richter2607.01953",
+      "task": "Mbpp/638",
+      "their_class": "contradiction"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/639",
+      "their_class": "contradiction"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "richter2607.01953",
+      "task": "Mbpp/7",
+      "their_class": "incompleteness"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/111",
+      "their_class": "compared as a set"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/140",
+      "their_class": "compared as a set"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/2",
+      "their_class": "compared as a set: the prose does not fix the output order"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/232",
+      "their_class": "compared as a set"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/249",
+      "their_class": "compared as a set"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/558",
+      "their_class": "hand-written oracle: the two numbers zero-padded to equal length"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/579",
+      "their_class": "compared as a set"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/581",
+      "their_class": "hand-written oracle: height read as the perpendicular distance to the apex"
+    },
+    {
+      "in_our_P": true,
+      "our_instance_labels": [
+        "ambiguous-oracle",
+        "ambiguous-oracle"
+      ],
+      "our_task_label": "ambiguous-oracle",
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/7",
+      "their_class": "compared as a set: the prose does not fix the output order"
+    },
+    {
+      "in_our_P": false,
+      "our_instance_labels": null,
+      "our_task_label": null,
+      "source": "evalplus/eval/_special_oracle.py",
+      "task": "Mbpp/769",
+      "their_class": "compared as a set"
+    }
+  ],
+  "study": "rerate / Amendment 3"
+}

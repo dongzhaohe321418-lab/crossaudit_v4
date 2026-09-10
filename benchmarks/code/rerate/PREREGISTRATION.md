@@ -100,3 +100,46 @@ no new bars, no L1 re-rating.
 Also corrected by this amendment: Amendment 1's "before any flagged label" holds for 42 of the
 53 flagged instances — 11 had been rated on the first sheet (2 ambiguous, 7 edge, 2 timeout by
 consensus).
+
+## Amendment 3 — 2026-09-11, an external check of the labels, added after they were frozen
+
+Every review of this study named the same limitation: both raters were ours. This amendment
+does not add a rater. It asks whether anyone outside this project, working for their own
+reasons and before we looked, had already recorded that these specifications do not settle
+their expected values.
+
+**One source qualifies as an external label set**, and the join is by task id, not by
+instance, so the outcome is a **concordance, not a rate**:
+
+1. **Richter & Papadakis, arXiv:2607.01953**, §1 footnotes 1–3, which name twelve MBPP tasks
+   they manually identified as *ambiguous* (294, 102, 410, 576), *incomplete* (7, 137, 244,
+   261, 278) or *contradictory* (459, 638, 639). This is the external check, and the only one.
+
+Reported beside it, **not as a label and not counted in the concordance**:
+`evalplus/eval/_special_oracle.py` (Apache-2.0), the tasks whose candidates the benchmark's
+harness does not compare to the reference by equality — eight compared as sets, two given a
+hand-written oracle stating the reading chosen. That file records engineering decisions and
+nowhere says a specification is defective; treating it as evidence about specifications is
+this study's own reading, and a shared task id does not even mean the two are discussing the
+same defect. `HumanEval/32`, whose helper implements a convention the task's prompt already
+supplies, is excluded outright.
+
+**Order of events, as observed.** This study's labels were committed at `d98f0c1`
+(residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass); the earliest
+external file on this machine was created after all three. Those are commit times and file
+creation times, and they establish that order and nothing more. They are not proof of what a
+rater knew: the fetches are untracked, and no record here can exclude prior awareness of a
+public paper.
+
+**What is computed.** `rerate/external_labels.py` transcribes both sources with their
+provenance; `rerate/external_join.py` joins them to this study's frozen per-instance labels,
+reduced to one label per task, and writes `records/rerate/external.json`: how many of their
+tasks are in our stratum P, how many of those we call `ambiguous-oracle`, and every
+disagreement with its detail.
+
+**The join is one-sided and that is stated wherever it is used.** Neither source claims to be
+exhaustive — Richter gives examples, EvalPlus wrote an oracle only where it had to — so a task
+they do not name is not evidence that its specification is sound. The concordance can support
+"where an outside party recorded a defective specification, this study's raters agreed", and
+nothing about the *rate* of `ambiguous-oracle` in the residual. No number in §3 or Amendment 1
+changes, no kill is re-evaluated, and this analysis is **post hoc** wherever it appears.
