@@ -12,6 +12,8 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 | **`self-strong` (Sonnet 4.6)** | 8 | 4/110 = 3.6% | 1.4–9.0 | 0.9–7.4 | 5/150 = 3.3% | 1.4–7.6 | 0.7–6.7 |
 | **`self-frontier` (Opus 4.8)** | 4 | 1/110 = 0.9% | 0.2–5.0 | 0.0–2.8 | 4/150 = 2.7% | 1.0–6.7 | 0.7–5.4 |
 
+Blocked by no family over all 32 draws: 56/110 = 50.9% (Wilson 41.7–60.1; cluster 39.1–62.7). Mentioned by no family at any severity (EXPLORATORY rule): 25/110 = 22.7% (Wilson 15.9–31.4; cluster 13.5–32.7). Their paired difference: 28.2 points (cluster 18.0–39.1).
+
 ### Table 2 — the curves: union rate at each K with its problem-cluster interval (P; then C)
 
 | family | stratum | K=1 | K=2 | K=3 | K=4 | K=5 | K=6 | K=7 | K=8 |
@@ -27,15 +29,15 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 | **`self-frontier` (Opus 4.8)** | P | 0.5 [0.0–1.4] | 0.8 [0.0–2.3] | 0.9 [0.0–2.8] | 0.9 [0.0–2.8] |  |  |  |  |
 | **`self-frontier` (Opus 4.8)** | C | 0.8 [0.2–1.8] | 1.6 [0.3–3.3] | 2.2 [0.5–4.5] | 2.7 [0.7–5.4] |  |  |  |  |
 
-### Table 3 — fitted asymptote (§1.2, always reported), the registered flattening bar, and the exchange rate
+### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate
 
-| family | A (P) | A cluster 95% | τ | R² | K_max-1→K_max gain (points) | flattened by ceiling 1's bar (gain ≤ 1.0) | τ > K_max (post-hoc diagnostic) | Δrecall/ΔFP K=1→K_max |
-|---|---|---|---|---|---|---|---|---|
-| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 1.93 | no | no | 1.68 |
-| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.23 | yes | no | 0.87 |
-| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.23 | yes | no | 2.50 |
-| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.34 | yes | yes | 1.84 |
-| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.00 | yes | no | 0.25 |
+| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 2.37 | 100.0% | 1.93 [1.13–2.82] | no | yes | 1.68 [0.97–3.02] |
+| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.66 | 100.0% | 0.23 [0.00–0.57] | yes | no | 0.87 [0.00–5.11] (6 discarded) |
+| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.34 | 33.2% | 0.23 [0.00–0.69] | yes | no | 2.50 [0.34–8.71] (250 discarded) |
+| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.01 | 8.8% | 0.34 [0.00–0.79] | yes | yes | 1.84 [0.28–8.09] (94 discarded) |
+| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.04 | 1.0% | 0.00 [0.00–0.00] | yes | no | 0.25 [0.00–1.45] (26 discarded) |
 
 ### Table 4 — EXPLORATORY any-finding rule (not preregistered): a flag rate, not a defect-naming rate
 

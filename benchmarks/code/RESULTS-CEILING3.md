@@ -1,4 +1,4 @@
-# Ceiling 3 — two more auditor families: the BLOCKER ceiling is not one number, and half the defects are blocked by nothing
+# Ceiling 3 — two more auditor families: the BLOCKER ceiling is not one number, and the residual is shared
 
 Study 18. Preregistered at `benchmarks/code/ceiling3/PREREGISTRATION.md` (0e8c7e0, 10:56:52
 UTC on 2026-09-09; the first call at 10:58:28). Amendment 1 (64af5f3, 11:14:31 UTC) was
@@ -46,6 +46,8 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 | **`self-strong` (Sonnet 4.6)** | 8 | 4/110 = 3.6% | 1.4–9.0 | 0.9–7.4 | 5/150 = 3.3% | 1.4–7.6 | 0.7–6.7 |
 | **`self-frontier` (Opus 4.8)** | 4 | 1/110 = 0.9% | 0.2–5.0 | 0.0–2.8 | 4/150 = 2.7% | 1.0–6.7 | 0.7–5.4 |
 
+Blocked by no family over all 32 draws: 56/110 = 50.9% (Wilson 41.7–60.1; cluster 39.1–62.7). Mentioned by no family at any severity (EXPLORATORY rule): 25/110 = 22.7% (Wilson 15.9–31.4; cluster 13.5–32.7). Their paired difference: 28.2 points (cluster 18.0–39.1).
+
 ### Table 2 — the curves: union rate at each K with its problem-cluster interval (P; then C)
 
 | family | stratum | K=1 | K=2 | K=3 | K=4 | K=5 | K=6 | K=7 | K=8 |
@@ -61,15 +63,15 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 | **`self-frontier` (Opus 4.8)** | P | 0.5 [0.0–1.4] | 0.8 [0.0–2.3] | 0.9 [0.0–2.8] | 0.9 [0.0–2.8] |  |  |  |  |
 | **`self-frontier` (Opus 4.8)** | C | 0.8 [0.2–1.8] | 1.6 [0.3–3.3] | 2.2 [0.5–4.5] | 2.7 [0.7–5.4] |  |  |  |  |
 
-### Table 3 — fitted asymptote (§1.2, always reported), the registered flattening bar, and the exchange rate
+### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate
 
-| family | A (P) | A cluster 95% | τ | R² | K_max-1→K_max gain (points) | flattened by ceiling 1's bar (gain ≤ 1.0) | τ > K_max (post-hoc diagnostic) | Δrecall/ΔFP K=1→K_max |
-|---|---|---|---|---|---|---|---|---|
-| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 1.93 | no | no | 1.68 |
-| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.23 | yes | no | 0.87 |
-| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.23 | yes | no | 2.50 |
-| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.34 | yes | yes | 1.84 |
-| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.00 | yes | no | 0.25 |
+| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `cross` (gpt-5.6-terra) | 31.5% | 21.7–45.7 | 3.27 | 0.9678 | 2.37 | 100.0% | 1.93 [1.13–2.82] | no | yes | 1.68 [0.97–3.02] |
+| `self` (Haiku 4.5) | 16.6% | 7.9–26.5 | 0.39 | 0.4763 | 0.66 | 100.0% | 0.23 [0.00–0.57] | yes | no | 0.87 [0.00–5.11] (6 discarded) |
+| `astra` (gpt-6-astra, high reasoning) | 32.5% | 20.6–44.8 | 0.38 | 0.9517 | 0.34 | 33.2% | 0.23 [0.00–0.69] | yes | no | 2.50 [0.34–8.71] (250 discarded) |
+| **`self-strong` (Sonnet 4.6)** | 8.5% | 1.1–100.0 | 14.25 | 1.0000 | 0.01 | 8.8% | 0.34 [0.00–0.79] | yes | yes | 1.84 [0.28–8.09] (94 discarded) |
+| **`self-frontier` (Opus 4.8)** | 1.0% | 0.0–3.1 | 1.54 | 0.9731 | 0.04 | 1.0% | 0.00 [0.00–0.00] | yes | no | 0.25 [0.00–1.45] (26 discarded) |
 
 ### Table 4 — EXPLORATORY any-finding rule (not preregistered): a flag rate, not a defect-naming rate
 
@@ -102,27 +104,38 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 * **Primary (H18b, equivalence with `cross` at K = 8): false.** `self-strong` − `cross` on
   P = **−26.4 points, problem-cluster 95% [−37.3, −15.6]**; 3 instances flagged by `self-strong`
   only, 32 by `cross` only; exact McNemar p = 4.2 × 10⁻⁷; cluster sign-flip p = 2.0 × 10⁻⁵
-  (sampled, 200,000 draws). On C: −12.7 points [−19.3, −6.1] (3 vs 22; McNemar p = 1.6 ×
-  10⁻⁴; sign-flip p = 2.4 × 10⁻⁴) — all intervals in this list are problem-cluster.
+  (sampled, 200,000 draws). Ceiling 1's paired-binary checks beside it (Amendments 3–5;
+  both ignore clustering): Tango [-36.0, -17.2], exact unconditional
+  [-37.7, -13.2]. On C: −12.7 points, cluster [−19.3, −6.1] (3 vs 22; McNemar p = 1.6 ×
+  10⁻⁴; sign-flip p = 2.4 × 10⁻⁴; Tango [-19.5, -6.7]; exact [-21.0, -3.7]) — every interval in
+  this list is problem-cluster unless named otherwise.
 * **H18a (size, not vendor): false, in the opposite direction.** `self-strong` − `self` on
   P at K = 8 = **−13.6 points, cluster [−24.1, −4.5]** (2 vs 17; McNemar p = 7.3 × 10⁻⁴;
-  sign-flip p = 0.015). The larger same-vendor model blocks less than the small one.
+  sign-flip p = 0.015; Tango [-21.9, -6.6]; exact [-24.0, -2.3]). The larger same-vendor model blocks less than the small one.
 * **H18c (frontier point).** K = 1 as preregistered — each family's mean single-draw rate
   over its four draws, paired per instance — `self-frontier` − `astra` on P = **−29.8
   points, cluster [−41.4, −18.6]**, sign-flip p < 10⁻⁵ (the draw-1-only contrast the first version
   of this file reported, −27.3 [−39.1, −16.4], is kept in `numbers.json` as exploratory).
-  K = 4 unions: −31.8, cluster [−44.1, −20.0] (0 vs 35; sign-flip p = 3.8 × 10⁻⁶); on C
-  −8.0, cluster [−13.9, −2.6] (McNemar p = 0.008; sign-flip p = 0.011).
+  K = 4 unions: −31.8, cluster [−44.1, −20.0] (0 vs 35 — every discordant pair points one
+  way, so by ceiling 1's rule the bootstrap's bound is an artefact of the method and the
+  exact unconditional interval is the one to quote: [-42.7, -18.6]; Tango [-41.0, -23.9];
+  sign-flip p = 3.8 × 10⁻⁶); on C −8.0, cluster [−13.9, −2.6] (McNemar p = 0.008; sign-flip
+  p = 0.011; Tango [-14.2, -2.8]; exact [-15.7, 0.3], which touches zero).
 * **Blocked by no family, ever**: 56 of 110 defects = 50.9% (Wilson 41.7–60.1; cluster
   39.1–62.7) across the five families' 32 draws. **Residual (§1.5)**, Table 6: ceiling 1's
   categories of the same instances (46 unexercised-edge, 8 spec-misreading, 2 timeout); the
   residual shrank from 57 to 56 (one `timeout` instance is now blocked by `self-strong`);
   no instance is new to it.
 * **Saturation** (Table 3): Sonnet's curve passes ceiling 1's registered flattening bar
-  (K = 7 → 8 gain 0.34 points ≤ 1.0) — it is flat, near 3–4%; the fitted A = 8.5% with
-  τ = 14.3 is an extrapolation past the readings taken (the post-hoc diagnostic, labelled
-  so), and its cluster interval reaches the constrained bound. Opus's curve is flat at
-  ~1%. `cross`'s remains the one family that fails the bar (gain 1.93), as ceiling 1 said.
+  (K = 7 → 8 gain 0.34 points, cluster [0.00, 0.79] ≤ 1.0) — it is flat at
+  3.6% (cluster 0.9–7.4); the fitted A = 8.5% (cluster 1.1–100.0, reaching the
+  constrained bound) with τ = 14.3 is an extrapolation past the readings taken (the
+  post-hoc diagnostic, labelled so; the ZIBB sensitivity fit gives π = 8.8%). Opus's
+  curve is flat at 0.9% (cluster 0.0–2.8; A = 1.0%, cluster 0.0–3.1). `cross`'s
+  remains the one family that fails the bar (gain 1.93, cluster [1.13, 2.82]), so its asymptote
+  31.5% (cluster 21.7–45.7) is an extrapolation, as ceiling 1 said; for `cross` and `self` the
+  ZIBB mixing weight runs to its bound (π = 100%), which ceiling 1's report also recorded,
+  and it is shown for completeness, not read.
 * **`mixed`** (Table 5): at every total K the mixture of `cross` and `self-strong` readings
   falls below `cross` alone; spreading readings to this family loses recall.
 
@@ -130,8 +143,9 @@ Intervals: a k/n rate carries the 95% Wilson interval and the problem-cluster pe
 
 **It is not a format failure.** 0 of 2,080 Sonnet readings and 5 of 1,040 Opus readings
 were rejected as malformed; the ledgers hold 3,166 auditor calls for 3,120 readings, so at
-most 46 readings needed the product's repair re-ask (2–5 per draw). 66–77 of Sonnet's 260
-replies per draw and 51–59 of Opus's are over 300 output tokens.
+most 46 readings needed the product's repair re-ask (2–5 per draw). Of the ledger's calls per
+draw (the 260 readings plus their repair calls), 66–77 of Sonnet's and 51–59 of Opus's
+returned over 300 output tokens.
 
 **It is a grading outcome.** Per draw Sonnet returned at least one finding of some severity
 on 54–73 of the 260 instances and graded 2–5 of those BLOCKER; Opus on 23–30, with 1–3
@@ -145,12 +159,15 @@ which the model returned *some* finding. The advisory texts were not archived or
 adjudicated against the hidden failure, so a finding on a P instance is not shown to name
 that instance's defect, and "Sonnet sees 59% of the defects" is **not** a claim this record
 supports. What the record supports is narrower: the Anthropic families return findings on
-far more instances than they block, and the gap between "mentioned by none" (22.7%) and
-"blocked by none" (50.9%) is 28 points of the defect population. **That the gap is a
+far more instances than they block, and the gap between "mentioned by none" (22.7%,
+cluster 13.5–32.7) and "blocked by none" (50.9%, cluster 39.1–62.7) is
+28.2 points of the defect population (paired per instance, cluster
+[18.0, 39.1]). **That the gap is a
 severity policy rather than a limit of seeing is the author's inference.** The study
 designed to test it — the same families under a constitution that states the blocking
-criterion, with the advisory texts archived and adjudicated — is drafted (ceiling 3b) and
-is preregistered when its branch opens, after this file is quotable.
+criterion, with the advisory texts archived and adjudicated — is ceiling 3b (study 19),
+preregistered at ed75d27 and run before this file's third review, not after it as
+Amendment 3 had said (Amendment 4 discloses the order).
 
 ## 3. What this study licenses
 
@@ -159,8 +176,8 @@ is preregistered when its branch opens, after this file is quotable.
   (20.7–45.0), the Anthropic families 17.3% (8.2–27.3) for Haiku 4.5, 3.6% (0.9–7.4) for
   Sonnet 4.6 and 0.9% (0.0–2.8) for Opus 4.8 — and within the second vendor the rate falls
   with model size. What is stable across families is the residual:
-  56 of 110 defects are blocked by no reading of anything measured, and its composition is
-  ceiling 1's (Table 6).
+  56 of 110 defects = 50.9% (cluster 39.1–62.7) are blocked by no reading of anything
+  measured, and its composition is ceiling 1's (Table 6).
 * The instruction axis is the next thing to vary on these families, as it was for the
   shipped auditor in ceiling 2 (the referent rule). Nothing here changes ceiling 1's numbers
   or D162; the generator axis (stage B) and the task axis (stage C) remain.
@@ -179,7 +196,8 @@ is preregistered when its branch opens, after this file is quotable.
   readings had landed and resumed with no design change; transport failures (SSL EOF)
   tripped the provider breaker repeatedly; `self-frontier` draws 2 and 3 were completed by
   a second invocation of the same resumable loop (41 and 105 readings). Each reading is
-  one accepted reply; 46 of the 3,120 needed one repair call first.
+  one reply: 3,115 accepted, 5 (Opus) malformed after the repair call and recorded as
+  ESCALATE; 46 of the 3,120 needed a repair call.
 * **Post-hoc elements, all labelled**: the any-finding rule; the τ > K_max diagnostic; the
   draw-1-only H18c contrast; the probe re-run (the original replies were not archived; all
   three re-run Sonnet replies are PASS with no BLOCKER, the one BLOCKED reply is Haiku's).

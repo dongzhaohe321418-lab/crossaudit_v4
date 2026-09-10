@@ -43,7 +43,9 @@ def test_the_contrasts_are_bound():
     assert f"P = **{pr['difference_points']:.1f} points, problem-cluster 95% [{pr['cluster_ci95_points'][0]:.1f}, {pr['cluster_ci95_points'][1]:.1f}]**" in t
     assert f"{pr['a_only']} instances flagged by `self-strong`\n  only, {pr['b_only']} by `cross` only" in t
     hb = n["H18b_C_false_positives"]
-    assert f"On C: {hb['difference_points']:.1f} points [{hb['cluster_ci95_points'][0]:.1f}, {hb['cluster_ci95_points'][1]:.1f}] ({hb['a_only']} vs {hb['b_only']}" in t
+    assert f"On C: {hb['difference_points']:.1f} points, cluster [{hb['cluster_ci95_points'][0]:.1f}, {hb['cluster_ci95_points'][1]:.1f}] ({hb['a_only']} vs {hb['b_only']}" in t
+    # ceiling 1's paired-binary checks beside the primary
+    assert f"Tango [{pr['tango_ci95_points'][0]:.1f}, {pr['tango_ci95_points'][1]:.1f}], exact unconditional\n  [{pr['exact_unconditional_ci95_points'][0]:.1f}, {pr['exact_unconditional_ci95_points'][1]:.1f}]" in t
     ha = n["H18a_self_strong_minus_self_P"]
     assert f"P at K = 8 = **{ha['difference_points']:.1f} points, cluster [{ha['cluster_ci95_points'][0]:.1f}, {ha['cluster_ci95_points'][1]:.1f}]** ({ha['a_only']} vs {ha['b_only']}" in t
     assert f"sign-flip p = {ha['signflip']['p']:.3f}" in t.replace("\n  ", " ")
@@ -52,7 +54,16 @@ def test_the_contrasts_are_bound():
     hk = n["H18c_frontier_minus_astra_P_kmax"]
     assert f"K = 4 unions: {hk['difference_points']:.1f}, cluster [{hk['cluster_ci95_points'][0]:.1f}, {hk['cluster_ci95_points'][1]:.1f}] ({hk['a_only']} vs {hk['b_only']}" in t
     hcc = n["H18c_frontier_minus_astra_C_kmax"]
-    assert f"on C\n  {hcc['difference_points']:.1f}, cluster [{hcc['cluster_ci95_points'][0]:.1f}, {hcc['cluster_ci95_points'][1]:.1f}]" in t
+    assert f"on C {hcc['difference_points']:.1f}, cluster [{hcc['cluster_ci95_points'][0]:.1f}, {hcc['cluster_ci95_points'][1]:.1f}]" in t
+    assert hk["one_signed_discordance"] is True
+    assert f"exact unconditional interval is the one to quote: [{hk['exact_unconditional_ci95_points'][0]:.1f}, {hk['exact_unconditional_ci95_points'][1]:.1f}]" in t
+    # the never-gap paired difference and the saturation figures
+    gp = n["EXPLORATORY_any_finding_rule"]["gap_blocked_by_none_minus_mentioned_by_none_P"]
+    assert f"{gp['difference_points']:.1f} points of the defect population (paired per instance, cluster\n[{gp['cluster_ci95_points'][0]:.1f}, {gp['cluster_ci95_points'][1]:.1f}])" in t
+    ss = n["families"]["self-strong"]["P"]
+    assert f"the fitted A = {_pct(ss['fit']['A'])}% (cluster {_pct(ss['fit']['A_ci95_cluster'][0])}–{_pct(ss['fit']['A_ci95_cluster'][1])}" in t
+    g = ss["flattening_gain_last_step_cluster_ci95"]
+    assert f"gain {100 * ss['flattening_gain_last_step']:.2f} points, cluster [{100 * g[0]:.2f}, {100 * g[1]:.2f}]" in t
 
 
 def test_the_never_counts_and_the_residual_are_bound():

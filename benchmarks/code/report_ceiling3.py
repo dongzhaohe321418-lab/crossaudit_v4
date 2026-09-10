@@ -88,9 +88,11 @@ def load_any_finding(scope: set[str]) -> dict[str, dict[int, dict[str, bool]]]:
     return out
 
 
-def curve_cluster_cis(ks_by_problem: dict[str, list[int]], k_max: int, reps: int, seed: int) -> list[list[float]]:
+def curve_cluster_cis(ks_by_problem: dict[str, list[int]], k_max: int, reps: int, seed: int,
+                      gains: list | None = None) -> list[list[float]]:
     """Problem-cluster percentile bootstrap of the union curve at EVERY K (one resampling
-    stream, all K read off each resample), so each curve point carries its interval."""
+    stream, all K read off each resample), so each curve point carries its interval.
+    ``gains``, if given, collects each resample's K_max-1 -> K_max gain."""
     problems = sorted(ks_by_problem)
     rng = random.Random(seed)
     per_k: list[list[float]] = [[] for _ in range(k_max)]
@@ -101,7 +103,28 @@ def curve_cluster_cis(ks_by_problem: dict[str, list[int]], k_max: int, reps: int
         curve = rc.union_curve(drawn, k_max)
         for i, v in enumerate(curve):
             per_k[i].append(v)
+        if gains is not None and len(curve) >= 2:
+            gains.append(curve[-1] - curve[-2])
     return [[rc.percentile(v, 0.025), rc.percentile(v, 0.975)] for v in per_k]
+
+
+def exchange_ratio_ci(ks_p: dict[str, list[int]], ks_c: dict[str, list[int]], k_max: int,
+                      reps: int, seed: int) -> list[float | None]:
+    """Cluster bootstrap of (recall gain K=1->K_max) / (FP gain K=1->K_max), resampling P
+    and C problems together (independent strata, one seed stream); a resample whose FP
+    gain is zero is discarded and counted in the returned third element."""
+    pp, pc = sorted(ks_p), sorted(ks_c)
+    rng = random.Random(seed)
+    stats, discarded = [], 0
+    for _ in range(reps):
+        dp = [k for _ in range(len(pp)) for k in ks_p[pp[rng.randrange(len(pp))]]]
+        dc = [k for _ in range(len(pc)) for k in ks_c[pc[rng.randrange(len(pc))]]]
+        cp, cc = rc.union_curve(dp, k_max), rc.union_curve(dc, k_max)
+        if cc[-1] - cc[0] <= 0:
+            discarded += 1
+            continue
+        stats.append((cp[-1] - cp[0]) / (cc[-1] - cc[0]))
+    return [rc.percentile(stats, 0.025), rc.percentile(stats, 0.975), discarded]
 
 
 def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> dict:
@@ -115,7 +138,10 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
         by_problem.setdefault(instances[i]["problem_id"], []).append(k)
     boot_A, boot_raw = rc.bootstrap_asymptote(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
     union_flags = {i: any(sub[d].get(i) for d in complete) for i in ids}
-    curve_cis = curve_cluster_cis(by_problem, k_max, BOOTSTRAP, BOOT_SEED)
+    gains: list[float] = []
+    curve_cis = curve_cluster_cis(by_problem, k_max, BOOTSTRAP, BOOT_SEED, gains)
+    gain_ci = [rc.percentile(gains, 0.025), rc.percentile(gains, 0.975)] if gains else [None, None]
+    zibb = rc.fit_zibb(ks, k_max)
     # The preregistered fit (ceiling 1 §1.2) is always reported. A POST-HOC diagnostic is
     # printed beside it — added after Sonnet's first draws were seen (review round 1 of
     # study 18 called the earlier form, which suppressed the fit, outcome-dependent): when
@@ -135,7 +161,12 @@ def family_block(draws: dict, ids: list[str], instances: dict, k_max: int) -> di
             "fit": {"A": fit["A"], "tau": fit["tau"], "r2": fit["r2"],
                     "A_ci95_cluster": [rc.percentile(boot_A, 0.025), rc.percentile(boot_A, 0.975)]},
             "flattening_gain_last_step": last_gain,
-            "flattened_by_ceiling1_bar": flattened}
+            "flattening_gain_last_step_cluster_ci95": gain_ci,
+            "flattened_by_ceiling1_bar": flattened,
+            "asymptote_is_extrapolation": (not flattened) or extrapolated,
+            "fit_max_resid": fit.get("max_resid"),
+            "zibb": {"pi": zibb.get("pi"), "a": zibb.get("a"), "b": zibb.get("b")},
+            "ks_by_problem": by_problem}
 
 
 def paired_union_difference(draws_a: dict, draws_b: dict, k: int, ids: list[str], instances: dict) -> dict:
@@ -151,9 +182,18 @@ def paired_union_difference(draws_a: dict, draws_b: dict, k: int, ids: list[str]
     lo, hi = rc.cluster_bootstrap_ci(by_problem, BOOTSTRAP, BOOT_SEED)
     b = sum(1 for i in ids if any(draws_a[d].get(i) for d in da) and not any(draws_b[d].get(i) for d in db))
     c = sum(1 for i in ids if not any(draws_a[d].get(i) for d in da) and any(draws_b[d].get(i) for d in db))
-    return {"k": k, "n": len(ids), "a_union": ka / len(ids), "b_union": kb / len(ids),
-            "difference_points": 100 * (ka - kb) / len(ids),
+    n = len(ids)
+    one_signed = (b == 0) != (c == 0) and (b + c) > 0
+    return {"k": k, "n": n, "a_union": ka / n, "b_union": kb / n,
+            "difference_points": 100 * (ka - kb) / n,
             "cluster_ci95_points": [100 * lo, 100 * hi],
+            # ceiling 1 Amendments 3–5: the paired-binary intervals beside the bootstrap;
+            # both ignore clustering and are labelled so. Where every discordant pair points
+            # one way the percentile bootstrap's bound at zero is an artefact (ceiling 1's
+            # rule) and the exact unconditional interval is the one to quote.
+            "tango_ci95_points": [100 * x for x in rc.tango_score_interval(b, c, n)],
+            "exact_unconditional_ci95_points": [100 * x for x in rc.exact_unconditional_interval(b, c, n)],
+            "one_signed_discordance": one_signed,
             "a_only": b, "b_only": c, "mcnemar_exact_p": rc.mcnemar_exact(b, c),
             "signflip": rc.signflip_p(by_problem)}
 
@@ -255,6 +295,9 @@ def main() -> int:
         fp = out["families"][f]["C"]["curve"]; rec = out["families"][f]["P"]["curve"]
         out["families"][f]["exchange_rate_recall_per_fp"] = (
             ((rec[-1] - rec[0]) / (fp[-1] - fp[0])) if len(rec) > 1 and fp[-1] != fp[0] else None)
+        out["families"][f]["exchange_rate_cluster_ci95"] = exchange_ratio_ci(
+            out["families"][f]["P"].pop("ks_by_problem"), out["families"][f]["C"].pop("ks_by_problem"),
+            len(complete), 2000, BOOT_SEED)
 
     def contrast(a: str, b: str, k: int, stratum: list[str]) -> dict | None:
         if kmax.get(a, 0) < k or kmax.get(b, 0) < k:
@@ -287,6 +330,7 @@ def main() -> int:
         "instance_ids": never}
     out["never_flagged_by_any_family"]["cluster_ci95"] = list(rc.cluster_bootstrap_ci(
         _by_problem({i: (i in never) for i in P}, instances), BOOTSTRAP, BOOT_SEED))
+    never_set = set(never)
     # mixed at matched total draws: cross + self-strong, K/2 each
     if kmax.get("self-strong", 0) >= 1:
         out["mixed_cross_self_strong"] = {}
@@ -345,6 +389,14 @@ def main() -> int:
                             "union_at_kmax": rc.clustered_rate(union_flags, ids, instances, BOOTSTRAP, BOOT_SEED)}
         out["EXPLORATORY_any_finding_rule"]["families"][f] = entry
     never_any = [i for i in P if not any(any_draws[f][d].get(i) for f in FAMILIES for d in any_draws[f] if isinstance(d, int))]
+    gap_by_problem: dict[str, list[float]] = {}
+    for i in P:
+        gap_by_problem.setdefault(instances[i]["problem_id"], []).append(float(i in never_set) - float(i in never_any))
+    glo, ghi = rc.cluster_bootstrap_ci(gap_by_problem, BOOTSTRAP, BOOT_SEED)
+    out["EXPLORATORY_any_finding_rule"]["gap_blocked_by_none_minus_mentioned_by_none_P"] = {
+        "difference_points": 100 * (len(never) - len(never_any)) / len(P),
+        "cluster_ci95_points": [100 * glo, 100 * ghi],
+        "note": "paired per instance: blocked by no family (1/0) minus mentioned by no family (1/0)"}
     out["EXPLORATORY_any_finding_rule"]["never_any_finding_by_any_family_P"] = {
         "k": len(never_any), "n": len(P), "rate": len(never_any) / len(P), "wilson95": list(rc.wilson(len(never_any), len(P))),
         "cluster_ci95": list(rc.cluster_bootstrap_ci(_by_problem({i: (i in never_any) for i in P}, instances), BOOTSTRAP, BOOT_SEED))}
@@ -439,6 +491,12 @@ def render_tables(out: dict) -> str:
         p, c = e["P"]["union_at_kmax"], e["C"]["union_at_kmax"]
         lines.append(f"| {LABELS[f]} | {e['k_max']} | {p['k']}/{p['n']} = {_pc(p['rate'])}% | {_iv(p['wilson95'])} | {_iv(p['cluster_ci95'])} "
                      f"| {c['k']}/{c['n']} = {_pc(c['rate'])}% | {_iv(c['wilson95'])} | {_iv(c['cluster_ci95'])} |")
+    nv = out["never_flagged_by_any_family"]; ex0 = out["EXPLORATORY_any_finding_rule"]
+    na = ex0["never_any_finding_by_any_family_P"]; gp = ex0["gap_blocked_by_none_minus_mentioned_by_none_P"]
+    lines += ["", f"Blocked by no family over all {nv['total_draws']} draws: {nv['k']}/{nv['n']} = {_pc(nv['rate'])}% "
+              f"(Wilson {_iv(nv['wilson95'])}; cluster {_iv(nv['cluster_ci95'])}). Mentioned by no family at any severity "
+              f"(EXPLORATORY rule): {na['k']}/{na['n']} = {_pc(na['rate'])}% (Wilson {_iv(na['wilson95'])}; cluster {_iv(na['cluster_ci95'])}). "
+              f"Their paired difference: {gp['difference_points']:.1f} points (cluster {gp['cluster_ci95_points'][0]:.1f}–{gp['cluster_ci95_points'][1]:.1f})."]
     lines += ["", "### Table 2 — the curves: union rate at each K with its problem-cluster interval (P; then C)", "",
               "| family | stratum | " + " | ".join(f"K={k}" for k in range(1, 9)) + " |", "|---|---|" + "---|" * 8]
     for f in FAMILIES:
@@ -449,18 +507,21 @@ def render_tables(out: dict) -> str:
             cells = [f"{_pc(v)} [{_iv(ci)}]" for v, ci in zip(e[st]["curve"], e[st]["curve_cluster_ci95"])]
             cells += [""] * (8 - len(cells))
             lines.append(f"| {LABELS[f]} | {st} | " + " | ".join(cells) + " |")
-    lines += ["", "### Table 3 — fitted asymptote (§1.2, always reported), the registered flattening bar, and the exchange rate", "",
-              "| family | A (P) | A cluster 95% | τ | R² | K_max-1→K_max gain (points) | flattened by ceiling 1's bar (gain ≤ 1.0) | τ > K_max (post-hoc diagnostic) | Δrecall/ΔFP K=1→K_max |",
-              "|---|---|---|---|---|---|---|---|---|"]
+    lines += ["", "### Table 3 — fitted asymptote (§1.2, always reported) with its ZIBB sensitivity fit and residual, the registered flattening bar, and the exchange rate", "",
+              "| family | A (P) | A cluster 95% | τ | R² | max abs residual (points) | ZIBB π (sensitivity) | K_max-1→K_max gain (points) [cluster] | flattened by ceiling 1's bar (gain ≤ 1.0) | asymptote is an extrapolation | Δrecall/ΔFP K=1→K_max [cluster, 2,000] |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
     for f in FAMILIES:
         e = out["families"][f]
         if not e.get("k_max"):
             continue
-        fit = e["P"]["fit"]
+        fit = e["P"]["fit"]; g = e["P"]["flattening_gain_last_step_cluster_ci95"]; x = e["exchange_rate_cluster_ci95"]
+        pi = e["P"]["zibb"]["pi"]
         lines.append(f"| {LABELS[f]} | {_pc(fit['A'])}% | {_iv(fit['A_ci95_cluster'])} | {fit['tau']:.2f} | {fit['r2']:.4f} | "
-                     f"{100 * e['P']['flattening_gain_last_step']:.2f} | {'yes' if e['P']['flattened_by_ceiling1_bar'] else 'no'} | "
-                     f"{'yes' if e['P']['fit_diagnostic_post_hoc'].startswith('tau > K_max') else 'no'} | "
-                     f"{e['exchange_rate_recall_per_fp']:.2f} |")
+                     f"{100 * e['P']['fit_max_resid']:.2f} | {(_pc(pi) + '%') if pi is not None else 'n/a'} | "
+                     f"{100 * e['P']['flattening_gain_last_step']:.2f} [{100 * g[0]:.2f}–{100 * g[1]:.2f}] | "
+                     f"{'yes' if e['P']['flattened_by_ceiling1_bar'] else 'no'} | "
+                     f"{'yes' if e['P']['asymptote_is_extrapolation'] else 'no'} | "
+                     f"{e['exchange_rate_recall_per_fp']:.2f} [{x[0]:.2f}–{x[1]:.2f}]" + (f" ({x[2]} discarded)" if x[2] else "") + " |")
     lines += ["", "### Table 4 — EXPLORATORY any-finding rule (not preregistered): a flag rate, not a defect-naming rate", "",
               "| family | K | P union | Wilson | cluster | single-draw P [cluster] | C union | Wilson | cluster | single-draw C [cluster] |",
               "|---|---|---|---|---|---|---|---|---|---|"]

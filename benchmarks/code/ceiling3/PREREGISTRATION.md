@@ -188,3 +188,17 @@ that were prose rather than the JSON the validator expects, from the harness's
    curve points, single-draw means and mixed rates, which are means and carry the cluster
    interval only; the tables now say which interval each kind of rate carries, and the
    single-draw and `cross`-alone cells carry theirs.
+
+## Amendment 5 — 2026-09-10, after the fourth review; the inherited standard applied in full
+
+Ceiling 1 §1.2 and Amendments 3–5 are binding here and were only partly applied. Now
+delivered, all from the same records and seeds: the ZIBB sensitivity fit and the maximum
+absolute fit residual per family (Table 3); the Tango score interval and the exact
+unconditional interval beside every paired-binary contrast, with ceiling 1's rule for
+one-signed discordance applied to H18c's K = 4 contrast (0 vs 35); a problem-cluster
+interval on every derived rate the prose repeats — the last-step gains, the exchange
+ratios (2,000 resamples; resamples with no FP gain discarded and counted), the fitted
+asymptotes, and the paired difference between "blocked by none" and "mentioned by none";
+`cross`'s asymptote labelled an extrapolation beside its estimate, since it fails the
+flattening bar. The title no longer carries a rate. The long-reply counts are described as
+what they are (ledger calls per draw, repair calls included). Nothing measured changed.
