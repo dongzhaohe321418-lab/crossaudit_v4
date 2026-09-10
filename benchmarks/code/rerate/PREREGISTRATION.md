@@ -59,3 +59,20 @@ count toward neither category.
 `records/rerate/L1.csv`, `L2.csv`, `key.jsonl` (id → instance), `numbers.json`; the sheet
 stays in the archive (it quotes the corpus). No model call is made for anything but L2's
 labels; no instance is re-run.
+
+## Amendment 1 — rate the flagged instances too (2026-09-10, after the residual result, before any flagged label)
+
+The residual result is known (consensus `ambiguous-oracle` 44 of 57). §3's oracle-clean
+restatement treats the 53 flagged P instances as oracle-clean without checking; this amendment
+checks. The 53 stratum-P instances outside the all-family residual are dumped with the same
+builder (specification, visible suite, candidate, canonical, witness), shuffled into a second
+blind sheet (seed 20260914; ids continue from Q069), and rated by the same two raters under §2's
+rule, unchanged. L2 sees neither sheet's membership.
+
+Secondary (now preregistered, replaces §3's exploratory line): with a_r the consensus-ambiguous
+count in the residual and a_f the same among the flagged, the oracle-clean union recall of ceiling
+1's all-family union is (53 − a_f) / (110 − a_r − a_f), with a problem-cluster bootstrap over the
+110 P instances' (flagged, ambiguous) pairs, seed 20260914 + 10; disputed instances stay in the
+denominator (counted as not ambiguous). No kill; the number is reported beside the registered
+48.2% whatever it is. Both consensus-ambiguous shares (residual, flagged) are reported with both
+intervals.
