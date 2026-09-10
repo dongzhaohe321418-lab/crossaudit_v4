@@ -175,3 +175,16 @@ that were prose rather than the JSON the validator expects, from the harness's
    Amendment 1). "As the existing families did" was wrong for `astra`.
 6. **Ceiling 3b is drafted, not preregistered**; its preregistration is committed when its
    branch opens, after this study is quotable.
+
+## Amendment 4 — 2026-09-10, after the third review; corrections of record
+
+1. Amendment 3 item 6 said ceiling 3b would be preregistered "after this study is
+   quotable". It was preregistered (ed75d27) and run before this study's third review,
+   because both quotas had run out and the alternative was an idle line. Nothing in
+   ceiling 3b changes this study; the order is disclosed here.
+2. The repair-prompt disclosure said all 46 repaired readings succeeded; 41 did and 5
+   Opus readings stayed malformed (verdict ESCALATE, not flagged). Corrected.
+3. "Every rate carries Wilson and cluster intervals" was false for subset-averaged
+   curve points, single-draw means and mixed rates, which are means and carry the cluster
+   interval only; the tables now say which interval each kind of rate carries, and the
+   single-draw and `cross`-alone cells carry theirs.
