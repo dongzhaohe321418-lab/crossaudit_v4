@@ -1,0 +1,656 @@
+{
+  "agreement": {
+    "agree": 60,
+    "kappa": 0.721881390593047,
+    "n": 68
+  },
+  "agreement_flagged": {
+    "agree": 51,
+    "kappa": 0.9334170854271356,
+    "n": 53
+  },
+  "categories": [
+    "timeout",
+    "ambiguous-oracle",
+    "unexercised-edge",
+    "spec-misreading",
+    "wrong-algorithm",
+    "other"
+  ],
+  "disputed": [
+    "b1:Mbpp/398",
+    "b1:Mbpp/594",
+    "b1:Mbpp/630",
+    "b1:Mbpp/792",
+    "b2:Mbpp/142",
+    "b2:Mbpp/398",
+    "b2:Mbpp/630",
+    "b2:Mbpp/792"
+  ],
+  "disputed_labels": {
+    "b1:Mbpp/142": [
+      "ambiguous-oracle",
+      "unexercised-edge"
+    ],
+    "b1:Mbpp/398": [
+      "ambiguous-oracle",
+      "unexercised-edge"
+    ],
+    "b1:Mbpp/594": [
+      "unexercised-edge",
+      "ambiguous-oracle"
+    ],
+    "b1:Mbpp/630": [
+      "other",
+      "ambiguous-oracle"
+    ],
+    "b1:Mbpp/792": [
+      "unexercised-edge",
+      "ambiguous-oracle"
+    ],
+    "b2:Mbpp/142": [
+      "ambiguous-oracle",
+      "unexercised-edge"
+    ],
+    "b2:Mbpp/398": [
+      "ambiguous-oracle",
+      "unexercised-edge"
+    ],
+    "b2:Mbpp/594": [
+      "unexercised-edge",
+      "ambiguous-oracle"
+    ],
+    "b2:Mbpp/630": [
+      "other",
+      "ambiguous-oracle"
+    ],
+    "b2:Mbpp/792": [
+      "unexercised-edge",
+      "ambiguous-oracle"
+    ]
+  },
+  "kill": {
+    "ambiguous": 44,
+    "edge": 2,
+    "fires": true,
+    "rule": "consensus ambiguous-oracle >= 30 of 57, or consensus unexercised-edge < 29 of 57"
+  },
+  "marginals": {
+    "L1": {
+      "ambiguous-oracle": 49,
+      "other": 2,
+      "timeout": 5,
+      "unexercised-edge": 12
+    },
+    "L2": {
+      "ambiguous-oracle": 51,
+      "timeout": 5,
+      "unexercised-edge": 12
+    }
+  },
+  "marginals_flagged": {
+    "L1": {
+      "ambiguous-oracle": 25,
+      "timeout": 4,
+      "unexercised-edge": 24
+    },
+    "L2": {
+      "ambiguous-oracle": 25,
+      "timeout": 4,
+      "unexercised-edge": 24
+    }
+  },
+  "n_flagged_sheet": 53,
+  "n_residual": 57,
+  "n_sheet": 68,
+  "oracle_clean_secondary": {
+    "P": 110,
+    "P_clean": 42,
+    "a_f": 24,
+    "a_r": 44,
+    "calibration": "the bootstrap for this conditional estimand has no committed coverage simulation; uncalibrated",
+    "cluster_ci": [
+      50.0,
+      86.36363636363636
+    ],
+    "flagged": 53,
+    "flagged_clean": 29,
+    "recall": 69.04761904761905,
+    "residual_share_oracle_clean": 30.952380952380953,
+    "rule": "Amendment 1: (53 \u2212 a_f) / (110 \u2212 a_r \u2212 a_f); disputed count as not ambiguous",
+    "seed": 20260924,
+    "union_recall_registered": 48.18181818181818,
+    "union_recall_registered_cluster_ci": [
+      36.69724770642202,
+      60.0
+    ],
+    "union_recall_registered_wilson": [
+      39.064279126942544,
+      57.42206245595987
+    ],
+    "wilson": [
+      53.97400606391092,
+      80.92889714120513
+    ]
+  },
+  "populations": {
+    "all_families_residual": {
+      "consensus": {
+        "ambiguous-oracle": {
+          "cluster_ci": [
+            62.06896551724138,
+            91.07142857142857
+          ],
+          "count": 44,
+          "n": 57,
+          "problems": 34,
+          "share": 77.19298245614036,
+          "wilson": [
+            64.7939889543265,
+            86.1581095010378
+          ]
+        },
+        "disputed": {
+          "cluster_ci": [
+            3.4482758620689653,
+            26.785714285714285
+          ],
+          "count": 8,
+          "n": 57,
+          "problems": 34,
+          "share": 14.035087719298245,
+          "wilson": [
+            7.287276143238601,
+            25.324464609344087
+          ]
+        },
+        "other": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 57,
+          "problems": 34,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.313883485297894
+          ]
+        },
+        "spec-misreading": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 57,
+          "problems": 34,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.313883485297894
+          ]
+        },
+        "timeout": {
+          "cluster_ci": [
+            0.0,
+            14.285714285714285
+          ],
+          "count": 3,
+          "n": 57,
+          "problems": 34,
+          "share": 5.2631578947368425,
+          "wilson": [
+            1.806029563366167,
+            14.369550397163527
+          ]
+        },
+        "unexercised-edge": {
+          "cluster_ci": [
+            0.0,
+            10.909090909090908
+          ],
+          "count": 2,
+          "n": 57,
+          "problems": 34,
+          "share": 3.508771929824561,
+          "wilson": [
+            0.9675664344932882,
+            11.920781367625805
+          ]
+        },
+        "wrong-algorithm": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 57,
+          "problems": 34,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.313883485297894
+          ]
+        }
+      },
+      "n": 57,
+      "problems": 34
+    },
+    "flagged_P": {
+      "consensus": {
+        "ambiguous-oracle": {
+          "cluster_ci": [
+            28.30188679245283,
+            63.26530612244898
+          ],
+          "count": 24,
+          "n": 53,
+          "problems": 33,
+          "share": 45.283018867924525,
+          "wilson": [
+            32.65757915292224,
+            58.54602451289419
+          ]
+        },
+        "disputed": {
+          "cluster_ci": [
+            0.0,
+            10.0
+          ],
+          "count": 2,
+          "n": 53,
+          "problems": 33,
+          "share": 3.7735849056603774,
+          "wilson": [
+            1.0410287275826844,
+            12.754287197418353
+          ]
+        },
+        "other": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        },
+        "spec-misreading": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        },
+        "timeout": {
+          "cluster_ci": [
+            0.0,
+            17.647058823529413
+          ],
+          "count": 4,
+          "n": 53,
+          "problems": 33,
+          "share": 7.547169811320755,
+          "wilson": [
+            2.97395550869467,
+            17.858477483653225
+          ]
+        },
+        "unexercised-edge": {
+          "cluster_ci": [
+            25.0,
+            60.71428571428571
+          ],
+          "count": 23,
+          "n": 53,
+          "problems": 33,
+          "share": 43.39622641509434,
+          "wilson": [
+            30.950396559750292,
+            56.73464857239271
+          ]
+        },
+        "wrong-algorithm": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        }
+      },
+      "n": 53,
+      "problems": 33
+    },
+    "sheet_68": {
+      "consensus": {
+        "ambiguous-oracle": {
+          "cluster_ci": [
+            52.23880597014925,
+            82.08955223880598
+          ],
+          "count": 46,
+          "n": 68,
+          "problems": 40,
+          "share": 67.6470588235294,
+          "wilson": [
+            55.84449810050397,
+            77.56239590467001
+          ]
+        },
+        "disputed": {
+          "cluster_ci": [
+            2.898550724637681,
+            22.97557172557169
+          ],
+          "count": 8,
+          "n": 68,
+          "problems": 40,
+          "share": 11.764705882352942,
+          "wilson": [
+            6.083492602331342,
+            21.5349037197917
+          ]
+        },
+        "other": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 68,
+          "problems": 40,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            5.347133652007054
+          ]
+        },
+        "spec-misreading": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 68,
+          "problems": 40,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            5.347133652007054
+          ]
+        },
+        "timeout": {
+          "cluster_ci": [
+            0.0,
+            16.666666666666664
+          ],
+          "count": 5,
+          "n": 68,
+          "problems": 40,
+          "share": 7.352941176470588,
+          "wilson": [
+            3.1814844251117997,
+            16.085188395717747
+          ]
+        },
+        "unexercised-edge": {
+          "cluster_ci": [
+            2.9839771729587365,
+            25.0
+          ],
+          "count": 9,
+          "n": 68,
+          "problems": 40,
+          "share": 13.235294117647058,
+          "wilson": [
+            7.122244410229806,
+            23.280059745657734
+          ]
+        },
+        "wrong-algorithm": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 68,
+          "problems": 40,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            5.347133652007054
+          ]
+        }
+      },
+      "n": 68,
+      "problems": 40
+    }
+  },
+  "prior_classification_of_consensus_ambiguous": {
+    "spec-misreading": 5,
+    "unexercised-edge": 39
+  },
+  "reblinded_L2_AMENDMENT_2": {
+    "L1_vs_L2R": {
+      "agree": 102,
+      "kappa": 0.8538691464629691,
+      "n": 110
+    },
+    "L2_retest": {
+      "changes": {
+        "b1:Mbpp/630": [
+          "ambiguous-oracle",
+          "other"
+        ],
+        "b2:Mbpp/630": [
+          "ambiguous-oracle",
+          "other"
+        ]
+      },
+      "kappa_first_vs_reblinded": 0.9625977558653519,
+      "n": 110,
+      "same": 108
+    },
+    "flagged_consensus": {
+      "ambiguous-oracle": 24,
+      "disputed": 2,
+      "timeout": 4,
+      "unexercised-edge": 23
+    },
+    "kill_restated": {
+      "ambiguous": 44,
+      "edge": 2,
+      "fires": true
+    },
+    "marginals_L2R": {
+      "ambiguous-oracle": 72,
+      "other": 2,
+      "timeout": 7,
+      "unexercised-edge": 29
+    },
+    "n": 110,
+    "oracle_clean_secondary_restated": {
+      "P_clean": 42,
+      "a_f": 24,
+      "a_r": 44,
+      "cluster_ci": [
+        50.0,
+        86.36363636363636
+      ],
+      "flagged_clean": 29,
+      "recall": 69.04761904761905,
+      "seed": 20260944,
+      "wilson": [
+        53.97400606391092,
+        80.92889714120513
+      ]
+    },
+    "recall_by_consensus_category_POST_HOC_restated": {
+      "ambiguous-oracle": {
+        "cluster_ci": [
+          22.058823529411764,
+          50.0
+        ],
+        "count": 24,
+        "n": 68,
+        "problems": 34,
+        "share": 35.294117647058826,
+        "wilson": [
+          25.001976884865197,
+          47.15894477748983
+        ]
+      },
+      "disputed": {
+        "cluster_ci": [
+          0.0,
+          50.0
+        ],
+        "count": 2,
+        "n": 8,
+        "problems": 4,
+        "share": 25.0,
+        "wilson": [
+          7.1479212752109,
+          59.07245696898311
+        ]
+      },
+      "other": {
+        "cluster_ci": [
+          0.0,
+          0.0
+        ],
+        "count": 0,
+        "n": 2,
+        "problems": 1,
+        "share": 0.0,
+        "wilson": [
+          0.0,
+          65.76197724933469
+        ]
+      },
+      "timeout": {
+        "cluster_ci": [
+          14.285714285714285,
+          100.0
+        ],
+        "count": 4,
+        "n": 7,
+        "problems": 4,
+        "share": 57.142857142857146,
+        "wilson": [
+          25.04583645276572,
+          84.17801447485303
+        ]
+      },
+      "unexercised-edge": {
+        "cluster_ci": [
+          75.0,
+          100.0
+        ],
+        "count": 23,
+        "n": 25,
+        "problems": 13,
+        "share": 92.0,
+        "wilson": [
+          75.03389104960469,
+          97.77795987151524
+        ]
+      }
+    },
+    "residual_consensus": {
+      "ambiguous-oracle": 44,
+      "disputed": 6,
+      "other": 2,
+      "timeout": 3,
+      "unexercised-edge": 2
+    }
+  },
+  "recall_by_consensus_category_POST_HOC": {
+    "ambiguous-oracle": {
+      "cluster_ci": [
+        22.058823529411764,
+        50.0
+      ],
+      "count": 24,
+      "n": 68,
+      "problems": 34,
+      "share": 35.294117647058826,
+      "wilson": [
+        25.001976884865197,
+        47.15894477748983
+      ]
+    },
+    "disputed": {
+      "cluster_ci": [
+        0.0,
+        40.0
+      ],
+      "count": 2,
+      "n": 10,
+      "problems": 5,
+      "share": 20.0,
+      "wilson": [
+        5.668215145437519,
+        50.983752846335825
+      ]
+    },
+    "timeout": {
+      "cluster_ci": [
+        14.285714285714285,
+        100.0
+      ],
+      "count": 4,
+      "n": 7,
+      "problems": 4,
+      "share": 57.142857142857146,
+      "wilson": [
+        25.04583645276572,
+        84.17801447485303
+      ]
+    },
+    "unexercised-edge": {
+      "cluster_ci": [
+        75.0,
+        100.0
+      ],
+      "count": 23,
+      "n": 25,
+      "problems": 13,
+      "share": 92.0,
+      "wilson": [
+        75.03389104960469,
+        97.77795987151524
+      ]
+    }
+  },
+  "reps": 10000,
+  "retest_on_the_11_overlapping_instances": {
+    "L1_same": 11,
+    "L2_same": 11,
+    "changes": {},
+    "n": 11
+  },
+  "seed": 20260914,
+  "study": "rerate"
+}
