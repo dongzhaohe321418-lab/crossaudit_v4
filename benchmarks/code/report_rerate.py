@@ -1,6 +1,6 @@
 """Study 21 — the residual re-rated with the oracle question asked first.
 
-Reads the two raters' label files and the blind sheet's key, joins them to ceiling 1's
+Reads the raters' label files and the sheets' keys, joins them to ceiling 1's
 residual classification (for residual membership and the problem cluster), and writes
 records/rerate/numbers.json and tables.md. Interval helpers are ceiling 1's (Wilson and
 the problem-cluster percentile bootstrap); the seed is this study's own.
