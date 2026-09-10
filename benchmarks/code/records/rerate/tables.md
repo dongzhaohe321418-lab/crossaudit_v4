@@ -12,8 +12,12 @@ Unit: the instance; primary interval the problem-cluster percentile bootstrap (s
 | sheet_68 | 68 (40) | `ambiguous-oracle` | 46 | **46 of 68** (67.6% [52.2, 82.1]; Wilson [55.8, 77.6]) |
 | sheet_68 | 68 (40) | `unexercised-edge` | 9 | **9 of 68** (13.2% [3.0, 25.0]; Wilson [7.1, 23.3]) |
 | sheet_68 | 68 (40) | `disputed` | 8 | **8 of 68** (11.8% [2.9, 23.0]; Wilson [6.1, 21.5]) |
+| flagged_P | 53 (33) | `timeout` | 4 | **4 of 53** (7.5% [0.0, 17.6]; Wilson [3.0, 17.9]) |
+| flagged_P | 53 (33) | `ambiguous-oracle` | 24 | **24 of 53** (45.3% [28.3, 63.3]; Wilson [32.7, 58.5]) |
+| flagged_P | 53 (33) | `unexercised-edge` | 23 | **23 of 53** (43.4% [25.0, 60.7]; Wilson [31.0, 56.7]) |
+| flagged_P | 53 (33) | `disputed` | 2 | **2 of 53** (3.8% [0.0, 10.0]; Wilson [1.0, 12.8]) |
 
-### Table 2 — the two raters
+### Table 2 — the two raters (disputed instances from both sheets)
 
 | raters | agree | n | Cohen κ (six categories) |
 |---|---:|---:|---:|
@@ -21,20 +25,39 @@ Unit: the instance; primary interval the problem-cluster percentile bootstrap (s
 
 | disputed instance | L1 | L2 |
 |---|---|---|
+| `b1:Mbpp/142` | ambiguous-oracle | unexercised-edge |
 | `b1:Mbpp/398` | ambiguous-oracle | unexercised-edge |
 | `b1:Mbpp/594` | unexercised-edge | ambiguous-oracle |
 | `b1:Mbpp/630` | other | ambiguous-oracle |
 | `b1:Mbpp/792` | unexercised-edge | ambiguous-oracle |
 | `b2:Mbpp/142` | ambiguous-oracle | unexercised-edge |
 | `b2:Mbpp/398` | ambiguous-oracle | unexercised-edge |
+| `b2:Mbpp/594` | unexercised-edge | ambiguous-oracle |
 | `b2:Mbpp/630` | other | ambiguous-oracle |
 | `b2:Mbpp/792` | unexercised-edge | ambiguous-oracle |
 
-### Table 3 — EXPLORATORY: ceiling 1's all-family union recall on an oracle-clean denominator
+| raters, flagged sheet | agree | n | Cohen κ |
+|---|---:|---:|---:|
+| L1 vs L2 | 51 | 53 | **0.933** |
 
-Assumption stated in the preregistration and repeated here: only the residual was re-rated; the 53 flagged instances are treated as oracle-clean, which they were never checked to be.
+Test-retest on the 11 instances both sheets carry (rated twice, blind both times, the flagged sheet's label used): L1 same 11 of 11, L2 same 11 of 11.
 
-| denominator | P | flagged by any draw | union recall at K_max | residual share |
-|---|---:|---:|---:|---:|
+### Table 3 — ceiling 1's all-family union recall on the oracle-clean denominator (Amendment 1 secondary)
+
+Rule: Amendment 1: (53 − a_f) / (110 − a_r − a_f); disputed count as not ambiguous. Interval: problem-cluster bootstrap over the 110 P instances' (flagged, ambiguous) pairs, seed 20260924; Wilson beside it.
+
+| denominator | P | flagged by any draw | union recall at K_max [95% cluster CI] (Wilson) | residual share |
+|---|---:|---:|---|---:|
 | registered (ceiling 1) | 110 | 53 | 48.2% | 51.8% |
-| oracle-clean (P minus 44 consensus-ambiguous residual instances) | 66 | 53 | 80.3% | 19.7% |
+| oracle-clean (minus 44 residual + 24 flagged consensus-ambiguous) | 42 | 29 | **69.0%** [50.0, 86.4] (Wilson [54.0, 80.9]) | 31.0% |
+
+### Table 4 — POST HOC: ceiling 1's union recall by the defect's consensus category
+
+Asked after Table 1's flagged counts were seen; not preregistered. Recall = flagged by any of the 20 draws.
+
+| consensus category | n P instances (problems) | flagged | recall [95% cluster CI] (Wilson) |
+|---|---:|---:|---|
+| `timeout` | 7 (4) | 4 | **4 of 7** (57.1% [14.3, 100.0]; Wilson [25.0, 84.2]) |
+| `ambiguous-oracle` | 68 (34) | 24 | **24 of 68** (35.3% [22.1, 50.0]; Wilson [25.0, 47.2]) |
+| `unexercised-edge` | 25 (13) | 23 | **23 of 25** (92.0% [75.0, 100.0]; Wilson [75.0, 97.8]) |
+| `disputed` | 10 (5) | 2 | **2 of 10** (20.0% [0.0, 40.0]; Wilson [5.7, 51.0]) |

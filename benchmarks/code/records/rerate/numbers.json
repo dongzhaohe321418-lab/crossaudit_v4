@@ -4,6 +4,11 @@
     "kappa": 0.721881390593047,
     "n": 68
   },
+  "agreement_flagged": {
+    "agree": 51,
+    "kappa": 0.9334170854271356,
+    "n": 53
+  },
   "categories": [
     "timeout",
     "ambiguous-oracle",
@@ -23,6 +28,10 @@
     "b2:Mbpp/792"
   ],
   "disputed_labels": {
+    "b1:Mbpp/142": [
+      "ambiguous-oracle",
+      "unexercised-edge"
+    ],
     "b1:Mbpp/398": [
       "ambiguous-oracle",
       "unexercised-edge"
@@ -47,6 +56,10 @@
       "ambiguous-oracle",
       "unexercised-edge"
     ],
+    "b2:Mbpp/594": [
+      "unexercised-edge",
+      "ambiguous-oracle"
+    ],
     "b2:Mbpp/630": [
       "other",
       "ambiguous-oracle"
@@ -55,16 +68,6 @@
       "unexercised-edge",
       "ambiguous-oracle"
     ]
-  },
-  "exploratory_oracle_clean": {
-    "P": 110,
-    "P_clean": 66,
-    "assumption": "only the residual was re-rated; the 53 flagged instances are treated as oracle-clean, which they were never checked to be",
-    "consensus_ambiguous_in_residual": 44,
-    "flagged": 53,
-    "residual_share_oracle_clean": 19.696969696969695,
-    "union_recall_oracle_clean": 80.3030303030303,
-    "union_recall_registered": 48.18181818181818
   },
   "kill": {
     "ambiguous": 44,
@@ -85,8 +88,42 @@
       "unexercised-edge": 12
     }
   },
+  "marginals_flagged": {
+    "L1": {
+      "ambiguous-oracle": 25,
+      "timeout": 4,
+      "unexercised-edge": 24
+    },
+    "L2": {
+      "ambiguous-oracle": 25,
+      "timeout": 4,
+      "unexercised-edge": 24
+    }
+  },
+  "n_flagged_sheet": 53,
   "n_residual": 57,
   "n_sheet": 68,
+  "oracle_clean_secondary": {
+    "P": 110,
+    "P_clean": 42,
+    "a_f": 24,
+    "a_r": 44,
+    "cluster_ci": [
+      50.0,
+      86.36363636363636
+    ],
+    "flagged": 53,
+    "flagged_clean": 29,
+    "recall": 69.04761904761905,
+    "residual_share_oracle_clean": 30.952380952380953,
+    "rule": "Amendment 1: (53 \u2212 a_f) / (110 \u2212 a_r \u2212 a_f); disputed count as not ambiguous",
+    "seed": 20260924,
+    "union_recall_registered": 48.18181818181818,
+    "wilson": [
+      53.97400606391092,
+      80.92889714120513
+    ]
+  },
   "populations": {
     "all_families_residual": {
       "consensus": {
@@ -191,6 +228,110 @@
       },
       "n": 57,
       "problems": 34
+    },
+    "flagged_P": {
+      "consensus": {
+        "ambiguous-oracle": {
+          "cluster_ci": [
+            28.30188679245283,
+            63.26530612244898
+          ],
+          "count": 24,
+          "n": 53,
+          "problems": 33,
+          "share": 45.283018867924525,
+          "wilson": [
+            32.65757915292224,
+            58.54602451289419
+          ]
+        },
+        "disputed": {
+          "cluster_ci": [
+            0.0,
+            10.0
+          ],
+          "count": 2,
+          "n": 53,
+          "problems": 33,
+          "share": 3.7735849056603774,
+          "wilson": [
+            1.0410287275826844,
+            12.754287197418353
+          ]
+        },
+        "other": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        },
+        "spec-misreading": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        },
+        "timeout": {
+          "cluster_ci": [
+            0.0,
+            17.647058823529413
+          ],
+          "count": 4,
+          "n": 53,
+          "problems": 33,
+          "share": 7.547169811320755,
+          "wilson": [
+            2.97395550869467,
+            17.858477483653225
+          ]
+        },
+        "unexercised-edge": {
+          "cluster_ci": [
+            25.0,
+            60.71428571428571
+          ],
+          "count": 23,
+          "n": 53,
+          "problems": 33,
+          "share": 43.39622641509434,
+          "wilson": [
+            30.950396559750292,
+            56.73464857239271
+          ]
+        },
+        "wrong-algorithm": {
+          "cluster_ci": [
+            0.0,
+            0.0
+          ],
+          "count": 0,
+          "n": 53,
+          "problems": 33,
+          "share": 0.0,
+          "wilson": [
+            0.0,
+            6.758198857654187
+          ]
+        }
+      },
+      "n": 53,
+      "problems": 33
     },
     "sheet_68": {
       "consensus": {
@@ -301,7 +442,71 @@
     "spec-misreading": 5,
     "unexercised-edge": 39
   },
+  "recall_by_consensus_category_POST_HOC": {
+    "ambiguous-oracle": {
+      "cluster_ci": [
+        22.058823529411764,
+        50.0
+      ],
+      "count": 24,
+      "n": 68,
+      "problems": 34,
+      "share": 35.294117647058826,
+      "wilson": [
+        25.001976884865197,
+        47.15894477748983
+      ]
+    },
+    "disputed": {
+      "cluster_ci": [
+        0.0,
+        40.0
+      ],
+      "count": 2,
+      "n": 10,
+      "problems": 5,
+      "share": 20.0,
+      "wilson": [
+        5.668215145437519,
+        50.983752846335825
+      ]
+    },
+    "timeout": {
+      "cluster_ci": [
+        14.285714285714285,
+        100.0
+      ],
+      "count": 4,
+      "n": 7,
+      "problems": 4,
+      "share": 57.142857142857146,
+      "wilson": [
+        25.04583645276572,
+        84.17801447485303
+      ]
+    },
+    "unexercised-edge": {
+      "cluster_ci": [
+        75.0,
+        100.0
+      ],
+      "count": 23,
+      "n": 25,
+      "problems": 13,
+      "share": 92.0,
+      "wilson": [
+        75.03389104960469,
+        97.77795987151524
+      ]
+    }
+  },
   "reps": 10000,
+  "retest_on_the_11_overlapping_instances": {
+    "L1_same": 11,
+    "L2_same": 11,
+    "changes": {},
+    "n": 11
+  },
   "seed": 20260914,
   "study": "rerate"
 }

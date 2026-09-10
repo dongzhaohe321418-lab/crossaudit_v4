@@ -64,33 +64,87 @@ def rate_block(hits: dict[str, int], seed: int) -> dict:
             "cluster_ci": [100 * lo, 100 * hi], "wilson": [100 * wl, 100 * wh]}
 
 
+def read_sheet(key_name: str, l1_name: str, l2_name: str) -> tuple[dict, dict]:
+    key = {r["id"]: r["instance"] for r in map(json.loads, (RECORDS / key_name).read_text().splitlines())}
+    l1 = read_labels(RECORDS / l1_name)
+    l2 = read_labels(RECORDS / l2_name)
+    assert set(l1) == set(l2) == set(key), f"{key_name}: the label files and the key disagree on ids"
+    return {key[i]: l1[i] for i in key}, {key[i]: l2[i] for i in key}
+
+
+def oracle_clean_recall(flagged: set[str], ambiguous: set[str], p_instances: list[str], seed: int) -> dict:
+    """Amendment 1's secondary: (flagged − ambiguous) / (P − ambiguous), problem-cluster bootstrap
+    over the P instances' (flagged, ambiguous) pairs. Disputed instances count as not ambiguous."""
+    pairs = {inst: (int(inst in flagged), int(inst in ambiguous)) for inst in p_instances}
+    by_cluster: dict[str, list[tuple[int, int]]] = {}
+    for inst, pr in pairs.items():
+        by_cluster.setdefault(problem_of(inst), []).append(pr)
+    def stat(rows):
+        num = sum(f for f, a in rows if not a)
+        den = sum(1 for f, a in rows if not a)
+        return 100 * num / den if den else None
+    point = stat(list(pairs.values()))
+    import random
+    rng = random.Random(seed)
+    clusters = sorted(by_cluster)
+    draws = []
+    for _ in range(BOOT_REPS):
+        rows = []
+        for _ in range(len(clusters)):
+            rows.extend(by_cluster[clusters[rng.randrange(len(clusters))]])
+        v = stat(rows)
+        if v is not None:
+            draws.append(v)
+    draws.sort()
+    lo, hi = draws[int(0.025 * len(draws))], draws[min(len(draws) - 1, int(0.975 * len(draws)))]
+    n_clean = sum(1 for f, a in pairs.values() if not a)
+    k_clean = sum(f for f, a in pairs.values() if not a)
+    wl, wh = wilson(k_clean, n_clean)
+    return {"flagged_clean": k_clean, "P_clean": n_clean, "recall": point, "cluster_ci": [lo, hi],
+            "wilson": [100 * wl, 100 * wh], "seed": seed}
+
+
 def build() -> dict:
-    key = {r["id"]: r["instance"] for r in map(json.loads, (RECORDS / "key.jsonl").read_text().splitlines())}
-    l1 = read_labels(RECORDS / "L1.csv")
-    l2 = read_labels(RECORDS / "L2.csv")
-    assert set(l1) == set(l2) == set(key), "the label files and the key disagree on ids"
+    inst_l1, inst_l2 = read_sheet("key.jsonl", "L1.csv", "L2.csv")
+    f_l1, f_l2 = read_sheet("key-flagged.jsonl", "L1-flagged.csv", "L2-flagged.csv")
+    # The residual sheet's 11 exploratory instances (flagged by the third family only) are
+    # flagged P instances, so both sheets carry them: the flagged sheet's label is the one used
+    # (Amendment 1's), and the pair of readings is reported as each rater's test-retest.
+    overlap = sorted(set(f_l1) & set(inst_l1))
+    retest = {"n": len(overlap),
+              "L1_same": sum(inst_l1[i] == f_l1[i] for i in overlap),
+              "L2_same": sum(inst_l2[i] == f_l2[i] for i in overlap),
+              "changes": {i: {"L1": [inst_l1[i], f_l1[i]], "L2": [inst_l2[i], f_l2[i]]}
+                          for i in overlap if inst_l1[i] != f_l1[i] or inst_l2[i] != f_l2[i]}}
+    l1 = {**inst_l1, **f_l1}; l2 = {**inst_l2, **f_l2}
     classification = json.load(open(CEILING / "residual_classification.json"))["classification"]
     residual = {inst for inst, v in classification.items() if not v["found_by_astra_only"]}
     assert len(residual) == RESIDUAL_ALL, len(residual)
-    inst_l1 = {key[i]: l1[i] for i in key}
-    inst_l2 = {key[i]: l2[i] for i in key}
-    consensus = {inst: inst_l1[inst] if inst_l1[inst] == inst_l2[inst] else "disputed" for inst in inst_l1}
+    flagged = set(f_l1)
+    assert len(flagged) == P_INSTANCES - RESIDUAL_ALL and not (flagged & residual)
+    consensus = {inst: l1[inst] if l1[inst] == l2[inst] else "disputed" for inst in l1}
+    consensus_sheet68 = {inst: inst_l1[inst] if inst_l1[inst] == inst_l2[inst] else "disputed" for inst in inst_l1}
     out = {
         "study": "rerate", "seed": BOOT_SEED, "reps": BOOT_REPS, "categories": CATEGORIES,
-        "n_sheet": len(key), "n_residual": len(residual),
+        "n_sheet": len(inst_l1), "n_residual": len(residual), "n_flagged_sheet": len(f_l1),
         "agreement": {"agree": sum(inst_l1[i] == inst_l2[i] for i in inst_l1), "n": len(inst_l1),
-                      "kappa": cohen_kappa(l1, l2)},
+                      "kappa": cohen_kappa(inst_l1, inst_l2)},
+        "agreement_flagged": {"agree": sum(f_l1[i] == f_l2[i] for i in f_l1), "n": len(f_l1),
+                              "kappa": cohen_kappa(f_l1, f_l2)},
         "disputed": sorted(i for i in inst_l1 if consensus[i] == "disputed"),
-        "disputed_labels": {i: [inst_l1[i], inst_l2[i]] for i in inst_l1 if consensus[i] == "disputed"},
+        "disputed_labels": {i: [l1[i], l2[i]] for i in l1 if consensus[i] == "disputed"},
         "marginals": {"L1": dict(Counter(inst_l1.values())), "L2": dict(Counter(inst_l2.values()))},
+        "marginals_flagged": {"L1": dict(Counter(f_l1.values())), "L2": dict(Counter(f_l2.values()))},
         "populations": {},
+        "retest_on_the_11_overlapping_instances": retest,
         "prior_classification_of_consensus_ambiguous": dict(Counter(
             classification[i]["category"] for i in residual if consensus[i] == "ambiguous-oracle")),
     }
-    for name, pop in (("all_families_residual", residual), ("sheet_68", set(inst_l1))):
+    for name, pop in (("all_families_residual", residual), ("sheet_68", set(inst_l1)), ("flagged_P", flagged)):
         block = {"n": len(pop), "problems": len({problem_of(i) for i in pop}), "consensus": {}}
+        cons = consensus_sheet68 if name == "sheet_68" else consensus
         for j, cat in enumerate(CATEGORIES + ["disputed"]):
-            hits = {i: int(consensus[i] == cat) for i in sorted(pop)}
+            hits = {i: int(cons[i] == cat) for i in sorted(pop)}
             block["consensus"][cat] = rate_block(hits, BOOT_SEED + j)
         out["populations"][name] = block
     res = out["populations"]["all_families_residual"]["consensus"]
@@ -101,16 +155,23 @@ def build() -> dict:
         "ambiguous": amb, "edge": edge,
         "fires": amb >= KILL_AMBIGUOUS_AT_LEAST or edge < KILL_EDGE_BELOW,
     }
-    flagged = P_INSTANCES - RESIDUAL_ALL
-    out["exploratory_oracle_clean"] = {
-        "assumption": "only the residual was re-rated; the 53 flagged instances are treated as "
-                      "oracle-clean, which they were never checked to be",
-        "flagged": flagged, "P": P_INSTANCES, "consensus_ambiguous_in_residual": amb,
-        "P_clean": P_INSTANCES - amb,
-        "union_recall_registered": 100 * flagged / P_INSTANCES,
-        "union_recall_oracle_clean": 100 * flagged / (P_INSTANCES - amb),
-        "residual_share_oracle_clean": 100 * (RESIDUAL_ALL - amb) / (P_INSTANCES - amb),
-    }
+    amb_f = out["populations"]["flagged_P"]["consensus"]["ambiguous-oracle"]["count"]
+    ambiguous = {i for i in l1 if consensus[i] == "ambiguous-oracle" and (i in residual or i in flagged)}
+    sec = oracle_clean_recall(flagged, ambiguous, sorted(residual | flagged), BOOT_SEED + 10)
+    sec.update({"rule": "Amendment 1: (53 − a_f) / (110 − a_r − a_f); disputed count as not ambiguous",
+                "a_r": amb, "a_f": amb_f, "flagged": len(flagged), "P": P_INSTANCES,
+                "union_recall_registered": 100 * len(flagged) / P_INSTANCES,
+                "residual_share_oracle_clean": 100 * (RESIDUAL_ALL - amb) / (P_INSTANCES - amb - amb_f)})
+    out["oracle_clean_secondary"] = sec
+    # POST HOC (not in the preregistration or Amendment 1): ceiling 1's union recall split by the
+    # consensus category of the defect — asked after the flagged sheet's counts were seen.
+    by_cat = {}
+    for j, cat in enumerate(CATEGORIES + ["disputed"]):
+        members = [i for i in sorted(residual | flagged) if consensus[i] == cat]
+        if not members:
+            continue
+        by_cat[cat] = rate_block({i: int(i in flagged) for i in members}, BOOT_SEED + 20 + j)
+    out["recall_by_consensus_category_POST_HOC"] = by_cat
     return out
 
 
@@ -126,28 +187,45 @@ def render_tables(n: dict) -> str:
              "`disputed` = the two raters differ; counted toward neither category.", "",
              "| population | n (problems) | category | consensus count | share [95% cluster CI] (Wilson) |",
              "|---|---:|---|---:|---|"]
-    for name, block in n["populations"].items():
+    for name in ("all_families_residual", "sheet_68", "flagged_P"):   # fixed order; JSON sorts keys
+        block = n["populations"][name]
         for cat in n["categories"] + ["disputed"]:
             b = block["consensus"][cat]
             if b["count"] == 0:
                 continue
             lines.append(f"| {name} | {block['n']} ({block['problems']}) | `{cat}` | {b['count']} | {fmt(b)} |")
     a = n["agreement"]
-    lines += ["", "### Table 2 — the two raters", "",
+    lines += ["", "### Table 2 — the two raters (disputed instances from both sheets)", "",
               "| raters | agree | n | Cohen κ (six categories) |", "|---|---:|---:|---:|",
               f"| L1 (author) vs L2 (`gpt-6-astra`, blind) | {a['agree']} | {a['n']} | **{a['kappa']:.3f}** |",
               "", "| disputed instance | L1 | L2 |", "|---|---|---|"]
     for inst, (x, y) in sorted(n["disputed_labels"].items()):
         lines.append(f"| `{inst}` | {x} | {y} |")
-    e = n["exploratory_oracle_clean"]
-    lines += ["", "### Table 3 — EXPLORATORY: ceiling 1's all-family union recall on an oracle-clean denominator", "",
-              f"Assumption stated in the preregistration and repeated here: {e['assumption']}.", "",
-              "| denominator | P | flagged by any draw | union recall at K_max | residual share |",
-              "|---|---:|---:|---:|---:|",
+    af = n["agreement_flagged"]; rt = n["retest_on_the_11_overlapping_instances"]
+    lines += ["", "| raters, flagged sheet | agree | n | Cohen κ |", "|---|---:|---:|---:|",
+              f"| L1 vs L2 | {af['agree']} | {af['n']} | **{af['kappa']:.3f}** |",
+              "", f"Test-retest on the {rt['n']} instances both sheets carry (rated twice, blind both times, "
+              f"the flagged sheet's label used): L1 same {rt['L1_same']} of {rt['n']}, L2 same {rt['L2_same']} of {rt['n']}."]
+    e = n["oracle_clean_secondary"]
+    lines += ["", "### Table 3 — ceiling 1's all-family union recall on the oracle-clean denominator (Amendment 1 secondary)", "",
+              f"Rule: {e['rule']}. Interval: problem-cluster bootstrap over the {e['P']} P instances' (flagged, ambiguous) "
+              f"pairs, seed {e['seed']}; Wilson beside it.", "",
+              "| denominator | P | flagged by any draw | union recall at K_max [95% cluster CI] (Wilson) | residual share |",
+              "|---|---:|---:|---|---:|",
               f"| registered (ceiling 1) | {e['P']} | {e['flagged']} | {e['union_recall_registered']:.1f}% | "
               f"{100 * n['n_residual'] / e['P']:.1f}% |",
-              f"| oracle-clean (P minus {e['consensus_ambiguous_in_residual']} consensus-ambiguous residual instances) | "
-              f"{e['P_clean']} | {e['flagged']} | {e['union_recall_oracle_clean']:.1f}% | {e['residual_share_oracle_clean']:.1f}% |"]
+              f"| oracle-clean (minus {e['a_r']} residual + {e['a_f']} flagged consensus-ambiguous) | "
+              f"{e['P_clean']} | {e['flagged_clean']} | **{e['recall']:.1f}%** [{e['cluster_ci'][0]:.1f}, {e['cluster_ci'][1]:.1f}] "
+              f"(Wilson [{e['wilson'][0]:.1f}, {e['wilson'][1]:.1f}]) | {e['residual_share_oracle_clean']:.1f}% |"]
+    bc = n["recall_by_consensus_category_POST_HOC"]
+    lines += ["", "### Table 4 — POST HOC: ceiling 1's union recall by the defect's consensus category", "",
+              "Asked after Table 1's flagged counts were seen; not preregistered. Recall = flagged by any of the 20 draws.", "",
+              "| consensus category | n P instances (problems) | flagged | recall [95% cluster CI] (Wilson) |", "|---|---:|---:|---|"]
+    for cat in CATEGORIES + ["disputed"]:   # fixed order; JSON sorts keys
+        if cat not in bc:
+            continue
+        b = bc[cat]
+        lines.append(f"| `{cat}` | {b['n']} ({b['problems']}) | {b['count']} | {fmt(b)} |")
     return "\n".join(lines) + "\n"
 
 
