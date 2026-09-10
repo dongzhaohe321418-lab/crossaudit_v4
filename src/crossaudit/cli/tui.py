@@ -86,14 +86,14 @@ def _visible(text: str) -> int:
 
 def banner(title: str, subtitle: str = "") -> None:
     print()
-    print(dim("╭" + "─" * (WIDTH - 2) + "╮"))
+    print(dim(glyph("╭", "+") + glyph("─", "-") * (WIDTH - 2) + glyph("╮", "+")))
     pad = WIDTH - 4 - _visible(title)
-    print(dim("│ ") + bold(title) + " " * max(0, pad) + dim(" │"))
+    print(dim(glyph("│", "|") + " ") + bold(title) + " " * max(0, pad) + dim(" " + glyph("│", "|")))
     if subtitle:
         for line in wrap(subtitle, WIDTH - 4):
-            print(dim("│ ") + dim(line) + " " * max(0, WIDTH - 4 - _visible(line))
+            print(dim(glyph("│", "|") + " ") + dim(line) + " " * max(0, WIDTH - 4 - _visible(line))
                   + dim(" │"))
-    print(dim("╰" + "─" * (WIDTH - 2) + "╯"))
+    print(dim(glyph("╰", "+") + glyph("─", "-") * (WIDTH - 2) + glyph("╯", "+")))
 
 
 def _break(word: str, width: int) -> list[str]:
@@ -242,7 +242,7 @@ def outcome_line(index: int, option: Option) -> str:
     answer anyone can report or scroll back to, so the menu states its result
     before it hands control back.
     """
-    return f"{dim('→')} " + t("select.chose", n=index + 1, label=option.label)
+    return f"{dim(glyph('→', '->'))} " + t("select.chose", n=index + 1, label=option.label)
 
 
 def select(title: str, options: list[Option], *, default: int = 0,
@@ -265,7 +265,7 @@ def select(title: str, options: list[Option], *, default: int = 0,
     """
     if not interactive():
         chosen = options[default]
-        print(f"  {title} {dim('→')} {default + 1}) {chosen.label} "
+        print(f"  {title} {dim(glyph('→', '->'))} {default + 1}) {chosen.label} "
               f"{dim(t('select.default'))}")
         return chosen.value
 
@@ -319,7 +319,7 @@ def text(prompt: str, default: str = "", *, placeholder: str = "") -> str:
     shown = dim(f" [{default}]") if default else (dim(f" {placeholder}")
                                                   if placeholder else "")
     try:
-        got = input(f"  {prompt}{shown}\n  {green('❯')} ").strip()
+        got = input(f"  {prompt}{shown}\n  {green(glyph('❯', '>'))} ").strip()
     except EOFError:
         return default
     return got or default
@@ -353,10 +353,10 @@ def secret(prompt: str, *, hide: bool | None = None) -> str:
     if hide:
         import getpass
 
-        value = getpass.getpass(f"  {prompt}\n  ❯ ").strip()
+        value = getpass.getpass(f"  {prompt}\n  {glyph('❯', '>')} ").strip()
     else:
         try:
-            value = input(f"  {prompt}\n  {green('❯')} ").strip()
+            value = input(f"  {prompt}\n  {green(glyph('❯', '>'))} ").strip()
         except EOFError:
             return ""
     if value:
@@ -378,8 +378,8 @@ def confirm(question: str, *, default: bool = True) -> bool:
 def panel(title: str, rows: list[str]) -> None:
     """A framed block for reviewing something before it is written."""
     print()
-    print(f"  {dim('┌─')} {bold(title)}")
+    print(f"  {dim(glyph('┌─', '+-'))} {bold(title)}")
     for row in rows:
         for line in wrap(row, WIDTH - 6):
-            print(f"  {dim('│')} {line}")
-    print(f"  {dim('└─')}")
+            print(f"  {dim(glyph('│', '|'))} {line}")
+    print(f"  {dim(glyph('└─', '+-'))}")

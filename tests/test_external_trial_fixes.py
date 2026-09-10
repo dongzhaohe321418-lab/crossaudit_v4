@@ -45,6 +45,14 @@ def test_the_repair_path_reads_only_N_is_allowed_and_sends_that_N():
     assert retry == {"model": "m", "temperature": 1.0}
 
 
+def test_an_only_N_mandate_about_another_field_does_not_touch_the_temperature():
+    """Review round 1: the mandate must be the temperature's own, not any 'only N is
+    allowed' in the body — here it is about `n`, and the temperature is left alone."""
+    exc = ProviderDenial("provider returned HTTP 400",
+                         detail={"detail": "temperature must be between 0 and 2; n: only 1 is allowed"})
+    assert openai_compat._repaired_payload({"model": "m", "temperature": 0, "n": 2}, exc) is None
+
+
 def test_the_repair_path_still_drops_a_deprecated_temperature():
     exc = ProviderDenial("provider returned HTTP 400",
                          detail={"detail": "temperature is deprecated for this model"})
@@ -54,16 +62,41 @@ def test_the_repair_path_still_drops_a_deprecated_temperature():
 
 # 2 ------------------------------------------------------------------------------------
 
-class _Console(io.StringIO):
-    """A stdout with a code page that cannot encode ✓ (GBK, as on the trial's console)."""
-    encoding = "gbk"
+def _gbk_console() -> io.TextIOWrapper:
+    """A real encoding stream: writing a character GBK lacks raises, as on the trial's console."""
+    return io.TextIOWrapper(io.BytesIO(), encoding="gbk", errors="strict", write_through=True)
 
 
-def test_the_ok_mark_falls_back_to_ascii_where_stdout_cannot_encode_it(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "stdout", _Console())
+def _written(stream: io.TextIOWrapper) -> str:
+    stream.flush()
+    return stream.buffer.getvalue().decode("gbk")
+
+
+def test_the_ok_mark_falls_back_to_ascii_where_stdout_cannot_encode_it(monkeypatch):
+    out = _gbk_console()
+    monkeypatch.setattr(sys, "stdout", out)
     assert tui.glyph("✓", "+") == "+"
     tui.ok("written")                       # must not raise UnicodeEncodeError
-    assert "+ written" in sys.stdout.getvalue()
+    assert "+ written" in _written(out)
+
+
+def test_the_whole_setup_flow_survives_a_gbk_console(monkeypatch):
+    """Review round 1: ok() was fixed but the text prompt's ❯ still raised. Every glyph the
+    wizard prints — banner box, arrows, prompt marks, section rules — must fall back."""
+    out = _gbk_console()
+    monkeypatch.setattr(sys, "stdout", out)
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr("builtins.input", lambda prompt="": (print(prompt, end=""), "typed")[1])
+    tui.banner("CrossAudit", "setup")
+    tui.step(1, 4, "the auditor")
+    tui.note("a note")
+    tui.warn("a warning")
+    assert tui.text("Base URL", placeholder="https://host/v1") == "typed"
+    assert tui.outcome_line(0, tui.Option("a", "A", "hint"))
+    text = _written(out)
+    # GBK has the box-drawing characters, so the banner stays Unicode; ❯ is not in GBK
+    # and became ">". What matters is that nothing raised and every prompt was printed.
+    assert "> " in text and "the auditor" in text and "Base URL" in text
 
 
 def test_the_ok_mark_stays_unicode_where_stdout_can_encode_it(monkeypatch):
@@ -95,3 +128,23 @@ def test_init_accepts_the_region_flag(tmp_path, monkeypatch):
                auditor_region="china", generator_vendor="human", profile="science")
     cfg = (target / "crossaudit.yml").read_text(encoding="utf-8")
     assert "base_url: https://api.moonshot.cn/v1" in cfg
+
+
+def test_the_cli_forwards_the_region_flag_to_the_wizard(tmp_path, monkeypatch):
+    """Review round 1: the earlier test called wizard.run directly, so dropping the CLI
+    forwarding would not have reddened anything."""
+    import argparse
+    import crossaudit.cli.main as main_mod
+    seen = {}
+
+    def fake_run(target, **kw):
+        seen.update(kw)
+        return {"config": str(tmp_path / "crossaudit.yml")}
+
+    monkeypatch.setattr(main_mod.wizard, "run", fake_run)
+    monkeypatch.setattr(main_mod, "_open_console", lambda root: {})
+    args = argparse.Namespace(path=str(tmp_path), github=False, force=False, no_console=True,
+                              json=False, auditor_vendor="moonshot", auditor_model="kimi-k2.6",
+                              auditor_region="china", generator_vendor="human")
+    assert main_mod.cmd_init(args) == 0
+    assert seen["auditor_region"] == "china"

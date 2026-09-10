@@ -41,6 +41,12 @@ def _denial_text(exc: ProviderDenial) -> str:
     return f"{exc.reason}\n{detail.get('detail', '')}".lower()
 
 
+#: "… temperature: only 1 is allowed" — the value, bound to the temperature clause
+#: (no clause separator between the word and the mandate).
+_ONLY_N_TEMPERATURE = re.compile(
+    r"temperature[^;.\n]{0,40}?only\s+([0-9]+(?:\.[0-9]+)?)\s+is\s+allowed")
+
+
 def _repaired_payload(payload: dict, exc: ProviderDenial) -> dict | None:
     said = _denial_text(exc)
     retry = dict(payload)
@@ -49,10 +55,13 @@ def _repaired_payload(payload: dict, exc: ProviderDenial) -> dict | None:
                     ("deprecated", "unsupported", "not support",
                      "only the default"))):
         retry.pop("temperature", None)
-    elif ("temperature" in retry and "temperature" in said
-          and (m := re.search(r"only\s+([0-9]+(?:\.[0-9]+)?)\s+is\s+allowed", said))):
+    elif ("temperature" in retry
+          and (m := _ONLY_N_TEMPERATURE.search(said))):
         # Moonshot: "invalid temperature: only 1 is allowed" — send the one
-        # value the origin names rather than dropping the field.
+        # value the origin names rather than dropping the field. The mandate
+        # must be about the temperature itself: the phrase is read only in the
+        # clause that names temperature, so "n: only 1 is allowed" elsewhere
+        # in the same body changes nothing (review of fix/external-trial-defects).
         retry["temperature"] = float(m.group(1))
     elif ("max_tokens" in retry and "max_tokens" in said
           and "max_completion_tokens" in said):
