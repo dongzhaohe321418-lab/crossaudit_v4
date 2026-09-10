@@ -120,8 +120,11 @@ so the join is by task id and the outcome is a **concordance, not a rate**:
    whose hand-written oracle docstring states the interpretation the authors chose.
 
 **Order of events, as observed.** This study's labels were committed at `d98f0c1`
-(residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass) before any external
-file was fetched. Nothing about the external sources could have reached the raters.
+(residual), `3aa97aa` (flagged) and `e654452` (the identity-stripped pass); the earliest
+external file on this machine was created after all three. Those are commit times and file
+creation times, and they establish that order and nothing more. They are not proof of what a
+rater knew: the fetches are untracked, and no record here can exclude prior awareness of a
+public paper.
 
 **What is computed.** `rerate/external_labels.py` transcribes both sources with their
 provenance; `rerate/external_join.py` joins them to this study's frozen per-instance labels,
